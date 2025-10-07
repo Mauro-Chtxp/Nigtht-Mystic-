@@ -1,7 +1,24 @@
+-- Loader que chama os dois em task.spawn, com proteção e cache-bypass
+local function safeLoad(url)
+    local HttpService = game:GetService("HttpService")
+    -- força burlar cache adicionando timestamp
+    local finalUrl = url .. "?t=" .. tostring(os.time())
+    local ok, res = pcall(function()
+        local code = game:HttpGet(finalUrl)
+        return loadstring(code)()
+    end)
+    if not ok then
+        warn("Erro ao carregar URL:", url, res)
+    end
+    return ok, res
+end
+
 task.spawn(function()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/Mauro-Chtxp/Nigtht-Mystic-/refs/heads/main/FastAttack"))()
+    safeLoad("https://raw.githubusercontent.com/Mauro-Chtxp/Nigtht-Mystic-/main/FastAttack")
 end)
 
 task.spawn(function()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/Mauro-Chtxp/Nigtht-Mystic-/refs/heads/main/Loader"))()
+    -- se o Loader depende do FastAttack, descomenta a linha abaixo:
+    -- task.wait(1) -- espera 1s pra garantir o outro carregar
+    safeLoad("https://raw.githubusercontent.com/Mauro-Chtxp/Nigtht-Mystic-/main/Loader")
 end)
