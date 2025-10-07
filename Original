@@ -1,0 +1,15 @@
+loadstring([[
+--========================[ Night Mystic + FastAttack Unificado ]========================--
+
+-- Night Mystic
+task.spawn(function()
+    local NightMysticCode = game:HttpGet("https://raw.githubusercontent.com/Mauro-Chtxp/Nigtht-Mystic-/refs/heads/main/Lua")
+    loadstring(NightMysticCode)()
+end)
+
+-- FastAttack
+task.spawn(function()
+    local FastAttackCode = game:HttpGet("https://raw.githubusercontent.com/Mauro-Chtxp/Nigtht-Mystic-/refs/heads/main/FastAttack")
+    loadstring(FastAttackCode)()
+end)
+]])()
