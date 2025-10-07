@@ -1,7 +1,0 @@
--- Night Mystic
-loadstring(game:HttpGet("https://raw.githubusercontent.com/Mauro-Chtxp/Nigtht-Mystic-/refs/heads/main/Luau"))()
-
--- FastAttack
-task.spawn(function()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/Mauro-Chtxp/Nigtht-Mystic-/refs/heads/main/FastAttack"))()
-end)
