@@ -13,12 +13,12 @@ local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/
 local Window =
     Fluent:CreateWindow(
     {
-        Title = "PhatCrystal Hub[Free]",
-        SubTitle = "Make by @phat_crystal",
+        Title = "plaything ",
+        SubTitle = "By Karma",
         TabWidth = 160,
         Size = UDim2.fromOffset(530, 350),
         Acrylic = false,
-        Theme = "Dark",
+        Theme = "Darker",
         MinimizeKey = Enum.KeyCode.End
     }
 )
@@ -73,7 +73,7 @@ do
     b.Position = UDim2.new(0.103761353, 0, 0.214939028, 0)
     b.Size = UDim2.new(0, 50, 0, 50)
     b.Draggable = true
-    b.Image = "rbxassetid://106595114856025"
+    b.Image = "rbxassetid://5593060461"
     c.Parent = b
     local function d()
         local e = Instance.new("LocalScript", b)
@@ -102,7 +102,7 @@ do
     game:GetService("StarterGui"):SetCore(
         "SendNotification",
         {
-            Title = "Phat Crystal Hub",
+            Title = "Loader :3",
             Text = "Loaded Success",
             Duration = 10
         }
