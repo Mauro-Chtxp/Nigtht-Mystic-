@@ -2009,7 +2009,7 @@
 		TabWidth = 160,
 		Theme = "Dark",
 		Acrylic = false,
-		Size = UDim2.fromOffset(450, 425),
+		Size = UDim2.fromOffset(450,425),
 		MinimizeKey = Enum.KeyCode.End
 	})
 
