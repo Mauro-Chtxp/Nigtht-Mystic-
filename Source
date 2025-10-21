@@ -2310,16 +2310,16 @@ Tabs.Info:AddParagraph({
 })
 
 Tabs.Discord:AddButton({
-    Title = "Link Discord NighttShadow",
-    Description = "Discord NighttShadow",
+    Title = "Link Discord NightShadow",
+    Description = "Discord NightShadow",
     Callback = function()
         setclipboard("https://discord.gg/nightshadow")
     end
 })
 
 Tabs.Discord:AddButton({
-    Title = "YouTube NighttShadow",
-    Description = "YouTube NighttShadow",
+    Title = "Link YouTube NightShadow",
+    Description = "YouTube NigthtShadow",
     Callback = function()
         setclipboard("https://youtube.com/@nightshadowzz?si=IAdyZKK0LxsVj1W8")
     end
