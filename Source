@@ -2124,7 +2124,7 @@ end)
 	}),
 	Raids = Window:AddTab({
 		Title = "Raids",
-		Icon = "torch"
+		Icon = "axe"
 	}),
 	Combat = Window:AddTab({
 		Title = "Visual",
