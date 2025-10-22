@@ -551,7 +551,7 @@
 		t.WaterTransparency = 0
 		l.GlobalShadows = true
 		l.FogEnd = 9e9
-		l.Brightness = 0
+		l.Brightness = 2
 		settings().Rendering.QualityLevel = "Level01"
 		for i, v in pairs(g:GetDescendants()) do
 			if v:IsA("Part") or v:IsA("Union") or v:IsA("CornerWedgePart") or v:IsA("TrussPart") then
@@ -8341,118 +8341,87 @@ Tabs.Info:AddParagraph({
 		end
 	end)
 	local Vocan = Tabs.Prehistoric:AddToggle("Vocan", {
-	Title = "Auto Patch Prehistoric Event",
-	Description = "turn on for auto patch volcano + kill aura lava golems + auto remove lava",
-	Default = false
-})
-Vocan:OnChanged(function(Value)
-	_G.Prehis_Skills = Value
-	if Value then
-		removeLava()
-		Fluent:Notify({
-			Title = "Prehistoric Event",
-			Content = "🔥 Lava removida com sucesso!",
-			Duration = 4
-		})
-	end
-end)
-
-local function removeLava()
-	local interiorLava = game.Workspace.Map.PrehistoricIsland.Core:FindFirstChild("InteriorLava")
-	if interiorLava and interiorLava:IsA("Model") then
-		interiorLava:Destroy()
-	end
-
-	local prehistoricIsland = game.Workspace.Map:FindFirstChild("PrehistoricIsland")
-	if prehistoricIsland then
-		for _, part in pairs(prehistoricIsland:GetDescendants()) do
-			if part:IsA("Part") and part.Name:lower():find("lava") then
-				part:Destroy()
-			end
-		end
-		for _, mesh in pairs(prehistoricIsland:GetDescendants()) do
-			if mesh:IsA("MeshPart") and mesh.Name:lower():find("lava") then
-				mesh:Destroy()
-			end
-		end
-	end
-end
-
-spawn(function()
-	while wait() do
-		if _G.Prehis_Skills then
-			local prehistoricIsland = game.Workspace.Map:FindFirstChild("PrehistoricIsland")
-			if prehistoricIsland then
-				for _, obj in pairs(prehistoricIsland:GetDescendants()) do
-					if obj:IsA("Part") and obj.Name:lower():find("lava") then
-						obj:Destroy()
+		Title = "Auto Patch Prehistoric Event",
+		Description = "turn on for auto patch volcano + kill aura lava golems + auto remove lava",
+		Default = false
+	})
+	Vocan:OnChanged(function(Value)
+		_G.Prehis_Skills = Value
+	end)
+	spawn(function()
+		while wait() do
+			if _G.Prehis_Skills then
+				local prehistoricIsland = game.Workspace.Map:FindFirstChild("PrehistoricIsland")
+				if prehistoricIsland then
+					for _, obj in pairs(prehistoricIsland:GetDescendants()) do
+						if obj:IsA("Part") and obj.Name:lower():find("lava") then
+							obj:Destroy()
+						end
+						if obj:IsA("MeshPart") and obj.Name:lower():find("lava") then
+							obj:Destroy()
+						end
 					end
-					if obj:IsA("MeshPart") and obj.Name:lower():find("lava") then
-						obj:Destroy()
+					local lavaModel = game.Workspace.Map.PrehistoricIsland.Core:FindFirstChild("InteriorLava")
+					if lavaModel and lavaModel:IsA("Model") then
+						lavaModel:Destroy()
 					end
-				end
-				local lavaModel = game.Workspace.Map.PrehistoricIsland.Core:FindFirstChild("InteriorLava")
-				if lavaModel and lavaModel:IsA("Model") then
-					lavaModel:Destroy()
-				end
-				local Island = workspace.Map:FindFirstChild("PrehistoricIsland")
-				if Island then
-					local trialTeleport = workspace.Map.PrehistoricIsland:FindFirstChild("TrialTeleport")
-					for _, v in pairs(Island:GetDescendants()) do
-						if v.Name == "TouchInterest" then
-							if not (trialTeleport and v:IsDescendantOf(trialTeleport)) then
-								v.Parent:Destroy()
+					local Island = workspace.Map:FindFirstChild("PrehistoricIsland")
+					if Island then
+						local trialTeleport = workspace.Map.PrehistoricIsland:FindFirstChild("TrialTeleport")
+						for _, v in pairs(Island:GetDescendants()) do
+							if v.Name == "TouchInterest" then
+								if not (trialTeleport and v:IsDescendantOf(trialTeleport)) then
+									v.Parent:Destroy()
+								end
 							end
 						end
 					end
 				end
 			end
 		end
-	end
-end)
-
-spawn(function()
-	while wait() do
-		pcall(function()
-			if _G.Prehis_Skills then
-				if workspace.Enemies:FindFirstChild("Lava Golem") then
-					local v = GetConnectionEnemies("Lava Golem")
-					if v then
-						repeat
-							wait()
-							Attack.Kill(v, _G.Prehis_Skills)
-							v.Humanoid:ChangeState(15)
-						until not _G.Prehis_Skills or not v.Parent or v.Humanoid.Health <= 0
-					end
-				end
-				for i, v in pairs(game.Workspace.Map.PrehistoricIsland.Core.VolcanoRocks:GetChildren()) do
-					if v:FindFirstChild("VFXLayer") then
-						if v:FindFirstChild("VFXLayer").At0.Glow.Enabled == true or v.VFXLayer.At0.Glow.Enabled == true then
+	end)
+	spawn(function()
+		while wait() do
+			pcall(function()
+				if _G.Prehis_Skills then
+					if workspace.Enemies:FindFirstChild("Lava Golem") then
+						local v = GetConnectionEnemies("Lava Golem")
+						if v then
 							repeat
 								wait()
-								_tp(v.VFXLayer.CFrame)
-								if v.VFXLayer.At0.Glow.Enabled == true and plr:DistanceFromCharacter(v.VFXLayer.CFrame.Position) <= 150 then
-									MousePos = v.VFXLayer.CFrame.Position
-									Useskills("Melee", "Z")
-									wait(.5)
-									Useskills("Melee", "X")
-									wait(.5)
-									Useskills("Melee", "C")
-									wait(.5)
-									Useskills("Blox Fruit", "Z")
-									wait(.5)
-									Useskills("Blox Fruit", "X")
-									wait(.5)
-									Useskills("Blox Fruit", "C")
-								end
-							until not _G.Prehis_Skills or v:FindFirstChild("VFXLayer").At0.Glow.Enabled == false or v.VFXLayer.At0.Glow.Enabled == false
+								Attack.Kill(v, _G.Prehis_Skills)
+								v.Humanoid:ChangeState(15)
+							until not _G.Prehis_Skills or not v.Parent or v.Humanoid.Health <= 0
+						end
+					end
+					for i, v in pairs(game.Workspace.Map.PrehistoricIsland.Core.VolcanoRocks:GetChildren()) do
+						if v:FindFirstChild("VFXLayer") then
+							if v:FindFirstChild("VFXLayer").At0.Glow.Enabled == true or v.VFXLayer.At0.Glow.Enabled == true then
+								repeat
+									wait()
+									_tp(v.VFXLayer.CFrame)
+									if v.VFXLayer.At0.Glow.Enabled == true and plr:DistanceFromCharacter(v.VFXLayer.CFrame.Position) <= 150 then
+										MousePos = v.VFXLayer.CFrame.Position
+										Useskills("Melee", "Z")
+										wait(.5)
+										Useskills("Melee", "X")
+										wait(.5)
+										Useskills("Melee", "C")
+										wait(.5)
+										Useskills("Blox Fruit", "Z")
+										wait(.5)
+										Useskills("Blox Fruit", "X")
+										wait(.5)
+										Useskills("Blox Fruit", "C")
+									end
+								until not _G.Prehis_Skills or v:FindFirstChild("VFXLayer").At0.Glow.Enabled == false or v.VFXLayer.At0.Glow.Enabled == false
+							end
 						end
 					end
 				end
-			end
-		end)
-	end
-end)
+			end)
+		end
+	end)
 	local Vocan = Tabs.Prehistoric:AddToggle("Vocan", {
 		Title = "Auto Collect Dino Bones",
 		Description = "",
