@@ -551,7 +551,7 @@
 		t.WaterTransparency = 0
 		l.GlobalShadows = true
 		l.FogEnd = 9e9
-		l.Brightness = 2
+		l.Brightness = 0
 		settings().Rendering.QualityLevel = "Level01"
 		for i, v in pairs(g:GetDescendants()) do
 			if v:IsA("Part") or v:IsA("Union") or v:IsA("CornerWedgePart") or v:IsA("TrussPart") then
