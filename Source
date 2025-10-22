@@ -2302,12 +2302,28 @@ Tabs.Info:AddParagraph({
 })
 
 	Tabs.Discord:AddButton({
-		Title = "Link Join Sever Discord",
-		Description = "Nosso Servidor do discord",
-		Callback = function()
-			setclipboard(tostring("https://discord.gg/pjEeHmk9P"))
-		end
-	})
+    Title = "Link Join Server Discord",
+    Description = "Nosso Servidor do Discord",
+    Callback = function()
+        setclipboard("https://discord.gg/pjEeHmk9P")
+    end
+})
+
+Tabs.Discord:AddButton({
+    Title = "Link Join Server NightShadow Discord",
+    Description = "Discord NightShadow",
+    Callback = function()
+        setclipboard("https://discord.gg/nightshadow")
+    end
+})
+
+Tabs.Discord:AddButton({
+    Title = "YouTube NightShadow",
+    Description = "YouTube NightShadow",
+    Callback = function()
+        setclipboard("https://youtube.com/@nightshadowzz?si=IAdyZKK0LxsVj1W8")
+    end
+})
 	local ReplicatedStorage = game:GetService("ReplicatedStorage")
 	local Players = game:GetService("Players")
 	if World3 then
