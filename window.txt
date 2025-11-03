@@ -2005,9 +2005,9 @@ local Window = Fluent:CreateWindow({
     Title = "Ghost Ware",
     SubTitle = "by anonymous",
     TabWidth = 145,
-    Theme = "AMOLED",
+    Theme = "Aqua",
     Acrylic = false,
-    Size = UDim2.fromOffset(450, 337),
+    Size = UDim2.fromOffset(425, 337),
     MinimizeKey = Enum.KeyCode.End,
     UserInfo = true,
     UserInfoTop = true,
@@ -2023,7 +2023,7 @@ screenGui.Parent = game.CoreGui
 local toggleButton = Instance.new("ImageButton")
 toggleButton.Size = UDim2.new(0, 50, 0, 50)
 toggleButton.Position = UDim2.new(0.15, 0, 0.15, 0)
-toggleButton.Image = "rbxassetid://4911164158" -- sua imagem
+toggleButton.Image = "rbxassetid://17243177911" -- sua imagem
 toggleButton.ScaleType = Enum.ScaleType.Fit
 toggleButton.BackgroundColor3 = Color3.fromRGB(0, 102, 255) -- cor de fundo (caso a imagem tenha transparência)
 toggleButton.Parent = screenGui
@@ -2113,7 +2113,7 @@ end)
 	}),
 	
 	Quests = Window:AddTab({
-		Title = "Farm Outros",
+		Title = "Stack Farm",
 		Icon = "scroll"
 	}),
 	SeaEvent = Window:AddTab({
@@ -2130,7 +2130,7 @@ end)
 	}),
 	Prehistoric = Window:AddTab({
 		Title = "Prehistoric",
-		Icon = "skull"
+		Icon = "zap"
 	}),
 	Raids = Window:AddTab({
 		Title = "Raids",
