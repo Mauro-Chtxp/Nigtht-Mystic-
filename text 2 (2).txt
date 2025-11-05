@@ -1,6 +1,4 @@
-loadstring(game:HttpGet("https://raw.githubusercontent.com/AnhDzaiScript/Setting/refs/heads/main/FastMax.lua"))()
--- Dump By HuyDoo (friend HNC)
--- https://discord.gg/wa52S9VvPP
+
 do
   ply = game.Players
   plr = ply.LocalPlayer
@@ -656,9 +654,9 @@ QuestNeta = function()
   }
 end
 
-local Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/AnhTuanDzai-Hub/UIMenu/refs/heads/main/TuanAnhIOS/Uifluent.lua"))()
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 local Window = Fluent:CreateWindow({
-    Title="Ghost Ware",
+    Title="Night Mystic [Descontinuado]",
     SubTitle="https://discord.gg/nightshadow", 
     TabWidth=160, 
     Theme="Darker",
