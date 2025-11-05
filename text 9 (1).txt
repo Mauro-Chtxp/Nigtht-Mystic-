@@ -66,7 +66,9 @@ local placeId = game.PlaceId
 local worldMap = {
     [2753915549] = true,
     [4442272183] = true,
-    [7449423635] = true
+    [7449423635] = true,
+    [79091703265657] = true,
+    [100117331123089] = true
 }
 if worldMap[placeId] then
     if placeId == 2753915549 then
