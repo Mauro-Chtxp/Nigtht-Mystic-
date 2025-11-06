@@ -2004,7 +2004,7 @@ Sea = World1 or World2 or World3 or plr:Kick("❌ Error : A[12]Blox Fruits ❌")
 local Window = Fluent:CreateWindow({
     Title = "Night Mystic",
     SubTitle = "by anonymous",
-    TabWidth = 170,
+    TabWidth = 160,
     Theme = "Darker",
     Acrylic = false,
     Size = UDim2.fromOffset(480, 360),
@@ -2090,21 +2090,30 @@ end)
 		Title = "Discord",
 		Icon = "message-circle"
 	}),
+	
 	Server = Window:AddTab({
 		Title = "Server",
 		Icon = "server"
 	}),
+	
 	Main = Window:AddTab({
 		Title = "Main",
 		Icon = "home"
 	}),
+	
 	Settings = Window:AddTab({
 		Title = "Settings",
 		Icon = "settings"
 	}),
+	
 	Melee = Window:AddTab({
 		Title = "Fighting Styles V2",
 		Icon = "swords"
+	}),
+	
+	Fishing = Window:AddTab({
+		Title = "Fishing",
+		Icon = "fish"
 	}),
 	
 	Fruit = Window:AddTab({
@@ -2116,38 +2125,47 @@ end)
 		Title = "Farm Outros",
 		Icon = "scroll"
 	}),
+	
 	SeaEvent = Window:AddTab({
 		Title = "Sea Events",
 		Icon = "waves"
 	}),
+	
 	Mirage = Window:AddTab({
 		Title = "Race V4",
 		Icon = "moon"
 	}),
+	
 	Drago = Window:AddTab({
 		Title = "Dragon Dojo",
 		Icon = "flame"
 	}),
+	
 	Prehistoric = Window:AddTab({
 		Title = "Prehistoric",
 		Icon = "skull"
 	}),
+	
 	Raids = Window:AddTab({
 		Title = "Raids",
 		Icon = "axe"
 	}),
+	
 	Combat = Window:AddTab({
 		Title = "Pvp",
 		Icon = "crosshair"
 	}),
+	
 	Travel = Window:AddTab({
 		Title = "Travel",
 		Icon = "map-pin"
 	}),
+	
 	Shop = Window:AddTab({
 		Title = "Shop",
 		Icon = "shopping-cart"
 	}),
+	
 	Misc = Window:AddTab({
 		Title = "Misc",
 		Icon = "package"
