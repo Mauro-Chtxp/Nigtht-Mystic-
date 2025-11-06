@@ -2555,7 +2555,7 @@ Tabs.Discord:AddButton({
 	Title = "Link Join Sever Discord",
 	Description = "Nosso Servidor do discord",
 	Callback = function()
-		setclipboard(tostring("https://discord.gg/pGYH2MCpc"))
+		setclipboard(tostring("https://discord.gg/2Ys72wRX"))
 	end
 })
 	local ReplicatedStorage = game:GetService("ReplicatedStorage")
