@@ -2311,12 +2311,14 @@ Tabs.Info:AddParagraph({
 	Content = "Tab Shop Not Working"
 })
 
--- 🔘 Botão para executar o script
+-- 🔘 Botão para executar o script sem travar
 Tabs.Info:AddButton({
 	Title = "Execute Night Mystic Fishing Version",
 	Description = "Executa o script de pesca automática (Night Mystic)",
 	Callback = function()
-		loadstring(game:HttpGet("https://pastefy.app/gIUczsx4/raw"))()
+		task.spawn(function()
+			loadstring(game:HttpGet("https://pastefy.app/gIUczsx4/raw"))()
+		end)
 	end
 })
 
