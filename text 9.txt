@@ -9417,82 +9417,63 @@ Q = Tabs.Raids:AddToggle("Q", {
     Description = "",
     Default = false
 })
-Q:OnChanged(function(value)
-    _G.Dungeon = value
-    getgenv().SafeMode = value
-    StopTween(_G.Dungeon)
+Q:OnChanged(function(Value)
+    _G.Raiding = Value
 end)
 
-function IsIslandRaid(cu)
-    local locations = game:GetService("Workspace")["_WorldOrigin"].Locations
-    if locations:FindFirstChild("Island " .. cu) then
-        local min = 4500
-        for _, v in pairs(locations:GetChildren()) do
-            if v.Name == "Island " .. cu then
-                local dist = (v.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
-                if dist < min then
-                    min = dist
-                end
-            end
-        end
-        for _, v in pairs(locations:GetChildren()) do
-            if v.Name == "Island " .. cu then
-                local dist = (v.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
-                if dist <= min then
-                    return v
-                end
-            end
-        end
-    end
-end
-
-function getNextIsland()
-    local TableIslandsRaid = {5, 4, 3, 2, 1}
-    for _, v in pairs(TableIslandsRaid) do
-        if IsIslandRaid(v) then
-            local island = IsIslandRaid(v)
-            local dist = (island.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
-            if dist <= 4500 then
-                return island
-            end
-        end
-    end
-end
-
-function attackNearbyEnemies()
-    local enemies = {}
-    for _, v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
-        if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
-            local distance = (v.HumanoidRootPart.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
-            if distance <= 1000 then
-                table.insert(enemies, v)
-            end
-        end
-    end
-
-    for _, enemy in pairs(enemies) do
-        repeat
-            if enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then
-                EquipWeapon(_G.SelectWeapon)
-                topos(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
-                wait(0.1)
-            end
-        until not enemy:FindFirstChild("Humanoid") or enemy.Humanoid.Health <= 0
-    end
-end
-
 spawn(function()
-    while wait() do
-        if _G.Dungeon then
-            attackNearbyEnemies()
-            local nextIsland = getNextIsland()
-            if nextIsland then
-                spawn(function()
-                    topos(nextIsland.CFrame * CFrame.new(0, 60, 0))
-                end)
+    pcall(function()
+        while wait(Sec) do
+            if _G.Raiding then
+                if plr.PlayerGui.Main.TopHUDList.RaidTimer.Visible == true then
+                    local islands = {
+                        "Island 5",
+                        "Island 4",
+                        "Island 3",
+                        "Island 2",
+                        "Island 1"
+                    }
+                    
+                    local foundEnemies = false
+                    
+                    for _, island in ipairs(islands) do
+                        local location = game:GetService("Workspace")["_WorldOrigin"].Locations:FindFirstChild(island)
+                        if location then
+                            
+                            -- FARM HẾT TẤT CẢ QUÁI Ở ISLAND NÀY
+                            for i, v in pairs(workspace.Enemies:GetChildren()) do
+                                if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") then
+                                    if v.Humanoid.Health > 0 then
+                                        local distance = (v.HumanoidRootPart.Position - location.Position).Magnitude
+                                        if distance < 500 then
+                                            foundEnemies = true
+                                            repeat
+                                                wait()
+                                                Attack.Kill(v, _G.Raiding)
+                                            until not _G.Raiding or not v.Parent or v.Humanoid.Health <= 0
+                                        end
+                                    end
+                                end
+                            end
+                            
+                            -- Nếu đã farm quái ở island này, break để check lại từ đầu
+                            if foundEnemies then
+                                break
+                            end
+                        end
+                    end
+                    
+                    -- Set NextIs chỉ khi KHÔNG tìm thấy quái
+                    NextIs = not foundEnemies
+                    
+                else
+                    NextIs = false
+                end
+            else
+                NextIs = false
             end
         end
-    end
+    end)
 end)
 	local Q = Tabs.Raids:AddToggle("Q", {
 		Title = "Auto Next Island",
