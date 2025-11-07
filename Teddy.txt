@@ -314,24 +314,53 @@ getgenv().lasttarrget = nil
 getgenv().checked = {}
 getgenv().pl = game.Players:GetPlayers()
 getgenv().killed = nil
--- Định nghĩa thế giới và cấu hình đảo
+
+-- ATUALIZAÇÃO: Definição e Configuração dos Mundos (World1, World2, World3)
 local placeId = game.PlaceId
-local worldMap = {
-    [2753915549] = true,
-    [4442272183] = true,
-    [7449423635] = true
-}
-if worldMap[placeId] then
-    if placeId == 2753915549 then
+local World1 = false
+local World2 = false
+local World3 = false
+
+-- Place IDs adicionais foram incluídos aqui, conforme solicitado
+local world1_ids = {2753915549}
+local world2_ids = {4442272183, 79091703265657}
+local world3_ids = {7449423635, 100117331123089}
+
+local is_supported = false
+
+for _, id in ipairs(world1_ids) do
+    if placeId == id then
         World1 = true
-    elseif placeId == 4442272183 then
-        World2 = true
-    elseif placeId == 7449423635 then
-        World3 = true
+        is_supported = true
+        break
     end
-else
+end
+
+if not is_supported then
+    for _, id in ipairs(world2_ids) do
+        if placeId == id then
+            World2 = true
+            is_supported = true
+            break
+        end
+    end
+end
+
+if not is_supported then
+    for _, id in ipairs(world3_ids) do
+        if placeId == id then
+            World3 = true
+            is_supported = true
+            break
+        end
+    end
+end
+
+if not is_supported then
     game:GetService("Players").LocalPlayer:Kick("Not Support Game")
-			end
+end
+-- Fim da atualização
+
 -- Cấu hình đảo dựa trên thế giới
 local distbyp, island
 if World3 then 
