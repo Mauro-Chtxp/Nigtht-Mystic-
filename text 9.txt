@@ -1999,17 +1999,17 @@ Sea = World1 or World2 or World3 or plr:Kick("❌ Error : A[12]Blox Fruits ❌")
 		}
 	end
 
-	local Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/discoart/FluentPlus/refs/heads/main/Beta.lua"))()
+	local Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/LongHip12/LonelyHub/refs/heads/main/UILibrary/main.lua"))()
 local Window = Fluent:CreateWindow({
     Title = "Night Mystic",
     SubTitle = "by anonymous",
     TabWidth = 160,
-    Theme = "Darker",
+    Theme = "Vynixu",
     Acrylic = false,
-    Size = UDim2.fromOffset(470, 360),
+    Size = UDim2.fromOffset(350, 350),
     MinimizeKey = Enum.KeyCode.End,
-    UserInfo = false,
-    UserInfoTop = false,
+    UserInfo = true,
+    UserInfoTop = true,
     UserInfoTitle = game.Players.LocalPlayer.DisplayName,
     UserInfoSubtitle = "Player",
     UserInfoSubtitleColor = Color3.fromRGB(71, 123, 255)
