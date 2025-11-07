@@ -447,8 +447,8 @@ Sea = World1 or World2 or World3 or plr:Kick("❌ Error : A[12]Blox Fruits ❌")
 				if (v.PrimaryPart.Position - PosMon).Magnitude <= 225 then
 					v.PrimaryPart.CFrame = CFrame.new(PosMon)
 					v.PrimaryPart.CanCollide = true;
-					v:FindFirstChild("Humanoid").WalkSpeed = 0;
-					v:FindFirstChild("Humanoid").JumpPower = 0;
+					v:FindFirstChild("Humanoid").WalkSpeed = 5;
+					v:FindFirstChild("Humanoid").JumpPower = 5;
 					if v.Humanoid:FindFirstChild("Animator") then
 						v.Humanoid.Animator:Destroy()
 					end;
