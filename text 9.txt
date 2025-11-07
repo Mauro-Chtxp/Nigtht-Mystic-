@@ -2009,7 +2009,7 @@ local Window = Fluent:CreateWindow({
     Size = UDim2.fromOffset(470, 360),
     MinimizeKey = Enum.KeyCode.End,
     UserInfo = true,
-    UserInfoTop = false,
+    UserInfoTop = true,
     UserInfoTitle = game.Players.LocalPlayer.DisplayName,
     UserInfoSubtitle = "Player",
     UserInfoSubtitleColor = Color3.fromRGB(71, 123, 255)
@@ -2307,7 +2307,7 @@ end)
 -- 💬 Parágrafo único na aba Information
 Tabs.Info:AddParagraph({
 	Title = "Leia Por Favor",
-	Content = "Tab Shop Not Working"
+	Content = "Se Não Aparecer As Tabs Role Para Baixo"
 })
 
 -- 🔘 Botão para executar o script sem travar
