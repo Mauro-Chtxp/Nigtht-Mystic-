@@ -3983,15 +3983,52 @@ spawn(function()
 				local bigMirror = workspace.Map.CakeLoaf.BigMirror
 				if not root then return end
 
+				-- ⚙️ Funções internas (Teleport suave + Noclip)
+				local Players = game:GetService("Players")
+				local LocalPlayer = Players.LocalPlayer
+				local task = task
+				local MaxSpeed = 350
+
+				local function getCharacter()
+					if not LocalPlayer.Character then
+						LocalPlayer.CharacterAdded:Wait()
+					end
+					LocalPlayer.Character:WaitForChild("HumanoidRootPart")
+					return LocalPlayer.Character
+				end
+
+				local function toggleNoclip(Toggle)
+					local char = getCharacter()
+					for _,v in pairs(char:GetChildren()) do
+						if v:IsA("BasePart") then
+							v.CanCollide = not Toggle
+						end
+					end
+				end
+
+				local function Teleport(GoalCFrame, Speed)
+					Speed = Speed or MaxSpeed
+					local char = getCharacter()
+					local hrp = char:WaitForChild("HumanoidRootPart")
+					toggleNoclip(true)
+					local magnitude = (hrp.Position - GoalCFrame.Position).Magnitude
+					while magnitude > 1 do
+						local direction = (GoalCFrame.Position - hrp.Position).unit
+						hrp.CFrame = hrp.CFrame + direction * (Speed * task.wait())
+						magnitude = (hrp.Position - GoalCFrame.Position).Magnitude
+					end
+					toggleNoclip(false)
+				end
+
 				-- 🟩 Teleportar automaticamente até Cake Island se estiver longe
 				local cakeIslandPos = Vector3.new(-2077, 252, -12373)
 				if (root.Position - cakeIslandPos).Magnitude > 3000 then
-					_tp(CFrame.new(-2077, 252, -12373))
-					repeat wait() until (root.Position - cakeIslandPos).Magnitude < 600
+					Teleport(CFrame.new(-2077, 252, -12373))
+					repeat wait() until (root.Position - cakeIslandPos).Magnitude < 500000
 				end
 
 				if not bigMirror:FindFirstChild("Other") then
-					_tp(CFrame.new(-2077, 252, -12373))
+					Teleport(CFrame.new(-2077, 252, -12373))
 				end
 
 				-- 🔥 Função pra pegar o inimigo mais próximo
@@ -4023,7 +4060,7 @@ spawn(function()
 						until not _G.Auto_Cake_Prince or not v.Parent or v.Humanoid.Health <= 0
 					else
 						if bigMirror.Other.Transparency == 0 and (CFrame.new(-1990.67, 4533, -14973.67).Position - root.Position).Magnitude >= 2000 then
-							_tp(CFrame.new(-2151.82, 149.32, -12404.91))
+							Teleport(CFrame.new(-2151.82, 149.32, -12404.91))
 						end
 					end
 				else
@@ -4041,7 +4078,7 @@ spawn(function()
 						-- 🧾 Aceitar missão se não tiver
 						if _G.AcceptQuestC and not questUI.Visible then
 							local questPos = CFrame.new(-1927.92, 37.8, -12842.54)
-							_tp(questPos)
+							Teleport(questPos)
 							while (questPos.Position - root.Position).Magnitude > 50 do
 								wait(0.2)
 							end
@@ -4062,7 +4099,7 @@ spawn(function()
 							Attack.Kill(v, _G.Auto_Cake_Prince)
 						until not _G.Auto_Cake_Prince or v.Humanoid.Health <= 0 or bigMirror.Other.Transparency == 0 or (_G.AcceptQuestC and not questUI.Visible)
 					else
-						_tp(CFrame.new(-2077, 252, -12373))
+						Teleport(CFrame.new(-2077, 252, -12373))
 					end
 				end
 			end)
