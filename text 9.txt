@@ -854,27 +854,29 @@ Sea = World1 or World2 or World3 or plr:Kick("❌ Error : A[12]Blox Fruits ❌")
 			end)
 		end
 	end)
-	_tp = function(target)
+	
+_tp = function(target)
 	local character = plr.Character
 	if not character or not character:FindFirstChild("HumanoidRootPart") then
 		return
 	end
+
 	local rootPart = character.HumanoidRootPart
 	local distance = (target.Position - rootPart.Position).Magnitude
 
-	-- ✅ Se o destino for muito longe (por exemplo outro mar), teleporta direto
-	if distance > 5000 then
+	-- 🚫 Se estiver MUITO longe (acima de 3000 studs), teleporta direto
+	if distance > 90000 then
 		shouldTween = false
 		rootPart.CFrame = target
 		return
 	end
 
-	-- ✅ Limite de tempo máximo do tween (pra não travar o player)
-	local tweenTime = math.min(distance / 300, 10)
+	-- ✅ Se estiver perto, faz tween normal (suave)
+	local tweenTime = math.clamp(distance / 300, 0.5, 6) -- máximo 6s
 	local tweenInfo = TweenInfo.new(tweenTime, Enum.EasingStyle.Linear)
 	local tween = game:GetService("TweenService"):Create(block, tweenInfo, { CFrame = target })
 
-	if plr.Character.Humanoid.Sit == true then
+	if plr.Character:FindFirstChild("Humanoid") and plr.Character.Humanoid.Sit then
 		block.CFrame = CFrame.new(block.Position.X, target.Y, block.Position.Z)
 	end
 
@@ -883,7 +885,7 @@ Sea = World1 or World2 or World3 or plr:Kick("❌ Error : A[12]Blox Fruits ❌")
 	task.spawn(function()
 		local timer = 0
 		while tween.PlaybackState == Enum.PlaybackState.Playing do
-			if not shouldTween or timer > 15 then -- 15s de limite de segurança
+			if not shouldTween or timer > 10 then
 				tween:Cancel()
 				break
 			end
@@ -893,8 +895,9 @@ Sea = World1 or World2 or World3 or plr:Kick("❌ Error : A[12]Blox Fruits ❌")
 	end)
 end
 
+
 	TeleportToTarget = function(targetCFrame)
-		if (targetCFrame.Position - plr.Character.HumanoidRootPart.Position).Magnitude > 1000 then
+		if (targetCFrame.Position - plr.Character.HumanoidRootPart.Position).Magnitude > 90000 then
 			_tp(targetCFrame)
 		else
 			_tp(targetCFrame)
