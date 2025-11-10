@@ -3747,11 +3747,12 @@ spawn(function()
                 local cakeIslandPos = Vector3.new(-2077, 252, -12373)
 
                 ----------------------------------------------------------------
-                -- 🧠 SMART TELEPORT SYSTEM (pra evitar ancorar quando estiver longe)
+                -- 🧠 SMART TELEPORT SYSTEM (corrigido pra não ancorar no chão)
                 ----------------------------------------------------------------
                 local dist = (root.Position - cakeIslandPos).Magnitude
                 if dist > 2500 then
-                    notween(CFrame.new(-2077, 252, -12373))
+                    -- 🚀 usa BTP pra realmente voar até a ilha mesmo se estiver longe
+                    BTP(CFrame.new(-2077, 252, -12373))
                     repeat task.wait() until (root.Position - cakeIslandPos).Magnitude < 800
                 end
                 ----------------------------------------------------------------
@@ -3790,7 +3791,7 @@ spawn(function()
                     else
                         -- Se o portal estiver aberto mas não achou o príncipe, teleporta pro topo do espelho
                         if portalAberto and (root.Position - Vector3.new(-1990.67, 4533, -14973.67)).Magnitude >= 2000 then
-                            notween(CFrame.new(-2151.82, 149.32, -12404.91))
+                            _tp(CFrame.new(-2151.82, 149.32, -12404.91))
                         end
                     end
                 else
@@ -3843,6 +3844,7 @@ spawn(function()
         end
     end
 end)
+
 	local Q = Tabs.Main:AddToggle("Q", {
 		Title = "Auto Bones",
 		Description = "",
