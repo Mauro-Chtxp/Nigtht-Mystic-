@@ -3746,11 +3746,15 @@ spawn(function()
                 local bigMirror = workspace.Map.CakeLoaf.BigMirror
                 local cakeIslandPos = Vector3.new(-2077, 252, -12373)
 
-                -- 🟩 Se estiver longe da ilha, teleporta até lá
-                if (root.Position - cakeIslandPos).Magnitude > 2500 then
-                    _tp(CFrame.new(-2077, 252, -12373))
+                ----------------------------------------------------------------
+                -- 🧠 SMART TELEPORT SYSTEM (pra evitar ancorar quando estiver longe)
+                ----------------------------------------------------------------
+                local dist = (root.Position - cakeIslandPos).Magnitude
+                if dist > 2500 then
+                    notween(CFrame.new(-2077, 252, -12373))
                     repeat task.wait() until (root.Position - cakeIslandPos).Magnitude < 800
                 end
+                ----------------------------------------------------------------
 
                 -- 🧭 Função pra pegar o inimigo mais próximo de uma lista
                 local function GetNearestEnemy(names)
@@ -3786,7 +3790,7 @@ spawn(function()
                     else
                         -- Se o portal estiver aberto mas não achou o príncipe, teleporta pro topo do espelho
                         if portalAberto and (root.Position - Vector3.new(-1990.67, 4533, -14973.67)).Magnitude >= 2000 then
-                            _tp(CFrame.new(-2151.82, 149.32, -12404.91))
+                            notween(CFrame.new(-2151.82, 149.32, -12404.91))
                         end
                     end
                 else
