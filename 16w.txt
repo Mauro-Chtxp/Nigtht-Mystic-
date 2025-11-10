@@ -9426,90 +9426,70 @@ Q = Tabs.Raids:AddToggle("Q", {
     Description = "",
     Default = false
 })
-Q:OnChanged(function(value)
-    _G.Dungeon = value
-    getgenv().SafeMode = value
-    StopTween(_G.Dungeon)
+Q:OnChanged(function(Value)
+    _G.Raiding = Value
 end)
 
-function IsIslandRaid(cu)
-    local locations = game:GetService("Workspace")["_WorldOrigin"].Locations
-    if locations:FindFirstChild("Island " .. cu) then
-        local min = 4500
-        for _, v in pairs(locations:GetChildren()) do
-            if v.Name == "Island " .. cu then
-                local dist = (v.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
-                if dist < min then
-                    min = dist
-                end
-            end
-        end
-        for _, v in pairs(locations:GetChildren()) do
-            if v.Name == "Island " .. cu then
-                local dist = (v.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
-                if dist <= min then
-                    return v
-                end
-            end
-        end
-    end
-end
-
-function getNextIsland()
-    local TableIslandsRaid = {5, 4, 3, 2, 1}
-    for _, v in pairs(TableIslandsRaid) do
-        if IsIslandRaid(v) then
-            local island = IsIslandRaid(v)
-            local dist = (island.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
-            if dist <= 4500 then
-                return island
-            end
-        end
-    end
-end
-
--- Novo: função que retorna o inimigo mais próximo
-function getClosestEnemy(maxDistance)
-    local closestEnemy, shortestDist = nil, maxDistance or 1000
-    for _, v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
-        if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
-            local dist = (v.HumanoidRootPart.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
-            if dist < shortestDist then
-                shortestDist = dist
-                closestEnemy = v
-            end
-        end
-    end
-    return closestEnemy
-end
-
--- Sistema de ataque focado (1 por 1)
-function attackNearbyEnemies()
-    while true do
-        local target = getClosestEnemy(1000)
-        if not target then break end -- se não tem inimigo, sai do loop
-        while target:FindFirstChild("Humanoid") and target.Humanoid.Health > 0 do
-            EquipWeapon(_G.SelectWeapon)
-            topos(target.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
-            task.wait(0.1)
-        end
-        task.wait(0.2) -- leve delay entre um e outro
-    end
-end
-
--- Loop principal
 spawn(function()
-    while task.wait(0.5) do
-        if _G.Dungeon then
-            attackNearbyEnemies()
-            -- só move pra próxima ilha quando não tiver inimigo
-            local nextIsland = getNextIsland()
-            if nextIsland then
-                topos(nextIsland.CFrame * CFrame.new(0, 60, 0))
-                task.wait(1) -- evita spam de movimentação
+    pcall(function()
+        while wait(Sec) do
+            if _G.Raiding then
+                if plr.PlayerGui.Main.TopHUDList.RaidTimer.Visible == true then
+                    local islands = {
+                        "Island 5",
+                        "Island 4",
+                        "Island 3",
+                        "Island 2",
+                        "Island 1"
+                    }
+
+                    local foundEnemies = false
+
+                    for _, island in ipairs(islands) do
+                        local location = game:GetService("Workspace")["_WorldOrigin"].Locations:FindFirstChild(island)
+                        if location then
+                            -- procura o inimigo mais próximo da ilha atual
+                            local closestEnemy
+                            local shortestDistance = 9999
+
+                            for _, v in pairs(workspace.Enemies:GetChildren()) do
+                                if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") then
+                                    if v.Humanoid.Health > 0 then
+                                        local distance = (v.HumanoidRootPart.Position - location.Position).Magnitude
+                                        if distance < 500 and distance < shortestDistance then
+                                            shortestDistance = distance
+                                            closestEnemy = v
+                                        end
+                                    end
+                                end
+                            end
+
+                            -- se achou inimigo, foca nele até morrer
+                            if closestEnemy then
+                                foundEnemies = true
+                                repeat
+                                    task.wait()
+                                    Attack.Kill(closestEnemy, _G.Raiding)
+                                until not _G.Raiding or not closestEnemy.Parent or closestEnemy.Humanoid.Health <= 0
+                            end
+
+                            -- se achou e matou um inimigo, volta pro começo pra checar novamente
+                            if foundEnemies then
+                                break
+                            end
+                        end
+                    end
+
+                    -- se não tem inimigo em nenhuma ilha → pode mover pra próxima
+                    NextIs = not foundEnemies
+                else
+                    NextIs = false
+                end
+            else
+                NextIs = false
             end
         end
-    end
+    end)
 end)
 	local Q = Tabs.Raids:AddToggle("Q", {
 		Title = "Auto Next Island",
