@@ -3730,105 +3730,114 @@ Tabs.Info:AddParagraph({
 		Default = false
 	})
 	Q:OnChanged(function(Value)
-	_G.Auto_Cake_Prince = Value
+    _G.Auto_Cake_Prince = Value
 end)
 
 spawn(function()
-	while wait() do
-		if _G.Auto_Cake_Prince then
-			pcall(function()
-				local player = game.Players.LocalPlayer
-				local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-				local questUI = player.PlayerGui.Main.Quest
-				local enemies = workspace.Enemies
-				local bigMirror = workspace.Map.CakeLoaf.BigMirror
-				if not root then return end
+    while task.wait() do
+        if _G.Auto_Cake_Prince then
+            pcall(function()
+                local player = game.Players.LocalPlayer
+                local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+                if not root then return end
 
-				-- 🟩 Teleportar automaticamente até Cake Island se estiver longe
-				local cakeIslandPos = Vector3.new(-2077, 252, -12373)
-				if (root.Position - cakeIslandPos).Magnitude > 3000 then
-					_tp(CFrame.new(-2077, 252, -12373))
-					repeat wait() until (root.Position - cakeIslandPos).Magnitude < 600
-				end
+                local questUI = player.PlayerGui.Main.Quest
+                local enemies = workspace.Enemies
+                local bigMirror = workspace.Map.CakeLoaf.BigMirror
+                local cakeIslandPos = Vector3.new(-2077, 252, -12373)
 
-				if not bigMirror:FindFirstChild("Other") then
-					_tp(CFrame.new(-2077, 252, -12373))
-				end
+                -- 🟩 Se estiver longe da ilha, teleporta até lá
+                if (root.Position - cakeIslandPos).Magnitude > 2500 then
+                    _tp(CFrame.new(-2077, 252, -12373))
+                    repeat task.wait() until (root.Position - cakeIslandPos).Magnitude < 800
+                end
 
-				-- 🔥 Função pra pegar o inimigo mais próximo
-				local function GetNearestEnemy(names)
-					local nearest, minDist
-					for _, v in ipairs(workspace.Enemies:GetChildren()) do
-						if table.find(names, v.Name)
-							and v:FindFirstChild("HumanoidRootPart")
-							and v:FindFirstChild("Humanoid")
-							and v.Humanoid.Health > 0
-						then
-							local dist = (v.HumanoidRootPart.Position - root.Position).Magnitude
-							if not minDist or dist < minDist then
-								minDist = dist
-								nearest = v
-							end
-						end
-					end
-					return nearest
-				end
+                -- 🧭 Função pra pegar o inimigo mais próximo de uma lista
+                local function GetNearestEnemy(names)
+                    local nearest, minDist
+                    for _, v in ipairs(enemies:GetChildren()) do
+                        if table.find(names, v.Name)
+                            and v:FindFirstChild("HumanoidRootPart")
+                            and v:FindFirstChild("Humanoid")
+                            and v.Humanoid.Health > 0
+                        then
+                            local dist = (v.HumanoidRootPart.Position - root.Position).Magnitude
+                            if not minDist or dist < minDist then
+                                minDist = dist
+                                nearest = v
+                            end
+                        end
+                    end
+                    return nearest
+                end
 
-				-- 🍰 Se o portal do Cake Prince estiver aberto
-				if bigMirror.Other.Transparency == 0 or enemies:FindFirstChild("Cake Prince") then
-					local v = GetNearestEnemy({"Cake Prince"})
-					if v then
-						repeat
-							wait()
-							Attack.Kill2(v, _G.Auto_Cake_Prince)
-						until not _G.Auto_Cake_Prince or not v.Parent or v.Humanoid.Health <= 0
-					else
-						if bigMirror.Other.Transparency == 0 and (CFrame.new(-1990.67, 4533, -14973.67).Position - root.Position).Magnitude >= 2000 then
-							_tp(CFrame.new(-2151.82, 149.32, -12404.91))
-						end
-					end
-				else
-					-- 🧁 Lista de inimigos comuns
-					local CakePrince = {
-						"Cookie Crafter",
-						"Cake Guard",
-						"Baking Staff",
-						"Head Baker"
-					}
+                -- 🔥 Checar se o portal do Cake Prince está ativo
+                local portalAberto = bigMirror:FindFirstChild("Other") and bigMirror.Other.Transparency == 0
+                local princeExiste = enemies:FindFirstChild("Cake Prince") ~= nil
 
-					local v = GetNearestEnemy(CakePrince)
+                if portalAberto or princeExiste then
+                    -- 🍰 Atacar o Cake Prince
+                    local v = GetNearestEnemy({"Cake Prince"})
+                    if v then
+                        repeat
+                            task.wait()
+                            Attack.Kill2(v, _G.Auto_Cake_Prince)
+                        until not _G.Auto_Cake_Prince or not v.Parent or v.Humanoid.Health <= 0
+                    else
+                        -- Se o portal estiver aberto mas não achou o príncipe, teleporta pro topo do espelho
+                        if portalAberto and (root.Position - Vector3.new(-1990.67, 4533, -14973.67)).Magnitude >= 2000 then
+                            _tp(CFrame.new(-2151.82, 149.32, -12404.91))
+                        end
+                    end
+                else
+                    -- 🧁 Lista dos mobs normais
+                    local CakeMobs = {
+                        "Cookie Crafter",
+                        "Cake Guard",
+                        "Baking Staff",
+                        "Head Baker"
+                    }
 
-					if v then
-						-- 🧾 Aceitar missão se não tiver
-						if _G.AcceptQuestC and not questUI.Visible then
-							local questPos = CFrame.new(-1927.92, 37.8, -12842.54)
-							_tp(questPos)
-							while (questPos.Position - root.Position).Magnitude > 50 do
-								wait(0.2)
-							end
+                    local v = GetNearestEnemy(CakeMobs)
 
-							local questData = {
-								[1] = {"StartQuest","CakeQuest2",2},
-								[2] = {"StartQuest","CakeQuest2",1},
-								[3] = {"StartQuest","CakeQuest1",1},
-								[4] = {"StartQuest","CakeQuest1",2}
-							}
-							pcall(function()
-								game.ReplicatedStorage.Remotes.CommF_:InvokeServer(unpack(questData[math.random(1,4)]))
-							end)
-						end
+                    -- 🧾 Aceitar missão se necessário
+                    if _G.AcceptQuestC and not questUI.Visible then
+                        local questPos = CFrame.new(-1927.92, 37.8, -12842.54)
+                        _tp(questPos)
+                        while (questPos.Position - root.Position).Magnitude > 50 do
+                            task.wait(0.2)
+                        end
 
-						repeat
-							wait()
-							Attack.Kill(v, _G.Auto_Cake_Prince)
-						until not _G.Auto_Cake_Prince or v.Humanoid.Health <= 0 or bigMirror.Other.Transparency == 0 or (_G.AcceptQuestC and not questUI.Visible)
-					else
-						_tp(CFrame.new(-2077, 252, -12373))
-					end
-				end
-			end)
-		end
-	end
+                        local questData = {
+                            {"StartQuest","CakeQuest2",2},
+                            {"StartQuest","CakeQuest2",1},
+                            {"StartQuest","CakeQuest1",1},
+                            {"StartQuest","CakeQuest1",2}
+                        }
+                        pcall(function()
+                            game.ReplicatedStorage.Remotes.CommF_:InvokeServer(unpack(questData[math.random(1,4)]))
+                        end)
+                    end
+
+                    -- 🔪 Atacar inimigos comuns
+                    if v then
+                        repeat
+                            task.wait()
+                            Attack.Kill(v, _G.Auto_Cake_Prince)
+                        until not _G.Auto_Cake_Prince or not v.Parent or v.Humanoid.Health <= 0
+                    else
+                        -- Se não achar inimigo, teleporta pra uma posição aleatória da ilha
+                        local randomSpots = {
+                            CFrame.new(-1436.86, 167.75, -12296.95),
+                            CFrame.new(-2383.78, 150.45, -12126.49),
+                            CFrame.new(-2231.27, 168.25, -12845.75)
+                        }
+                        _tp(randomSpots[math.random(1, #randomSpots)])
+                    end
+                end
+            end)
+        end
+    end
 end)
 	local Q = Tabs.Main:AddToggle("Q", {
 		Title = "Auto Bones",
@@ -9417,70 +9426,90 @@ Q = Tabs.Raids:AddToggle("Q", {
     Description = "",
     Default = false
 })
-Q:OnChanged(function(Value)
-    _G.Raiding = Value
+Q:OnChanged(function(value)
+    _G.Dungeon = value
+    getgenv().SafeMode = value
+    StopTween(_G.Dungeon)
 end)
 
-spawn(function()
-    pcall(function()
-        while wait(Sec) do
-            if _G.Raiding then
-                if plr.PlayerGui.Main.TopHUDList.RaidTimer.Visible == true then
-                    local islands = {
-                        "Island 5",
-                        "Island 4",
-                        "Island 3",
-                        "Island 2",
-                        "Island 1"
-                    }
-
-                    local foundEnemies = false
-
-                    for _, island in ipairs(islands) do
-                        local location = game:GetService("Workspace")["_WorldOrigin"].Locations:FindFirstChild(island)
-                        if location then
-                            -- procura o inimigo mais próximo da ilha atual
-                            local closestEnemy
-                            local shortestDistance = 9999
-
-                            for _, v in pairs(workspace.Enemies:GetChildren()) do
-                                if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") then
-                                    if v.Humanoid.Health > 0 then
-                                        local distance = (v.HumanoidRootPart.Position - location.Position).Magnitude
-                                        if distance < 500 and distance < shortestDistance then
-                                            shortestDistance = distance
-                                            closestEnemy = v
-                                        end
-                                    end
-                                end
-                            end
-
-                            -- se achou inimigo, foca nele até morrer
-                            if closestEnemy then
-                                foundEnemies = true
-                                repeat
-                                    task.wait()
-                                    Attack.Kill(closestEnemy, _G.Raiding)
-                                until not _G.Raiding or not closestEnemy.Parent or closestEnemy.Humanoid.Health <= 0
-                            end
-
-                            -- se achou e matou um inimigo, volta pro começo pra checar novamente
-                            if foundEnemies then
-                                break
-                            end
-                        end
-                    end
-
-                    -- se não tem inimigo em nenhuma ilha → pode mover pra próxima
-                    NextIs = not foundEnemies
-                else
-                    NextIs = false
+function IsIslandRaid(cu)
+    local locations = game:GetService("Workspace")["_WorldOrigin"].Locations
+    if locations:FindFirstChild("Island " .. cu) then
+        local min = 4500
+        for _, v in pairs(locations:GetChildren()) do
+            if v.Name == "Island " .. cu then
+                local dist = (v.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+                if dist < min then
+                    min = dist
                 end
-            else
-                NextIs = false
             end
         end
-    end)
+        for _, v in pairs(locations:GetChildren()) do
+            if v.Name == "Island " .. cu then
+                local dist = (v.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+                if dist <= min then
+                    return v
+                end
+            end
+        end
+    end
+end
+
+function getNextIsland()
+    local TableIslandsRaid = {5, 4, 3, 2, 1}
+    for _, v in pairs(TableIslandsRaid) do
+        if IsIslandRaid(v) then
+            local island = IsIslandRaid(v)
+            local dist = (island.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+            if dist <= 4500 then
+                return island
+            end
+        end
+    end
+end
+
+-- Novo: função que retorna o inimigo mais próximo
+function getClosestEnemy(maxDistance)
+    local closestEnemy, shortestDist = nil, maxDistance or 1000
+    for _, v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
+        if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+            local dist = (v.HumanoidRootPart.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+            if dist < shortestDist then
+                shortestDist = dist
+                closestEnemy = v
+            end
+        end
+    end
+    return closestEnemy
+end
+
+-- Sistema de ataque focado (1 por 1)
+function attackNearbyEnemies()
+    while true do
+        local target = getClosestEnemy(1000)
+        if not target then break end -- se não tem inimigo, sai do loop
+        while target:FindFirstChild("Humanoid") and target.Humanoid.Health > 0 do
+            EquipWeapon(_G.SelectWeapon)
+            topos(target.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
+            task.wait(0.1)
+        end
+        task.wait(0.2) -- leve delay entre um e outro
+    end
+end
+
+-- Loop principal
+spawn(function()
+    while task.wait(0.5) do
+        if _G.Dungeon then
+            attackNearbyEnemies()
+            -- só move pra próxima ilha quando não tiver inimigo
+            local nextIsland = getNextIsland()
+            if nextIsland then
+                topos(nextIsland.CFrame * CFrame.new(0, 60, 0))
+                task.wait(1) -- evita spam de movimentação
+            end
+        end
+    end
 end)
 	local Q = Tabs.Raids:AddToggle("Q", {
 		Title = "Auto Next Island",
