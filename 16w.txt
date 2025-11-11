@@ -3714,7 +3714,7 @@ local MobKilled = CakeSection:AddParagraph({
 })
 
 spawn(function()
-    while wait(.2) do
+    while wait(0.2) do
         pcall(function()
             local Killed = string.match(replicated.Remotes.CommF_:InvokeServer("CakePrinceSpawner"), "%d+")
             if Killed then
@@ -3724,7 +3724,7 @@ spawn(function()
     end
 end)
 
--- Função para achar inimigo mais próximo da lista específica
+-- Função para achar inimigo mais próximo
 local function GetNearestEnemy(names)
     local player = game.Players.LocalPlayer
     local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
@@ -3747,6 +3747,16 @@ local function GetNearestEnemy(names)
     return nearest
 end
 
+-- Posição principal da ilha Cake Prince
+local CakeTargetPos = CFrame.new(-2077, 252, -12373)
+
+local function IsFarFromTarget(targetCFrame)
+    local player = game.Players.LocalPlayer
+    local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+    if not root then return false end
+    return (root.Position - targetCFrame.Position).Magnitude > 50
+end
+
 -- Auto Cake Prince toggle
 local AutoCakePrince = CakeSection:AddToggle("AutoCakePrince", {
     Title = "Auto Cake Prince",
@@ -3755,6 +3765,9 @@ local AutoCakePrince = CakeSection:AddToggle("AutoCakePrince", {
 })
 AutoCakePrince:OnChanged(function(Value)
     _G.Auto_Cake_Prince = Value
+    if Value then
+        TeleportToTarget(CakeTargetPos) -- teleporte inicial
+    end
 end)
 
 -- Accept Quests toggle
@@ -3767,74 +3780,77 @@ AcceptQuestsToggle:OnChanged(function(Value)
     _G.AcceptQuestC = Value
 end)
 
--- Auto Kill Dough King toggle
-local AutoKillDough = CakeSection:AddToggle("AutoKillDough", {
-    Title = "Auto Kill Dough King",
-    Description = "",
-    Default = false
-})
-AutoKillDough:OnChanged(function(Value)
-    _G.AutoMiror = Value
-end)
-
--- Loop unificado direto nos mobs
+-- Loop Auto Cake Prince
 spawn(function()
     while task.wait(0.2) do
         pcall(function()
-            local player = game.Players.LocalPlayer
-            local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-            if not root then return end
-
-            local questUI = player.PlayerGui.Main.Quest
-
-            -- ==== AUTO CAKE PRINCE ====
             if _G.Auto_Cake_Prince then
-                local prince = GetNearestEnemy({"Cake Prince"})
-                if prince then
+                local player = game.Players.LocalPlayer
+                local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+                if not root then return end
+
+                -- Teleporta automaticamente se estiver longe da ilha
+                if IsFarFromTarget(CakeTargetPos) then
+                    TeleportToTarget(CakeTargetPos)
+                    task.wait(0.5)
+                end
+
+                local bigMirror = workspace.Map.CakeLoaf.BigMirror
+                local portalAberto = bigMirror:FindFirstChild("Other") and bigMirror.Other.Transparency == 0
+                local princeExiste = workspace.Enemies:FindFirstChild("Cake Prince") ~= nil
+
+                local CakeMobs = {"Cookie Crafter","Cake Guard","Baking Staff","Head Baker"}
+                local nearestCakeMob = GetNearestEnemy(CakeMobs)
+                local nearestPrince = GetNearestEnemy({"Cake Prince"})
+
+                -- Se Cake Prince ou mobs normais estiverem por perto, prioriza atacar
+                if nearestPrince or nearestCakeMob then
+                    local target = nearestPrince or nearestCakeMob
                     repeat
                         task.wait()
-                        Attack.Kill2(prince, _G.Auto_Cake_Prince)
-                    until not _G.Auto_Cake_Prince or not prince.Parent or prince.Humanoid.Health <= 0
+                        if nearestPrince then
+                            Attack.Kill2(target, _G.Auto_Cake_Prince)
+                        else
+                            Attack.Kill(target, _G.Auto_Cake_Prince)
+                        end
+                    until not _G.Auto_Cake_Prince or not target.Parent or target.Humanoid.Health <= 0
                 else
-                    local CakeMobs = {"Cookie Crafter","Cake Guard","Baking Staff","Head Baker"}
-                    local mob = GetNearestEnemy(CakeMobs)
+                    -- Teleporta pra posição aleatória da ilha se não tiver nenhum mob perto
+                    local randomSpots = {
+                        CFrame.new(-1436.86, 167.75, -12296.95),
+                        CFrame.new(-2383.78, 150.45, -12126.49),
+                        CFrame.new(-2231.27, 168.25, -12845.75)
+                    }
+                    TeleportToTarget(randomSpots[math.random(1, #randomSpots)])
 
-                    -- Aceitar quest se necessário
-                    if _G.AcceptQuestC and not questUI.Visible then
-                        local questData = {
-                            {"StartQuest","CakeQuest2",2},
-                            {"StartQuest","CakeQuest2",1},
-                            {"StartQuest","CakeQuest1",1},
-                            {"StartQuest","CakeQuest1",2}
-                        }
-                        pcall(function()
-                            game.ReplicatedStorage.Remotes.CommF_:InvokeServer(unpack(questData[math.random(1,4)]))
-                        end)
-                    end
-
-                    if mob then
-                        repeat
-                            task.wait()
-                            Attack.Kill(mob, _G.Auto_Cake_Prince)
-                        until not _G.Auto_Cake_Prince or not mob.Parent or mob.Humanoid.Health <= 0
+                    -- Teleporte opcional pro Dough King somente se nenhum mob estiver perto
+                    local doughPos = CFrame.new(-1943.676, 251.51, -12337.88)
+                    local dough = GetNearestEnemy({"Dough King"})
+                    if dough and IsFarFromTarget(doughPos) then
+                        TeleportToTarget(doughPos)
+                        task.wait(0.5)
                     end
                 end
-            end
 
-            -- ==== AUTO KILL DOUGH KING ====
-            if _G.AutoMiror then
-                local dough = GetNearestEnemy({"Dough King"})
-                if dough then
-                    repeat
-                        task.wait()
-                        Attack.Kill(dough, _G.AutoMiror)
-                    until not _G.AutoMiror or not dough.Parent or dough.Humanoid.Health <= 0
+                -- Aceitar missão se necessário
+                local questUI = player.PlayerGui.Main.Quest
+                if _G.AcceptQuestC and not questUI.Visible then
+                    local questPos = CFrame.new(-1927.92, 37.8, -12842.54)
+                    TeleportToTarget(questPos)
+                    local questData = {
+                        {"StartQuest","CakeQuest2",2},
+                        {"StartQuest","CakeQuest2",1},
+                        {"StartQuest","CakeQuest1",1},
+                        {"StartQuest","CakeQuest1",2}
+                    }
+                    pcall(function()
+                        game.ReplicatedStorage.Remotes.CommF_:InvokeServer(unpack(questData[math.random(1,4)]))
+                    end)
                 end
             end
         end)
     end
 end)
-
 local BoneSection = Tabs.Main:AddSection("Bones")
 
 local BoneParagraph = BoneSection:AddParagraph({
