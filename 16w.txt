@@ -3754,7 +3754,7 @@ local function IsFarFromTarget(targetCFrame)
     local player = game.Players.LocalPlayer
     local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
     if not root then return false end
-    return (root.Position - targetCFrame.Position).Magnitude > 10
+    return (root.Position - targetCFrame.Position).Magnitude > 100
 end
 
 -- Auto Cake Prince toggle
