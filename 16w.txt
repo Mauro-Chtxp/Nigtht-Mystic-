@@ -3730,18 +3730,18 @@ local AutoCakePrince = CakeSection:AddToggle("AutoCakePrince", {
     Description = "",
     Default = false
 })
+
+_G.CakePrinceTPDone = false -- Flag pra teleport instantâneo
+
 AutoCakePrince:OnChanged(function(Value)
     _G.Auto_Cake_Prince = Value
-end)
-
--- Accept Quests toggle dentro da mesma section
-local AcceptQuestsToggle = CakeSection:AddToggle("AcceptCakeQuests", {
-    Title = "Accept Quests",
-    Description = "",
-    Default = false
-})
-AcceptQuestsToggle:OnChanged(function(Value)
-    _G.AcceptQuestC = Value
+    if Value then
+        -- Teleport instantâneo ao ativar
+        _tp(CFrame.new(-2077, 252, -12373))
+        _G.CakePrinceTPDone = true
+    else
+        _G.CakePrinceTPDone = false
+    end
 end)
 
 spawn(function()
@@ -3757,20 +3757,16 @@ spawn(function()
                 local bigMirror = workspace.Map.CakeLoaf.BigMirror
                 local cakeIslandPos = Vector3.new(-2077, 252, -12373)
 
-                -- 🟩 Teleporte seguro se estiver longe
-                if (root.Position - cakeIslandPos).Magnitude > 2500 then
-                    BTP(CFrame.new(-2077, 252, -12373)) -- Use BTP aqui
-                    repeat task.wait() until (root.Position - cakeIslandPos).Magnitude < 800
+                -- TP inteligente se ainda não teleportou
+                if not _G.CakePrinceTPDone and (root.Position - cakeIslandPos).Magnitude > 800 then
+                    _tp(CFrame.new(-2077, 252, -12373))
+                    _G.CakePrinceTPDone = true
                 end
 
-                -- Função para pegar inimigo mais próximo
                 local function GetNearestEnemy(names)
                     local nearest, minDist
                     for _, v in ipairs(enemies:GetChildren()) do
-                        if table.find(names, v.Name) 
-                        and v:FindFirstChild("HumanoidRootPart") 
-                        and v:FindFirstChild("Humanoid") 
-                        and v.Humanoid.Health > 0 then
+                        if table.find(names, v.Name) and v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
                             local dist = (v.HumanoidRootPart.Position - root.Position).Magnitude
                             if not minDist or dist < minDist then
                                 minDist = dist
@@ -3781,7 +3777,6 @@ spawn(function()
                     return nearest
                 end
 
-                -- Verifica portal ou Cake Prince ativo
                 local portalAberto = bigMirror:FindFirstChild("Other") and bigMirror.Other.Transparency == 0
                 local princeExiste = enemies:FindFirstChild("Cake Prince") ~= nil
 
@@ -3794,19 +3789,19 @@ spawn(function()
                         until not _G.Auto_Cake_Prince or not v.Parent or v.Humanoid.Health <= 0
                     else
                         if portalAberto and (root.Position - Vector3.new(-1990.67, 4533, -14973.67)).Magnitude >= 2000 then
-                            BTP(CFrame.new(-2151.82, 149.32, -12404.91)) -- topo do espelho
+                            _tp(CFrame.new(-2151.82, 149.32, -12404.91))
                         end
                     end
                 else
-                    -- Mobs comuns
                     local CakeMobs = {"Cookie Crafter","Cake Guard","Baking Staff","Head Baker"}
                     local v = GetNearestEnemy(CakeMobs)
 
-                    -- Aceitar missão se necessário
                     if _G.AcceptQuestC and not questUI.Visible then
                         local questPos = CFrame.new(-1927.92, 37.8, -12842.54)
-                        BTP(questPos)
-                        repeat task.wait() until (questPos.Position - root.Position).Magnitude < 50
+                        _tp(questPos)
+                        while (questPos.Position - root.Position).Magnitude > 50 do
+                            task.wait(0.2)
+                        end
 
                         local questData = {
                             {"StartQuest","CakeQuest2",2},
@@ -3819,7 +3814,6 @@ spawn(function()
                         end)
                     end
 
-                    -- Atacar mobs comuns
                     if v then
                         repeat
                             task.wait()
@@ -3831,7 +3825,7 @@ spawn(function()
                             CFrame.new(-2383.78, 150.45, -12126.49),
                             CFrame.new(-2231.27, 168.25, -12845.75)
                         }
-                        BTP(randomSpots[math.random(1, #randomSpots)]) -- teleport random seguro
+                        _tp(randomSpots[math.random(1, #randomSpots)])
                     end
                 end
             end)
@@ -3860,11 +3854,21 @@ spawn(function()
                         Attack.Kill(v, _G.AutoMiror)
                     until not _G.AutoMiror or not v.Parent or v.Humanoid.Health <= 0
                 else
-                    BTP(CFrame.new(-1943.676513671875, 251.5095672607422, -12337.880859375)) -- seguro
+                    _tp(CFrame.new(-1943.676513671875, 251.5095672607422, -12337.880859375))
                 end
             end)
         end
     end
+end)
+
+-- Accept Quests
+local AcceptQuestsToggle = CakeSection:AddToggle("AcceptCakeQuests", {
+    Title = "Accept Quests",
+    Description = "",
+    Default = false
+})
+AcceptQuestsToggle:OnChanged(function(Value)
+    _G.AcceptQuestC = Value
 end)
 local BoneSection = Tabs.Main:AddSection("Bones")
 
