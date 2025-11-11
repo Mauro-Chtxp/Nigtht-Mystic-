@@ -3705,7 +3705,8 @@ end
 	end)
 	if World3 then
 	Tabs.Main:AddSection("Generals Quests / Items")
-	local CakeSection = Tabs.Main:AddSection("Cake Prince")
+	
+local CakeSection = Tabs.Main:AddSection("Cake Prince")
 
 -- Contador de Cake Princes
 local MobKilled = CakeSection:AddParagraph({
@@ -3766,7 +3767,10 @@ local AutoCakePrince = CakeSection:AddToggle("AutoCakePrince", {
 AutoCakePrince:OnChanged(function(Value)
     _G.Auto_Cake_Prince = Value
     if Value then
-        TeleportToTarget(CakeTargetPos) -- teleporte inicial
+        -- Só teleporta inicialmente se estiver longe da ilha
+        if IsFarFromTarget(CakeTargetPos) then
+            TeleportToTarget(CakeTargetPos)
+        end
     end
 end)
 
@@ -3789,21 +3793,11 @@ spawn(function()
                 local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
                 if not root then return end
 
-                -- Teleporta automaticamente se estiver longe da ilha
-                if IsFarFromTarget(CakeTargetPos) then
-                    TeleportToTarget(CakeTargetPos)
-                    task.wait(0.5)
-                end
-
-                local bigMirror = workspace.Map.CakeLoaf.BigMirror
-                local portalAberto = bigMirror:FindFirstChild("Other") and bigMirror.Other.Transparency == 0
-                local princeExiste = workspace.Enemies:FindFirstChild("Cake Prince") ~= nil
-
                 local CakeMobs = {"Cookie Crafter","Cake Guard","Baking Staff","Head Baker"}
                 local nearestCakeMob = GetNearestEnemy(CakeMobs)
                 local nearestPrince = GetNearestEnemy({"Cake Prince"})
 
-                -- Se Cake Prince ou mobs normais estiverem por perto, prioriza atacar
+                -- Se tiver mobs spawnados, foca neles
                 if nearestPrince or nearestCakeMob then
                     local target = nearestPrince or nearestCakeMob
                     repeat
@@ -3815,15 +3809,13 @@ spawn(function()
                         end
                     until not _G.Auto_Cake_Prince or not target.Parent or target.Humanoid.Health <= 0
                 else
-                    -- Teleporta pra posição aleatória da ilha se não tiver nenhum mob perto
-                    local randomSpots = {
-                        CFrame.new(-1436.86, 167.75, -12296.95),
-                        CFrame.new(-2383.78, 150.45, -12126.49),
-                        CFrame.new(-2231.27, 168.25, -12845.75)
-                    }
-                    TeleportToTarget(randomSpots[math.random(1, #randomSpots)])
+                    -- Nenhum mob spawnado, faz TP
+                    if IsFarFromTarget(CakeTargetPos) then
+                        TeleportToTarget(CakeTargetPos)
+                        task.wait(0.5)
+                    end
 
-                    -- Teleporte opcional pro Dough King somente se nenhum mob estiver perto
+                    -- Teleporta pro Dough King somente se ele existir e estiver longe
                     local doughPos = CFrame.new(-1943.676, 251.51, -12337.88)
                     local dough = GetNearestEnemy({"Dough King"})
                     if dough and IsFarFromTarget(doughPos) then
