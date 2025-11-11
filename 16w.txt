@@ -3707,6 +3707,7 @@ end
 	Tabs.Main:AddSection("Generals Quests / Items")
 	local CakeSection = Tabs.Main:AddSection("Cake Prince")
 
+-- Contador de Cake Princes
 local MobKilled = CakeSection:AddParagraph({
     Title = "Cake Princes :",
     Content = ""
@@ -3723,6 +3724,105 @@ spawn(function()
     end
 end)
 
+-- Auto Cake Prince
+local AutoCakePrince = CakeSection:AddToggle("AutoCakePrince", {
+    Title = "Auto Cake Prince",
+    Description = "",
+    Default = false
+})
+AutoCakePrince:OnChanged(function(Value)
+    _G.Auto_Cake_Prince = Value
+end)
+
+spawn(function()
+    while task.wait() do
+        if _G.Auto_Cake_Prince then
+            pcall(function()
+                local player = game.Players.LocalPlayer
+                local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+                if not root then return end
+
+                local questUI = player.PlayerGui.Main.Quest
+                local enemies = workspace.Enemies
+                local bigMirror = workspace.Map.CakeLoaf.BigMirror
+                local cakeIslandPos = Vector3.new(-2077, 252, -12373)
+
+                if (root.Position - cakeIslandPos).Magnitude > 2500 then
+                    _tp(CFrame.new(-2077, 252, -12373))
+                    repeat task.wait() until (root.Position - cakeIslandPos).Magnitude < 800
+                end
+
+                local function GetNearestEnemy(names)
+                    local nearest, minDist
+                    for _, v in ipairs(enemies:GetChildren()) do
+                        if table.find(names, v.Name) and v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+                            local dist = (v.HumanoidRootPart.Position - root.Position).Magnitude
+                            if not minDist or dist < minDist then
+                                minDist = dist
+                                nearest = v
+                            end
+                        end
+                    end
+                    return nearest
+                end
+
+                local portalAberto = bigMirror:FindFirstChild("Other") and bigMirror.Other.Transparency == 0
+                local princeExiste = enemies:FindFirstChild("Cake Prince") ~= nil
+
+                if portalAberto or princeExiste then
+                    local v = GetNearestEnemy({"Cake Prince"})
+                    if v then
+                        repeat
+                            task.wait()
+                            Attack.Kill2(v, _G.Auto_Cake_Prince)
+                        until not _G.Auto_Cake_Prince or not v.Parent or v.Humanoid.Health <= 0
+                    else
+                        if portalAberto and (root.Position - Vector3.new(-1990.67, 4533, -14973.67)).Magnitude >= 2000 then
+                            _tp(CFrame.new(-2151.82, 149.32, -12404.91))
+                        end
+                    end
+                else
+                    local CakeMobs = {"Cookie Crafter","Cake Guard","Baking Staff","Head Baker"}
+                    local v = GetNearestEnemy(CakeMobs)
+
+                    if _G.AcceptQuestC and not questUI.Visible then
+                        local questPos = CFrame.new(-1927.92, 37.8, -12842.54)
+                        _tp(questPos)
+                        while (questPos.Position - root.Position).Magnitude > 50 do
+                            task.wait(0.2)
+                        end
+
+                        local questData = {
+                            {"StartQuest","CakeQuest2",2},
+                            {"StartQuest","CakeQuest2",1},
+                            {"StartQuest","CakeQuest1",1},
+                            {"StartQuest","CakeQuest1",2}
+                        }
+                        pcall(function()
+                            game.ReplicatedStorage.Remotes.CommF_:InvokeServer(unpack(questData[math.random(1,4)]))
+                        end)
+                    end
+
+                    if v then
+                        repeat
+                            task.wait()
+                            Attack.Kill(v, _G.Auto_Cake_Prince)
+                        until not _G.Auto_Cake_Prince or not v.Parent or v.Humanoid.Health <= 0
+                    else
+                        local randomSpots = {
+                            CFrame.new(-1436.86, 167.75, -12296.95),
+                            CFrame.new(-2383.78, 150.45, -12126.49),
+                            CFrame.new(-2231.27, 168.25, -12845.75)
+                        }
+                        _tp(randomSpots[math.random(1, #randomSpots)])
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+-- Auto Kill Dough King
 local AutoKillDough = CakeSection:AddToggle("AutoKillDough", {
     Title = "Auto Kill Dough King",
     Description = "",
@@ -3750,6 +3850,15 @@ spawn(function()
     end
 end)
 
+-- Accept Quests
+local AcceptQuestsToggle = CakeSection:AddToggle("AcceptCakeQuests", {
+    Title = "Accept Quests",
+    Description = "",
+    Default = false
+})
+AcceptQuestsToggle:OnChanged(function(Value)
+    _G.AcceptQuestC = Value
+end)
 local BoneSection = Tabs.Main:AddSection("Bones")
 
 local BoneParagraph = BoneSection:AddParagraph({
