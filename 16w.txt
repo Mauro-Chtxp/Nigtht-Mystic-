@@ -3716,7 +3716,6 @@ local MobKilled = CakeSection:AddParagraph({
 spawn(function()
     while wait(.2) do
         pcall(function()
-            -- Assumindo que 'replicated' e 'CommF_' estão definidos corretamente
             local Killed = string.match(replicated.Remotes.CommF_:InvokeServer("CakePrinceSpawner"), "%d+")
             if Killed then
                 MobKilled:SetDesc(" Killed : " .. (500 - Killed))
@@ -3725,7 +3724,7 @@ spawn(function()
     end
 end)
 
--- Função para achar inimigo mais próximo (Mantida)
+-- Função para achar inimigo mais próximo da lista específica
 local function GetNearestEnemy(names)
     local player = game.Players.LocalPlayer
     local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
@@ -3748,37 +3747,17 @@ local function GetNearestEnemy(names)
     return nearest
 end
 
--- Posição principal da ilha Cake Prince
-local CakeTargetPos = CFrame.new(-2077, 252, -12373)
-
-local function IsFarFromTarget(targetCFrame)
-    local player = game.Players.LocalPlayer
-    local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-    if not root then return false end
-    return (root.Position - targetCFrame.Position).Magnitude > 50
-end
-
 -- Auto Cake Prince toggle
 local AutoCakePrince = CakeSection:AddToggle("AutoCakePrince", {
     Title = "Auto Cake Prince",
     Description = "",
     Default = false
 })
-
--- CORREÇÃO APLICADA AQUI: Adiciona um task.wait() após o teleporte inicial
 AutoCakePrince:OnChanged(function(Value)
     _G.Auto_Cake_Prince = Value
-    
-    if Value then
-        TeleportToTarget(CakeTargetPos) -- teleporte inicial
-        task.wait(0.5) -- Garante que o teleporte comece a processar antes do loop assumir o controle.
-    end
-    
-    -- Ajuste o shouldTween para refletir o estado combinado, se for necessário para TeleportToTarget
-    shouldTween = _G.Auto_Cake_Prince or _G.AutoMiror
 end)
 
--- Accept Quests toggle (Mantido)
+-- Accept Quests toggle
 local AcceptQuestsToggle = CakeSection:AddToggle("AcceptCakeQuests", {
     Title = "Accept Quests",
     Description = "",
@@ -3794,17 +3773,11 @@ local AutoKillDough = CakeSection:AddToggle("AutoKillDough", {
     Description = "",
     Default = false
 })
-
--- CORREÇÃO APLICADA AQUI: Harmoniza shouldTween com base no estado combinado
 AutoKillDough:OnChanged(function(Value)
     _G.AutoMiror = Value
-    
-    -- Ajuste o shouldTween para refletir o estado combinado
-    shouldTween = _G.Auto_Cake_Prince or _G.AutoMiror
 end)
 
-
--- Loop unificado Auto Cake Prince + Auto Kill Dough King
+-- Loop unificado direto nos mobs
 spawn(function()
     while task.wait(0.2) do
         pcall(function()
@@ -3813,43 +3786,21 @@ spawn(function()
             if not root then return end
 
             local questUI = player.PlayerGui.Main.Quest
-            local enemies = workspace.Enemies
-            local bigMirror = workspace.Map.CakeLoaf.BigMirror
-
-            -- Atualiza shouldTween no loop também (boa prática, embora o OnChanged já tenha feito)
-            shouldTween = _G.Auto_Cake_Prince or _G.AutoMiror
 
             -- ==== AUTO CAKE PRINCE ====
             if _G.Auto_Cake_Prince then
-                -- Teleporta automaticamente se estiver longe da ilha
-                if IsFarFromTarget(CakeTargetPos) then
-                    TeleportToTarget(CakeTargetPos)
-                    task.wait(0.5) -- Adiciona um pequeno delay aqui também, para o teleporte ser priorizado
-                end
-
-                local portalAberto = bigMirror:FindFirstChild("Other") and bigMirror.Other.Transparency == 0
-                local princeExiste = enemies:FindFirstChild("Cake Prince") ~= nil
-                -- ... resto da lógica do Auto Cake Prince (Mantida)
-                
-                if portalAberto or princeExiste then
-                    local v = GetNearestEnemy({"Cake Prince"})
-                    if v then
-                        repeat
-                            task.wait()
-                            Attack.Kill2(v, _G.Auto_Cake_Prince)
-                        until not _G.Auto_Cake_Prince or not v.Parent or v.Humanoid.Health <= 0
-                    else
-                        TeleportToTarget(CFrame.new(-2151.82, 149.32, -12404.91))
-                    end
+                local prince = GetNearestEnemy({"Cake Prince"})
+                if prince then
+                    repeat
+                        task.wait()
+                        Attack.Kill2(prince, _G.Auto_Cake_Prince)
+                    until not _G.Auto_Cake_Prince or not prince.Parent or prince.Humanoid.Health <= 0
                 else
-                    -- Mobs normais
                     local CakeMobs = {"Cookie Crafter","Cake Guard","Baking Staff","Head Baker"}
-                    local v = GetNearestEnemy(CakeMobs)
+                    local mob = GetNearestEnemy(CakeMobs)
 
-                    -- Aceitar missão se necessário
+                    -- Aceitar quest se necessário
                     if _G.AcceptQuestC and not questUI.Visible then
-                        local questPos = CFrame.new(-1927.92, 37.8, -12842.54)
-                        TeleportToTarget(questPos)
                         local questData = {
                             {"StartQuest","CakeQuest2",2},
                             {"StartQuest","CakeQuest2",1},
@@ -3861,41 +3812,25 @@ spawn(function()
                         end)
                     end
 
-                    if v then
+                    if mob then
                         repeat
                             task.wait()
-                            Attack.Kill(v, _G.Auto_Cake_Prince)
-                        until not _G.Auto_Cake_Prince or not v.Parent or v.Humanoid.Health <= 0
-                    else
-                        -- Teleporta pra posição aleatória da ilha
-                        local randomSpots = {
-                            CFrame.new(-1436.86, 167.75, -12296.95),
-                            CFrame.new(-2383.78, 150.45, -12126.49),
-                            CFrame.new(-2231.27, 168.25, -12845.75)
-                        }
-                        TeleportToTarget(randomSpots[math.random(1, #randomSpots)])
+                            Attack.Kill(mob, _G.Auto_Cake_Prince)
+                        until not _G.Auto_Cake_Prince or not mob.Parent or mob.Humanoid.Health <= 0
                     end
                 end
             end
 
             -- ==== AUTO KILL DOUGH KING ====
             if _G.AutoMiror then
-                local doughPos = CFrame.new(-1943.676, 251.51, -12337.88)
-                local v = GetNearestEnemy({"Dough King"})
-                if v then
+                local dough = GetNearestEnemy({"Dough King"})
+                if dough then
                     repeat
                         task.wait()
-                        Attack.Kill(v, _G.AutoMiror)
-                    until not _G.AutoMiror or not v.Parent or v.Humanoid.Health <= 0
-                else
-                    -- Teleporta pro Dough King se não tiver por perto
-                    if IsFarFromTarget(doughPos) then
-                        TeleportToTarget(doughPos)
-                        task.wait(0.5) -- Adiciona um pequeno delay aqui também
-                    end
+                        Attack.Kill(dough, _G.AutoMiror)
+                    until not _G.AutoMiror or not dough.Parent or dough.Humanoid.Health <= 0
                 end
             end
-
         end)
     end
 end)
