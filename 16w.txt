@@ -2080,13 +2080,8 @@ end)
 	end)
 	
 local Tabs = {
-	Info = Window:AddTab({
-		Title = "Update Log",
-		Icon = "info"
-	}),
-
 	Discord = Window:AddTab({
-		Title = "Discord",
+		Title = "Home",
 		Icon = "message-circle"
 	}),
 	Server = Window:AddTab({
@@ -2146,7 +2141,6 @@ local Tabs = {
 		Icon = "package"
 	})
 }
-
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local plr = Players.LocalPlayer
@@ -2298,19 +2292,38 @@ task.spawn(function()
     end
 end)
 
--- 💬 Parágrafo único na aba Information
-Tabs.Info:AddParagraph({
-	Title = "Leia Por Favor",
-	Content = "Tab Shop Not Working"
+
+	local startTime = tick() -- marca o tempo que o script começou
+
+-- Contador de tempo de execução (atualiza a cada segundo)
+spawn(function()
+	while task.wait(1) do
+		local elapsed = math.floor(tick() - startTime)
+		if Tabs.Discord then
+			pcall(function()
+				-- Aqui adiciona ou atualiza o parágrafo mostrando o tempo
+				Tabs.Discord:AddParagraph({
+					Title = "Time",
+					Content = tostring(elapsed) .. " segundos"
+				})
+			end)
+		end
+	end
+end)
+
+-- Mensagem de boas-vindas
+Tabs.Discord:AddParagraph({
+	Title = "Bem-vindo",
+	Content = "Espero que goste do nosso script"
 })
 
-	Tabs.Discord:AddButton({
-		Title = "Link Join Sever Discord",
-		Description = "Nosso Servidor do discord",
-		Callback = function()
-			setclipboard(tostring("https://discord.gg/pGYH2MCpc"))
-		end
-	})
+-- Botão de entrar no Discord
+Tabs.Discord:AddButton({
+	Title = "Entrar no Discord",
+	Callback = function()
+		setclipboard("https://discord.gg/seuServidor") -- copia link do Discord pro clipboard
+	end
+})
 	local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local plr = Players.LocalPlayer
