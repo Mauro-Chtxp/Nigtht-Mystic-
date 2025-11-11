@@ -2298,13 +2298,13 @@ local HomeSection = Tabs.Discord:AddSection("Home")
 
 -- Paragraph de tempo
 local TempoParagraph = HomeSection:AddParagraph({
-	Title = "Tempo de execução",
+	Title = "Tempo de execução:",
 	Content = "0 segundos"
 })
 
 -- Paragraph de boas-vindas
 HomeSection:AddParagraph({
-	Title = "Bem-vindo",
+	Title = "Bem-vindo!",
 	Content = "Espero que goste do nosso script :3"
 })
 
@@ -2313,9 +2313,9 @@ local DiscordSection = Tabs.Discord:AddSection("Discord")
 
 -- Botão do Discord
 DiscordSection:AddButton({
-	Title = "Link Join Sever Discord",
+	Title = "Entrar no Discord",
 	Callback = function()
-		setclipboard("https://discord.gg/seuServidor")
+		setclipboard("https://discord.gg/RDHr6hkW")
 	end
 })
 
@@ -2324,8 +2324,21 @@ local startTime = tick()
 spawn(function()
 	while task.wait(1) do
 		local elapsed = math.floor(tick() - startTime)
+
 		pcall(function()
-			TempoParagraph:UpdateContent(tostring(elapsed) .. " segundos")
+			if TempoParagraph.UpdateContent then
+				TempoParagraph:UpdateContent(tostring(elapsed) .. " segundos")
+			elseif TempoParagraph.Update then
+				TempoParagraph:Update(tostring(elapsed) .. " segundos")
+			elseif TempoParagraph.SetContent then
+				TempoParagraph:SetContent(tostring(elapsed) .. " segundos")
+			else
+				TempoParagraph:Destroy()
+				TempoParagraph = HomeSection:AddParagraph({
+					Title = "Tempo de execução:",
+					Content = tostring(elapsed) .. " segundos"
+				})
+			end
 		end)
 	end
 end)
