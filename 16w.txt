@@ -2209,7 +2209,7 @@ local function BringFruit(item)
     end
 end
 
-local MaxSpeed = 330
+local MaxSpeed = 350
 local function getCharacter()
     if not plr.Character then
         plr.CharacterAdded:Wait()
@@ -2293,36 +2293,40 @@ task.spawn(function()
     end
 end)
 
-	Tabs.Discord:AddParagraph({
-	Title = "Bem-vindo!",
-	Content = "Espero que goste do nosso script"
-})
+	-- Section Home
+local HomeSection = Tabs.Discord:AddSection("Home")
 
-Tabs.Discord:AddParagraph({
-	Title = "Tempo de execução:",
+-- Paragraph de tempo
+local TempoParagraph = HomeSection:AddParagraph({
+	Title = "Tempo de execução",
 	Content = "0 segundos"
 })
 
-Tabs.Discord:AddButton({
-	Title = "Entrar no Discord",
+-- Paragraph de boas-vindas
+HomeSection:AddParagraph({
+	Title = "Bem-vindo",
+	Content = "Espero que goste do nosso script :3"
+})
+
+-- Section Discord
+local DiscordSection = Tabs.Discord:AddSection("Discord")
+
+-- Botão do Discord
+DiscordSection:AddButton({
+	Title = "Link Join Sever Discord",
 	Callback = function()
 		setclipboard("https://discord.gg/seuServidor")
 	end
 })
 
+-- Sistema de contador de tempo
 local startTime = tick()
-
 spawn(function()
 	while task.wait(1) do
 		local elapsed = math.floor(tick() - startTime)
-		if Tabs.Discord then
-			pcall(function()
-				Tabs.Discord:AddParagraph({
-					Title = "Tempo de execução:",
-					Content = tostring(elapsed) .. " segundos"
-				})
-			end)
-		end
+		pcall(function()
+			TempoParagraph:UpdateContent(tostring(elapsed) .. " segundos")
+		end)
 	end
 end)
 	local ReplicatedStorage = game:GetService("ReplicatedStorage")
