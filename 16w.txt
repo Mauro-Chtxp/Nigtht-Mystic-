@@ -2141,6 +2141,7 @@ local Tabs = {
 		Icon = "package"
 	})
 }
+
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local plr = Players.LocalPlayer
@@ -2292,38 +2293,38 @@ task.spawn(function()
     end
 end)
 
+	Tabs.Discord:AddParagraph({
+	Title = "Bem-vindo!",
+	Content = "Espero que goste do nosso script"
+})
 
-	local startTime = tick() -- marca o tempo que o script começou
+Tabs.Discord:AddParagraph({
+	Title = "Tempo de execução:",
+	Content = "0 segundos"
+})
 
--- Contador de tempo de execução (atualiza a cada segundo)
+Tabs.Discord:AddButton({
+	Title = "Entrar no Discord",
+	Callback = function()
+		setclipboard("https://discord.gg/seuServidor")
+	end
+})
+
+local startTime = tick()
+
 spawn(function()
 	while task.wait(1) do
 		local elapsed = math.floor(tick() - startTime)
 		if Tabs.Discord then
 			pcall(function()
-				-- Aqui adiciona ou atualiza o parágrafo mostrando o tempo
 				Tabs.Discord:AddParagraph({
-					Title = "Time",
+					Title = "Tempo de execução:",
 					Content = tostring(elapsed) .. " segundos"
 				})
 			end)
 		end
 	end
 end)
-
--- Mensagem de boas-vindas
-Tabs.Discord:AddParagraph({
-	Title = "Bem-vindo",
-	Content = "Espero que goste do nosso script"
-})
-
--- Botão de entrar no Discord
-Tabs.Discord:AddButton({
-	Title = "Entrar no Discord",
-	Callback = function()
-		setclipboard("https://discord.gg/seuServidor") -- copia link do Discord pro clipboard
-	end
-})
 	local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local plr = Players.LocalPlayer
