@@ -8587,6 +8587,24 @@ Tabs.SeaEvent:AddButton({
 })
 
 local Q = Tabs.SeaEvent:AddDropdown("Q", {
+    Title = "Choose Boats",
+    Values = ListSeaBoat,
+    Multi = false,
+    Default = 1
+})
+Q:OnChanged(function(Value)
+    _G.SelectedBoat = Value
+end)
+
+Tabs.SeaEvent:AddButton({
+    Title = "Buy Boats",
+    Description = "Buy the select boats",
+    Callback = function()
+        replicated.Remotes.CommF_:InvokeServer("BuyBoat", _G.SelectedBoat)
+    end
+})
+
+local Q = Tabs.SeaEvent:AddDropdown("Q", {
     Title = "Choose Sea Level",
     Values = ListSeaZone,
     Multi = false,
@@ -8634,22 +8652,51 @@ UseM1Fruit:OnChanged(function(Value)
     _G.UseM1Fruit = Value
 end)
 
-local function AttackWithSelectedSkills()
-    if _G.UseM1Fruit then
-        weaponSc("Blox Fruit")
-        if CheckF() then
-            click()
+-- ===========================
+-- CORREÇÃO: Equipar a fruta de verdade
+-- ===========================
+local function ForceEquipFruit()
+    local plr = game.Players.LocalPlayer
+    local char = plr.Character
+    local bp = plr.Backpack
+
+    -- Procura a fruta no backpack
+    for _, tool in ipairs(bp:GetChildren()) do
+        if tool:IsA("Tool") and tool.ToolTip == "Blox Fruit" then
+            char.Humanoid:EquipTool(tool)
+            break
         end
+    end
+end
+
+-- ===========================
+-- FUNÇÃO DE ATAQUE
+-- ===========================
+local function AttackWithSelectedSkills()
+
+    -- =======================
+    -- MODO M1 FRUIT ATIVADO
+    -- =======================
+    if _G.UseM1Fruit then
+        ForceEquipFruit()  -- EQUIPA A FRUTA DE VERDADE
+
+        if CheckF() then
+            click()  -- M1
+        end
+
         return
     end
 
+    -- =======================
+    -- MODO DE SKILLS NORMAL
+    -- =======================
     local skillsToUse = _G.SelectedSkills
     if not skillsToUse or #skillsToUse == 0 then
         skillsToUse = {"Z", "X", "C"}
     end
 
     if CheckF() then
-        weaponSc("Blox Fruit")
+        ForceEquipFruit()  -- garante que está com fruta equipada
         for _, skill in ipairs(skillsToUse) do
             Useskills("Blox Fruit", skill)
             task.wait(0.12)
