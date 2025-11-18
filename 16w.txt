@@ -2612,19 +2612,7 @@ task.spawn(function()
     end
 end)
 
--- 💬 Parágrafo único na aba Information
-Tabs.Info:AddParagraph({
-	Title = "Leia Por Favor",
-	Content = "Tab Shop Not Working"
-})
 
-	Tabs.Discord:AddButton({
-		Title = "Link Join Sever Discord",
-		Description = "Nosso Servidor do discord",
-		Callback = function()
-			setclipboard(tostring("https://discord.gg/pGYH2MCpc"))
-		end
-	})
 	local ReplicatedStorage = game:GetService("ReplicatedStorage")
 	local Players = game:GetService("Players")
 	if World3 then
