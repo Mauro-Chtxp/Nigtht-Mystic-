@@ -444,11 +444,11 @@ Sea = World1 or World2 or World3 or plr:Kick("❌ Error : A[12]Blox Fruits ❌")
 		end
 		for _, v in pairs(workspace.Enemies:GetChildren()) do
 			if v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
-				if (v.PrimaryPart.Position - PosMon).Magnitude <= 200 then
+				if (v.PrimaryPart.Position - PosMon).Magnitude <= 225 then
 					v.PrimaryPart.CFrame = CFrame.new(PosMon)
 					v.PrimaryPart.CanCollide = true;
-					v:FindFirstChild("Humanoid").WalkSpeed = 50;
-					v:FindFirstChild("Humanoid").JumpPower = 50;
+					v:FindFirstChild("Humanoid").WalkSpeed = 0;
+					v:FindFirstChild("Humanoid").JumpPower = 0;
 					if v.Humanoid:FindFirstChild("Animator") then
 						v.Humanoid.Animator:Destroy()
 					end;
@@ -2004,7 +2004,7 @@ Sea = World1 or World2 or World3 or plr:Kick("❌ Error : A[12]Blox Fruits ❌")
 local Window = Fluent:CreateWindow({
     Title = "Night Mystic",
     SubTitle = "By Hey Star & MauroZzx | Blox Fruits",
-    TabWidth = 175,
+    TabWidth = 160,
     Theme = "PurpleBlack",
     Acrylic = false,
     Size = UDim2.fromOffset(340, 340),
@@ -2611,113 +2611,67 @@ task.spawn(function()
         end
     end
 end)
-	-- Section Home
-local HomeSection = Tabs.Discord:AddSection("Home")
 
--- Paragraph de tempo
-local TempoParagraph = HomeSection:AddParagraph({
-	Title = "Tempo de execução:",
-	Content = "0 segundos"
+-- 💬 Parágrafo único na aba Information
+Tabs.Info:AddParagraph({
+	Title = "Leia Por Favor",
+	Content = "Tab Shop Not Working"
 })
 
--- Paragraph de boas-vindas
-HomeSection:AddParagraph({
-	Title = "Bem-vindo!",
-	Content = "Espero que goste do nosso script :3"
-})
+	Tabs.Discord:AddButton({
+		Title = "Link Join Sever Discord",
+		Description = "Nosso Servidor do discord",
+		Callback = function()
+			setclipboard(tostring("https://discord.gg/pGYH2MCpc"))
+		end
+	})
+	local ReplicatedStorage = game:GetService("ReplicatedStorage")
+	local Players = game:GetService("Players")
+	if World3 then
+		Tabs.Main:AddSection("Farm")
+		local TeleportToggle = Tabs.Main:AddToggle("tpSubmarineWorker", {
+			Title = "Teleport Submerged Island",
+			Description = "Teleport to Submarine Worker (Level >= 2600, World 3 only)",
+			Default = false,
+			Callback = function(value)
+				_G.tpSubmarineWorker = value
+			end
+		})
+		spawn(function()
+			while wait(0.5) do
+				if _G.tpSubmarineWorker then
+					pcall(function()
+						local a = Players.LocalPlayer.Data.Level.Value
+						local npcPosition = CFrame.new(-16269.1016, 29.5177539, 1372.3204)
 
--- Section Discord
-local DiscordSection = Tabs.Discord:AddSection("Discord")
+						-- Kiểm tra level >= 2600
+						if a >= 2600 then
+							-- Teleport đến NPC
+							if Players.LocalPlayer.Character and Players.LocalPlayer.Character.HumanoidRootPart then
+								local maxAttempts = 3
+								local attempt = 1
+								local distance = math.huge
 
--- Botão do Discord
-DiscordSection:AddButton({
-	Title = "Nosso Servidor do Discord",
-	Callback = function()
-		setclipboard("https://discord.gg/xp4CPzGwB")
-	end
-})
-
--- Sistema de contador de tempo
-local startTime = tick()
-spawn(function()
-	while task.wait(1) do
-		local elapsed = math.floor(tick() - startTime)
-
-		pcall(function()
-			if TempoParagraph.UpdateContent then
-				TempoParagraph:UpdateContent(tostring(elapsed) .. " segundos")
-			elseif TempoParagraph.Update then
-				TempoParagraph:Update(tostring(elapsed) .. " segundos")
-			elseif TempoParagraph.SetContent then
-				TempoParagraph:SetContent(tostring(elapsed) .. " segundos")
-			else
-				TempoParagraph:Destroy()
-				TempoParagraph = HomeSection:AddParagraph({
-					Title = "Tempo de execução:",
-					Content = tostring(elapsed) .. " segundos"
-				})
+								while attempt <= maxAttempts and distance > 10 do
+									_tp(npcPosition)
+									wait(3)
+									if Players.LocalPlayer.Character and Players.LocalPlayer.Character.HumanoidRootPart then
+										distance = (Players.LocalPlayer.Character.HumanoidRootPart.Position - npcPosition.Position).Magnitude
+										attempt = attempt + 1
+									else
+										return
+									end
+								end
+							end
+						else
+							_G.tpSubmarineWorker = false
+							TeleportToggle:Set(false)
+						end
+					end)
+				end
 			end
 		end)
 	end
-end)
-	local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Players = game:GetService("Players")
-local plr = Players.LocalPlayer
-
-if World3 then
-    Tabs.Main:AddSection("Farm")
-
-    --  Sistema de seleção de arma (substitui o botão de teleporte)
-    local _Weapon = {
-        "Melee",
-        "Sword",
-        "Blox Fruit",
-        "Gun"
-    }
-
-    local Weapon_Config = Tabs.Main:AddDropdown("Weapon_Config", {
-        Title = "Weapons",
-        Values = _Weapon,
-        Multi = false,
-        Default = 1
-    })
-
-    Weapon_Config:OnChanged(function(Value)
-        _G.ChooseWP = Value
-    end)
-
-    spawn(function()
-        while wait(Sec) do
-            pcall(function()
-                if _G.ChooseWP == "Melee" then
-                    for _, v in pairs(plr.Backpack:GetChildren()) do
-                        if v.ToolTip == "Melee" then
-                            _G.SelectWeapon = v.Name
-                        end
-                    end
-                elseif _G.ChooseWP == "Sword" then
-                    for _, v in pairs(plr.Backpack:GetChildren()) do
-                        if v.ToolTip == "Sword" then
-                            _G.SelectWeapon = v.Name
-                        end
-                    end
-                elseif _G.ChooseWP == "Gun" then
-                    for _, v in pairs(plr.Backpack:GetChildren()) do
-                        if v.ToolTip == "Gun" then
-                            _G.SelectWeapon = v.Name
-                        end
-                    end
-                elseif _G.ChooseWP == "Blox Fruit" then
-                    for _, v in pairs(plr.Backpack:GetChildren()) do
-                        if v.ToolTip == "Blox Fruit" then
-                            _G.SelectWeapon = v.Name
-                        end
-                    end
-                end
-            end)
-        end
-    end)
-end
 	local FarmLevel = Tabs.Main:AddToggle("FarmLevel", {
 		Title = "Auto Farm Level",
 		Description = "Famar Níveis Automaticamente",
@@ -4083,121 +4037,106 @@ end
 		Default = false
 	})
 	Q:OnChanged(function(Value)
-    _G.Auto_Cake_Prince = Value
+	_G.Auto_Cake_Prince = Value
 end)
 
 spawn(function()
-    while task.wait() do
-        if _G.Auto_Cake_Prince then
-            pcall(function()
-                local player = game.Players.LocalPlayer
-                local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-                if not root then return end
+	while wait() do
+		if _G.Auto_Cake_Prince then
+			pcall(function()
+				local player = game.Players.LocalPlayer
+				local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+				local questUI = player.PlayerGui.Main.Quest
+				local enemies = workspace.Enemies
+				local bigMirror = workspace.Map.CakeLoaf.BigMirror
+				if not root then return end
 
-                local questUI = player.PlayerGui.Main.Quest
-                local enemies = workspace.Enemies
-                local bigMirror = workspace.Map.CakeLoaf.BigMirror
-                local cakeIslandPos = Vector3.new(-2077, 252, -12373)
+				-- 🟩 Teleportar automaticamente até Cake Island se estiver longe
+				local cakeIslandPos = Vector3.new(-2077, 252, -12373)
+				if (root.Position - cakeIslandPos).Magnitude > 3000 then
+					_tp(CFrame.new(-2077, 252, -12373))
+					repeat wait() until (root.Position - cakeIslandPos).Magnitude < 600
+				end
 
-                ----------------------------------------------------------------
-                -- 🧠 SMART TELEPORT SYSTEM (corrigido pra não ancorar no chão)
-                ----------------------------------------------------------------
-                local dist = (root.Position - cakeIslandPos).Magnitude
-                if dist > 2500 then
-                    -- 🚀 usa BTP pra realmente voar até a ilha mesmo se estiver longe
-                    BTP(CFrame.new(-2077, 252, -12373))
-                    repeat task.wait() until (root.Position - cakeIslandPos).Magnitude < 800
-                end
-                ----------------------------------------------------------------
+				if not bigMirror:FindFirstChild("Other") then
+					_tp(CFrame.new(-2077, 252, -12373))
+				end
 
-                -- 🧭 Função pra pegar o inimigo mais próximo de uma lista
-                local function GetNearestEnemy(names)
-                    local nearest, minDist
-                    for _, v in ipairs(enemies:GetChildren()) do
-                        if table.find(names, v.Name)
-                            and v:FindFirstChild("HumanoidRootPart")
-                            and v:FindFirstChild("Humanoid")
-                            and v.Humanoid.Health > 0
-                        then
-                            local dist = (v.HumanoidRootPart.Position - root.Position).Magnitude
-                            if not minDist or dist < minDist then
-                                minDist = dist
-                                nearest = v
-                            end
-                        end
-                    end
-                    return nearest
-                end
+				-- 🔥 Função pra pegar o inimigo mais próximo
+				local function GetNearestEnemy(names)
+					local nearest, minDist
+					for _, v in ipairs(workspace.Enemies:GetChildren()) do
+						if table.find(names, v.Name)
+							and v:FindFirstChild("HumanoidRootPart")
+							and v:FindFirstChild("Humanoid")
+							and v.Humanoid.Health > 0
+						then
+							local dist = (v.HumanoidRootPart.Position - root.Position).Magnitude
+							if not minDist or dist < minDist then
+								minDist = dist
+								nearest = v
+							end
+						end
+					end
+					return nearest
+				end
 
-                -- 🔥 Checar se o portal do Cake Prince está ativo
-                local portalAberto = bigMirror:FindFirstChild("Other") and bigMirror.Other.Transparency == 0
-                local princeExiste = enemies:FindFirstChild("Cake Prince") ~= nil
+				-- 🍰 Se o portal do Cake Prince estiver aberto
+				if bigMirror.Other.Transparency == 0 or enemies:FindFirstChild("Cake Prince") then
+					local v = GetNearestEnemy({"Cake Prince"})
+					if v then
+						repeat
+							wait()
+							Attack.Kill2(v, _G.Auto_Cake_Prince)
+						until not _G.Auto_Cake_Prince or not v.Parent or v.Humanoid.Health <= 0
+					else
+						if bigMirror.Other.Transparency == 0 and (CFrame.new(-1990.67, 4533, -14973.67).Position - root.Position).Magnitude >= 2000 then
+							_tp(CFrame.new(-2151.82, 149.32, -12404.91))
+						end
+					end
+				else
+					-- 🧁 Lista de inimigos comuns
+					local CakePrince = {
+						"Cookie Crafter",
+						"Cake Guard",
+						"Baking Staff",
+						"Head Baker"
+					}
 
-                if portalAberto or princeExiste then
-                    -- 🍰 Atacar o Cake Prince
-                    local v = GetNearestEnemy({"Cake Prince"})
-                    if v then
-                        repeat
-                            task.wait()
-                            Attack.Kill2(v, _G.Auto_Cake_Prince)
-                        until not _G.Auto_Cake_Prince or not v.Parent or v.Humanoid.Health <= 0
-                    else
-                        -- Se o portal estiver aberto mas não achou o príncipe, teleporta pro topo do espelho
-                        if portalAberto and (root.Position - Vector3.new(-1990.67, 4533, -14973.67)).Magnitude >= 2000 then
-                            _tp(CFrame.new(-2151.82, 149.32, -12404.91))
-                        end
-                    end
-                else
-                    -- 🧁 Lista dos mobs normais
-                    local CakeMobs = {
-                        "Cookie Crafter",
-                        "Cake Guard",
-                        "Baking Staff",
-                        "Head Baker"
-                    }
+					local v = GetNearestEnemy(CakePrince)
 
-                    local v = GetNearestEnemy(CakeMobs)
+					if v then
+						-- 🧾 Aceitar missão se não tiver
+						if _G.AcceptQuestC and not questUI.Visible then
+							local questPos = CFrame.new(-1927.92, 37.8, -12842.54)
+							_tp(questPos)
+							while (questPos.Position - root.Position).Magnitude > 50 do
+								wait(0.2)
+							end
 
-                    -- 🧾 Aceitar missão se necessário
-                    if _G.AcceptQuestC and not questUI.Visible then
-                        local questPos = CFrame.new(-1927.92, 37.8, -12842.54)
-                        _tp(questPos)
-                        while (questPos.Position - root.Position).Magnitude > 50 do
-                            task.wait(0.2)
-                        end
+							local questData = {
+								[1] = {"StartQuest","CakeQuest2",2},
+								[2] = {"StartQuest","CakeQuest2",1},
+								[3] = {"StartQuest","CakeQuest1",1},
+								[4] = {"StartQuest","CakeQuest1",2}
+							}
+							pcall(function()
+								game.ReplicatedStorage.Remotes.CommF_:InvokeServer(unpack(questData[math.random(1,4)]))
+							end)
+						end
 
-                        local questData = {
-                            {"StartQuest","CakeQuest2",2},
-                            {"StartQuest","CakeQuest2",1},
-                            {"StartQuest","CakeQuest1",1},
-                            {"StartQuest","CakeQuest1",2}
-                        }
-                        pcall(function()
-                            game.ReplicatedStorage.Remotes.CommF_:InvokeServer(unpack(questData[math.random(1,4)]))
-                        end)
-                    end
-
-                    -- 🔪 Atacar inimigos comuns
-                    if v then
-                        repeat
-                            task.wait()
-                            Attack.Kill(v, _G.Auto_Cake_Prince)
-                        until not _G.Auto_Cake_Prince or not v.Parent or v.Humanoid.Health <= 0
-                    else
-                        -- Se não achar inimigo, teleporta pra uma posição aleatória da ilha
-                        local randomSpots = {
-                            CFrame.new(-1436.86, 167.75, -12296.95),
-                            CFrame.new(-2383.78, 150.45, -12126.49),
-                            CFrame.new(-2231.27, 168.25, -12845.75)
-                        }
-                        _tp(randomSpots[math.random(1, #randomSpots)])
-                    end
-                end
-            end)
-        end
-    end
+						repeat
+							wait()
+							Attack.Kill(v, _G.Auto_Cake_Prince)
+						until not _G.Auto_Cake_Prince or v.Humanoid.Health <= 0 or bigMirror.Other.Transparency == 0 or (_G.AcceptQuestC and not questUI.Visible)
+					else
+						_tp(CFrame.new(-2077, 252, -12373))
+					end
+				end
+			end)
+		end
+	end
 end)
-
 	local Q = Tabs.Main:AddToggle("Q", {
 		Title = "Auto Bones",
 		Description = "",
@@ -4402,7 +4341,8 @@ end)
 				end
 			end
 		end
-	end) 
+	end)
+
 	Tabs.Main:AddSection("Unlocked Dungeon")
 	local Q = Tabs.Main:AddToggle("Q", {
 		Title = "Auto Desbloquear Raid Dough",
@@ -4823,7 +4763,7 @@ end)
 	end)
 	Tabs.Main:AddSection("Upgrade Races V3")
 	local Q = Tabs.Main:AddToggle("Q", {
-		Title = "Auto Mink V2/V3",
+		Title = "Auto Mink v3",
 		Description = "",
 		Default = false
 	})
@@ -4868,7 +4808,7 @@ end)
 		end
 	end)
 	local Q = Tabs.Main:AddToggle("Q", {
-		Title = "Auto Human V2/V3",
+		Title = "Auto Human V3",
 		Description = "",
 		Default = false
 	})
@@ -4937,7 +4877,7 @@ end)
 		end
 	end)
 	local Q = Tabs.Main:AddToggle("Q", {
-		Title = "Auto Anjo V2/V3",
+		Title = "Auto Anjo V3",
 		Description = "",
 		Default = false
 	})
@@ -4987,7 +4927,7 @@ end)
 		end
 	end)
 	local Q = Tabs.Main:AddToggle("Q", {
-		Title = "Auto Shark V2/V3",
+		Title = "Auto Sharkman V3",
 		Description = "",
 		Default = false
 	})
@@ -5032,7 +4972,7 @@ end)
 
 	Tabs.Main:AddSection("Dark Dragger + Valkyrie")
 	local Q = Tabs.Main:AddToggle("Q", {
-		Title = "Auto Kill Rip_indra",
+		Title = "Auto Valkyrie",
 		Description = "",
 		Default = false
 	})
@@ -5059,7 +4999,7 @@ end)
 		end
 	end)
 	local Q = Tabs.Main:AddToggle("Q", {
-		Title = "Auto Active Cores",
+		Title = "Auto Desbloquear Puzzle",
 		Description = "",
 		Default = false
 	})
@@ -5114,6 +5054,63 @@ end)
 			end
 		end
 	end)
+
+	Tabs.Settings:AddSection("Settings / Configure")
+	local _Weapon = {
+		"Melee",
+		"Sword",
+		"Blox Fruit",
+		"Gun"
+	}
+	local Weapon_Config = Tabs.Settings:AddDropdown("Weapon_Config", {
+		Title = "Weapons",
+		Values = _Weapon,
+		Multi = false,
+		Default = 1
+	})
+	Weapon_Config:OnChanged(function(Value)
+		_G.ChooseWP = Value
+	end)
+	spawn(function()
+		while wait(Sec) do
+			pcall(function()
+				if _G.ChooseWP == "Melee" then
+					for _, v in pairs(plr.Backpack:GetChildren()) do
+						if v.ToolTip == "Melee" then
+							if plr.Backpack:FindFirstChild(tostring(v.Name)) then
+								_G.SelectWeapon = v.Name
+							end
+						end
+					end
+				elseif _G.ChooseWP == "Sword" then
+					for _, v in pairs(plr.Backpack:GetChildren()) do
+						if v.ToolTip == "Sword" then
+							if plr.Backpack:FindFirstChild(tostring(v.Name)) then
+								_G.SelectWeapon = v.Name
+							end
+						end
+					end
+				elseif _G.ChooseWP == "Gun" then
+					for _, v in pairs(plr.Backpack:GetChildren()) do
+						if v.ToolTip == "Gun" then
+							if plr.Backpack:FindFirstChild(tostring(v.Name)) then
+								_G.SelectWeapon = v.Name
+							end
+						end
+					end
+				elseif _G.ChooseWP == "Blox Fruit" then
+					for _, v in pairs(plr.Backpack:GetChildren()) do
+						if v.ToolTip == "Blox Fruit" then
+							if plr.Backpack:FindFirstChild(tostring(v.Name)) then
+								_G.SelectWeapon = v.Name
+							end
+						end
+					end
+				end
+			end)
+		end
+	end)
+
 	local Initialize = Tabs.Settings:AddToggle("Initialize", {
 		Title = "Auto Attack",
 		Description = "",
@@ -8632,65 +8629,6 @@ end)
 	Q:OnChanged(function(Value)
 		_G.SailBoats = Value
 	end)
-
--- *******************************************
--- INÍCIO DAS CORREÇÕES E ADIÇÕES:
-
-local SkillList = {"Z", "X", "C", "V", "F"} -- CORRIGIDO: Removido 'T', adicionado 'V' e 'F'
-
-local SelectSkills = Tabs.SeaEvent:AddDropdown("SelectSkills", {
-    Title = "Select Skill",
-    Description = "Choose which skills will be used automatically",
-    Values = SkillList,
-    Multi = true,
-    Default = {"Z", "X", "C"}
-})
-
-SelectSkills:OnChanged(function(Value)
-    _G.SelectedSkills = {}
-    for Skill, Enabled in pairs(Value) do
-        if Enabled then
-            table.insert(_G.SelectedSkills, Skill)
-        end
-    end
-    -- Opcional: Adicionar notificação aqui (depende da sua biblioteca Fluent)
-    -- Fluent:Notify({
-    --     Title = "Skills Updated",
-    --     Content = "Using: " .. (table.concat(_G.SelectedSkills, ", ") ~= "" and table.concat(_G.SelectedSkills, ", ") or "None"),
-    --     Duration = 3
-    -- })
-end)
-
--- Funçã auxiliar para atacar usando as skills selecionadas
-local function AttackWithSelectedSkills()
-    local skillsToUse = _G.SelectedSkills
-    -- Define um padrão se o _G.SelectedSkills não foi definido pelo dropdown ou está vazio
-    if not skillsToUse or #skillsToUse == 0 then
-        skillsToUse = {"Z", "X", "C"}
-    end
-
-    if CheckF() then
-        weaponSc("Blox Fruit")
-        for _, skill in ipairs(skillsToUse) do
-            Useskills("Blox Fruit", skill)
-            task.wait(0.12)
-        end
-    else
-        -- Tenta usar em sequência nas armas mais comuns (Melee, Sword, Blox Fruit, Gun)
-        local weaponsOrder = {"Melee", "Sword", "Blox Fruit", "Gun"}
-        for _, wp in ipairs(weaponsOrder) do
-            for _, skill in ipairs(skillsToUse) do
-                Useskills(wp, skill)
-                task.wait(0.12)
-            end
-            task.wait(0.06)
-        end
-    end
-end
-
--- FIM DAS CORREÇÕES E ADIÇÕES
--- *******************************************
-
 	spawn(function()
 		while wait() do
 			if _G.SailBoats then
@@ -8927,7 +8865,26 @@ end
 									if plr:DistanceFromCharacter(b.HumanoidRootPart.CFrame.Position) <= 500 then
 										AitSeaSkill_Custom = b.HumanoidRootPart.CFrame;
 										MousePos = AitSeaSkill_Custom.Position;
-										AttackWithSelectedSkills() -- Chamada da nova função
+										if CheckF() then
+											weaponSc("Blox Fruit")
+											Useskills("Blox Fruit", "Z")
+											Useskills("Blox Fruit", "X")
+											Useskills("Blox Fruit", "C")
+										else
+											Useskills("Melee", "Z")
+											Useskills("Melee", "X")
+											Useskills("Melee", "C")
+											wait(.1)
+											Useskills("Sword", "Z")
+											Useskills("Sword", "X")
+											wait(.1)
+											Useskills("Blox Fruit", "Z")
+											Useskills("Blox Fruit", "X")
+											Useskills("Blox Fruit", "C")
+											wait(.1)
+											Useskills("Gun", "Z")
+											Useskills("Gun", "X")
+										end
 									end
 								until _G.SeaBeast1 == false or not b:FindFirstChild("HumanoidRootPart") or not b.Parent or b.Health.Value <= 0
 							end
@@ -8945,7 +8902,26 @@ end
 									end)
 									if plr:DistanceFromCharacter(b.HumanoidRootPart.CFrame.Position) <= 500 then
 										MousePos = b:FindFirstChild("Leviathan Segment").Position;
-										AttackWithSelectedSkills() -- Chamada da nova função
+										if CheckF() then
+											weaponSc("Blox Fruit")
+											Useskills("Blox Fruit", "Z")
+											Useskills("Blox Fruit", "X")
+											Useskills("Blox Fruit", "C")
+										else
+											Useskills("Melee", "Z")
+											Useskills("Melee", "X")
+											Useskills("Melee", "C")
+											wait(.1)
+											Useskills("Sword", "Z")
+											Useskills("Sword", "X")
+											wait(.1)
+											Useskills("Blox Fruit", "Z")
+											Useskills("Blox Fruit", "X")
+											Useskills("Blox Fruit", "C")
+											wait(.1)
+											Useskills("Gun", "Z")
+											Useskills("Gun", "X")
+										end
 									end
 								until _G.Leviathan1 == false or not b:FindFirstChild("HumanoidRootPart") or not b.Parent or b.Health.Value <= 0
 							end
@@ -8966,7 +8942,26 @@ end
 									if plr:DistanceFromCharacter(b.Engine.CFrame.Position) <= 150 then
 										AitSeaSkill_Custom = b.Engine.CFrame;
 										MousePos = AitSeaSkill_Custom.Position;
-										AttackWithSelectedSkills() -- Chamada da nova função
+										if CheckF() then
+											weaponSc("Blox Fruit")
+											Useskills("Blox Fruit", "Z")
+											Useskills("Blox Fruit", "X")
+											Useskills("Blox Fruit", "C")
+										else
+											Useskills("Melee", "Z")
+											Useskills("Melee", "X")
+											Useskills("Melee", "C")
+											wait(.1)
+											Useskills("Sword", "Z")
+											Useskills("Sword", "X")
+											wait(.1)
+											Useskills("Blox Fruit", "Z")
+											Useskills("Blox Fruit", "X")
+											Useskills("Blox Fruit", "C")
+											wait(.1)
+											Useskills("Gun", "Z")
+											Useskills("Gun", "X")
+										end
 									end
 								until _G.FishBoat == false or not b:FindFirstChild("VehicleSeat") or b.Health.Value <= 0
 							end
@@ -8989,7 +8984,26 @@ end
 									if plr:DistanceFromCharacter(b.Engine.CFrame.Position) <= 150 then
 										AitSeaSkill_Custom = b.Engine.CFrame;
 										MousePos = AitSeaSkill_Custom.Position;
-										AttackWithSelectedSkills() -- Chamada da nova função
+										if CheckF() then
+											weaponSc("Blox Fruit")
+											Useskills("Blox Fruit", "Z")
+											Useskills("Blox Fruit", "X")
+											Useskills("Blox Fruit", "C")
+										else
+											Useskills("Melee", "Z")
+											Useskills("Melee", "X")
+											Useskills("Melee", "C")
+											wait(.1)
+											Useskills("Sword", "Z")
+											Useskills("Sword", "X")
+											wait(.1)
+											Useskills("Blox Fruit", "Z")
+											Useskills("Blox Fruit", "X")
+											Useskills("Blox Fruit", "C")
+											wait(.1)
+											Useskills("Gun", "Z")
+											Useskills("Gun", "X")
+										end
 									end
 								until _G.PGB == false or not b:FindFirstChild("VehicleSeat") or b.Health.Value <= 0
 							end
@@ -9367,46 +9381,39 @@ spawn(function()
                         "Island 2",
                         "Island 1"
                     }
-
+                    
                     local foundEnemies = false
-
+                    
                     for _, island in ipairs(islands) do
                         local location = game:GetService("Workspace")["_WorldOrigin"].Locations:FindFirstChild(island)
                         if location then
-                            -- procura o inimigo mais próximo da ilha atual
-                            local closestEnemy
-                            local shortestDistance = 9999
-
-                            for _, v in pairs(workspace.Enemies:GetChildren()) do
+                            
+                            -- FARM HẾT TẤT CẢ QUÁI Ở ISLAND NÀY
+                            for i, v in pairs(workspace.Enemies:GetChildren()) do
                                 if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") then
                                     if v.Humanoid.Health > 0 then
                                         local distance = (v.HumanoidRootPart.Position - location.Position).Magnitude
-                                        if distance < 500 and distance < shortestDistance then
-                                            shortestDistance = distance
-                                            closestEnemy = v
+                                        if distance < 500 then
+                                            foundEnemies = true
+                                            repeat
+                                                wait()
+                                                Attack.Kill(v, _G.Raiding)
+                                            until not _G.Raiding or not v.Parent or v.Humanoid.Health <= 0
                                         end
                                     end
                                 end
                             end
-
-                            -- se achou inimigo, foca nele até morrer
-                            if closestEnemy then
-                                foundEnemies = true
-                                repeat
-                                    task.wait()
-                                    Attack.Kill(closestEnemy, _G.Raiding)
-                                until not _G.Raiding or not closestEnemy.Parent or closestEnemy.Humanoid.Health <= 0
-                            end
-
-                            -- se achou e matou um inimigo, volta pro começo pra checar novamente
+                            
+                            -- Nếu đã farm quái ở island này, break để check lại từ đầu
                             if foundEnemies then
                                 break
                             end
                         end
                     end
-
-                    -- se não tem inimigo em nenhuma ilha → pode mover pra próxima
+                    
+                    -- Set NextIs chỉ khi KHÔNG tìm thấy quái
                     NextIs = not foundEnemies
+                    
                 else
                     NextIs = false
                 end
