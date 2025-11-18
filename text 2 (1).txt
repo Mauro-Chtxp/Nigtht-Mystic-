@@ -8569,43 +8569,43 @@ end)
 		end
 	end)
 	local Q = Tabs.SeaEvent:AddDropdown("Q", {
-		Title = "Choose Boats",
-		Values = ListSeaBoat,
-		Multi = false,
-		Default = 1
-	})
-	Q:OnChanged(function(Value)
-		_G.SelectedBoat = Value
-	end)
-	Tabs.SeaEvent:AddButton({
-		Title = "Buy Boats",
-		Description = "Buy the select boats",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("BuyBoat", _G.SelectedBoat)
-		end
-	})
-	local Q = Tabs.SeaEvent:AddDropdown("Q", {
-		Title = "Choose Sea Level",
-		Values = ListSeaZone,
-		Multi = false,
-		Default = 1
-	})
-	Q:OnChanged(function(Value)
-		_G.DangerSc = Value
-	end)
-	local Q = Tabs.SeaEvent:AddToggle("Q", {
-		Title = "Auto Sail Boat",
-		Description = "",
-		Default = false
-	})
-	Q:OnChanged(function(Value)
-		_G.SailBoats = Value
-	end)
+    Title = "Choose Boats",
+    Values = ListSeaBoat,
+    Multi = false,
+    Default = 1
+})
+Q:OnChanged(function(Value)
+    _G.SelectedBoat = Value
+end)
 
--- *******************************************
--- INÍCIO DAS CORREÇÕES E ADIÇÕES:
+Tabs.SeaEvent:AddButton({
+    Title = "Buy Boats",
+    Description = "Buy the select boats",
+    Callback = function()
+        replicated.Remotes.CommF_:InvokeServer("BuyBoat", _G.SelectedBoat)
+    end
+})
 
-local SkillList = {"Z", "X", "C", "V", "F"} -- CORRIGIDO: Removido 'T', adicionado 'V' e 'F'
+local Q = Tabs.SeaEvent:AddDropdown("Q", {
+    Title = "Choose Sea Level",
+    Values = ListSeaZone,
+    Multi = false,
+    Default = 1
+})
+Q:OnChanged(function(Value)
+    _G.DangerSc = Value
+end)
+
+local Q = Tabs.SeaEvent:AddToggle("Q", {
+    Title = "Auto Sail Boat",
+    Description = "",
+    Default = false
+})
+Q:OnChanged(function(Value)
+    _G.SailBoats = Value
+end)
+
+local SkillList = {"Z", "X", "C", "V", "F"}
 
 local SelectSkills = Tabs.SeaEvent:AddDropdown("SelectSkills", {
     Title = "Select Skill",
@@ -8622,18 +8622,28 @@ SelectSkills:OnChanged(function(Value)
             table.insert(_G.SelectedSkills, Skill)
         end
     end
-    -- Opcional: Adicionar notificação aqui (depende da sua biblioteca Fluent)
-    -- Fluent:Notify({
-    --     Title = "Skills Updated",
-    --     Content = "Using: " .. (table.concat(_G.SelectedSkills, ", ") ~= "" and table.concat(_G.SelectedSkills, ", ") or "None"),
-    --     Duration = 3
-    -- })
 end)
 
--- Funçã auxiliar para atacar usando as skills selecionadas
+local UseM1Fruit = Tabs.SeaEvent:AddToggle("UseM1Fruit", {
+    Title = "Use M1 Fruit",
+    Description = "Use only M1 with your Blox Fruit during Sea Events",
+    Default = false
+})
+
+UseM1Fruit:OnChanged(function(Value)
+    _G.UseM1Fruit = Value
+end)
+
 local function AttackWithSelectedSkills()
+    if _G.UseM1Fruit then
+        weaponSc("Blox Fruit")
+        if CheckF() then
+            click()
+        end
+        return
+    end
+
     local skillsToUse = _G.SelectedSkills
-    -- Define um padrão se o _G.SelectedSkills não foi definido pelo dropdown ou está vazio
     if not skillsToUse or #skillsToUse == 0 then
         skillsToUse = {"Z", "X", "C"}
     end
@@ -8645,7 +8655,6 @@ local function AttackWithSelectedSkills()
             task.wait(0.12)
         end
     else
-        -- Tenta usar em sequência nas armas mais comuns (Melee, Sword, Blox Fruit, Gun)
         local weaponsOrder = {"Melee", "Sword", "Blox Fruit", "Gun"}
         for _, wp in ipairs(weaponsOrder) do
             for _, skill in ipairs(skillsToUse) do
@@ -8656,7 +8665,6 @@ local function AttackWithSelectedSkills()
         end
     end
 end
-
 -- FIM DAS CORREÇÕES E ADIÇÕES
 -- *******************************************
 
