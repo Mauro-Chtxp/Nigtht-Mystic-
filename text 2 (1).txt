@@ -2660,7 +2660,7 @@ spawn(function()
 		end)
 	end
 end)
-	local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 	local Players = game:GetService("Players")
 	if World3 then
 		Tabs.Main:AddSection("Farm")
@@ -2755,6 +2755,7 @@ end)
 			end
 		end
 	end)
+
 	local BossDropdown = Tabs.Main:AddDropdown("BossDropdown", {
 		Title = "Selecione o Boss",
 		Description = "Selecione o Boss Para Farm",
