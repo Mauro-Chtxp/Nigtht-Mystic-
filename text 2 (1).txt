@@ -2670,8 +2670,13 @@ local _Weapon = {
 	"Gun"
 }
 
--- Dropdown agora na MAIN
-local Weapon_Config = Tabs.Main:AddDropdown("Weapon_Config", {
+-- ===========================
+-- SECTION: Fighting Style
+-- ===========================
+local SectionFS = Tabs.Main:AddSection("Fighting Style")
+
+-- Dropdown agora dentro da Section Fighting Style
+local Weapon_Config = SectionFS:AddDropdown("Weapon_Config", {
 	Title = "Weapons",
 	Values = _Weapon,
 	Multi = false,
@@ -4792,7 +4797,7 @@ end)
 	end)
 	Tabs.Main:AddSection("Upgrade Races V3")
 	local Q = Tabs.Main:AddToggle("Q", {
-		Title = "Auto Mink v3",
+		Title = "Auto Mink V2/V3",
 		Description = "",
 		Default = false
 	})
@@ -4837,7 +4842,7 @@ end)
 		end
 	end)
 	local Q = Tabs.Main:AddToggle("Q", {
-		Title = "Auto Human V3",
+		Title = "Auto Human V2/V3",
 		Description = "",
 		Default = false
 	})
@@ -4906,7 +4911,7 @@ end)
 		end
 	end)
 	local Q = Tabs.Main:AddToggle("Q", {
-		Title = "Auto Anjo V3",
+		Title = "Auto Anjo V2/V3",
 		Description = "",
 		Default = false
 	})
@@ -4956,7 +4961,7 @@ end)
 		end
 	end)
 	local Q = Tabs.Main:AddToggle("Q", {
-		Title = "Auto Sharkman V3",
+		Title = "Auto Sharkman V2/V3",
 		Description = "",
 		Default = false
 	})
@@ -5001,7 +5006,7 @@ end)
 
 	Tabs.Main:AddSection("Dark Dragger + Valkyrie")
 	local Q = Tabs.Main:AddToggle("Q", {
-		Title = "Auto Valkyrie",
+		Title = "Auto Kill Rip_indra",
 		Description = "",
 		Default = false
 	})
@@ -5028,7 +5033,7 @@ end)
 		end
 	end)
 	local Q = Tabs.Main:AddToggle("Q", {
-		Title = "Auto Desbloquear Puzzle",
+		Title = "Auto Active Cores",
 		Description = "",
 		Default = false
 	})
@@ -8495,7 +8500,7 @@ end)
 		end
 	})
 	local FloD = Tabs.SeaEvent:AddParagraph({
-		Title = " FlozenDimension Status ",
+		Title = " Frozen Dimension Status ",
 		Content = ""
 	})
 	spawn(function()
@@ -8510,7 +8515,7 @@ end)
 		end)
 	end)
 	local Q = Tabs.SeaEvent:AddToggle("Q", {
-		Title = "Auto Teleport Frozen Dimension",
+		Title = "Teleport Frozen Dimension",
 		Description = "turn on for teleport to frozen dimension and start the leviathan gate",
 		Default = false
 	})
@@ -8530,7 +8535,7 @@ end)
 		end
 	end)
 	local Q = Tabs.SeaEvent:AddToggle("Q", {
-		Title = "Auto Drive To Hydra Island",
+		Title = "Auto Levar Barco até Hydra",
 		Description = "",
 		Default = false
 	})
@@ -8569,7 +8574,7 @@ end)
 		end
 	end)
 	local Q = Tabs.SeaEvent:AddDropdown("Q", {
-    Title = "Choose Boats",
+    Title = "Selecionar Boats",
     Values = ListSeaBoat,
     Multi = false,
     Default = 1
@@ -8597,7 +8602,7 @@ Q:OnChanged(function(Value)
 end)
 
 Tabs.SeaEvent:AddButton({
-    Title = "Buy Boats",
+    Title = "Comprar Boats",
     Description = "Buy the select boats",
     Callback = function()
         replicated.Remotes.CommF_:InvokeServer("BuyBoat", _G.SelectedBoat)
@@ -8605,7 +8610,7 @@ Tabs.SeaEvent:AddButton({
 })
 
 local Q = Tabs.SeaEvent:AddDropdown("Q", {
-    Title = "Choose Sea Level",
+    Title = "Selecionar Level Sea",
     Values = ListSeaZone,
     Multi = false,
     Default = 1
