@@ -8601,6 +8601,65 @@ end)
 	Q:OnChanged(function(Value)
 		_G.SailBoats = Value
 	end)
+
+-- *******************************************
+-- INÍCIO DAS CORREÇÕES E ADIÇÕES:
+
+local SkillList = {"Z", "X", "C", "V", "F"} -- CORRIGIDO: Removido 'T', adicionado 'V' e 'F'
+
+local SelectSkills = Tabs.SeaEvent:AddDropdown("SelectSkills", {
+    Title = "Select Skill",
+    Description = "Choose which skills will be used automatically",
+    Values = SkillList,
+    Multi = true,
+    Default = {"Z", "X", "C"}
+})
+
+SelectSkills:OnChanged(function(Value)
+    _G.SelectedSkills = {}
+    for Skill, Enabled in pairs(Value) do
+        if Enabled then
+            table.insert(_G.SelectedSkills, Skill)
+        end
+    end
+    -- Opcional: Adicionar notificação aqui (depende da sua biblioteca Fluent)
+    -- Fluent:Notify({
+    --     Title = "Skills Updated",
+    --     Content = "Using: " .. (table.concat(_G.SelectedSkills, ", ") ~= "" and table.concat(_G.SelectedSkills, ", ") or "None"),
+    --     Duration = 3
+    -- })
+end)
+
+-- Funçã auxiliar para atacar usando as skills selecionadas
+local function AttackWithSelectedSkills()
+    local skillsToUse = _G.SelectedSkills
+    -- Define um padrão se o _G.SelectedSkills não foi definido pelo dropdown ou está vazio
+    if not skillsToUse or #skillsToUse == 0 then
+        skillsToUse = {"Z", "X", "C"}
+    end
+
+    if CheckF() then
+        weaponSc("Blox Fruit")
+        for _, skill in ipairs(skillsToUse) do
+            Useskills("Blox Fruit", skill)
+            task.wait(0.12)
+        end
+    else
+        -- Tenta usar em sequência nas armas mais comuns (Melee, Sword, Blox Fruit, Gun)
+        local weaponsOrder = {"Melee", "Sword", "Blox Fruit", "Gun"}
+        for _, wp in ipairs(weaponsOrder) do
+            for _, skill in ipairs(skillsToUse) do
+                Useskills(wp, skill)
+                task.wait(0.12)
+            end
+            task.wait(0.06)
+        end
+    end
+end
+
+-- FIM DAS CORREÇÕES E ADIÇÕES
+-- *******************************************
+
 	spawn(function()
 		while wait() do
 			if _G.SailBoats then
@@ -8837,26 +8896,7 @@ end)
 									if plr:DistanceFromCharacter(b.HumanoidRootPart.CFrame.Position) <= 500 then
 										AitSeaSkill_Custom = b.HumanoidRootPart.CFrame;
 										MousePos = AitSeaSkill_Custom.Position;
-										if CheckF() then
-											weaponSc("Blox Fruit")
-											Useskills("Blox Fruit", "Z")
-											Useskills("Blox Fruit", "X")
-											Useskills("Blox Fruit", "C")
-										else
-											Useskills("Melee", "Z")
-											Useskills("Melee", "X")
-											Useskills("Melee", "C")
-											wait(.1)
-											Useskills("Sword", "Z")
-											Useskills("Sword", "X")
-											wait(.1)
-											Useskills("Blox Fruit", "Z")
-											Useskills("Blox Fruit", "X")
-											Useskills("Blox Fruit", "C")
-											wait(.1)
-											Useskills("Gun", "Z")
-											Useskills("Gun", "X")
-										end
+										AttackWithSelectedSkills() -- Chamada da nova função
 									end
 								until _G.SeaBeast1 == false or not b:FindFirstChild("HumanoidRootPart") or not b.Parent or b.Health.Value <= 0
 							end
@@ -8874,26 +8914,7 @@ end)
 									end)
 									if plr:DistanceFromCharacter(b.HumanoidRootPart.CFrame.Position) <= 500 then
 										MousePos = b:FindFirstChild("Leviathan Segment").Position;
-										if CheckF() then
-											weaponSc("Blox Fruit")
-											Useskills("Blox Fruit", "Z")
-											Useskills("Blox Fruit", "X")
-											Useskills("Blox Fruit", "C")
-										else
-											Useskills("Melee", "Z")
-											Useskills("Melee", "X")
-											Useskills("Melee", "C")
-											wait(.1)
-											Useskills("Sword", "Z")
-											Useskills("Sword", "X")
-											wait(.1)
-											Useskills("Blox Fruit", "Z")
-											Useskills("Blox Fruit", "X")
-											Useskills("Blox Fruit", "C")
-											wait(.1)
-											Useskills("Gun", "Z")
-											Useskills("Gun", "X")
-										end
+										AttackWithSelectedSkills() -- Chamada da nova função
 									end
 								until _G.Leviathan1 == false or not b:FindFirstChild("HumanoidRootPart") or not b.Parent or b.Health.Value <= 0
 							end
@@ -8914,26 +8935,7 @@ end)
 									if plr:DistanceFromCharacter(b.Engine.CFrame.Position) <= 150 then
 										AitSeaSkill_Custom = b.Engine.CFrame;
 										MousePos = AitSeaSkill_Custom.Position;
-										if CheckF() then
-											weaponSc("Blox Fruit")
-											Useskills("Blox Fruit", "Z")
-											Useskills("Blox Fruit", "X")
-											Useskills("Blox Fruit", "C")
-										else
-											Useskills("Melee", "Z")
-											Useskills("Melee", "X")
-											Useskills("Melee", "C")
-											wait(.1)
-											Useskills("Sword", "Z")
-											Useskills("Sword", "X")
-											wait(.1)
-											Useskills("Blox Fruit", "Z")
-											Useskills("Blox Fruit", "X")
-											Useskills("Blox Fruit", "C")
-											wait(.1)
-											Useskills("Gun", "Z")
-											Useskills("Gun", "X")
-										end
+										AttackWithSelectedSkills() -- Chamada da nova função
 									end
 								until _G.FishBoat == false or not b:FindFirstChild("VehicleSeat") or b.Health.Value <= 0
 							end
@@ -8956,26 +8958,7 @@ end)
 									if plr:DistanceFromCharacter(b.Engine.CFrame.Position) <= 150 then
 										AitSeaSkill_Custom = b.Engine.CFrame;
 										MousePos = AitSeaSkill_Custom.Position;
-										if CheckF() then
-											weaponSc("Blox Fruit")
-											Useskills("Blox Fruit", "Z")
-											Useskills("Blox Fruit", "X")
-											Useskills("Blox Fruit", "C")
-										else
-											Useskills("Melee", "Z")
-											Useskills("Melee", "X")
-											Useskills("Melee", "C")
-											wait(.1)
-											Useskills("Sword", "Z")
-											Useskills("Sword", "X")
-											wait(.1)
-											Useskills("Blox Fruit", "Z")
-											Useskills("Blox Fruit", "X")
-											Useskills("Blox Fruit", "C")
-											wait(.1)
-											Useskills("Gun", "Z")
-											Useskills("Gun", "X")
-										end
+										AttackWithSelectedSkills() -- Chamada da nova função
 									end
 								until _G.PGB == false or not b:FindFirstChild("VehicleSeat") or b.Health.Value <= 0
 							end
@@ -8985,6 +8968,7 @@ end)
 			end)
 		end
 	end)
+
 
 	Tabs.SeaEvent:AddSection("Kitsune Island / Event")
 	local Check_Kitsu = Tabs.SeaEvent:AddParagraph({
@@ -9353,39 +9337,46 @@ spawn(function()
                         "Island 2",
                         "Island 1"
                     }
-                    
+
                     local foundEnemies = false
-                    
+
                     for _, island in ipairs(islands) do
                         local location = game:GetService("Workspace")["_WorldOrigin"].Locations:FindFirstChild(island)
                         if location then
-                            
-                            -- FARM HẾT TẤT CẢ QUÁI Ở ISLAND NÀY
-                            for i, v in pairs(workspace.Enemies:GetChildren()) do
+                            -- procura o inimigo mais próximo da ilha atual
+                            local closestEnemy
+                            local shortestDistance = 9999
+
+                            for _, v in pairs(workspace.Enemies:GetChildren()) do
                                 if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") then
                                     if v.Humanoid.Health > 0 then
                                         local distance = (v.HumanoidRootPart.Position - location.Position).Magnitude
-                                        if distance < 500 then
-                                            foundEnemies = true
-                                            repeat
-                                                wait()
-                                                Attack.Kill(v, _G.Raiding)
-                                            until not _G.Raiding or not v.Parent or v.Humanoid.Health <= 0
+                                        if distance < 500 and distance < shortestDistance then
+                                            shortestDistance = distance
+                                            closestEnemy = v
                                         end
                                     end
                                 end
                             end
-                            
-                            -- Nếu đã farm quái ở island này, break để check lại từ đầu
+
+                            -- se achou inimigo, foca nele até morrer
+                            if closestEnemy then
+                                foundEnemies = true
+                                repeat
+                                    task.wait()
+                                    Attack.Kill(closestEnemy, _G.Raiding)
+                                until not _G.Raiding or not closestEnemy.Parent or closestEnemy.Humanoid.Health <= 0
+                            end
+
+                            -- se achou e matou um inimigo, volta pro começo pra checar novamente
                             if foundEnemies then
                                 break
                             end
                         end
                     end
-                    
-                    -- Set NextIs chỉ khi KHÔNG tìm thấy quái
+
+                    -- se não tem inimigo em nenhuma ilha → pode mover pra próxima
                     NextIs = not foundEnemies
-                    
                 else
                     NextIs = false
                 end
