@@ -2662,61 +2662,45 @@ spawn(function()
 	end
 end)
 
-	local _Weapon = {
-		"Melee",
-		"Sword",
-		"Blox Fruit",
-		"Gun"
-	}
-	local Weapon_Config = Tabs.Settings:AddDropdown("Weapon_Config", {
-		Title = "Weapons",
-		Values = _Weapon,
-		Multi = false,
-		Default = 1
-	})
-	Weapon_Config:OnChanged(function(Value)
-		_G.ChooseWP = Value
-	end)
-	spawn(function()
-		while wait(Sec) do
-			pcall(function()
-				if _G.ChooseWP == "Melee" then
-					for _, v in pairs(plr.Backpack:GetChildren()) do
-						if v.ToolTip == "Melee" then
-							if plr.Backpack:FindFirstChild(tostring(v.Name)) then
-								_G.SelectWeapon = v.Name
-							end
-						end
-					end
-				elseif _G.ChooseWP == "Sword" then
-					for _, v in pairs(plr.Backpack:GetChildren()) do
-						if v.ToolTip == "Sword" then
-							if plr.Backpack:FindFirstChild(tostring(v.Name)) then
-								_G.SelectWeapon = v.Name
-							end
-						end
-					end
-				elseif _G.ChooseWP == "Gun" then
-					for _, v in pairs(plr.Backpack:GetChildren()) do
-						if v.ToolTip == "Gun" then
-							if plr.Backpack:FindFirstChild(tostring(v.Name)) then
-								_G.SelectWeapon = v.Name
-							end
-						end
-					end
-				elseif _G.ChooseWP == "Blox Fruit" then
-					for _, v in pairs(plr.Backpack:GetChildren()) do
-						if v.ToolTip == "Blox Fruit" then
-							if plr.Backpack:FindFirstChild(tostring(v.Name)) then
-								_G.SelectWeapon = v.Name
-							end
-						end
+	-- Tipos de arma
+local _Weapon = {
+	"Melee",
+	"Sword",
+	"Blox Fruit",
+	"Gun"
+}
+
+-- Dropdown agora na MAIN
+local Weapon_Config = Tabs.Main:AddDropdown("Weapon_Config", {
+	Title = "Weapons",
+	Values = _Weapon,
+	Multi = false,
+	Default = 1
+})
+
+Weapon_Config:OnChanged(function(Value)
+	_G.ChooseWP = Value
+end)
+
+-- Sistema de auto-seleção de arma
+spawn(function()
+	while wait(Sec) do
+		pcall(function()
+
+			if not _G.ChooseWP then return end
+
+			for _, v in pairs(plr.Backpack:GetChildren()) do
+				-- v.ToolTip = "Melee", "Sword", "Gun", "Blox Fruit"
+				if v.ToolTip == _G.ChooseWP then
+					if plr.Backpack:FindFirstChild(v.Name) then
+						_G.SelectWeapon = v.Name
 					end
 				end
-			end)
-		end
-	end)
+			end
 
+		end)
+	end
+end)
 	local FarmLevel = Tabs.Main:AddToggle("FarmLevel", {
 		Title = "Auto Farm Level",
 		Description = "Famar Níveis Automaticamente",
@@ -5099,63 +5083,6 @@ end)
 			end
 		end
 	end)
-
-	Tabs.Settings:AddSection("Settings / Configure")
-	local _Weapon = {
-		"Melee",
-		"Sword",
-		"Blox Fruit",
-		"Gun"
-	}
-	local Weapon_Config = Tabs.Settings:AddDropdown("Weapon_Config", {
-		Title = "Weapons",
-		Values = _Weapon,
-		Multi = false,
-		Default = 1
-	})
-	Weapon_Config:OnChanged(function(Value)
-		_G.ChooseWP = Value
-	end)
-	spawn(function()
-		while wait(Sec) do
-			pcall(function()
-				if _G.ChooseWP == "Melee" then
-					for _, v in pairs(plr.Backpack:GetChildren()) do
-						if v.ToolTip == "Melee" then
-							if plr.Backpack:FindFirstChild(tostring(v.Name)) then
-								_G.SelectWeapon = v.Name
-							end
-						end
-					end
-				elseif _G.ChooseWP == "Sword" then
-					for _, v in pairs(plr.Backpack:GetChildren()) do
-						if v.ToolTip == "Sword" then
-							if plr.Backpack:FindFirstChild(tostring(v.Name)) then
-								_G.SelectWeapon = v.Name
-							end
-						end
-					end
-				elseif _G.ChooseWP == "Gun" then
-					for _, v in pairs(plr.Backpack:GetChildren()) do
-						if v.ToolTip == "Gun" then
-							if plr.Backpack:FindFirstChild(tostring(v.Name)) then
-								_G.SelectWeapon = v.Name
-							end
-						end
-					end
-				elseif _G.ChooseWP == "Blox Fruit" then
-					for _, v in pairs(plr.Backpack:GetChildren()) do
-						if v.ToolTip == "Blox Fruit" then
-							if plr.Backpack:FindFirstChild(tostring(v.Name)) then
-								_G.SelectWeapon = v.Name
-							end
-						end
-					end
-				end
-			end)
-		end
-	end)
-
 	local Initialize = Tabs.Settings:AddToggle("Initialize", {
 		Title = "Auto Attack",
 		Description = "",
