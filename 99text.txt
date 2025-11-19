@@ -4042,31 +4042,20 @@ end)
 	local CakeTargetPos = CFrame.new(-2077, 252, -12373)
 
 local function IsNearTarget(targetCFrame, range)
-    local player = game.Players.LocalPlayer
-    local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-    if not root then return false end
-    range = range or 10
-    return (root.Position - targetCFrame.Position).Magnitude <= range
+local player = game.Players.LocalPlayer
+local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+if not root then return false end
+range = range or 10
+return (root.Position - targetCFrame.Position).Magnitude <= range
 end
 
--- NOVO SISTEMA DE TP (MESMO DO FARM BONE)
 local function TeleportToTarget(cf)
-    local plr = game.Players.LocalPlayer
-    local char = plr.Character
-    if not char then return end
-
-    local hrp = char:FindFirstChild("HumanoidRootPart")
-    if not hrp then return end
-
-    while (hrp.Position - cf.Position).Magnitude > 5 do
-        hrp.CFrame = CFrame.new(
-            hrp.Position + (cf.Position - hrp.Position).Unit * 20,
-            cf.Position
-        )
-        task.wait()
-    end
-
-    hrp.CFrame = cf
+local plr = game.Players.LocalPlayer
+local char = plr.Character
+if not char then return end
+local hrp = char:FindFirstChild("HumanoidRootPart")
+if not hrp then return end
+hrp.CFrame = cf
 end
 
 local plr = game.Players.LocalPlayer
@@ -4076,366 +4065,367 @@ local Sec = 0.1
 local SectionBone = Tabs.Main:AddSection("Bones")
 
 local CheckingBone = SectionBone:AddParagraph({
-    Title = "Bones:",
-    Content = ""
+Title = "Bones",
+Content = ""
 })
 
 spawn(function()
-    while wait(.2) do
-        pcall(function()
-            CheckingBone:SetDesc("Bones : " .. GetM("Bones"))
-        end)
-    end
+while wait(.2) do
+pcall(function()
+CheckingBone:SetDesc("Bones : " .. GetM("Bones"))
+end)
+end
 end)
 
 local AutoBone = SectionBone:AddToggle("AutoBone", {
-    Title = "Auto Bone",
-    Default = false
+Title = "Auto Bone",
+Default = false
 })
 
 AutoBone:OnChanged(function(Value)
-    _G.AutoFarm_Bone = Value
+_G.AutoFarm_Bone = Value
 end)
 
 spawn(function()
-    while wait(Sec) do
-        if _G.AutoFarm_Bone then
-            pcall(function()
-                local player = game.Players.LocalPlayer
-                local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-                local questUI = player.PlayerGui.Main.Quest
-                local BonesTable = {
-                    "Reborn Skeleton",
-                    "Living Zombie",
-                    "Demonic Soul",
-                    "Posessed Mummy"
-                }
-                if not root then return end
+while wait(Sec) do
+if _G.AutoFarm_Bone then
+pcall(function()
+local player = game.Players.LocalPlayer
+local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+local questUI = player.PlayerGui.Main.Quest
+local BonesTable = {
+"Reborn Skeleton",
+"Living Zombie",
+"Demonic Soul",
+"Posessed Mummy"
+}
+if not root then return end
 
-                local function GetNearestEnemy(names)
-                    local nearest, minDist
-                    for _, v in ipairs(workspace.Enemies:GetChildren()) do
-                        if table.find(names, v.Name)
-                            and v:FindFirstChild("HumanoidRootPart")
-                            and v:FindFirstChild("Humanoid")
-                            and v.Humanoid.Health > 0
-                        then
-                            local dist = (v.HumanoidRootPart.Position - root.Position).Magnitude
-                            if not minDist or dist < minDist then
-                                minDist = dist
-                                nearest = v
-                            end
-                        end
-                    end
-                    return nearest
-                end
+local function GetNearestEnemy(names)
+local nearest, minDist
+for _, v in ipairs(workspace.Enemies:GetChildren()) do
+if table.find(names, v.Name)
+and v:FindFirstChild("HumanoidRootPart")
+and v:FindFirstChild("Humanoid")
+and v.Humanoid.Health > 0
+then
+local dist = (v.HumanoidRootPart.Position - root.Position).Magnitude
+if not minDist or dist < minDist then
+minDist = dist
+nearest = v
+end
+end
+end
+return nearest
+end
 
-                local bone = GetNearestEnemy(BonesTable)
+local bone = GetNearestEnemy(BonesTable)    
 
-                if bone then
-                    if _G.AcceptQuestBone and not questUI.Visible then
-                        local questPos = CFrame.new(-9516.99316, 172.017181, 6078.46533)
-                        TeleportToTarget(questPos)
-                        while (questPos.Position - root.Position).Magnitude > 50 do
-                            wait(0.2)
-                        end
+        if bone then    
+            if _G.AcceptQuestBone and not questUI.Visible then    
+                local questPos = CFrame.new(-9516.99316, 172.017181, 6078.46533)    
+                TeleportToTarget(questPos)    
+                while (questPos.Position - root.Position).Magnitude > 50 do    
+                    wait(0.2)    
+                end    
 
-                        local questData = {
-                            { "StartQuest", "HauntedQuest2", 2 },
-                            { "StartQuest", "HauntedQuest2", 1 },
-                            { "StartQuest", "HauntedQuest1", 1 },
-                            { "StartQuest", "HauntedQuest1", 2 }
-                        }
+                local questData = {    
+                    { "StartQuest", "HauntedQuest2", 2 },    
+                    { "StartQuest", "HauntedQuest2", 1 },    
+                    { "StartQuest", "HauntedQuest1", 1 },    
+                    { "StartQuest", "HauntedQuest1", 2 }    
+                }    
 
-                        pcall(function()
-                            game.ReplicatedStorage.Remotes.CommF_:InvokeServer(unpack(questData[math.random(1,4)]))
-                        end)
-                    end
+                pcall(function()    
+                    game.ReplicatedStorage.Remotes.CommF_:InvokeServer(unpack(questData[math.random(1,4)]))    
+                end)    
+            end    
 
-                    repeat
-                        task.wait()
-                        Attack.Kill(bone, _G.AutoFarm_Bone)
-                    until not _G.AutoFarm_Bone or bone.Humanoid.Health <= 0 or not bone.Parent or (_G.AcceptQuestBone and not questUI.Visible)
-                else
-                    TeleportToTarget(CFrame.new(-9495.6806640625, 453.58624267578125, 5977.3486328125))
-                end
-            end)
-        end
-    end
+            repeat    
+                task.wait()    
+                Attack.Kill(bone, _G.AutoFarm_Bone)    
+            until not _G.AutoFarm_Bone or bone.Humanoid.Health <= 0 or not bone.Parent or (_G.AcceptQuestBone and not questUI.Visible)    
+        else    
+            TeleportToTarget(CFrame.new(-9495.6806640625, 453.58624267578125, 5977.3486328125))    
+        end    
+    end)    
+end
+
+end
+
 end)
 
 local RandomBone = SectionBone:AddToggle("RandomBone", {
-    Title = "Auto Random Bone",
-    Default = false
+Title = "Auto Random Bone",
+Default = false
 })
 
 RandomBone:OnChanged(function(Value)
-    _G.Auto_Random_Bone = Value
+_G.Auto_Random_Bone = Value
 end)
 
 spawn(function()
-    while wait(Sec) do
-        pcall(function()
-            if _G.Auto_Random_Bone then
-                repeat
-                    task.wait()
-                    replicated.Remotes.CommF:InvokeServer("Bones", "Buy", 1, 1)
-                until not _G.Auto_Random_Bone
-            end
-        end)
-    end
+while wait(Sec) do
+pcall(function()
+if G.Auto_Random_Bone then
+repeat
+task.wait()
+replicated.Remotes.CommF:InvokeServer("Bones", "Buy", 1, 1)
+until not _G.Auto_Random_Bone
+end
+end)
+end
 end)
 
 local AcceptQuestB = SectionBone:AddToggle("AcceptQuestBone", {
-    Title = "Accept Quest Bone",
-    Default = false
+Title = "Accept Quest Bone",
+Default = false
 })
 
 AcceptQuestB:OnChanged(function(Value)
-    _G.AcceptQuestBone = Value
+_G.AcceptQuestBone = Value
 end)
 
 local SoulReaper = SectionBone:AddToggle("SoulReaper", {
-    Title = "Auto Soul Reaper [Fully]",
-    Default = false
+Title = "Auto Soul Reaper [Fully]",
+Default = false
 })
 
 SoulReaper:OnChanged(function(Value)
-    _G.AutoHytHallow = Value
+_G.AutoHytHallow = Value
 end)
 
 spawn(function()
-    while wait(Sec) do
-        if _G.AutoHytHallow then
-            pcall(function()
-                local v = GetConnectionEnemies("Soul Reaper")
-                if v then
-                    repeat
-                        task.wait()
-                        Attack.Kill(v, _G.AutoHytHallow)
-                    until v.Humanoid.Health <= 0 or not _G.AutoHytHallow
-                else
-                    if not GetBP("Hallow Essence") then
-                        repeat
-                            task.wait(.1)
-                            replicated.Remotes.CommF:InvokeServer("Bones", "Buy", 1, 1)
-                        until _G.AutoHytHallow == false or GetBP("Hallow Essence")
-                    else
-                        repeat
-                            wait(.1)
-                            TeleportToTarget(CFrame.new(-8932.322265625, 146.83154296875, 6062.55078125))
-                        until not _G.AutoHytHallow or (plr.Character.HumanoidRootPart.CFrame == CFrame.new(-8932.322265625, 146.83154296875, 6062.55078125))
-                        EquipWeapon("Hallow Essence")
-                    end
-                end
-            end)
-        end
-    end
+while wait(Sec) do
+if _G.AutoHytHallow then
+pcall(function()
+local v = GetConnectionEnemies("Soul Reaper")
+if v then
+repeat
+task.wait()
+Attack.Kill(v, _G.AutoHytHallow)
+until v.Humanoid.Health <= 0 or _G.AutoHytHallow == false
+else
+if not GetBP("Hallow Essence") then
+repeat
+task.wait(.1)
+replicated.Remotes.CommF:InvokeServer("Bones", "Buy", 1, 1)
+until _G.AutoHytHallow == false or GetBP("Hallow Essence")
+else
+repeat
+wait(.1)
+TeleportToTarget(CFrame.new(-8932.322265625, 146.83154296875, 6062.55078125))
+until _G.AutoHytHallow == false or (plr.Character.HumanoidRootPart.CFrame == CFrame.new(-8932.322265625, 146.83154296875, 6062.55078125))
+EquipWeapon("Hallow Essence")
+end
+end
+end)
+end
+end
 end)
 
 local TryLuck = SectionBone:AddToggle("TryLuck", {
-    Title = "Auto Try Luck Gravestone",
-    Default = false
+Title = "Auto Try Luck Gravestone",
+Default = false
 })
 
 TryLuck:OnChanged(function(Value)
-    _G.TryLucky = Value
+_G.TryLucky = Value
 end)
 
 spawn(function()
-    while wait(Sec) do
-        if _G.TryLucky then
-            local tryPos = CFrame.new(-8761.3154296875, 164.85829162598, 6161.1567382813)
-            if plr.Character.HumanoidRootPart.CFrame ~= tryPos then
-                TeleportToTarget(tryPos)
-            else
-                replicated.Remotes.CommF:InvokeServer("gravestoneEvent", 1)
-            end
-        end
-    end
+while wait(Sec) do
+if _G.TryLucky then
+local tryPos = CFrame.new(-8761.3154296875, 164.85829162598, 6161.1567382813)
+if plr.Character.HumanoidRootPart.CFrame ~= tryPos then
+TeleportToTarget(tryPos)
+else
+replicated.Remotes.CommF:InvokeServer("gravestoneEvent", 1)
+end
+end
+end
 end)
 
 local PrayG = SectionBone:AddToggle("PrayBone", {
-    Title = "Auto Pray Gravestone",
-    Default = false
+Title = "Auto Pray Gravestone",
+Default = false
 })
 
 PrayG:OnChanged(function(Value)
-    _G.Praying = Value
+_G.Praying = Value
 end)
 
 spawn(function()
-    while wait(Sec) do
-        if _G.Praying then
-            local prayPos = CFrame.new(-8761.3154296875, 164.85829162598, 6161.1567382813)
-            if plr.Character.HumanoidRootPart.CFrame ~= prayPos then
-                TeleportToTarget(prayPos)
-            else
-                replicated.Remotes.CommF:InvokeServer("gravestoneEvent", 2)
-            end
-        end
-    end
+while wait(Sec) do
+if _G.Praying then
+local prayPos = CFrame.new(-8761.3154296875, 164.85829162598, 6161.1567382813)
+if plr.Character.HumanoidRootPart.CFrame ~= prayPos then
+TeleportToTarget(prayPos)
+else
+replicated.Remotes.CommF:InvokeServer("gravestoneEvent", 2)
+end
+end
+end
 end)
 
 local SectionCake = Tabs.Main:AddSection("Cake Prince")
 
 local MobKilled = SectionCake:AddParagraph({
-    Title = "Status",
-    Content = ""
+Title = "Status",
+Content = ""
 })
 
 spawn(function()
-    while wait(.2) do
-        pcall(function()
-            local Killed = string.match(replicated.Remotes.CommF_:InvokeServer("CakePrinceSpawner"), "%d+")
-            if Killed then
-                MobKilled:SetDesc("Killed : " .. (500 - Killed))
-            end
-        end)
-    end
+while wait(.2) do
+pcall(function()
+local Killed = string.match(replicated.Remotes.CommF_:InvokeServer("CakePrinceSpawner"), "%d+")
+if Killed then
+MobKilled:SetDesc("Killed : " .. (500 - Killed))
+end
+end)
+end
 end)
 
 local AutoCake = SectionCake:AddToggle("AutoCake", {
-    Title = "Auto Cake Prince",
-    Default = false
+Title = "Auto Cake Prince",
+Default = false
 })
 
+-- CORREÇÃO APLICADA AQUI: Teleporte inicial removido.
 AutoCake:OnChanged(function(Value)
-    _G.Auto_Cake_Prince = Value
-    if Value then
-        local mirrorPos = CFrame.new(-1943.676513671875, 251.5095672607422, -12337.880859375)
-        TeleportToTarget(mirrorPos)
-        repeat wait() until IsNearTarget(mirrorPos, 80)
-    end
+_G.Auto_Cake_Prince = Value
+-- O bloco 'if Value then ... end' foi removido para evitar o teleporte instantâneo.
 end)
 
 spawn(function()
-    while wait() do
-        if _G.Auto_Cake_Prince then
-            pcall(function()
-                local player = game.Players.LocalPlayer
-                local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-                local questUI = player.PlayerGui.Main.Quest
-                local enemies = workspace.Enemies
-                local bigMirror = workspace.Map.CakeLoaf.BigMirror
-                if not root then return end
+while wait() do
+if _G.Auto_Cake_Prince then
+pcall(function()
+local player = game.Players.LocalPlayer
+local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+local questUI = player.PlayerGui.Main.Quest
+local enemies = workspace.Enemies
+local bigMirror = workspace.Map.CakeLoaf.BigMirror
+if not root then return end
 
-                local cakeIslandPos = Vector3.new(-2077, 252, -12373)
-                if (root.Position - cakeIslandPos).Magnitude > 3000 then
-                    TeleportToTarget(CakeTargetPos)
-                    repeat wait() until IsNearTarget(CakeTargetPos, 600)
-                end
+local cakeIslandPos = Vector3.new(-2077, 252, -12373)
+if (root.Position - cakeIslandPos).Magnitude > 3000 then
+TeleportToTarget(CakeTargetPos)
+repeat wait() until IsNearTarget(CakeTargetPos, 600)
+end
 
-                if not bigMirror:FindFirstChild("Other") then
-                    TeleportToTarget(CakeTargetPos)
-                end
+if not bigMirror:FindFirstChild("Other") then    
+            TeleportToTarget(CakeTargetPos)    
+        end    
 
-                local function GetNearestEnemy(names)
-                    local nearest, minDist
-                    for _, v in ipairs(workspace.Enemies:GetChildren()) do
-                        if table.find(names, v.Name)
-                            and v:FindFirstChild("HumanoidRootPart")
-                            and v:FindFirstChild("Humanoid")
-                            and v.Humanoid.Health > 0
-                        then
-                            local dist = (v.HumanoidRootPart.Position - root.Position).Magnitude
-                            if not minDist or dist < minDist then
-                                minDist = dist
-                                nearest = v
-                            end
-                        end
-                    end
-                    return nearest
-                end
+        local function GetNearestEnemy(names)    
+            local nearest, minDist    
+            for _, v in ipairs(workspace.Enemies:GetChildren()) do    
+                if table.find(names, v.Name)    
+                    and v:FindFirstChild("HumanoidRootPart")    
+                    and v:FindFirstChild("Humanoid")    
+                    and v.Humanoid.Health > 0    
+                then    
+                    local dist = (v.HumanoidRootPart.Position - root.Position).Magnitude    
+                    if not minDist or dist < minDist then    
+                        minDist = dist    
+                        nearest = v    
+                    end    
+                end    
+            end    
+            return nearest    
+        end    
 
-                if bigMirror.Other.Transparency == 0 or enemies:FindFirstChild("Cake Prince") then
-                    local v = GetNearestEnemy({"Cake Prince"})
-                    if v then
-                        repeat
-                            wait()
-                            Attack.Kill2(v, _G.Auto_Cake_Prince)
-                        until not _G.Auto_Cake_Prince or not v.Parent or v.Humanoid.Health <= 0
-                    else
-                        if bigMirror.Other.Transparency == 0 and (CFrame.new(-1990.67, 4533, -14973.67).Position - root.Position).Magnitude >= 2000 then
-                            TeleportToTarget(CFrame.new(-2151.82, 149.32, -12404.91))
-                        end
-                    end
-                else
-                    local CakePrince = {
-                        "Cookie Crafter",
-                        "Cake Guard",
-                        "Baking Staff",
-                        "Head Baker"
-                    }
+        if bigMirror.Other.Transparency == 0 or enemies:FindFirstChild("Cake Prince") then    
+            local v = GetNearestEnemy({"Cake Prince"})    
+            if v then    
+                repeat    
+                    wait()    
+                    Attack.Kill2(v, _G.Auto_Cake_Prince)    
+                until not _G.Auto_Cake_Prince or not v.Parent or v.Humanoid.Health <= 0    
+            else    
+                if bigMirror.Other.Transparency == 0 and (CFrame.new(-1990.67, 4533, -14973.67).Position - root.Position).Magnitude >= 2000 then    
+                    TeleportToTarget(CFrame.new(-2151.82, 149.32, -12404.91))    
+                end    
+            end    
+        else    
+            local CakePrince = {    
+                "Cookie Crafter",    
+                "Cake Guard",    
+                "Baking Staff",    
+                "Head Baker"    
+            }    
 
-                    local v = GetNearestEnemy(CakePrince)
+            local v = GetNearestEnemy(CakePrince)    
 
-                    if v then
-                        if _G.AcceptQuestC and not questUI.Visible then
-                            local questPos = CFrame.new(-1927.92, 37.8, -12842.54)
-                            TeleportToTarget(questPos)
-                            while (questPos.Position - root.Position).Magnitude > 50 do
-                                wait(0.2)
-                            end
+            if v then    
+                if _G.AcceptQuestC and not questUI.Visible then    
+                    local questPos = CFrame.new(-1927.92, 37.8, -12842.54)    
+                    TeleportToTarget(questPos)    
+                    while (questPos.Position - root.Position).Magnitude > 50 do    
+                        wait(0.2)    
+                    end    
 
-                            local questData = {
-                                { "StartQuest", "CakeQuest2", 2 },
-                                { "StartQuest", "CakeQuest2", 1 },
-                                { "StartQuest", "CakeQuest1", 1 },
-                                { "StartQuest", "CakeQuest1", 2 }
-                            }
-                            pcall(function()
-                                game.ReplicatedStorage.Remotes.CommF_:InvokeServer(unpack(questData[math.random(1,4)]))
-                            end)
-                        end
+                    local questData = {    
+                        { "StartQuest", "CakeQuest2", 2 },    
+                        { "StartQuest", "CakeQuest2", 1 },    
+                        { "StartQuest", "CakeQuest1", 1 },    
+                        { "StartQuest", "CakeQuest1", 2 }    
+                    }    
+                    pcall(function()    
+                        game.ReplicatedStorage.Remotes.CommF_:InvokeServer(unpack(questData[math.random(1,4)]))    
+                    end)    
+                end    
 
-                        repeat
-                            wait()
-                            Attack.Kill(v, _G.Auto_Cake_Prince)
-                        until not _G.Auto_Cake_Prince or v.Humanoid.Health <= 0 or bigMirror.Other.Transparency == 0 or (_G.AcceptQuestC and not questUI.Visible)
-                    else
-                        TeleportToTarget(CakeTargetPos)
-                    end
-                end
-            end)
-        end
-    end
+                repeat    
+                    wait()    
+                    Attack.Kill(v, _G.Auto_Cake_Prince)    
+                until not _G.Auto_Cake_Prince or v.Humanoid.Health <= 0 or bigMirror.Other.Transparency == 0 or (_G.AcceptQuestC and not questUI.Visible)    
+            else    
+                TeleportToTarget(CakeTargetPos)    
+            end    
+        end    
+    end)    
+end
+
+end
+
 end)
 
 local Mirror = SectionCake:AddToggle("Mirror", {
-    Title = "Auto Kill Dough King",
-    Default = false
+Title = "Auto Kill Dough King",
+Default = false
 })
 
 Mirror:OnChanged(function(Value)
-    _G.AutoMiror = Value
+_G.AutoMiror = Value
 end)
 
 spawn(function()
-    while wait(Sec) do
-        if _G.AutoMiror then
-            pcall(function()
-                local v = GetConnectionEnemies("Dough King")
-                if v then
-                    repeat
-                        wait()
-                        Attack.Kill(v, _G.AutoMiror)
-                    until not _G.AutoMiror or not v.Parent or v.Humanoid.Health <= 0
-                else
-                    TeleportToTarget(CFrame.new(-1943.676513671875, 251.5095672607422, -12337.880859375))
-                end
-            end)
-        end
-    end
+while wait(Sec) do
+if _G.AutoMiror then
+pcall(function()
+local v = GetConnectionEnemies("Dough King")
+if v then
+repeat
+wait()
+Attack.Kill(v, _G.AutoMiror)
+until not _G.AutoMiror or not v.Parent or v.Humanoid.Health <= 0
+else
+TeleportToTarget(CFrame.new(-1943.676513671875, 251.5095672607422, -12337.880859375))
+end
+end)
+end
+end
 end)
 
 local AcceptQuestC = SectionCake:AddToggle("AcceptQuestC", {
-    Title = "Accept Quest Cake Prince",
-    Default = false
+Title = "Accept Quest Cake Prince",
+Default = false
 })
 
 AcceptQuestC:OnChanged(function(Value)
-    _G.AcceptQuestC = Value
+_G.AcceptQuestC = Value
 end)
 	Tabs.Main:AddSection("Unlocked Dungeon")
 	local Q = Tabs.Main:AddToggle("Q", {
