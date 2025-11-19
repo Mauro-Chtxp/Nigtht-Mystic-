@@ -2759,92 +2759,49 @@ spawn(function()
 		end)
 	end
 end)
-	local FarmLevel = Tabs.Main:AddToggle("FarmLevel", {
-    Title = "Auto Farm Level",
-    Description = "Famar Níveis Automaticamente",
-    Default = false
-})
-FarmLevel:OnChanged(function(Value)
-    _G.Level = Value
-end)
-
-local Players = game:GetService("Players")
+	local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local task = task
 
 local MaxSpeed = 350
 local npcPosition = CFrame.new(-16269.1016, 29.5177539, 1372.3204)
+local islandModel = workspace.Map:FindFirstChild("Submerged Island")
 
-local function getCharacter()
-    if not LocalPlayer.Character then
-        LocalPlayer.CharacterAdded:Wait()
-    end
-    LocalPlayer.Character:WaitForChild("HumanoidRootPart")
-    return LocalPlayer.Character
-end
+--=========================
+--== AUTO FARM LEVEL =========
+--=========================
 
-local function toggleNoclip(Toggle)
-    local char = getCharacter()
-    for _,v in pairs(char:GetChildren()) do
-        if v:IsA("BasePart") then
-            v.CanCollide = not Toggle
+local FarmLevel = Tabs.Main:AddToggle("FarmLevel", {
+    Title = "Auto Farm Level",
+    Description = "Famar Níveis Automaticamente",
+    Default = false
+})
+
+FarmLevel:OnChanged(function(Value)
+    _G.Level = Value
+
+    if Value == true then
+        if LocalPlayer.Data.Level.Value >= 2650 then
+            if not IsInSubmergedIsland() then
+                GoToNPC()
+                task.wait(5)
+            end
         end
     end
-end
-
-local function Teleport(GoalCFrame, Speed)
-    Speed = Speed or MaxSpeed
-    local char = getCharacter()
-    local hrp = char:WaitForChild("HumanoidRootPart")
-
-    toggleNoclip(true)
-    local magnitude = (hrp.Position - GoalCFrame.Position).Magnitude
-
-    while magnitude > 1 and _G.Level do
-        local direction = (GoalCFrame.Position - hrp.Position).Unit
-        hrp.CFrame = hrp.CFrame + direction * (Speed * task.wait())
-        magnitude = (hrp.Position - GoalCFrame.Position).Magnitude
-    end
-
-    toggleNoclip(false)
-end
-
-local function GoToNPC()
-    local level = LocalPlayer.Data.Level.Value
-    if level >= 2650 then
-        Teleport(npcPosition, MaxSpeed)
-        task.wait(3)
-
-        local SubmarineWorker = ReplicatedStorage.Modules.Net:FindFirstChild("RF/SubmarineWorkerSpeak")
-        local CommF = ReplicatedStorage.Modules.Net:FindFirstChild("CommF_")
-
-        if SubmarineWorker then
-            pcall(function()
-                SubmarineWorker:InvokeServer("TravelToSubmergedIsland")
-            end)
-        end
-
-        if CommF then
-            pcall(function()
-                CommF:InvokeServer("SetLastSpawnPoint", "SubmergedIsland")
-            end)
-        end
-    end
-end
+end)
 
 spawn(function()
     while wait(Sec) do
         if _G.Level then
-            local LevelNow = LocalPlayer.Data.Level.Value
-
-            -- FAZ A MISSÃO DO SUBMERGED SE ESTIVER NO LEVEL
-            if LevelNow >= 2650 then
-                GoToNPC()
-            end
-
-            -- DEPOIS CONTINUA O FARM NORMAL
             pcall(function()
+                -- Se o player não estiver na ilha e for >=2650 → vai no NPC de novo
+                if LocalPlayer.Data.Level.Value >= 2650 and not IsInSubmergedIsland() then
+                    GoToNPC()
+                    return
+                end
+
+                -- FARM LEVEL ORIGINAL
                 local QuestTitle = plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text
 
                 if not string.find(QuestTitle, QuestNeta()[5]) then
@@ -2882,6 +2839,79 @@ spawn(function()
         end
     end
 end)
+
+--=========================
+--== FUNÇÕES DE TELEPORT + NPC =========
+--=========================
+
+local function getCharacter()
+    if not LocalPlayer.Character then
+        LocalPlayer.CharacterAdded:Wait()
+    end
+    LocalPlayer.Character:WaitForChild("HumanoidRootPart")
+    return LocalPlayer.Character
+end
+
+local function toggleNoclip(Toggle)
+    local char = getCharacter()
+    for _,v in pairs(char:GetChildren()) do
+        if v:IsA("BasePart") then
+            v.CanCollide = not Toggle
+        end
+    end
+end
+
+local function Teleport(GoalCFrame, Speed)
+    Speed = Speed or MaxSpeed
+    local char = getCharacter()
+    local hrp = char:WaitForChild("HumanoidRootPart")
+
+    toggleNoclip(true)
+    local magnitude = (hrp.Position - GoalCFrame.Position).Magnitude
+
+    while magnitude > 1 do
+        local direction = (GoalCFrame.Position - hrp.Position).Unit
+        hrp.CFrame = hrp.CFrame + direction * (Speed * task.wait())
+        magnitude = (hrp.Position - GoalCFrame.Position).Magnitude
+    end
+
+    toggleNoclip(false)
+end
+
+local function IsInSubmergedIsland()
+    local char = LocalPlayer.Character
+    local root = char and char:FindFirstChild("HumanoidRootPart")
+    if not (root and islandModel) then return false end
+
+    local cf = islandModel:GetBoundingBox()
+    local islandCenter = cf.Position
+
+    return (root.Position - islandCenter).Magnitude < 1200
+end
+
+local function GoToNPC()
+    if IsInSubmergedIsland() then return end
+    local level = LocalPlayer.Data.Level.Value
+    if level < 2650 then return end
+
+    Teleport(npcPosition, MaxSpeed)
+    task.wait(3)
+
+    local SubmarineWorker = ReplicatedStorage.Modules.Net:FindFirstChild("RF/SubmarineWorkerSpeak")
+    local CommF = ReplicatedStorage.Modules.Net:FindFirstChild("CommF_")
+
+    if SubmarineWorker then
+        pcall(function()
+            SubmarineWorker:InvokeServer("TravelToSubmergedIsland")
+        end)
+    end
+
+    if CommF then
+        pcall(function()
+            CommF:InvokeServer("SetLastSpawnPoint", "SubmergedIsland")
+        end)
+    end
+end
 	local BossDropdown = Tabs.Main:AddDropdown("BossDropdown", {
 		Title = "Selecione o Boss",
 		Description = "Selecione o Boss Para Farm",
