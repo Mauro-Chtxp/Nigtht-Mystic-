@@ -2771,14 +2771,15 @@ end)
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local workspace = workspace
 local task = task
 
 local MaxSpeed = 350
 local npcPosition = CFrame.new(-16269.1016, 29.5177539, 1372.3204)
 local _G_WentToSubmerged = false
 
--- Módulo oficial da ilha
-local MapModule = require(ReplicatedStorage.Controllers.MapServices.SubmergedIslandController)
+-- Ilha real
+local SubmergedIsland = workspace.Map:WaitForChild("Submerged Island")
 
 local function getCharacter()
     if not LocalPlayer.Character then
@@ -2814,6 +2815,18 @@ local function Teleport(GoalCFrame, Speed)
     toggleNoclip(false)
 end
 
+-- Checa se o player está dentro da ilha Submerged
+local function IsInSubmergedIsland()
+    local char = getCharacter()
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return false end
+    local cf = SubmergedIsland:GetPivot()
+    local size = SubmergedIsland:GetExtentsSize() / 2
+    local pos = hrp.Position
+    local delta = pos - cf.Position
+    return math.abs(delta.X) <= size.X and math.abs(delta.Y) <= size.Y and math.abs(delta.Z) <= size.Z
+end
+
 local function GoToNPC()
     if _G_WentToSubmerged then return end
 
@@ -2837,11 +2850,11 @@ local function GoToNPC()
             end)
         end
 
-        -- Espera o player realmente chegar na ilha
+        -- Espera o player realmente entrar na ilha
         spawn(function()
             while true do
                 task.wait(1)
-                if MapModule.SpawnPoint.Value == "SubmergedIsland" then
+                if IsInSubmergedIsland() then
                     _G_WentToSubmerged = true
                     break
                 end
@@ -2854,7 +2867,7 @@ end
 spawn(function()
     while true do
         task.wait(1)
-        if _G_WentToSubmerged and MapModule.SpawnPoint.Value ~= "SubmergedIsland" then
+        if _G_WentToSubmerged and not IsInSubmergedIsland() then
             _G_WentToSubmerged = false
         end
     end
@@ -2865,8 +2878,8 @@ spawn(function()
         if _G.Level then
             local LevelNow = LocalPlayer.Data.Level.Value
 
-            -- FAZ A MISSÃO DO SUBMERGED SE ESTIVER NO LEVEL
-            if LevelNow >= 2650 and not _G_WentToSubmerged then
+            -- FAZ A MISSÃO DO SUBMERGED SE ESTIVER NO LEVEL E NÃO ESTIVER NA ILHA
+            if LevelNow >= 2650 and not _G_WentToSubmerged and not IsInSubmergedIsland() then
                 GoToNPC()
             end
 
