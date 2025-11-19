@@ -2775,7 +2775,10 @@ local task = task
 
 local MaxSpeed = 350
 local npcPosition = CFrame.new(-16269.1016, 29.5177539, 1372.3204)
-local _G_WentToSubmerged = false -- controla se já foi para o Submerged
+local _G_WentToSubmerged = false
+
+-- Módulo oficial da ilha
+local MapModule = require(ReplicatedStorage.Controllers.MapServices.SubmergedIslandController)
 
 local function getCharacter()
     if not LocalPlayer.Character then
@@ -2816,7 +2819,6 @@ local function GoToNPC()
 
     local level = LocalPlayer.Data.Level.Value
     if level >= 2650 then
-        -- Teleporta até o NPC
         Teleport(npcPosition, MaxSpeed)
         task.wait(3)
 
@@ -2835,36 +2837,26 @@ local function GoToNPC()
             end)
         end
 
-        -- Espera o player realmente chegar na Submerged Island antes de marcar como feito
+        -- Espera o player realmente chegar na ilha
         spawn(function()
             while true do
-                local hrp = getCharacter():FindFirstChild("HumanoidRootPart")
-                if hrp then
-                    local pos = hrp.Position
-                    -- Ajuste o range da ilha Submerged aqui
-                    if pos.Y > 1000 then -- exemplo, pode ajustar conforme a posição real
-                        _G_WentToSubmerged = true
-                        break
-                    end
-                end
                 task.wait(1)
+                if MapModule.SpawnPoint.Value == "SubmergedIsland" then
+                    _G_WentToSubmerged = true
+                    break
+                end
             end
         end)
     end
 end
 
--- Reseta o _G_WentToSubmerged quando o player voltar da ilha
+-- Reset quando o player sai da ilha
 spawn(function()
     while true do
-        local hrp = getCharacter():FindFirstChild("HumanoidRootPart")
-        if hrp then
-            local pos = hrp.Position
-            -- Ajuste para detectar a posição da ilha normal
-            if pos.Y < 500 and _G_WentToSubmerged then
-                _G_WentToSubmerged = false
-            end
-        end
         task.wait(1)
+        if _G_WentToSubmerged and MapModule.SpawnPoint.Value ~= "SubmergedIsland" then
+            _G_WentToSubmerged = false
+        end
     end
 end)
 
@@ -2878,7 +2870,7 @@ spawn(function()
                 GoToNPC()
             end
 
-            -- DEPOIS CONTINUA O FARM NORMAL
+            -- CONTINUA O FARM NORMAL
             pcall(function()
                 local plr = LocalPlayer
                 local QuestTitle = plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text
