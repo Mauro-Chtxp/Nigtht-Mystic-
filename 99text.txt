@@ -4049,15 +4049,6 @@ local function IsNearTarget(targetCFrame, range)
     return (root.Position - targetCFrame.Position).Magnitude <= range
 end
 
-local function TeleportToTarget(cf)
-    local plr = game.Players.LocalPlayer
-    local char = plr.Character
-    if not char then return end
-    local hrp = char:FindFirstChild("HumanoidRootPart")
-    if not hrp then return end
-    hrp.CFrame = cf
-end
-
 local plr = game.Players.LocalPlayer
 local replicated = game.ReplicatedStorage
 local Sec = 0.1
@@ -4101,55 +4092,54 @@ spawn(function()
                 }
                 if not root then return end
 
-                local function GetNearestEnemy(names)
-                    local nearest, minDist
-                    for _, v in ipairs(workspace.Enemies:GetChildren()) do
-                        if table.find(names, v.Name)
-                            and v:FindFirstChild("HumanoidRootPart")
-                            and v:FindFirstChild("Humanoid")
-                            and v.Humanoid.Health > 0
-                        then
-                            local dist = (v.HumanoidRootPart.Position - root.Position).Magnitude
-                            if not minDist or dist < minDist then
-                                minDist = dist
-                                nearest = v
-                            end
-                        end
-                    end
-                    return nearest
-                end
+                local function GetNearestEnemy(names)  
+                    local nearest, minDist  
+                    for _, v in ipairs(workspace.Enemies:GetChildren()) do  
+                        if table.find(names, v.Name)  
+                            and v:FindFirstChild("HumanoidRootPart")  
+                            and v:FindFirstChild("Humanoid")  
+                            and v.Humanoid.Health > 0  
+                        then  
+                            local dist = (v.HumanoidRootPart.Position - root.Position).Magnitude  
+                            if not minDist or dist < minDist then  
+                                minDist = dist  
+                                nearest = v  
+                            end  
+                        end  
+                    end  
+                    return nearest  
+                end  
 
-                local bone = GetNearestEnemy(BonesTable)
+                local bone = GetNearestEnemy(BonesTable)  
 
-                if bone then
-                    if _G.AcceptQuestBone and not questUI.Visible then
-                        local questPos = CFrame.new(-9516.99316, 172.017181, 6078.46533)
-                        TeleportToTarget(questPos)
-                        while (questPos.Position - root.Position).Magnitude > 50 do
-                            wait(0.2)
-                        end
+                if bone then  
+                    if _G.AcceptQuestBone and not questUI.Visible then  
+                        local questPos = CFrame.new(-9516.99316, 172.017181, 6078.46533)  
+                        while (questPos.Position - root.Position).Magnitude > 50 do  
+                            wait(0.2)  
+                        end  
 
-                        local questData = {
-                            { "StartQuest", "HauntedQuest2", 2 },
-                            { "StartQuest", "HauntedQuest2", 1 },
-                            { "StartQuest", "HauntedQuest1", 1 },
-                            { "StartQuest", "HauntedQuest1", 2 }
-                        }
+                        local questData = {  
+                            { "StartQuest", "HauntedQuest2", 2 },  
+                            { "StartQuest", "HauntedQuest2", 1 },  
+                            { "StartQuest", "HauntedQuest1", 1 },  
+                            { "StartQuest", "HauntedQuest1", 2 }  
+                        }  
 
-                        pcall(function()
-                            game.ReplicatedStorage.Remotes.CommF_:InvokeServer(unpack(questData[math.random(1,4)]))
-                        end)
-                    end
+                        pcall(function()  
+                            game.ReplicatedStorage.Remotes.CommF_:InvokeServer(unpack(questData[math.random(1,4)]))  
+                        end)  
+                    end  
 
-                    repeat
+                    repeat  
                         task.wait()
-                        Attack.Kill(bone, _G.AutoFarm_Bone)
-                    until not _G.AutoFarm_Bone or bone.Humanoid.Health <= 0 or not bone.Parent or (_G.AcceptQuestBone and not questUI.Visible)
-                else
-                    TeleportToTarget(CFrame.new(-9495.6806640625, 453.58624267578125, 5977.3486328125))
-                end
-            end)
-        end
+                        Attack.Kill(bone, _G.AutoFarm_Bone)  
+                    until not _G.AutoFarm_Bone or bone.Humanoid.Health <= 0 or not bone.Parent or (_G.AcceptQuestBone and not questUI.Visible)  
+                else  
+                    TeleportToTarget(CFrame.new(-9495.6806640625, 453.58624267578125, 5977.3486328125))  
+                end  
+            end)  
+        end  
     end
 end)
 
@@ -4168,7 +4158,7 @@ spawn(function()
             if _G.Auto_Random_Bone then
                 repeat
                     task.wait()
-                    replicated.Remotes.CommF_:InvokeServer("Bones", "Buy", 1, 1)
+                    replicated.Remotes.CommF:InvokeServer("Bones", "Buy", 1, 1)
                 until not _G.Auto_Random_Bone
             end
         end)
@@ -4291,11 +4281,6 @@ local AutoCake = SectionCake:AddToggle("AutoCake", {
 
 AutoCake:OnChanged(function(Value)
     _G.Auto_Cake_Prince = Value
-    if Value then
-        local mirrorPos = CFrame.new(-1943.676513671875, 251.5095672607422, -12337.880859375)
-        TeleportToTarget(mirrorPos)
-        repeat wait() until IsNearTarget(mirrorPos, 80)
-    end
 end)
 
 spawn(function()
@@ -4309,83 +4294,94 @@ spawn(function()
                 local bigMirror = workspace.Map.CakeLoaf.BigMirror
                 if not root then return end
 
-                local cakeIslandPos = Vector3.new(-2077, 252, -12373)
-                if (root.Position - cakeIslandPos).Magnitude > 3000 then
-                    TeleportToTarget(CakeTargetPos)
-                    repeat wait() until IsNearTarget(CakeTargetPos, 600)
-                end
+                local cakeIslandPos = Vector3.new(-2077, 252, -12373)  
+                if (root.Position - cakeIslandPos).Magnitude > 3000 then  
+                    while (root.Position - cakeIslandPos).Magnitude > 50 do
+                        root.CFrame = root.CFrame:Lerp(CFrame.new(cakeIslandPos), 0.1)
+                        task.wait()
+                    end
+                end  
 
-                if not bigMirror:FindFirstChild("Other") then
-                    TeleportToTarget(CakeTargetPos)
-                end
+                if not bigMirror:FindFirstChild("Other") then  
+                    while (root.Position - cakeIslandPos).Magnitude > 50 do
+                        root.CFrame = root.CFrame:Lerp(CFrame.new(cakeIslandPos), 0.1)
+                        task.wait()
+                    end
+                end  
 
-                local function GetNearestEnemy(names)
-                    local nearest, minDist
-                    for _, v in ipairs(workspace.Enemies:GetChildren()) do
-                        if table.find(names, v.Name)
-                            and v:FindFirstChild("HumanoidRootPart")
-                            and v:FindFirstChild("Humanoid")
-                            and v.Humanoid.Health > 0
-                        then
-                            local dist = (v.HumanoidRootPart.Position - root.Position).Magnitude
-                            if not minDist or dist < minDist then
-                                minDist = dist
-                                nearest = v
+                local function GetNearestEnemy(names)  
+                    local nearest, minDist  
+                    for _, v in ipairs(workspace.Enemies:GetChildren()) do  
+                        if table.find(names, v.Name)  
+                            and v:FindFirstChild("HumanoidRootPart")  
+                            and v:FindFirstChild("Humanoid")  
+                            and v.Humanoid.Health > 0  
+                        then  
+                            local dist = (v.HumanoidRootPart.Position - root.Position).Magnitude  
+                            if not minDist or dist < minDist then  
+                                minDist = dist  
+                                nearest = v  
+                            end  
+                        end  
+                    end  
+                    return nearest  
+                end  
+
+                if bigMirror.Other.Transparency == 0 or enemies:FindFirstChild("Cake Prince") then  
+                    local v = GetNearestEnemy({"Cake Prince"})  
+                    if v then  
+                        repeat  
+                            wait()  
+                            Attack.Kill2(v, _G.Auto_Cake_Prince)  
+                        until not _G.Auto_Cake_Prince or not v.Parent or v.Humanoid.Health <= 0  
+                    else  
+                        if bigMirror.Other.Transparency == 0 and (CFrame.new(-1990.67, 4533, -14973.67).Position - root.Position).Magnitude >= 2000 then  
+                            while (root.Position - Vector3.new(-2151.82, 149.32, -12404.91)).Magnitude > 50 do
+                                root.CFrame = root.CFrame:Lerp(CFrame.new(-2151.82, 149.32, -12404.91), 0.1)
+                                task.wait()
                             end
-                        end
-                    end
-                    return nearest
-                end
+                        end  
+                    end  
+                else  
+                    local CakePrince = {  
+                        "Cookie Crafter",  
+                        "Cake Guard",  
+                        "Baking Staff",  
+                        "Head Baker"  
+                    }  
 
-                if bigMirror.Other.Transparency == 0 or enemies:FindFirstChild("Cake Prince") then
-                    local v = GetNearestEnemy({"Cake Prince"})
-                    if v then
-                        repeat
-                            wait()
-                            Attack.Kill2(v, _G.Auto_Cake_Prince)
-                        until not _G.Auto_Cake_Prince or not v.Parent or v.Humanoid.Health <= 0
-                    else
-                        if bigMirror.Other.Transparency == 0 and (CFrame.new(-1990.67, 4533, -14973.67).Position - root.Position).Magnitude >= 2000 then
-                            TeleportToTarget(CFrame.new(-2151.82, 149.32, -12404.91))
-                        end
-                    end
-                else
-                    local CakePrince = {
-                        "Cookie Crafter",
-                        "Cake Guard",
-                        "Baking Staff",
-                        "Head Baker"
-                    }
+                    local v = GetNearestEnemy(CakePrince)  
 
-                    local v = GetNearestEnemy(CakePrince)
-
-                    if v then
-                        if _G.AcceptQuestC and not questUI.Visible then
-                            local questPos = CFrame.new(-1927.92, 37.8, -12842.54)
-                            TeleportToTarget(questPos)
+                    if v then  
+                        if _G.AcceptQuestC and not questUI.Visible then  
+                            local questPos = CFrame.new(-1927.92, 37.8, -12842.54)  
                             while (questPos.Position - root.Position).Magnitude > 50 do
-                                wait(0.2)
-                            end
+                                root.CFrame = root.CFrame:Lerp(questPos, 0.1)
+                                task.wait()
+                            end  
 
-                            local questData = {
-                                { "StartQuest", "CakeQuest2", 2 },
-                                { "StartQuest", "CakeQuest2", 1 },
-                                { "StartQuest", "CakeQuest1", 1 },
-                                { "StartQuest", "CakeQuest1", 2 }
-                            }
-                            pcall(function()
-                                game.ReplicatedStorage.Remotes.CommF_:InvokeServer(unpack(questData[math.random(1,4)]))
-                            end)
+                            local questData = {  
+                                { "StartQuest", "CakeQuest2", 2 },  
+                                { "StartQuest", "CakeQuest2", 1 },  
+                                { "StartQuest", "CakeQuest1", 1 },  
+                                { "StartQuest", "CakeQuest1", 2 }  
+                            }  
+                            pcall(function()  
+                                game.ReplicatedStorage.Remotes.CommF_:InvokeServer(unpack(questData[math.random(1,4)]))  
+                            end)  
+                        end  
+
+                        repeat  
+                            wait()  
+                            Attack.Kill(v, _G.Auto_Cake_Prince)  
+                        until not _G.Auto_Cake_Prince or v.Humanoid.Health <= 0 or bigMirror.Other.Transparency == 0 or (_G.AcceptQuestC and not questUI.Visible)  
+                    else  
+                        while (root.Position - CakeTargetPos.Position).Magnitude > 50 do
+                            root.CFrame = root.CFrame:Lerp(CakeTargetPos, 0.1)
+                            task.wait()
                         end
-
-                        repeat
-                            wait()
-                            Attack.Kill(v, _G.Auto_Cake_Prince)
-                        until not _G.Auto_Cake_Prince or v.Humanoid.Health <= 0 or bigMirror.Other.Transparency == 0 or (_G.AcceptQuestC and not questUI.Visible)
-                    else
-                        TeleportToTarget(CakeTargetPos)
-                    end
-                end
+                    end  
+                end  
             end)
         end
     end
@@ -4444,7 +4440,7 @@ spawn(function()
             pcall(function()
                 if not workspace.Map.CakeLoaf:FindFirstChild("RedDoor") then
                     if GetBP("Red Key") then
-                        replicated.Remotes.CommF_:InvokeServer("CakeScientist", "Check")
+                        replicated.Remotes.CommF:InvokeServer("CakeScientist", "Check")
                         replicated.Remotes.CommF_:InvokeServer("RaidsNpc", "Check")
                     end
                 elseif workspace.Map.CakeLoaf:FindFirstChild("RedDoor") then
@@ -4467,39 +4463,39 @@ spawn(function()
                     end
                 end
 
-                if GetBP("Sweet Chalice") then
-                    replicated.Remotes.CommF_:InvokeServer("CakePrinceSpawner", true)
-                    _G.AutoMiror = true
-                else
-                    _G.AutoMiror = false
-                end
+                if GetBP("Sweet Chalice") then  
+                    replicated.Remotes.CommF_:InvokeServer("CakePrinceSpawner", true)  
+                    _G.AutoMiror = true  
+                else  
+                    _G.AutoMiror = false  
+                end  
 
-                if GetBP("God's Chalice") and GetM("Conjured Cocoa") >= 10 then
-                    replicated.Remotes.CommF_:InvokeServer("SweetChaliceNpc")
-                end
+                if GetBP("God's Chalice") and GetM("Conjured Cocoa") >= 10 then  
+                    replicated.Remotes.CommF_:InvokeServer("SweetChaliceNpc")  
+                end  
 
-                if not plr.Backpack:FindFirstChild("God's Chalice") or plr.Character:FindFirstChild("God's Chalice") then
-                    _G.FarmEliteHunt = true
-                else
-                    _G.FarmEliteHunt = false
-                end
+                if not plr.Backpack:FindFirstChild("God's Chalice") or plr.Character:FindFirstChild("God's Chalice") then  
+                    _G.FarmEliteHunt = true  
+                else  
+                    _G.FarmEliteHunt = false  
+                end  
 
-                if GetM("Conjured Cocoa") <= 10 then
-                    local cocoa3 = {
-                        "Cocoa Warrior",
-                        "Chocolate Bar Battler"
-                    }
-                    local v = GetConnectionEnemies(cocoa3)
-                    if v then
-                        repeat
-                            wait()
-                            Attack.Kill(v, _G.Doughv2)
-                        until _G.Doughv2 == false or not v.Parent or v.Humanoid.Health <= 0
-                    else
-                        TeleportToTarget(CFrame.new(402.7189025878906, 81.06050109863281, -12259.54296875))
-                    end
-                end
-            end)
+                if GetM("Conjured Cocoa") <= 10 then  
+                    local cocoa3 = {  
+                        "Cocoa Warrior",  
+                        "Chocolate Bar Battler"  
+                    }  
+                    local v = GetConnectionEnemies(cocoa3)  
+                    if v then  
+                        repeat  
+                            wait()  
+                            Attack.Kill(v, _G.Doughv2)  
+                        until _G.Doughv2 == false or not v.Parent or v.Humanoid.Health <= 0  
+                    else  
+                        TeleportToTarget(CFrame.new(402.7189025878906, 81.06050109863281, -12259.54296875))  
+                    end  
+                end  
+            end)  
         end
     end
 end)
