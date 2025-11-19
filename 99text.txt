@@ -8258,6 +8258,7 @@ local Check_Volcano = Tabs.Prehistoric:AddParagraph({
     Title = " Prehistoric Island Status ",
     Content = ""
 })
+
 spawn(function()
     while wait(.2) do
         if workspace.Map:FindFirstChild("PrehistoricIsland") or workspace._WorldOrigin.Locations:FindFirstChild("Prehistoric Island") then
@@ -8267,6 +8268,7 @@ spawn(function()
         end
     end
 end)
+
 Vocan = Tabs.Prehistoric:AddToggle("Vocan", {
     Title = "Auto Find Prehistoric Island",
     Description = "turn on for finding & tween & start prehistoric island",
@@ -8275,6 +8277,7 @@ Vocan = Tabs.Prehistoric:AddToggle("Vocan", {
 Vocan:OnChanged(function(Value)
     _G.Prehis_Find = Value
 end)
+
 local targetDestination = nil
 spawn(function()
     while wait() do
@@ -8325,14 +8328,16 @@ spawn(function()
         end
     end
 end)
-local Vocan = Tabs.Prehistoric:AddToggle("Vocan", {
+
+local VocanSkills = Tabs.Prehistoric:AddToggle("Vocan", {
     Title = "Auto Patch Prehistoric Event",
     Description = "turn on for auto patch volcano + kill aura lava golems + auto remove lava",
     Default = false
 })
-Vocan:OnChanged(function(Value)
+VocanSkills:OnChanged(function(Value)
     _G.Prehis_Skills = Value
 end)
+
 spawn(function()
     while wait() do
         if _G.Prehis_Skills then
@@ -8365,6 +8370,7 @@ spawn(function()
         end
     end
 end)
+
 spawn(function()
     while wait() do
         pcall(function()
@@ -8408,18 +8414,28 @@ spawn(function()
     end
 end)
 
-Tabs.Prehistoric:AddButton("Remove Lava", function()
-    for i, v in pairs(game.Workspace:GetDescendants()) do
-        if v.Name == "Lava" then
-            v:Destroy()
+-- Botão Remove Lava
+Tabs.Prehistoric:AddButton({
+    Title = "Remove Lava",
+    Description = "Remove all Lava parts in Workspace and ReplicatedStorage",
+    Callback = function()
+        for i, v in pairs(game.Workspace:GetDescendants()) do
+            if v.Name == "Lava" then
+                v:Destroy()
+            end
         end
-    end
-    for i, v in pairs(game.ReplicatedStorage:GetDescendants()) do
-        if v.Name == "Lava" then
-            v:Destroy()
+        for i, v in pairs(game.ReplicatedStorage:GetDescendants()) do
+            if v.Name == "Lava" then
+                v:Destroy()
+            end
         end
+        Fluent:Notify({
+            Title = "Remove Lava",
+            Content = "All Lava parts have been removed!",
+            Duration = 5
+        })
     end
-end)
+})
 	local Vocan = Tabs.Prehistoric:AddToggle("Vocan", {
 		Title = "Auto Collect Dino Bones",
 		Description = "",
