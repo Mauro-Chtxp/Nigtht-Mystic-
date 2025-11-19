@@ -438,25 +438,78 @@ Sea = World1 or World2 or World3 or plr:Kick("❌ Error : A[12]Blox Fruits ❌")
 			end
 		end
 	end
-	BringEnemy = function()
-		if not _B then
-			return
-		end
-		for _, v in pairs(workspace.Enemies:GetChildren()) do
-			if v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
-				if (v.PrimaryPart.Position - PosMon).Magnitude <= 225 then
-					v.PrimaryPart.CFrame = CFrame.new(PosMon)
-					v.PrimaryPart.CanCollide = true;
-					v:FindFirstChild("Humanoid").WalkSpeed = 0;
-					v:FindFirstChild("Humanoid").JumpPower = 0;
-					if v.Humanoid:FindFirstChild("Animator") then
-						v.Humanoid.Animator:Destroy()
-					end;
-					plr.SimulationRadius = math.huge
-				end
-			end
-		end                    	
-	end
+	local plr = game.Players.LocalPlayer
+local TweenService = game:GetService("TweenService")
+
+-- Tween movement for mobs
+local function TweenObject(Object, Pos, Speed)
+    Speed = Speed or 350
+    if not Object or not Pos then return end
+    local Distance = (Pos.Position - Object.Position).Magnitude
+    local info = TweenInfo.new(Distance / Speed, Enum.EasingStyle.Linear)
+    local tween = TweenService:Create(Object, info, {CFrame = Pos})
+    tween:Play()
+end
+
+-- Get average position of mobs with the same name
+local function GetMobPosition(EnemiesName)
+    local pos = Vector3.zero
+    local count = 0
+    for _, v in pairs(workspace.Enemies:GetChildren()) do
+        if v.Name == EnemiesName and v:FindFirstChild("HumanoidRootPart") then
+            pos += v.HumanoidRootPart.Position
+            count += 1
+        end
+    end
+    if count == 0 then
+        return nil
+    end
+    return pos / count
+end
+
+-- Bring mobs closer together
+BringEnemy = function()
+    if not _B then return end
+    local enemies = workspace.Enemies:GetChildren()
+    if #enemies == 0 then return end
+
+    local totalpos = {}
+
+    -- Get average position for each enemy type
+    for _, v in pairs(enemies) do
+        if not totalpos[v.Name] then
+            totalpos[v.Name] = GetMobPosition(v.Name)
+        end
+    end
+
+    -- Group mobs around their average position
+    for _, v in pairs(workspace.Enemies:GetChildren()) do
+        if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") then
+            local hrp = v.HumanoidRootPart
+            local humanoid = v.Humanoid
+            if humanoid.Health > 0 and (hrp.Position - plr.Character.HumanoidRootPart.Position).Magnitude <= 225 then
+                local mobPos = totalpos[v.Name]
+                if mobPos then
+                    local TargetCFrame = CFrame.new(mobPos.X, mobPos.Y, mobPos.Z)
+                    local Distance = (hrp.Position - TargetCFrame.Position).Magnitude
+
+                    if Distance > 3 and Distance <= 280 then
+                        TweenObject(hrp, TargetCFrame, 300)
+                        hrp.CanCollide = false
+                        humanoid.WalkSpeed = 0
+                        humanoid.JumpPower = 0
+                        if humanoid:FindFirstChild("Animator") then
+                            humanoid.Animator:Destroy()
+                        end
+                        pcall(function()
+                            sethiddenproperty(plr, "SimulationRadius", math.huge)
+                        end)
+                    end
+                end
+            end
+        end
+    end
+end
 	Useskills = function(weapon, skill)
 		if weapon == "Melee" then
 			weaponSc("Melee")
