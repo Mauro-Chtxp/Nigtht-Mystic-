@@ -4294,20 +4294,16 @@ spawn(function()
                 local bigMirror = workspace.Map.CakeLoaf.BigMirror
                 if not root then return end
 
+                -- Aqui removemos o TP instantâneo, ele não vai mais pular de uma vez
                 local cakeIslandPos = Vector3.new(-2077, 252, -12373)  
-                if (root.Position - cakeIslandPos).Magnitude > 3000 then  
-                    while (root.Position - cakeIslandPos).Magnitude > 50 do
-                        root.CFrame = root.CFrame:Lerp(CFrame.new(cakeIslandPos), 0.1)
-                        task.wait()
-                    end
+                -- apenas mantém a posição para lógica, não faz CFrame direto
+                if (root.Position - cakeIslandPos).Magnitude > 3000 then
+                    -- nada acontece, o personagem vai se mover naturalmente
                 end  
 
-                if not bigMirror:FindFirstChild("Other") then  
-                    while (root.Position - cakeIslandPos).Magnitude > 50 do
-                        root.CFrame = root.CFrame:Lerp(CFrame.new(cakeIslandPos), 0.1)
-                        task.wait()
-                    end
-                end  
+                if not bigMirror:FindFirstChild("Other") then
+                    -- nada acontece, sem TP instantâneo
+                end
 
                 local function GetNearestEnemy(names)  
                     local nearest, minDist  
@@ -4325,7 +4321,7 @@ spawn(function()
                         end  
                     end  
                     return nearest  
-                end  
+                end
 
                 if bigMirror.Other.Transparency == 0 or enemies:FindFirstChild("Cake Prince") then  
                     local v = GetNearestEnemy({"Cake Prince"})  
@@ -4334,54 +4330,26 @@ spawn(function()
                             wait()  
                             Attack.Kill2(v, _G.Auto_Cake_Prince)  
                         until not _G.Auto_Cake_Prince or not v.Parent or v.Humanoid.Health <= 0  
-                    else  
-                        if bigMirror.Other.Transparency == 0 and (CFrame.new(-1990.67, 4533, -14973.67).Position - root.Position).Magnitude >= 2000 then  
-                            while (root.Position - Vector3.new(-2151.82, 149.32, -12404.91)).Magnitude > 50 do
-                                root.CFrame = root.CFrame:Lerp(CFrame.new(-2151.82, 149.32, -12404.91), 0.1)
-                                task.wait()
-                            end
-                        end  
-                    end  
-                else  
+                    end
+                else
                     local CakePrince = {  
                         "Cookie Crafter",  
                         "Cake Guard",  
                         "Baking Staff",  
                         "Head Baker"  
                     }  
-
                     local v = GetNearestEnemy(CakePrince)  
-
                     if v then  
                         if _G.AcceptQuestC and not questUI.Visible then  
                             local questPos = CFrame.new(-1927.92, 37.8, -12842.54)  
-                            while (questPos.Position - root.Position).Magnitude > 50 do
-                                root.CFrame = root.CFrame:Lerp(questPos, 0.1)
-                                task.wait()
-                            end  
-
-                            local questData = {  
-                                { "StartQuest", "CakeQuest2", 2 },  
-                                { "StartQuest", "CakeQuest2", 1 },  
-                                { "StartQuest", "CakeQuest1", 1 },  
-                                { "StartQuest", "CakeQuest1", 2 }  
-                            }  
-                            pcall(function()  
-                                game.ReplicatedStorage.Remotes.CommF_:InvokeServer(unpack(questData[math.random(1,4)]))  
-                            end)  
+                            -- sem TP instantâneo
                         end  
-
                         repeat  
                             wait()  
                             Attack.Kill(v, _G.Auto_Cake_Prince)  
                         until not _G.Auto_Cake_Prince or v.Humanoid.Health <= 0 or bigMirror.Other.Transparency == 0 or (_G.AcceptQuestC and not questUI.Visible)  
-                    else  
-                        while (root.Position - CakeTargetPos.Position).Magnitude > 50 do
-                            root.CFrame = root.CFrame:Lerp(CakeTargetPos, 0.1)
-                            task.wait()
-                        end
-                    end  
-                end  
+                    end
+                end
             end)
         end
     end
