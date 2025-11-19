@@ -2816,8 +2816,7 @@ local function GoToNPC()
 
     local level = LocalPlayer.Data.Level.Value
     if level >= 2650 then
-        _G_WentToSubmerged = true  -- marca como já feito
-
+        -- Teleporta até o NPC
         Teleport(npcPosition, MaxSpeed)
         task.wait(3)
 
@@ -2835,21 +2834,37 @@ local function GoToNPC()
                 CommF:InvokeServer("SetLastSpawnPoint", "SubmergedIsland")
             end)
         end
+
+        -- Espera o player realmente chegar na Submerged Island antes de marcar como feito
+        spawn(function()
+            while true do
+                local hrp = getCharacter():FindFirstChild("HumanoidRootPart")
+                if hrp then
+                    local pos = hrp.Position
+                    -- Ajuste o range da ilha Submerged aqui
+                    if pos.Y > 1000 then -- exemplo, pode ajustar conforme a posição real
+                        _G_WentToSubmerged = true
+                        break
+                    end
+                end
+                task.wait(1)
+            end
+        end)
     end
 end
 
--- Reseta o _G_WentToSubmerged quando o player volta da ilha
+-- Reseta o _G_WentToSubmerged quando o player voltar da ilha
 spawn(function()
-    while wait(1) do
-        local char = getCharacter()
-        local hrp = char:FindFirstChild("HumanoidRootPart")
+    while true do
+        local hrp = getCharacter():FindFirstChild("HumanoidRootPart")
         if hrp then
             local pos = hrp.Position
-            -- ajustar aqui a posição da ilha normal
+            -- Ajuste para detectar a posição da ilha normal
             if pos.Y < 500 and _G_WentToSubmerged then
                 _G_WentToSubmerged = false
             end
         end
+        task.wait(1)
     end
 end)
 
