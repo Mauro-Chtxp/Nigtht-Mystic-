@@ -2759,27 +2759,24 @@ spawn(function()
 		end)
 	end
 end)
-	local Players = game:GetService("Players")
+	local FarmLevel = Tabs.Main:AddToggle("FarmLevel", {
+    Title = "Auto Farm Level",
+    Description = "Famar Níveis Automaticamente",
+    Default = false
+})
+FarmLevel:OnChanged(function(Value)
+    _G.Level = Value
+end)
+
+local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local task = task
-local TweenService = game:GetService("TweenService")
 
---=========================
---== VARIÁVEIS BÁSICAS ====
---=========================
 local MaxSpeed = 350
-local DISTANCE_TO_IGNORE = 650 -- distância realista para ignorar teleport
 local npcPosition = CFrame.new(-16269.1016, 29.5177539, 1372.3204)
-local islandModel = workspace.Map:FindFirstChild("Submerged Island")
-local plr = LocalPlayer
-local Root = plr.Character and plr.Character:WaitForChild("HumanoidRootPart")
-local replicated = ReplicatedStorage
-local Sec = 0.2 -- intervalo do loop
+local _G_WentToSubmerged = false -- controla se já foi para o Submerged
 
---=========================
---== FUNÇÕES DE TELEPORT / NPC ====
---=========================
 local function getCharacter()
     if not LocalPlayer.Character then
         LocalPlayer.CharacterAdded:Wait()
@@ -2805,7 +2802,7 @@ local function Teleport(GoalCFrame, Speed)
     toggleNoclip(true)
     local magnitude = (hrp.Position - GoalCFrame.Position).Magnitude
 
-    while magnitude > 1 do
+    while magnitude > 1 and _G.Level do
         local direction = (GoalCFrame.Position - hrp.Position).Unit
         hrp.CFrame = hrp.CFrame + direction * (Speed * task.wait())
         magnitude = (hrp.Position - GoalCFrame.Position).Magnitude
@@ -2814,105 +2811,61 @@ local function Teleport(GoalCFrame, Speed)
     toggleNoclip(false)
 end
 
-local function IsInSubmergedIsland()
-    local char = LocalPlayer.Character
-    local root = char and char:FindFirstChild("HumanoidRootPart")
-    if not (root and islandModel) then return false end
+local function GoToNPC()
+    if _G_WentToSubmerged then return end
 
-    local cf = islandModel:GetBoundingBox()
-    local islandCenter = cf.Position
-
-    return (root.Position - islandCenter).Magnitude < 1200
-end
-
--- Teleport pro NPC da Submerged Island só se estiver longe
-local function CheckTeleportToSubmarineNPC()
     local level = LocalPlayer.Data.Level.Value
-    local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-    if not root then return end
+    if level >= 2650 then
+        _G_WentToSubmerged = true  -- marca como já feito
 
-    local PosQ -- NPC da quest
-    local PosM -- Posição dos mobs
-    local a = level
-
-    -- Define NPC e mobs dependendo do level
-    if a >= 2650 and a <= 2674 then
-        PosQ = CFrame.new(10882.264, -2086.322, 10034.226)
-        PosM = CFrame.new(10621.0342, -2087.8440, 10102.0332)
-    elseif a >= 2675 and a <= 2699 then
-        PosQ = CFrame.new(10882.264, -2086.322, 10034.226)
-        PosM = CFrame.new(11056.1445, -2001.6717, 10117.4493)
-    elseif a >= 2700 and a <= 2724 then
-        PosQ = CFrame.new(9636.52441, -1992.19507, 9609.52832)
-        PosM = CFrame.new(9828.087890625, -1940.908935546875, 9693.0634765625)
-    elseif a >= 2725 and a <= 2800 then
-        PosQ = CFrame.new(9636.52441, -1992.19507, 9609.52832)
-        PosM = CFrame.new(9557.5849609375, -1928.0404052734375, 9859.1826171875)
-    else
-        return nil
-    end
-
-    local distance = (root.Position - PosQ.Position).Magnitude
-    if distance > DISTANCE_TO_IGNORE then
-        -- Teleport + remotes
-        Teleport(PosQ, MaxSpeed)
+        Teleport(npcPosition, MaxSpeed)
         task.wait(3)
 
-        local SubmarineWorker = replicated.Modules.Net:FindFirstChild("RF/SubmarineWorkerSpeak")
-        local CommF = replicated.Modules.Net:FindFirstChild("CommF_")
+        local SubmarineWorker = ReplicatedStorage.Modules.Net:FindFirstChild("RF/SubmarineWorkerSpeak")
+        local CommF = ReplicatedStorage.Modules.Net:FindFirstChild("CommF_")
+
         if SubmarineWorker then
             pcall(function()
                 SubmarineWorker:InvokeServer("TravelToSubmergedIsland")
             end)
         end
+
         if CommF then
             pcall(function()
                 CommF:InvokeServer("SetLastSpawnPoint", "SubmergedIsland")
             end)
         end
-    else
-        -- Perto do NPC → ignora teleport
-        print("Perto do NPC, ignorando teleport")
     end
-
-    return PosM -- posição do mob
 end
 
---=========================
---== TOGGLE FARM LEVEL ====
---=========================
-local FarmLevel = Tabs.Main:AddToggle("FarmLevel", {
-    Title = "Auto Farm Level",
-    Description = "Famar Níveis Automaticamente",
-    Default = false
-})
-
-FarmLevel:OnChanged(function(Value)
-    _G.Level = Value
-
-    if Value == true then
-        if LocalPlayer.Data.Level.Value >= 2650 then
-            if not IsInSubmergedIsland() then
-                CheckTeleportToSubmarineNPC()
-                task.wait(5)
+-- Reseta o _G_WentToSubmerged quando o player volta da ilha
+spawn(function()
+    while wait(1) do
+        local char = getCharacter()
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        if hrp then
+            local pos = hrp.Position
+            -- ajustar aqui a posição da ilha normal
+            if pos.Y < 500 and _G_WentToSubmerged then
+                _G_WentToSubmerged = false
             end
         end
     end
 end)
 
 spawn(function()
-    while wait(Sec) do
+    while wait(0.2) do
         if _G.Level then
-            pcall(function()
-                -- Teleport pro NPC se estiver longe
-                local MobPos = CheckTeleportToSubmarineNPC()
-                if MobPos then
-                    _tp(MobPos)
-                end
+            local LevelNow = LocalPlayer.Data.Level.Value
 
-                -- ==============================
-                -- === FARM LEVEL ORIGINAL ====
-                -- ==============================
+            -- FAZ A MISSÃO DO SUBMERGED SE ESTIVER NO LEVEL
+            if LevelNow >= 2650 and not _G_WentToSubmerged then
+                GoToNPC()
+            end
+
+            -- DEPOIS CONTINUA O FARM NORMAL
+            pcall(function()
+                local plr = LocalPlayer
                 local QuestTitle = plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text
 
                 if not string.find(QuestTitle, QuestNeta()[5]) then
@@ -2924,7 +2877,6 @@ spawn(function()
                     if (Root.Position - QuestNeta()[6].Position).Magnitude <= 5 then
                         replicated.Remotes.CommF_:InvokeServer("StartQuest", QuestNeta()[3], QuestNeta()[2])
                     end
-
                 elseif plr.PlayerGui.Main.Quest.Visible == true then
                     if workspace.Enemies:FindFirstChild(QuestNeta()[1]) then
                         for i, v in pairs(workspace.Enemies:GetChildren()) do
