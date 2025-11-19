@@ -2005,12 +2005,12 @@ local Window = Fluent:CreateWindow({
     Title = "Night Mystic",
     SubTitle = "By Hey Star & MauroZzx | Blox Fruits",
     TabWidth = 160,
-    Theme = "PurpleBlack",
+    Theme = "VSC Dark High Contrast",
     Acrylic = false,
     Size = UDim2.fromOffset(376, 376),
     MinimizeKey = Enum.KeyCode.End,
     UserInfo = true,
-    UserInfoTop = false,
+    UserInfoTop = true,
     UserInfoTitle = game.Players.LocalPlayer.DisplayName,
     UserInfoSubtitle = "Player",
     UserInfoSubtitleColor = Color3.fromRGB(71, 123, 255)
@@ -4369,7 +4369,7 @@ spawn(function()
 end)
 
 local Mirror = SectionCake:AddToggle("Mirror", {
-    Title = "Auto Kil Dough King",
+    Title = "Auto Kill Dough",
     Default = false
 })
 
@@ -4403,6 +4403,78 @@ local AcceptQuestC = SectionCake:AddToggle("AcceptQuestC", {
 AcceptQuestC:OnChanged(function(Value)
     _G.AcceptQuestC = Value
 end)
+
+	Tabs.Main:AddSection("Unlocked Dungeon")
+	local Q = Tabs.Main:AddToggle("Q", {
+		Title = "Auto Desbloquear Raid Dough",
+		Description = "",
+		Default = false
+	})
+	Q:OnChanged(function(Value)
+		_G.Doughv2 = Value
+	end)
+	spawn(function()
+		while wait(Sec) do
+			if _G.Doughv2 then
+				pcall(function()
+					if not workspace.Map.CakeLoaf:FindFirstChild("RedDoor") then
+						if GetBP("Red Key") then
+							replicated.Remotes.CommF_:InvokeServer("CakeScientist", "Check")
+							replicated.Remotes.CommF_:InvokeServer("RaidsNpc", "Check")
+						end
+					elseif workspace.Map.CakeLoaf:FindFirstChild("RedDoor") then
+						if GetBP("Red Key") then
+							repeat
+								wait()
+								_tp(CFrame.new(-2681.97998, 64.3921585, -12853.7363, 0.149007782, -1.87902192e-08, 0.98883605, 3.60619588e-08, 1, 1.35681812e-08, -0.98883605, 3.36376011e-08, 0.149007782))
+							until not _G.Doughv2 or (plr.Character.HumanoidRootPart.CFrame - CFrame.new(-2681.97998, 64.3921585, -12853.7363, 0.149007782, -1.87902192e-08, 0.98883605, 3.60619588e-08, 1, 1.35681812e-08, -0.98883605, 3.36376011e-08, 0.149007782)).Magnitude <= 5
+							EquipWeapon("Red Key")
+						end
+					elseif GetConnectionEnemies("Dough King") then
+						local v = GetConnectionEnemies("Dough King")
+						if v then
+							repeat
+								wait()
+								Attack.Kill(v, _G.Doughv2)
+							until not _G.Doughv2 or not v.Parent or v.Humanoid.Health <= 0
+						else
+							_tp(CFrame.new(-1943.676513671875, 251.5095672607422, -12337.880859375))
+						end
+					end
+					if GetBP("Sweet Chalice") then
+						replicated.Remotes.CommF_:InvokeServer("CakePrinceSpawner", true)
+						_G.AutoMiror = true
+					else
+						_G.AutoMiror = false
+					end
+					if GetBP("God's Chalice") and GetM("Conjured Cocoa") >= 10 then
+						replicated.Remotes.CommF_:InvokeServer("SweetChaliceNpc")
+					end
+					if not plr.Backpack:FindFirstChild("God's Chalice") or plr.Character:FindFirstChild("God's Chalice") then
+						_G.FarmEliteHunt = true
+					else
+						_G.FarmEliteHunt = false
+					end
+					if GetM("Conjured Cocoa") <= 10 then
+						local cocoa3 = {
+							"Cocoa Warrior",
+							"Chocolate Bar Battler"
+						}
+						local v = GetConnectionEnemies(cocoa3)
+						if v then
+							repeat
+								wait()
+								Attack.Kill(v, _G.Doughv2)
+							until _G.Doughv2 == false or not v.Parent or v.Humanoid.Health <= 0
+						else
+							_tp(CFrame.new(402.7189025878906, 81.06050109863281, -12259.54296875))
+						end
+					end
+				end)
+			end
+		end
+	end)
+	end
 	local Q = Tabs.Main:AddToggle("Q", {
 		Title = "Auto Desbloquear Raid Phonix",
 		Description = "",
