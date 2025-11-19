@@ -2763,87 +2763,21 @@ end)
 local LocalPlayer = Players.LocalPlayer
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local task = task
+local TweenService = game:GetService("TweenService")
 
+--=========================
+--== VARIÁVEIS BÁSICAS ====
+--=========================
 local MaxSpeed = 350
 local npcPosition = CFrame.new(-16269.1016, 29.5177539, 1372.3204)
 local islandModel = workspace.Map:FindFirstChild("Submerged Island")
+local plr = LocalPlayer
+local Root = plr.Character and plr.Character:WaitForChild("HumanoidRootPart")
+local replicated = ReplicatedStorage
 
 --=========================
---== AUTO FARM LEVEL =========
+--== FUNÇÕES DE TELEPORT / NPC ====
 --=========================
-
-local FarmLevel = Tabs.Main:AddToggle("FarmLevel", {
-    Title = "Auto Farm Level",
-    Description = "Famar Níveis Automaticamente",
-    Default = false
-})
-
-FarmLevel:OnChanged(function(Value)
-    _G.Level = Value
-
-    if Value == true then
-        if LocalPlayer.Data.Level.Value >= 2650 then
-            if not IsInSubmergedIsland() then
-                GoToNPC()
-                task.wait(5)
-            end
-        end
-    end
-end)
-
-spawn(function()
-    while wait(Sec) do
-        if _G.Level then
-            pcall(function()
-                -- Se o player não estiver na ilha e for >=2650 → vai no NPC de novo
-                if LocalPlayer.Data.Level.Value >= 2650 and not IsInSubmergedIsland() then
-                    GoToNPC()
-                    return
-                end
-
-                -- FARM LEVEL ORIGINAL
-                local QuestTitle = plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text
-
-                if not string.find(QuestTitle, QuestNeta()[5]) then
-                    replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
-                end
-
-                if plr.PlayerGui.Main.Quest.Visible == false then
-                    _tp(QuestNeta()[6])
-                    if (Root.Position - QuestNeta()[6].Position).Magnitude <= 5 then
-                        replicated.Remotes.CommF_:InvokeServer("StartQuest", QuestNeta()[3], QuestNeta()[2])
-                    end
-
-                elseif plr.PlayerGui.Main.Quest.Visible == true then
-                    if workspace.Enemies:FindFirstChild(QuestNeta()[1]) then
-                        for i, v in pairs(workspace.Enemies:GetChildren()) do
-                            if Attack.Alive(v) and v.Name == QuestNeta()[1] then
-                                if string.find(QuestTitle, QuestNeta()[5]) then
-                                    repeat
-                                        wait()
-                                        Attack.Kill(v, _G.Level)
-                                    until not _G.Level or v.Humanoid.Health <= 0 or not v.Parent or plr.PlayerGui.Main.Quest.Visible == false
-                                else
-                                    replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
-                                end
-                            end
-                        end
-                    else
-                        _tp(QuestNeta()[4])
-                        if replicated:FindFirstChild(QuestNeta()[1]) then
-                            _tp(replicated:FindFirstChild(QuestNeta()[1]).HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
-                        end
-                    end
-                end
-            end)
-        end
-    end
-end)
-
---=========================
---== FUNÇÕES DE TELEPORT + NPC =========
---=========================
-
 local function getCharacter()
     if not LocalPlayer.Character then
         LocalPlayer.CharacterAdded:Wait()
@@ -2897,8 +2831,8 @@ local function GoToNPC()
     Teleport(npcPosition, MaxSpeed)
     task.wait(3)
 
-    local SubmarineWorker = ReplicatedStorage.Modules.Net:FindFirstChild("RF/SubmarineWorkerSpeak")
-    local CommF = ReplicatedStorage.Modules.Net:FindFirstChild("CommF_")
+    local SubmarineWorker = replicated.Modules.Net:FindFirstChild("RF/SubmarineWorkerSpeak")
+    local CommF = replicated.Modules.Net:FindFirstChild("CommF_")
 
     if SubmarineWorker then
         pcall(function()
@@ -2912,6 +2846,77 @@ local function GoToNPC()
         end)
     end
 end
+
+--=========================
+--== TOGGLE FARM LEVEL ====
+--=========================
+local FarmLevel = Tabs.Main:AddToggle("FarmLevel", {
+    Title = "Auto Farm Level",
+    Description = "Famar Níveis Automaticamente",
+    Default = false
+})
+
+FarmLevel:OnChanged(function(Value)
+    _G.Level = Value
+
+    if Value == true then
+        if LocalPlayer.Data.Level.Value >= 2650 then
+            if not IsInSubmergedIsland() then
+                GoToNPC()
+                task.wait(5)
+            end
+        end
+    end
+end)
+
+spawn(function()
+    while wait(Sec) do
+        if _G.Level then
+            pcall(function()
+                -- Se o player não estiver na ilha e for >=2650 → vai no NPC de novo
+                if LocalPlayer.Data.Level.Value >= 2650 and not IsInSubmergedIsland() then
+                    GoToNPC()
+                    return
+                end
+
+                -- === FARM LEVEL ORIGINAL ===
+                local QuestTitle = plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text
+
+                if not string.find(QuestTitle, QuestNeta()[5]) then
+                    replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
+                end
+
+                if plr.PlayerGui.Main.Quest.Visible == false then
+                    _tp(QuestNeta()[6])
+                    if (Root.Position - QuestNeta()[6].Position).Magnitude <= 5 then
+                        replicated.Remotes.CommF_:InvokeServer("StartQuest", QuestNeta()[3], QuestNeta()[2])
+                    end
+
+                elseif plr.PlayerGui.Main.Quest.Visible == true then
+                    if workspace.Enemies:FindFirstChild(QuestNeta()[1]) then
+                        for i, v in pairs(workspace.Enemies:GetChildren()) do
+                            if Attack.Alive(v) and v.Name == QuestNeta()[1] then
+                                if string.find(QuestTitle, QuestNeta()[5]) then
+                                    repeat
+                                        wait()
+                                        Attack.Kill(v, _G.Level)
+                                    until not _G.Level or v.Humanoid.Health <= 0 or not v.Parent or plr.PlayerGui.Main.Quest.Visible == false
+                                else
+                                    replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
+                                end
+                            end
+                        end
+                    else
+                        _tp(QuestNeta()[4])
+                        if replicated:FindFirstChild(QuestNeta()[1]) then
+                            _tp(replicated:FindFirstChild(QuestNeta()[1]).HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
+                        end
+                    end
+                end
+            end)
+        end
+    end
+end)
 	local BossDropdown = Tabs.Main:AddDropdown("BossDropdown", {
 		Title = "Selecione o Boss",
 		Description = "Selecione o Boss Para Farm",
