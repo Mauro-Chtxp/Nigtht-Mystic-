@@ -8254,164 +8254,122 @@ end)
 		end
 	end)
 	Tabs.Prehistoric:AddSection("Prehistoric Island")
-	local Check_Volcano = Tabs.Prehistoric:AddParagraph({
-		Title = " Prehistoric Island Status ",
-		Content = ""
-	})
-	spawn(function()
-		while wait(.2) do
-			if workspace.Map:FindFirstChild("PrehistoricIsland") or workspace._WorldOrigin.Locations:FindFirstChild("Prehistoric Island") then
-				Check_Volcano:SetDesc(" Prehistoric Island : True")
-			else
-				Check_Volcano:SetDesc(" Prehistoric Island : False")
-			end
-		end
-	end)
-	Vocan = Tabs.Prehistoric:AddToggle("Vocan", {
-		Title = "Auto Find Prehistoric Island",
-		Description = "turn on for finding & tween & start prehistoric island",
-		Default = false
-	})
-	Vocan:OnChanged(function(Value)
-		_G.Prehis_Find = Value
-	end)
-	local targetDestination = nil
-	spawn(function()
-		while wait() do
-			if _G.Prehis_Find then
-				pcall(function()
-					if not workspace["_WorldOrigin"].Locations:FindFirstChild("Prehistoric Island", true) then
-						local myBoat = CheckBoat()
-						if not myBoat then
-							local buyBoatCFrame = CFrame.new(-16927.451, 9.086, 433.864)
-							TeleportToTarget(buyBoatCFrame)
-							if (buyBoatCFrame.Position - plr.Character.HumanoidRootPart.Position).Magnitude <= 10 then
-								replicated.Remotes.CommF_:InvokeServer("BuyBoat", _G.SelectedBoat)
-							end
-						else
-							if plr.Character.Humanoid.Sit == false then
-								local boatSeatCFrame = myBoat.VehicleSeat.CFrame * CFrame.new(0, 1, 0)
-								_tp(boatSeatCFrame)
-							else
-								repeat
-									wait()
-									local targetDestination = CFrame.new(-10000000, 31, 37016.25)
-									if CheckEnemiesBoat() or CheckTerrorShark() or CheckPirateGrandBrigade() then
-										_tp(CFrame.new(-10000000, 150, 37016.25))
-									else
-										_tp(CFrame.new(-10000000, 31, 37016.25))
-									end
-								until not _G.Prehis_Find or (targetDestination.Position - plr.Character.HumanoidRootPart.Position).Magnitude <= 10 or workspace["_WorldOrigin"].Locations:FindFirstChild("Prehistoric Island") or plr.Character.Humanoid.Sit == false
-								plr.Character.Humanoid.Sit = false
-							end
-						end
-					else
-						if (workspace["_WorldOrigin"].Locations:FindFirstChild("Prehistoric Island").CFrame.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude >= 2000 then
-							_tp(workspace["_WorldOrigin"].Locations:FindFirstChild("Prehistoric Island").CFrame)
-						end
-						if workspace.Map:FindFirstChild("PrehistoricIsland", true) or workspace["_WorldOrigin"].Locations:FindFirstChild("Prehistoric Island", true) then
-							if workspace.Map.PrehistoricIsland.Core.ActivationPrompt:FindFirstChild("ProximityPrompt", true) then
-								if plr:DistanceFromCharacter(workspace.Map.PrehistoricIsland.Core.ActivationPrompt.CFrame.Position) <= 150 then
-									fireproximityprompt(workspace.Map.PrehistoricIsland.Core.ActivationPrompt.ProximityPrompt, math.huge)
-									vim1:SendKeyEvent(true, "E", false, game)
-									wait(1.5)
-									vim1:SendKeyEvent(false, "E", false, game)
-								end
-								_tp(workspace.Map.PrehistoricIsland.Core.ActivationPrompt.CFrame)
-							end
-						end
-					end
-				end)
-			end
-		end
-	end)
-	local ItemList = {
-    "Melee",
-    "Sword",
-    "Gun",
-    "Blox Fruit"
-}
 
-local SkillKeyList = {
-    "Z",
-    "X",
-    "C",
-    "V",
-    "F"
-}
-
--- DROPDOWN DE ITENS
-local ItemDropdown = Tabs.Prehistoric:AddDropdown("ItemDropdown", {
-    Title = "Select Items",
-    Description = "Escolha os itens que quer usar",
-    Values = ItemList,
-    Multi = true,
-    Default = {}
+-- Status Prehistoric Island
+local Check_Volcano = Tabs.Prehistoric:AddParagraph({
+    Title = " Prehistoric Island Status ",
+    Content = ""
 })
 
-ItemDropdown:OnChanged(function(Value)
-    _G.SelectedItems = Value
+spawn(function()
+    while wait(0.2) do
+        if workspace.Map:FindFirstChild("PrehistoricIsland") or workspace._WorldOrigin.Locations:FindFirstChild("Prehistoric Island") then
+            Check_Volcano:SetDesc(" Prehistoric Island : True")
+        else
+            Check_Volcano:SetDesc(" Prehistoric Island : False")
+        end
+    end
 end)
 
--- DROPDOWN DE SKILLS
-local SkillDropdown = Tabs.Prehistoric:AddDropdown("SkillDropdown", {
-    Title = "Select Skills",
-    Description = "Escolha as skills (Z, X, C, V, F)",
-    Values = SkillKeyList,
-    Multi = true,
-    Default = {}
-})
-
-SkillDropdown:OnChanged(function(Value)
-    _G.SelectedSkillKeys = Value
-end)
-
--- TOGGLE PRINCIPAL
-local Vocan = Tabs.Prehistoric:AddToggle("Vocan", {
-    Title = "Auto Patch Prehistoric Event",
-    Description = "Remove lava + kill golem + usar skills",
+-- Toggle Auto Find Prehistoric Island
+Vocan = Tabs.Prehistoric:AddToggle("Vocan", {
+    Title = "Auto Find Prehistoric Island",
+    Description = "turn on for finding & tween & start prehistoric island",
     Default = false
 })
-
 Vocan:OnChanged(function(Value)
+    _G.Prehis_Find = Value
+end)
+
+local targetDestination = nil
+spawn(function()
+    while wait() do
+        if _G.Prehis_Find then
+            pcall(function()
+                if not workspace["_WorldOrigin"].Locations:FindFirstChild("Prehistoric Island", true) then
+                    local myBoat = CheckBoat()
+                    if not myBoat then
+                        local buyBoatCFrame = CFrame.new(-16927.451, 9.086, 433.864)
+                        TeleportToTarget(buyBoatCFrame)
+                        if (buyBoatCFrame.Position - plr.Character.HumanoidRootPart.Position).Magnitude <= 10 then
+                            replicated.Remotes.CommF_:InvokeServer("BuyBoat", _G.SelectedBoat)
+                        end
+                    else
+                        if plr.Character.Humanoid.Sit == false then
+                            local boatSeatCFrame = myBoat.VehicleSeat.CFrame * CFrame.new(0, 1, 0)
+                            _tp(boatSeatCFrame)
+                        else
+                            repeat
+                                wait()
+                                local targetDestination = CFrame.new(-10000000, 31, 37016.25)
+                                if CheckEnemiesBoat() or CheckTerrorShark() or CheckPirateGrandBrigade() then
+                                    _tp(CFrame.new(-10000000, 150, 37016.25))
+                                else
+                                    _tp(CFrame.new(-10000000, 31, 37016.25))
+                                end
+                            until not _G.Prehis_Find or (targetDestination.Position - plr.Character.HumanoidRootPart.Position).Magnitude <= 10 or workspace["_WorldOrigin"].Locations:FindFirstChild("Prehistoric Island") or plr.Character.Humanoid.Sit == false
+                            plr.Character.Humanoid.Sit = false
+                        end
+                    end
+                else
+                    if (workspace["_WorldOrigin"].Locations:FindFirstChild("Prehistoric Island").CFrame.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude >= 2000 then
+                        _tp(workspace["_WorldOrigin"].Locations:FindFirstChild("Prehistoric Island").CFrame)
+                    end
+                    if workspace.Map:FindFirstChild("PrehistoricIsland", true) or workspace["_WorldOrigin"].Locations:FindFirstChild("Prehistoric Island", true) then
+                        if workspace.Map.PrehistoricIsland.Core.ActivationPrompt:FindFirstChild("ProximityPrompt", true) then
+                            if plr:DistanceFromCharacter(workspace.Map.PrehistoricIsland.Core.ActivationPrompt.CFrame.Position) <= 150 then
+                                fireproximityprompt(workspace.Map.PrehistoricIsland.Core.ActivationPrompt.ProximityPrompt, math.huge)
+                                vim1:SendKeyEvent(true, "E", false, game)
+                                wait(1.5)
+                                vim1:SendKeyEvent(false, "E", false, game)
+                            end
+                            _tp(workspace.Map.PrehistoricIsland.Core.ActivationPrompt.CFrame)
+                        end
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+-- Toggle Auto Patch Prehistoric Event
+local VocanSkills = Tabs.Prehistoric:AddToggle("Vocan", {
+    Title = "Auto Patch Prehistoric Event",
+    Description = "turn on for auto patch volcano + kill aura lava golems + auto remove lava",
+    Default = false
+})
+VocanSkills:OnChanged(function(Value)
     _G.Prehis_Skills = Value
 end)
 
--- FUNÇÃO DE USAR SKILLS
-local function UseSelectedSkills()
-    if not _G.SelectedItems or not _G.SelectedSkillKeys then return end
-    
-    for _, item in ipairs(_G.SelectedItems) do
-        for _, key in ipairs(_G.SelectedSkillKeys) do
-            Useskills(item, key)
-            task.wait(.35)
-        end
-    end
-end
-
-
--- LOOP DE REMOVER LAVA + TOUCHINTEREST
+-- Loop Auto Remove Lava
 spawn(function()
     while wait() do
         if _G.Prehis_Skills then
             local prehistoricIsland = game.Workspace.Map:FindFirstChild("PrehistoricIsland")
             if prehistoricIsland then
-
-                -- Remove Lava
                 for _, obj in pairs(prehistoricIsland:GetDescendants()) do
-                    if (obj:IsA("Part") or obj:IsA("MeshPart")) and obj.Name:lower():find("lava") then
+                    if obj:IsA("Part") or obj:IsA("MeshPart") then
+                        if obj.Name:lower():find("lava") then
+                            obj:Destroy()
+                        end
+                    elseif obj:IsA("Model") and obj.Name:lower():find("lava") then
                         obj:Destroy()
                     end
                 end
-
                 local lavaModel = prehistoricIsland.Core:FindFirstChild("InteriorLava")
-                if lavaModel then lavaModel:Destroy() end
-
-                -- Remove TouchInterest mortal
-                local trialTeleport = prehistoricIsland:FindFirstChild("TrialTeleport")
-                for _, v in pairs(prehistoricIsland:GetDescendants()) do
-                    if v.Name == "TouchInterest" and not (trialTeleport and v:IsDescendantOf(trialTeleport)) then
-                        v.Parent:Destroy()
+                if lavaModel and lavaModel:IsA("Model") then
+                    lavaModel:Destroy()
+                end
+                local Island = workspace.Map:FindFirstChild("PrehistoricIsland")
+                if Island then
+                    local trialTeleport = workspace.Map.PrehistoricIsland:FindFirstChild("TrialTeleport")
+                    for _, v in pairs(Island:GetDescendants()) do
+                        if v.Name == "TouchInterest" then
+                            if not (trialTeleport and v:IsDescendantOf(trialTeleport)) then
+                                v.Parent:Destroy()
+                            end
+                        end
                     end
                 end
             end
@@ -8419,38 +8377,43 @@ spawn(function()
     end
 end)
 
--- LOOP PARA MATAR GOLEM E USAR SKILLS NOS VULCANO ROCKS
+-- Loop Kill Lava Golems + Auto Skills
 spawn(function()
     while wait() do
         pcall(function()
             if _G.Prehis_Skills then
-
-                -- Matar Golem
                 if workspace.Enemies:FindFirstChild("Lava Golem") then
                     local v = GetConnectionEnemies("Lava Golem")
                     if v then
                         repeat
                             wait()
-                            Attack.Kill(v, true)
+                            Attack.Kill(v, _G.Prehis_Skills)
                             v.Humanoid:ChangeState(15)
                         until not _G.Prehis_Skills or not v.Parent or v.Humanoid.Health <= 0
                     end
                 end
-
-                -- Atacar pedras que brilham
-                for _, rock in pairs(game.Workspace.Map.PrehistoricIsland.Core.VolcanoRocks:GetChildren()) do
-                    local vfx = rock:FindFirstChild("VFXLayer")
-                    if vfx and vfx.At0.Glow.Enabled == true then
-                        repeat
-                            wait()
-                            _tp(vfx.CFrame)
-
-                            if plr:DistanceFromCharacter(vfx.CFrame.Position) <= 150 then
-                                MousePos = vfx.CFrame.Position
-                                UseSelectedSkills()
-                            end
-
-                        until not _G.Prehis_Skills or vfx.At0.Glow.Enabled == false
+                for i, v in pairs(game.Workspace.Map.PrehistoricIsland.Core.VolcanoRocks:GetChildren()) do
+                    if v:FindFirstChild("VFXLayer") then
+                        if v:FindFirstChild("VFXLayer").At0.Glow.Enabled == true or v.VFXLayer.At0.Glow.Enabled == true then
+                            repeat
+                                wait()
+                                _tp(v.VFXLayer.CFrame)
+                                if v.VFXLayer.At0.Glow.Enabled == true and plr:DistanceFromCharacter(v.VFXLayer.CFrame.Position) <= 150 then
+                                    MousePos = v.VFXLayer.CFrame.Position
+                                    Useskills("Melee", "Z")
+                                    wait(.5)
+                                    Useskills("Melee", "X")
+                                    wait(.5)
+                                    Useskills("Melee", "C")
+                                    wait(.5)
+                                    Useskills("Blox Fruit", "Z")
+                                    wait(.5)
+                                    Useskills("Blox Fruit", "X")
+                                    wait(.5)
+                                    Useskills("Blox Fruit", "C")
+                                end
+                            until not _G.Prehis_Skills or v:FindFirstChild("VFXLayer").At0.Glow.Enabled == false or v.VFXLayer.At0.Glow.Enabled == false
+                        end
                     end
                 end
             end
@@ -8458,51 +8421,25 @@ spawn(function()
     end
 end)
 
-----------------------------------------------------
---  BUTTON FINAL: REMOVER LAVA MANUALMENTE
-----------------------------------------------------
-
-Tabs.Prehistoric:AddButton({
-    Title = "Remover Lava",
-    Description = "Remove toda a lava e partes perigosas imediatamente",
-    Callback = function()
-
-        -- Workspace
-        for _, v in pairs(game.Workspace:GetDescendants()) do
-            if v.Name:lower():find("lava") then
-                v:Destroy()
-            end
-        end
-
-        -- ReplicatedStorage
-        for _, v in pairs(game.ReplicatedStorage:GetDescendants()) do
-            if v.Name:lower():find("lava") then
-                v:Destroy()
-            end
-        end
-
-        -- Prehistoric Island completa
-        local prehistoricIsland = game.Workspace.Map:FindFirstChild("PrehistoricIsland")
-        if prehistoricIsland then
-
-            for _, obj in pairs(prehistoricIsland:GetDescendants()) do
-                if (obj:IsA("Part") or obj:IsA("MeshPart")) and obj.Name:lower():find("lava") then
+-- Button Remove Lava
+local RemoveLavaButton = Tabs.Prehistoric:AddButton("Remove Lava", function()
+    local prehistoricIsland = game.Workspace.Map:FindFirstChild("PrehistoricIsland")
+    if prehistoricIsland then
+        for _, obj in pairs(prehistoricIsland:GetDescendants()) do
+            if obj:IsA("Part") or obj:IsA("MeshPart") then
+                if obj.Name:lower():find("lava") then
                     obj:Destroy()
                 end
-            end
-
-            local lavaModel = prehistoricIsland.Core:FindFirstChild("InteriorLava")
-            if lavaModel then lavaModel:Destroy() end
-
-            local trialTeleport = prehistoricIsland:FindFirstChild("TrialTeleport")
-            for _, v in pairs(prehistoricIsland:GetDescendants()) do
-                if v.Name == "TouchInterest" and not (trialTeleport and v:IsDescendantOf(trialTeleport)) then
-                    v.Parent:Destroy()
-                end
+            elseif obj:IsA("Model") and obj.Name:lower():find("lava") then
+                obj:Destroy()
             end
         end
+        local lavaModel = prehistoricIsland.Core:FindFirstChild("InteriorLava")
+        if lavaModel and lavaModel:IsA("Model") then
+            lavaModel:Destroy()
+        end
     end
-})
+end)
 	local Vocan = Tabs.Prehistoric:AddToggle("Vocan", {
 		Title = "Auto Collect Dino Bones",
 		Description = "",
