@@ -2523,6 +2523,80 @@ Tabs.MiscFarm:AddButton({
         replicated.Remotes.CommF_:InvokeServer("Cousin", "HalloweenGacha25")
     end
 })
+
+local AdvancedSection = Tabs.MiscFarm:AddSection("Advanced")
+
+local MasterySword = AdvancedSection:AddToggle("MasterySword", {
+    Title = "Auto 600 In Swords",
+    Description = "",
+    Default = false
+})
+MasterySword:OnChanged(function(Value)
+    _G.FarmMastery_S = Value
+end)
+
+spawn(function()
+    while wait(Sec) do
+        pcall(function()
+            if _G.FarmMastery_S then
+                if SelectIsland == "Cake" then
+                    for _, v in next, replicated.Remotes.CommF_:InvokeServer("getInventory") do
+                        if type(v) == "table" and v.Type == "Sword" then
+                            SwordName = v.Name
+                            if tonumber(v.Mastery) >= 1 or tonumber(v.Mastery) <= 599 then
+                                local v = GetConnectionEnemies(mastery1)
+                                if GetBP(SwordName) then
+                                    if v then
+                                        repeat
+                                            wait()
+                                            Attack_Sword(v, _G.FarmMastery_S)
+                                        until _G.FarmMastery_S == false or not v.Parent or v.Humanoid.Healh <= 0
+                                    else
+                                        _tp(CFrame.new(-1943.676513671875, 251.5095672607422, -12337.880859375))
+                                    end
+                                else
+                                    replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName)
+                                end
+                            elseif tonumber(v.Mastery) >= 600 then
+                                if not GetBP(SwordName) then
+                                    replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName)
+                                end
+                            end
+                            break
+                        end
+                    end
+
+                elseif SelectIsland == "Bone" then
+                    for _, v in next, replicated.Remotes.CommF_:InvokeServer("getInventory") do
+                        if type(v) == "table" and v.Type == "Sword" then
+                            SwordName = v.Name
+                            if tonumber(v.Mastery) >= 1 or tonumber(v.Mastery) <= 599 then
+                                local v = GetConnectionEnemies(mastery2)
+                                if GetBP(SwordName) then
+                                    if v then
+                                        repeat
+                                            wait()
+                                            Attack_Sword(v, _G.FarmMastery_S)
+                                        until _G.FarmMastery_S == false or not v.Parent or v.Humanoid.Healh <= 0
+                                    else
+                                        _tp(CFrame.new(-9495.6806640625, 453.58624267578125, 5977.3486328125))
+                                    end
+                                else
+                                    replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName)
+                                end
+                            elseif tonumber(v.Mastery) >= 600 then
+                                if not GetBP(SwordName) then
+                                    replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName)
+                                end
+                            end
+                            break
+                        end
+                    end
+                end
+            end
+        end)
+    end
+end)
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local plr = Players.LocalPlayer
@@ -3495,7 +3569,7 @@ FarmingSection:AddButton({
 		end
 	end)
 	end
-	Tabs.Main:AddSection("Miscellanea / Quest")
+	Tabs.Main:AddSection("Quests/Outros")
 	local ClosetMons = Tabs.Main:AddToggle("ClosetMons", {
 		Title = "Auto Farm Inimigos Próximos",
 		Description = "Farm Mobs Perto",
@@ -3963,7 +4037,7 @@ FarmingSection:AddButton({
 		SelectIsland = Value
 	end)
 	local MasteryFruits = Tabs.Main:AddToggle("MasteryFruits", {
-		Title = "Auto Mastery Fruits",
+		Title = "Auto Mastery Fruit",
 		Description = "",
 		Default = false
 	})
@@ -4019,7 +4093,7 @@ FarmingSection:AddButton({
 		end
 	end)
 	local MasteryGun = Tabs.Main:AddToggle("MasteryGun", {
-		Title = "Auto Mastery Gun",
+		Title = "Auto Farm Mastery Gun",
 		Description = "",
 		Default = false
 	})
@@ -4113,83 +4187,6 @@ FarmingSection:AddButton({
 					end
 				end)
 			end
-		end
-	end)
-	local MasterySword = Tabs.Main:AddToggle("MasterySword", {
-		Title = "Auto Mastery All Sword",
-		Description = "",
-		Default = false
-	})
-	MasterySword:OnChanged(function(Value)
-		_G.FarmMastery_S = Value
-	end)
-	spawn(function()
-		while wait(Sec) do
-			pcall(function()
-				if _G.FarmMastery_S then
-					if SelectIsland == "Cake" then
-						for _, v in next, replicated.Remotes.CommF_:InvokeServer("getInventory") do
-							if type(v) == "table" then
-								if v.Type == "Sword" then
-									SwordName = v.Name
-									if tonumber(v.Mastery) >= 1 or tonumber(v.Mastery) <= 599 then
-										local v = GetConnectionEnemies(mastery1)
-										if GetBP(SwordName) then
-											if v then
-												repeat
-													wait()
-													Attack.Sword(v, _G.FarmMastery_S)
-												until _G.FarmMastery_S == false or not v.Parent or v.Humanoid.Healh <= 0
-											else
-												_tp(CFrame.new(-1943.676513671875, 251.5095672607422, -12337.880859375))
-											end
-										else
-											replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName)
-										end
-									elseif tonumber(v.Mastery) >= 600 then
-										if GetBP(SwordName) then
-											return nil
-										else
-											replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName)
-										end
-									end
-									break
-								end
-							end
-						end
-					elseif SelectIsland == "Bone" then
-						for _, v in next, replicated.Remotes.CommF_:InvokeServer("getInventory") do
-							if type(v) == "table" then
-								if v.Type == "Sword" then
-									SwordName = v.Name
-									if tonumber(v.Mastery) >= 1 or tonumber(v.Mastery) <= 599 then
-										local v = GetConnectionEnemies(mastery2)
-										if GetBP(SwordName) then
-											if v then
-												repeat
-													wait()
-													Attack.Sword(v, _G.FarmMastery_S)
-												until _G.FarmMastery_S == false or not v.Parent or v.Humanoid.Healh <= 0
-											else
-												_tp(CFrame.new(-9495.6806640625, 453.58624267578125, 5977.3486328125))
-											end
-										else
-											replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName)
-										end
-									elseif tonumber(v.Mastery) >= 600 then
-										if GetBP(SwordName) then
-											return nil
-										else
-											replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName)
-										end
-									end
-									break
-								end
-							end
-						end
-					end
-				end
-			end)
 		end
 	end)
 	if World3 then
@@ -4405,7 +4402,7 @@ end)
 local SectionCake = Tabs.Main:AddSection("Cake Prince")
 
 local MobKilled = SectionCake:AddParagraph({
-    Title = "Cake Princes:",
+    Title = "Status",
     Content = ""
 })
 
