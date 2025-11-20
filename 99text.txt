@@ -2838,56 +2838,100 @@ end)
 -- Section Farming
 local FarmingSection = Tabs.Main:AddSection("Farming")
 
--- Toggle Farm Level
+--// Toggle Farm Level
 local FarmLevel = FarmingSection:AddToggle("FarmLevel", {
     Title = "Auto Farm Level",
-    Description = "Famar Níveis Automaticamente",
+    Description = "Farmar Níveis Automaticamente",
     Default = false
 })
 FarmLevel:OnChanged(function(Value)
     _G.Level = Value
 end)
 
--- garante intervalo do loop
+-- Intervalo
 local Sec = 1
 
--- Função de farm level (igual ao que funciona pra você)
+--// Player References
+local Players = game:GetService("Players")
+local plr = Players.LocalPlayer
+local Root, Humanoid
+
+local function UpdateCharacterReferences()
+    local char = plr.Character or plr.CharacterAdded:Wait()
+    Root = char:WaitForChild("HumanoidRootPart", 10)
+    Humanoid = char:WaitForChild("Humanoid", 10)
+end
+
+-- primeira atualização
+UpdateCharacterReferences()
+
+-- quando renascer, atualizar tudo
+plr.CharacterAdded:Connect(function()
+    UpdateCharacterReferences()
+    task.wait(1) -- deixa carregar o GUI/Quest
+end)
+
+--// LOOP DO FARM LEVEL
 spawn(function()
-    while wait(Sec) do
+    while task.wait(Sec) do
         if _G.Level then
             pcall(function()
-                local QuestTitle = plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text
 
+                -- se morreu e Root sumiu → repara
+                if not Root or not Root.Parent then
+                    UpdateCharacterReferences()
+                    return
+                end
+
+                local guiQuest = plr.PlayerGui.Main.Quest
+                local QuestTitle = guiQuest.Container.QuestTitle.Title.Text
+
+                -- se quest errada, abandon
                 if not string.find(QuestTitle, QuestNeta()[5]) then
                     replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
                 end
 
-                if plr.PlayerGui.Main.Quest.Visible == false then
+                -- ===============================
+                --      PEGAR QUEST NOVAMENTE
+                -- ===============================
+                if guiQuest.Visible == false then
                     _tp(QuestNeta()[6])
+
                     if (Root.Position - QuestNeta()[6].Position).Magnitude <= 5 then
                         replicated.Remotes.CommF_:InvokeServer("StartQuest", QuestNeta()[3], QuestNeta()[2])
                     end
 
-                elseif plr.PlayerGui.Main.Quest.Visible == true then
+                else
+                -- ===============================
+                --      COM QUEST → MATAR MONSTROS
+                -- ===============================
                     if workspace.Enemies:FindFirstChild(QuestNeta()[1]) then
-                        for i, v in pairs(workspace.Enemies:GetChildren()) do
-                            if Attack.Alive(v) then
-                                if v.Name == QuestNeta()[1] then
-                                    if string.find(QuestTitle, QuestNeta()[5]) then
-                                        repeat
-                                            wait()
-                                            Attack.Kill(v, _G.Level)
-                                        until not _G.Level or v.Humanoid.Health <= 0 or not v.Parent or plr.PlayerGui.Main.Quest.Visible == false
-                                    else
-                                        replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
-                                    end
+
+                        for _, mob in pairs(workspace.Enemies:GetChildren()) do
+                            if Attack.Alive(mob) and mob.Name == QuestNeta()[1] then
+
+                                if string.find(QuestTitle, QuestNeta()[5]) then
+
+                                    repeat
+                                        task.wait()
+                                        Attack.Kill(mob, _G.Level)
+                                    until not _G.Level
+                                        or mob.Humanoid.Health <= 0
+                                        or not mob.Parent
+                                        or guiQuest.Visible == false
+
+                                else
+                                    replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
                                 end
                             end
                         end
+
                     else
+                        -- Não tem mob → teleporta pro spawn do monstro
                         _tp(QuestNeta()[4])
+
                         if workspace.Enemies:FindFirstChild(QuestNeta()[1]) then
-                            _tp(workspace.Enemies:FindFirstChild(QuestNeta()[1]).HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
+                            _tp(workspace.Enemies[QuestNeta()[1]].HumanoidRootPart.CFrame * CFrame.new(0,30,0))
                         end
                     end
                 end
