@@ -4448,6 +4448,13 @@ spawn(function()
                 local bigMirror = workspace.Map.CakeLoaf.BigMirror
                 if not root then return end
 
+                -- 🔥 NOVA PARTE: PRIMEIRO TELEPORTA PARA PERTO (evita ficar ancorado)
+                local fixPos = CFrame.new(-1943.6765, 251.50956, -12337.8808)
+                if (root.Position - fixPos.Position).Magnitude > 2000 then
+                    _tp(fixPos)
+                    repeat wait() until (root.Position - fixPos.Position).Magnitude < 50
+                end
+
                 local cakeIslandPos = Vector3.new(-2077, 252, -12373)
                 if (root.Position - cakeIslandPos).Magnitude > 3000 then
                     _tp(CFrame.new(-2077, 252, -12373))
@@ -4529,7 +4536,6 @@ spawn(function()
         end
     end
 end)
-
 local Mirror = SectionCake:AddToggle("Mirror", {
     Title = "Auto Kill Dough",
     Default = false
