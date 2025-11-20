@@ -2772,52 +2772,38 @@ FarmLevel:OnChanged(function(Value)
     _G.Level = Value
 end)
 
--- Função de farm level (loop ajustado)
+-- Função de farm level (seu loop adaptado)
 spawn(function()
     while wait(1) do
         if _G.Level then
             pcall(function()
-                local CurrentQuest = QuestNeta()
                 local QuestTitle = plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text
-                local QuestVisible = plr.PlayerGui.Main.Quest.Visible
-
-                -- Se a quest ativa não for a correta, abandona
-                if not string.find(QuestTitle, CurrentQuest[5]) then
-                    replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
-                    QuestVisible = false -- força pegar nova
+                if not string.find(QuestTitle, QuestNeta()[5]) then
+                    replicated.Remotes.CommF:InvokeServer("AbandonQuest")
                 end
-
-                -- Pegar nova quest se não estiver ativa
-                if not QuestVisible then
-                    _tp(CurrentQuest[6])
-                    task.wait(1) -- espera TP terminar
-                    if (Root.Position - CurrentQuest[6].Position).Magnitude <= 5 then
-                        pcall(function()
-                            replicated.Remotes.CommF_:InvokeServer("StartQuest", CurrentQuest[3], CurrentQuest[2])
-                        end)
+                if plr.PlayerGui.Main.Quest.Visible == false then
+                    tp(QuestNeta()[6])
+                    if (Root.Position - QuestNeta()[6].Position).Magnitude <= 5 then
+                        replicated.Remotes.CommF:InvokeServer("StartQuest", QuestNeta()[3], QuestNeta()[2])
                     end
-                end
-
-                -- Se quest ativa, matar inimigos
-                if plr.PlayerGui.Main.Quest.Visible then
-                    local Enemy = workspace.Enemies:FindFirstChild(CurrentQuest[1])
-                    if Enemy then
+                elseif plr.PlayerGui.Main.Quest.Visible == true then
+                    if workspace.Enemies:FindFirstChild(QuestNeta()[1]) then
                         for i, v in pairs(workspace.Enemies:GetChildren()) do
-                            if Attack.Alive(v) and v.Name == CurrentQuest[1] then
-                                if string.find(QuestTitle, CurrentQuest[5]) then
+                            if Attack.Alive(v) and v.Name == QuestNeta()[1] then
+                                if string.find(QuestTitle, QuestNeta()[5]) then
                                     repeat
                                         wait()
                                         Attack.Kill(v, _G.Level)
-                                    until not _G.Level or v.Humanoid.Health <= 0 or not v.Parent or not plr.PlayerGui.Main.Quest.Visible
+                                    until not _G.Level or v.Humanoid.Health <= 0 or not v.Parent or plr.PlayerGui.Main.Quest.Visible == false
                                 else
-                                    replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
+                                    replicated.Remotes.CommF:InvokeServer("AbandonQuest")
                                 end
                             end
                         end
                     else
-                        _tp(CurrentQuest[4])
-                        if replicated:FindFirstChild(CurrentQuest[1]) then
-                            _tp(replicated:FindFirstChild(CurrentQuest[1]).HumanoidRootPart.CFrame * CFrame.new(0,30,0))
+                        _tp(QuestNeta()[4])
+                        if replicated:FindFirstChild(QuestNeta()[1]) then
+                            _tp(replicated:FindFirstChild(QuestNeta()[1]).HumanoidRootPart.CFrame * CFrame.new(0,30,0))
                         end
                     end
                 end
@@ -2837,63 +2823,72 @@ FarmingSection:AddButton({
         local task = task
         local MaxSpeed = 350
         local npcPosition = CFrame.new(-16269.1016, 29.5177539, 1372.3204)
+        local finalPosition = CFrame.new(
+            11102.624, 2287.72827, 987.24707,
+            -0.19085168, 6.13988992, -1,
+            0.993966401, -0.19085168, 6.13988992,
+            -1, 0.993966401, -1
+        )
 
-        local function getCharacter()
-            if not LocalPlayer.Character then
-                LocalPlayer.CharacterAdded:Wait()
-            end
-            LocalPlayer.Character:WaitForChild("HumanoidRootPart")
-            return LocalPlayer.Character
-        end
+        local function getCharacter()  
+            if not LocalPlayer.Character then  
+                LocalPlayer.CharacterAdded:Wait()  
+            end  
+            LocalPlayer.Character:WaitForChild("HumanoidRootPart")  
+            return LocalPlayer.Character  
+        end  
 
-        local function toggleNoclip(Toggle)
-            local char = getCharacter()
-            for _,v in pairs(char:GetChildren()) do
-                if v:IsA("BasePart") then
-                    v.CanCollide = not Toggle
+        local function toggleNoclip(Toggle)  
+            local char = getCharacter()  
+            for _,v in pairs(char:GetChildren()) do  
+                if v:IsA("BasePart") then  
+                    v.CanCollide = not Toggle  
+                end  
+            end  
+        end  
+
+        local function Teleport(GoalCFrame, Speed)  
+            Speed = Speed or MaxSpeed  
+            local char = getCharacter()  
+            local hrp = char:WaitForChild("HumanoidRootPart")  
+            toggleNoclip(true)  
+            local magnitude = (hrp.Position - GoalCFrame.Position).Magnitude  
+            while magnitude > 1 do  
+                local direction = (GoalCFrame.Position - hrp.Position).Unit  
+                hrp.CFrame = hrp.CFrame + direction * (Speed * task.wait())  
+                magnitude = (hrp.Position - GoalCFrame.Position).Magnitude  
+            end  
+            toggleNoclip(false)  
+        end  
+
+        local function GoToNPC()  
+            local level = LocalPlayer.Data.Level.Value  
+            if level >= 2650 then  
+                -- Teleporta até o NPC  
+                Teleport(npcPosition, MaxSpeed)  
+                task.wait(3)  
+                -- Chama os remotes  
+                local SubmarineWorker = ReplicatedStorage.Modules.Net:FindFirstChild("RF/SubmarineWorkerSpeak")  
+                local CommF = ReplicatedStorage.Modules.Net:FindFirstChild("CommF_")  
+                if SubmarineWorker then  
+                    pcall(function()  
+                        SubmarineWorker:InvokeServer("TravelToSubmergedIsland")  
+                    end)  
+                end  
+                if CommF then  
+                    pcall(function()  
+                        CommF:InvokeServer("SetLastSpawnPoint", "SubmergedIsland")  
+                    end)  
                 end
-            end
-        end
+                -- Vai pra coordenada final
+                task.wait(1)
+                Teleport(finalPosition, MaxSpeed)
+            else  
+                warn("Level insuficiente (precisa ser 2650).")  
+            end  
+        end  
 
-        local function Teleport(GoalCFrame, Speed)
-            Speed = Speed or MaxSpeed
-            local char = getCharacter()
-            local hrp = char:WaitForChild("HumanoidRootPart")
-            toggleNoclip(true)
-            local magnitude = (hrp.Position - GoalCFrame.Position).Magnitude
-            while magnitude > 1 do
-                local direction = (GoalCFrame.Position - hrp.Position).Unit
-                hrp.CFrame = hrp.CFrame + direction * (Speed * task.wait())
-                magnitude = (hrp.Position - GoalCFrame.Position).Magnitude
-            end
-            toggleNoclip(false)
-        end
-
-        local function GoToNPC()
-            local level = LocalPlayer.Data.Level.Value
-            if level >= 2650 then
-                -- Teleporta até o NPC
-                Teleport(npcPosition, MaxSpeed)
-                task.wait(3)
-                -- Chama os remotes
-                local SubmarineWorker = ReplicatedStorage.Modules.Net:FindFirstChild("RF/SubmarineWorkerSpeak")
-                local CommF = ReplicatedStorage.Modules.Net:FindFirstChild("CommF_")
-                if SubmarineWorker then
-                    pcall(function()
-                        SubmarineWorker:InvokeServer("TravelToSubmergedIsland")
-                    end)
-                end
-                if CommF then
-                    pcall(function()
-                        CommF:InvokeServer("SetLastSpawnPoint", "SubmergedIsland")
-                    end)
-                end
-            else
-                warn("Level insuficiente (precisa ser 2650).")
-            end
-        end
-
-        GoToNPC()
+        GoToNPC()  
     end
 })
 	local BossDropdown = Tabs.Main:AddDropdown("BossDropdown", {
