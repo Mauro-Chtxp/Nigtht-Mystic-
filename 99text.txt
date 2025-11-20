@@ -443,7 +443,7 @@ local TweenService = game:GetService("TweenService")
 
 -- Tween movement for mobs
 local function TweenObject(Object, Pos, Speed)
-    Speed = Speed or 330
+    Speed = Speed or 350
     if not Object or not Pos then return end
     local Distance = (Pos.Position - Object.Position).Magnitude
     local info = TweenInfo.new(Distance / Speed, Enum.EasingStyle.Linear)
@@ -487,7 +487,7 @@ BringEnemy = function()
         if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") then
             local hrp = v.HumanoidRootPart
             local humanoid = v.Humanoid
-            if humanoid.Health > 0 and (hrp.Position - plr.Character.HumanoidRootPart.Position).Magnitude <= 225 then
+            if humanoid.Health > 0 and (hrp.Position - plr.Character.HumanoidRootPart.Position).Magnitude <= 220 then
                 local mobPos = totalpos[v.Name]
                 if mobPos then
                     local TargetCFrame = CFrame.new(mobPos.X, mobPos.Y, mobPos.Z)
@@ -496,9 +496,11 @@ BringEnemy = function()
                     if Distance > 3 and Distance <= 280 then
                         TweenObject(hrp, TargetCFrame, 300)
                         hrp.CanCollide = true 
-                        humanoid.WalkSpeed = 30
-                        humanoid.JumpPower = 22
+                        humanoid.WalkSpeed = 25
+                        humanoid.JumpPower = 25
                         if humanoid:FindFirstChild("Animator") then
+                            humanoid.Animator:Destroy()
+                        end
                         pcall(function()
                             sethiddenproperty(plr, "SimulationRadius", math.huge)
                         end)
