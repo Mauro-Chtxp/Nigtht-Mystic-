@@ -2061,12 +2061,12 @@ local Window = Fluent:CreateWindow({
     -- ADICIONADOS DA OUTRA WINDOW:
     TitleIcon = "",
     Image = "rbxassetid://9513555247",
-    Search = false,
+    Search = true,
     Icon = "rbxassetid://9513555247",
     TabWidth = 160, -- você já tinha, deixei igual
-    Theme = "PurpleBlack",
+    Theme = "Viow Mars",
     Acrylic = false,
-    Size = UDim2.fromOffset(340, 340),
+    Size = UDim2.fromOffset(425, 365),
     MinimizeKey = Enum.KeyCode.End,
 
     UserInfo = true,
@@ -2642,7 +2642,7 @@ local function BringFruitTween(item)
 end
 
 -- NOVA SECTION — Fruit Options (Stock, Mirage, Buy)
-local FruitSection = Tabs.Fruit:AddSection("Fruit Options")
+local FruitSection = Tabs.Fruit:AddSection("Shop Fruits")
 
 local function addCommas(number)
     local formatted = tostring(number)
@@ -2678,7 +2678,7 @@ Sel_NFruit:OnChanged(function(Value)
 end)
 
 Tabs.Fruit:AddButton({
-    Title = "Buy Basic Stock",
+    Title = "Buy Fruit",
     Callback = function()
         replicated.Remotes.CommF_:InvokeServer("PurchaseRawFruit", _G.SelectFruit)
     end
@@ -2695,7 +2695,7 @@ Sel_MFruit:OnChanged(function(Value)
 end)
 
 Tabs.Fruit:AddButton({
-    Title = "Buy Mirage Stock",
+    Title = "Buy Fruit",
     Callback = function()
         replicated.Remotes.CommF_:InvokeServer("PurchaseRawFruit", SelectF_Adv)
     end
@@ -5269,13 +5269,13 @@ end)
 	local Bringmob = Tabs.Settings:AddToggle("Bringmob", {
 		Title = "Bring Mobs (Beta)",
 		Description = "Junta Os Mobs (Se Bugar Reative)",
-		Default = false 
+		Default = true 
 	})
 	Bringmob:OnChanged(function(Value)
 		_B = Value
 	end)
 	local BusuAura = Tabs.Settings:AddToggle("BusuAura", {
-		Title = "Auto Turn on Buso",
+		Title = "Auto Active Buso",
 		Description = "",
 		Default = true
 	})
@@ -5340,7 +5340,7 @@ end)
 		end
 	end)
 	local RandomAround = Tabs.Settings:AddToggle("RandomAround", {
-		Title = "Auto Turn on Spin Position",
+		Title = "Spin In Farm",
 		Description = "",
 		Default = false
 	})
@@ -5379,7 +5379,7 @@ end)
 		end
 	end)
 	local UnDetectedAFK = Tabs.Settings:AddToggle("UnDetectedAFK", {
-		Title = "Anti AFK",
+		Title = "Anti Afk",
 		Description = "",
 		Default = true
 	})
