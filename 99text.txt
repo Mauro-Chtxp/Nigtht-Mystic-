@@ -9873,7 +9873,8 @@ end)
 		end
 	end)
 
-	Tabs.Combat:AddSection("LocalPlayer Settings / Misc")
+	-- SECTION
+Tabs.Combat:AddSection("LocalPlayer Settings / Misc")
 
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
@@ -9893,12 +9894,8 @@ local desiredJump = 50
 
 local function applyStats()
     if humanoid then
-        if SpeedEnabled then
-            humanoid.WalkSpeed = desiredSpeed
-        end
-        if JumpEnabled then
-            humanoid.JumpPower = desiredJump
-        end
+        if SpeedEnabled then humanoid.WalkSpeed = desiredSpeed end
+        if JumpEnabled then humanoid.JumpPower = desiredJump end
     end
 end
 
@@ -9913,34 +9910,57 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
-local toggleSpeed = Tabs.Combat:AddToggle("SetSpeed", {
+-- TOGGLE SPEED
+local ToggleSpeed = Tabs.Combat:AddToggle({
     Title = "Set Speed",
     Description = "Enable custom WalkSpeed",
     Default = false
 })
 
-toggleSpeed:OnChanged(function(Value)
+ToggleSpeed:OnChanged(function(Value)
     SpeedEnabled = Value
     applyStats()
 end)
 
-Tabs.Combat:AddSlider("SpeedSlider", {
+-- SLIDER SPEED
+Tabs.Combat:AddSlider({
     Title = "Speed Value",
+    Description = "Select custom WalkSpeed",
     Min = 1,
     Max = 500,
     Default = desiredSpeed,
+    Rounding = 0,
     Callback = function(Value)
         desiredSpeed = Value
         applyStats()
     end
 })
 
-local toggleJump = Tabs.Combat:AddToggle("SetJump", {
+-- TOGGLE JUMP
+local ToggleJump = Tabs.Combat:AddToggle({
     Title = "Set JumpPower",
     Description = "Enable custom JumpPower",
     Default = false
 })
 
+ToggleJump:OnChanged(function(Value)
+    JumpEnabled = Value
+    applyStats()
+end)
+
+-- SLIDER JUMP
+Tabs.Combat:AddSlider({
+    Title = "JumpPower Value",
+    Description = "Select custom JumpPower",
+    Min = 10,
+    Max = 500,
+    Default = desiredJump,
+    Rounding = 0,
+    Callback = function(Value)
+        desiredJump = Value
+        applyStats()
+    end
+})
 toggleJump:OnChanged(function(Value)
     JumpEnabled = Value
     applyStats()
