@@ -2523,80 +2523,6 @@ Tabs.MiscFarm:AddButton({
         replicated.Remotes.CommF_:InvokeServer("Cousin", "HalloweenGacha25")
     end
 })
-
-local AdvancedSection = Tabs.MiscFarm:AddSection("Advanced")
-
-local MasterySword = AdvancedSection:AddToggle("MasterySword", {
-    Title = "Auto 600 In Swords",
-    Description = "",
-    Default = false
-})
-MasterySword:OnChanged(function(Value)
-    _G.FarmMastery_S = Value
-end)
-
-spawn(function()
-    while wait(Sec) do
-        pcall(function()
-            if _G.FarmMastery_S then
-                if SelectIsland == "Cake" then
-                    for _, v in next, replicated.Remotes.CommF_:InvokeServer("getInventory") do
-                        if type(v) == "table" and v.Type == "Sword" then
-                            SwordName = v.Name
-                            if tonumber(v.Mastery) >= 1 or tonumber(v.Mastery) <= 599 then
-                                local v = GetConnectionEnemies(mastery1)
-                                if GetBP(SwordName) then
-                                    if v then
-                                        repeat
-                                            wait()
-                                            Attack_Sword(v, _G.FarmMastery_S)
-                                        until _G.FarmMastery_S == false or not v.Parent or v.Humanoid.Healh <= 0
-                                    else
-                                        _tp(CFrame.new(-1943.676513671875, 251.5095672607422, -12337.880859375))
-                                    end
-                                else
-                                    replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName)
-                                end
-                            elseif tonumber(v.Mastery) >= 600 then
-                                if not GetBP(SwordName) then
-                                    replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName)
-                                end
-                            end
-                            break
-                        end
-                    end
-
-                elseif SelectIsland == "Bone" then
-                    for _, v in next, replicated.Remotes.CommF_:InvokeServer("getInventory") do
-                        if type(v) == "table" and v.Type == "Sword" then
-                            SwordName = v.Name
-                            if tonumber(v.Mastery) >= 1 or tonumber(v.Mastery) <= 599 then
-                                local v = GetConnectionEnemies(mastery2)
-                                if GetBP(SwordName) then
-                                    if v then
-                                        repeat
-                                            wait()
-                                            Attack_Sword(v, _G.FarmMastery_S)
-                                        until _G.FarmMastery_S == false or not v.Parent or v.Humanoid.Healh <= 0
-                                    else
-                                        _tp(CFrame.new(-9495.6806640625, 453.58624267578125, 5977.3486328125))
-                                    end
-                                else
-                                    replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName)
-                                end
-                            elseif tonumber(v.Mastery) >= 600 then
-                                if not GetBP(SwordName) then
-                                    replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName)
-                                end
-                            end
-                            break
-                        end
-                    end
-                end
-            end
-        end)
-    end
-end)
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local plr = Players.LocalPlayer
@@ -2628,7 +2554,11 @@ T2:OnChanged(ToggleAutoStoreFruit)
 local T3 = Tabs.Fruit:AddToggle("AutoBringFruit", { Title = "Auto Collect Fruit (Insta Teleport (risk)", Default = false })
 T3:OnChanged(ToggleAutoBringFruit)
 
-local T4 = Tabs.Fruit:AddToggle("CollectTweenFruit", { Title = "Collect Fruit (Tween)", Default = false })
+-- Collect Fruit (Tween) - EXATAMENTE como estava
+local T4 = Tabs.Fruit:AddToggle("CollectTweenFruit", {
+    Title = "Collect Fruit (Tween)",
+    Default = false
+})
 T4:OnChanged(ToggleCollectTweenFruit)
 
 local function BuyRandomFruit()
@@ -2711,6 +2641,67 @@ local function BringFruitTween(item)
     end
 end
 
+-- NOVA SECTION — Fruit Options (Stock, Mirage, Buy)
+local FruitSection = Tabs.Fruit:AddSection("Fruit Options")
+
+local function addCommas(number)
+    local formatted = tostring(number)
+    while true do  
+        formatted, k = formatted:gsub("^(-?%d+)(%d%d%d)", "%1,%2")
+        if k == 0 then break end
+    end
+    return formatted
+end
+
+local fruitsOnSale = {}
+for _, fruitData in pairs(replicated.Remotes.CommF_:InvokeServer("GetFruits", true)) do
+    if fruitData.OnSale then
+        table.insert(fruitsOnSale, fruitData.Name)
+    end
+end
+
+local normalStock = {}
+for _, fruitData in pairs(replicated.Remotes.CommF_:InvokeServer("GetFruits", false)) do
+    if fruitData.OnSale then
+        table.insert(normalStock, fruitData.Name)
+    end
+end
+
+Sel_NFruit = Tabs.Fruit:AddDropdown("Sel_NFruit", {
+    Title = "Select Fruit Stock",
+    Values = normalStock,
+    Multi = false,
+    Default = 1
+})
+Sel_NFruit:OnChanged(function(Value)
+    _G.SelectFruit = Value
+end)
+
+Tabs.Fruit:AddButton({
+    Title = "Buy Basic Stock",
+    Callback = function()
+        replicated.Remotes.CommF_:InvokeServer("PurchaseRawFruit", _G.SelectFruit)
+    end
+})
+
+Sel_MFruit = Tabs.Fruit:AddDropdown("Sel_NFruit", {
+    Title = "Select Mirage Fruit",
+    Values = fruitsOnSale,
+    Multi = false,
+    Default = 1
+})
+Sel_MFruit:OnChanged(function(Value)
+    SelectF_Adv = Value
+end)
+
+Tabs.Fruit:AddButton({
+    Title = "Buy Mirage Stock",
+    Callback = function()
+        replicated.Remotes.CommF_:InvokeServer("PurchaseRawFruit", SelectF_Adv)
+    end
+})
+
+-- LOOP FINAL
 task.spawn(function()
     while task.wait(0.5) do
         if Options.AutoRandomFruit then
@@ -2732,7 +2723,8 @@ task.spawn(function()
 
         if Options.AutoBringFruit then
             for _, obj in pairs(workspace:GetChildren()) do
-                if (obj:IsA("Tool") and obj.Name:lower():find("fruit")) or (obj:IsA("Model") and obj.Name:lower():find("fruit")) then
+                if (obj:IsA("Tool") and obj.Name:lower():find("fruit")) 
+                    or (obj:IsA("Model") and obj.Name:lower():find("fruit")) then
                     BringFruit(obj)
                 end
             end
@@ -2740,14 +2732,14 @@ task.spawn(function()
 
         if Options.CollectTweenFruit then
             for _, obj in pairs(workspace:GetChildren()) do
-                if (obj:IsA("Tool") and obj.Name:lower():find("fruit")) or (obj:IsA("Model") and obj.Name:lower():find("fruit")) then
+                if (obj:IsA("Tool") and obj.Name:lower():find("fruit")) 
+                    or (obj:IsA("Model") and obj.Name:lower():find("fruit")) then
                     BringFruitTween(obj)
                 end
             end
         end
     end
 end)
-
 -- Section Home
 local HomeSection = Tabs.Discord:AddSection("Home")
 
@@ -4022,7 +4014,7 @@ FarmingSection:AddButton({
 			end
 		end
 	end)
-	Tabs.Main:AddSection("Miscellanea / Mastery")
+	Tabs.Main:AddSection("Mastery")
 	local posMastery = {
 		"Cake",
 		"Bone"
