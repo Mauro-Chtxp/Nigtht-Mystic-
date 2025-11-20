@@ -2772,38 +2772,52 @@ FarmLevel:OnChanged(function(Value)
     _G.Level = Value
 end)
 
--- Função de farm level (seu loop adaptado)
+-- Função de farm level (loop ajustado)
 spawn(function()
     while wait(1) do
         if _G.Level then
             pcall(function()
+                local CurrentQuest = QuestNeta()
                 local QuestTitle = plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text
-                if not string.find(QuestTitle, QuestNeta()[5]) then
+                local QuestVisible = plr.PlayerGui.Main.Quest.Visible
+
+                -- Se a quest ativa não for a correta, abandona
+                if not string.find(QuestTitle, CurrentQuest[5]) then
                     replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
+                    QuestVisible = false -- força pegar nova
                 end
-                if plr.PlayerGui.Main.Quest.Visible == false then
-                    _tp(QuestNeta()[6])
-                    if (Root.Position - QuestNeta()[6].Position).Magnitude <= 5 then
-                        replicated.Remotes.CommF_:InvokeServer("StartQuest", QuestNeta()[3], QuestNeta()[2])
+
+                -- Pegar nova quest se não estiver ativa
+                if not QuestVisible then
+                    _tp(CurrentQuest[6])
+                    task.wait(1) -- espera TP terminar
+                    if (Root.Position - CurrentQuest[6].Position).Magnitude <= 5 then
+                        pcall(function()
+                            replicated.Remotes.CommF_:InvokeServer("StartQuest", CurrentQuest[3], CurrentQuest[2])
+                        end)
                     end
-                elseif plr.PlayerGui.Main.Quest.Visible == true then
-                    if workspace.Enemies:FindFirstChild(QuestNeta()[1]) then
+                end
+
+                -- Se quest ativa, matar inimigos
+                if plr.PlayerGui.Main.Quest.Visible then
+                    local Enemy = workspace.Enemies:FindFirstChild(CurrentQuest[1])
+                    if Enemy then
                         for i, v in pairs(workspace.Enemies:GetChildren()) do
-                            if Attack.Alive(v) and v.Name == QuestNeta()[1] then
-                                if string.find(QuestTitle, QuestNeta()[5]) then
+                            if Attack.Alive(v) and v.Name == CurrentQuest[1] then
+                                if string.find(QuestTitle, CurrentQuest[5]) then
                                     repeat
                                         wait()
                                         Attack.Kill(v, _G.Level)
-                                    until not _G.Level or v.Humanoid.Health <= 0 or not v.Parent or plr.PlayerGui.Main.Quest.Visible == false
+                                    until not _G.Level or v.Humanoid.Health <= 0 or not v.Parent or not plr.PlayerGui.Main.Quest.Visible
                                 else
                                     replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
                                 end
                             end
                         end
                     else
-                        _tp(QuestNeta()[4])
-                        if replicated:FindFirstChild(QuestNeta()[1]) then
-                            _tp(replicated:FindFirstChild(QuestNeta()[1]).HumanoidRootPart.CFrame * CFrame.new(0,30,0))
+                        _tp(CurrentQuest[4])
+                        if replicated:FindFirstChild(CurrentQuest[1]) then
+                            _tp(replicated:FindFirstChild(CurrentQuest[1]).HumanoidRootPart.CFrame * CFrame.new(0,30,0))
                         end
                     end
                 end
@@ -2815,7 +2829,7 @@ end)
 -- Button Teleport Submerged Island
 FarmingSection:AddButton({
     Title = "Teleport Submerged Island",
-    Description = "Teleport Pra Submerged Island Se For Level 2650 Ou Mais",
+    Description = "Vai até o NPC e Teleporta se for Level 2650+",
     Callback = function()
         local Players = game:GetService("Players")
         local LocalPlayer = Players.LocalPlayer
@@ -2882,7 +2896,6 @@ FarmingSection:AddButton({
         GoToNPC()
     end
 })
-
 	local BossDropdown = Tabs.Main:AddDropdown("BossDropdown", {
 		Title = "Selecione o Boss",
 		Description = "Selecione o Boss Para Farm",
