@@ -441,34 +441,9 @@ Sea = World1 or World2 or World3 or plr:Kick("❌ Error : A[12]Blox Fruits ❌")
 	local plr = game.Players.LocalPlayer
 local TweenService = game:GetService("TweenService")
 
--- Tween movement for mobs
-local function TweenObject(Object, Pos, Speed)
-    Speed = Speed or 350
-    if not Object or not Pos then return end
-    local Distance = (Pos.Position - Object.Position).Magnitude
-    local info = TweenInfo.new(Distance / Speed, Enum.EasingStyle.Linear)
-    local tween = TweenService:Create(Object, info, {CFrame = Pos})
-    tween:Play()
-end
 
--- Get average position of mobs with the same name
-local function GetMobPosition(EnemiesName)
-    local pos = Vector3.zero
-    local count = 0
-    for _, v in pairs(workspace.Enemies:GetChildren()) do
-        if v.Name == EnemiesName and v:FindFirstChild("HumanoidRootPart") then
-            pos += v.HumanoidRootPart.Position
-            count += 1
-        end
-    end
-    if count == 0 then
-        return nil
-    end
-    return pos / count
-end
-
--- Bring mobs closer together (agrupa primeiro, depois libera)
-BringEnemy = function()
+-- Trazer mobs instantâneo mantendo colisão
+BringEnemyInstant = function()
     if not _B then return end
     local enemies = workspace.Enemies:GetChildren()
     if #enemies == 0 then return end
@@ -478,14 +453,23 @@ BringEnemy = function()
     -- Posição média de cada tipo de mob
     for _, v in pairs(enemies) do
         if not totalpos[v.Name] then
-            totalpos[v.Name] = GetMobPosition(v.Name)
+            local pos = Vector3.zero
+            local count = 0
+            for _, m in pairs(workspace.Enemies:GetChildren()) do
+                if m.Name == v.Name and m:FindFirstChild("HumanoidRootPart") then
+                    pos += m.HumanoidRootPart.Position
+                    count += 1
+                end
+            end
+            if count > 0 then
+                totalpos[v.Name] = pos / count
+            end
         end
     end
 
     local tudoJunto = true
 
-    -- Agrupar mobs
-    for _, v in pairs(workspace.Enemies:GetChildren()) do
+    for _, v in pairs(enemies) do
         if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") then
             local hrp = v.HumanoidRootPart
             local humanoid = v.Humanoid
@@ -493,22 +477,24 @@ BringEnemy = function()
             if humanoid.Health > 0 and (hrp.Position - plr.Character.HumanoidRootPart.Position).Magnitude <= 220 then
                 local mobPos = totalpos[v.Name]
                 if mobPos then
-                    local TargetCFrame = CFrame.new(mobPos.X, mobPos.Y, mobPos.Z)
-                    local Distance = (hrp.Position - TargetCFrame.Position).Magnitude
+                    local distance = (hrp.Position - mobPos).Magnitude
 
-                    -- Se ainda não tá colado, junta
-                    if Distance > 3 and Distance <= 280 then
+                    -- Se ainda não tá colado, junta instantaneamente
+                    if distance > 3 and distance <= 280 then
                         tudoJunto = false
 
-                        TweenObject(hrp, TargetCFrame, 300)
-                        hrp.CanCollide = false
-                        humanoid.WalkSpeed = 0
-                        humanoid.JumpPower = 0
+                        -- Move instantâneo
+                        hrp.CFrame = CFrame.new(mobPos.X, mobPos.Y, mobPos.Z)
 
+                        -- Não mexer em WalkSpeed ou JumpPower
+                        -- Mantém CanCollide = true para não travar mobs nem jogadores
+
+                        -- Reseta Animator só se quiser evitar animações bugadas
                         if humanoid:FindFirstChild("Animator") then
                             humanoid.Animator:Destroy()
                         end
 
+                        -- Mantém SimulationRadius grande
                         pcall(function()
                             sethiddenproperty(plr, "SimulationRadius", math.huge)
                         end)
@@ -518,12 +504,7 @@ BringEnemy = function()
         end
     end
 
-    -- Quando TUDO estiver agrupado, libera o ataque
-    if tudoJunto then
-        _G.MobsAgrupados = true
-    else
-        _G.MobsAgrupados = false
-    end
+    _G.MobsAgrupados = tudoJunto
 end
 	Useskills = function(weapon, skill)
 		if weapon == "Melee" then
