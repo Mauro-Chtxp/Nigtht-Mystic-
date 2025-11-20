@@ -2145,6 +2145,12 @@ end)
         Title = "Home",
         Icon = "message-circle"
     }),
+
+    Shop = Window:AddTab({
+        Title = "Shop",
+        Icon = "shopping-cart"
+    }),
+
     Server = Window:AddTab({
         Title = "Server",
         Icon = "server"
@@ -2152,10 +2158,6 @@ end)
     Main = Window:AddTab({
         Title = "Main",
         Icon = "home"
-    }),
-    Settings = Window:AddTab({
-        Title = "Settings",
-        Icon = "settings"
     }),
     Fruit = Window:AddTab({
         Title = "Fruit",
@@ -2197,16 +2199,16 @@ end)
         Title = "Travel",
         Icon = "map-pin"
     }),
-    Shop = Window:AddTab({
-        Title = "Shop",
-        Icon = "shopping-cart"
-    }),
     Misc = Window:AddTab({
         Title = "Misc",
         Icon = "package"
+    }),
+
+    Settings = Window:AddTab({
+        Title = "Settings",
+        Icon = "settings"
     })
 }
-
 ---------------------------------------------------------------------
 -- SECTION FISHING
 ---------------------------------------------------------------------
