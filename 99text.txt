@@ -467,7 +467,7 @@ local function GetMobPosition(EnemiesName)
     return pos / count
 end
 
--- Bring mobs closer together
+-- Bring mobs closer together (agrupa primeiro, depois libera)
 BringEnemy = function()
     if not _B then return end
     local enemies = workspace.Enemies:GetChildren()
@@ -475,32 +475,40 @@ BringEnemy = function()
 
     local totalpos = {}
 
-    -- Get average position for each enemy type
+    -- Posição média de cada tipo de mob
     for _, v in pairs(enemies) do
         if not totalpos[v.Name] then
             totalpos[v.Name] = GetMobPosition(v.Name)
         end
     end
 
-    -- Group mobs around their average position
+    local tudoJunto = true
+
+    -- Agrupar mobs
     for _, v in pairs(workspace.Enemies:GetChildren()) do
         if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") then
             local hrp = v.HumanoidRootPart
             local humanoid = v.Humanoid
+
             if humanoid.Health > 0 and (hrp.Position - plr.Character.HumanoidRootPart.Position).Magnitude <= 220 then
                 local mobPos = totalpos[v.Name]
                 if mobPos then
                     local TargetCFrame = CFrame.new(mobPos.X, mobPos.Y, mobPos.Z)
                     local Distance = (hrp.Position - TargetCFrame.Position).Magnitude
 
+                    -- Se ainda não tá colado, junta
                     if Distance > 3 and Distance <= 280 then
+                        tudoJunto = false
+
                         TweenObject(hrp, TargetCFrame, 300)
-                        hrp.CanCollide = true 
-                        humanoid.WalkSpeed = 25
-                        humanoid.JumpPower = 25
+                        hrp.CanCollide = false
+                        humanoid.WalkSpeed = 0
+                        humanoid.JumpPower = 0
+
                         if humanoid:FindFirstChild("Animator") then
                             humanoid.Animator:Destroy()
                         end
+
                         pcall(function()
                             sethiddenproperty(plr, "SimulationRadius", math.huge)
                         end)
@@ -508,6 +516,13 @@ BringEnemy = function()
                 end
             end
         end
+    end
+
+    -- Quando TUDO estiver agrupado, libera o ataque
+    if tudoJunto then
+        _G.MobsAgrupados = true
+    else
+        _G.MobsAgrupados = false
     end
 end
 	Useskills = function(weapon, skill)
@@ -2061,9 +2076,9 @@ local Window = Fluent:CreateWindow({
     -- ADICIONADOS DA OUTRA WINDOW:
     TitleIcon = "",
     Image = "rbxassetid://9513555247",
-    Search = true,
+    Search = false,
     Icon = "rbxassetid://9513555247",
-    TabWidth = 160, -- você já tinha, deixei igual
+    TabWidth = 170, -- você já tinha, deixei igual
     Theme = "Viow Mars",
     Acrylic = false,
     Size = UDim2.fromOffset(425, 365),
@@ -2762,7 +2777,7 @@ local DiscordSection = Tabs.Discord:AddSection("Discord")
 DiscordSection:AddButton({
 	Title = "Nosso Servidor do Discord",
 	Callback = function()
-		setclipboard("https://discord.gg/xp4CPzGwB")
+		setclipboard("https://discord.gg/PENfzNkFR")
 	end
 })
 
