@@ -2061,7 +2061,7 @@ local Window = Fluent:CreateWindow({
     -- ADICIONADOS DA OUTRA WINDOW:
     TitleIcon = "",
     Image = "rbxassetid://9513555247",
-    Search = true,
+    Search = false,
     Icon = "rbxassetid://9513555247",
     TabWidth = 160, -- você já tinha, deixei igual
     Theme = "PurpleBlack",
@@ -9891,6 +9891,17 @@ local JumpEnabled = false
 local desiredSpeed = 16
 local desiredJump = 50
 
+-- IMPEDIR QUE O JOGO REDEFINA O WALKSPEED
+local function protectSpeed()
+    if humanoid then
+        humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
+            if SpeedEnabled and humanoid.WalkSpeed ~= desiredSpeed then
+                humanoid.WalkSpeed = desiredSpeed
+            end
+        end)
+    end
+end
+
 local function applyStats()
     if humanoid then
         if SpeedEnabled then
@@ -9912,6 +9923,14 @@ RunService.Heartbeat:Connect(function()
         end
     end
 end)
+
+-- Toda vez que trocar de boneco, ativa o anti-reset
+plr.CharacterAdded:Connect(function(char)
+    humanoid = char:WaitForChild("Humanoid")
+    protectSpeed()
+end)
+
+protectSpeed()
 
 -- TOGGLE SPEED
 local SetSpeed = Tabs.Combat:AddToggle("SetSpeed", {
