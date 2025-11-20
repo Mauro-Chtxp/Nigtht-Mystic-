@@ -2762,7 +2762,7 @@ local DiscordSection = Tabs.Discord:AddSection("Discord")
 DiscordSection:AddButton({
 	Title = "Nosso Servidor do Discord",
 	Callback = function()
-		setclipboard("https://discord.gg/xp4CPzGwB")
+		setclipboard("https://discord.gg/PENfzNkFR")
 	end
 })
 
