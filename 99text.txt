@@ -2824,10 +2824,7 @@ spawn(function()
 
                 -- 2. Lógica para PEGAR a Quest (Quando a GUI está invisível)
                 if QuestGui.Visible == false then
-                    -- Teleporta para o NPC de Quest
                     _tp(QuestNeta()[6])
-                    
-                    -- Verifica a distância e inicia a Quest
                     if (Root.Position - QuestNeta()[6].Position).Magnitude <= 5 then
                         replicated.Remotes.CommF_:InvokeServer("StartQuest", QuestNeta()[3], QuestNeta()[2])
                     end
@@ -2835,34 +2832,26 @@ spawn(function()
                 -- 3. Lógica para FARMAR a Quest (Quando a GUI está visível)
                 elseif QuestGui.Visible == true then
                     local TargetName = QuestNeta()[1]
-                    local Enemy = workspace.Enemies:FindFirstChild(TargetName)
+                    local Enemies = workspace.Enemies:GetChildren()
 
-                    if Enemy and Attack.Alive(Enemy) then
-                        if string.find(QuestTitle, QuestNeta()[5]) then
-                            -- Teleporta para o inimigo para farmar
+                    -- Mata todos os inimigos do tipo da quest primeiro
+                    for _, Enemy in pairs(Enemies) do
+                        if Enemy.Name == TargetName and Attack.Alive(Enemy) then
                             _tp(Enemy.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
-                            
                             repeat
                                 wait()
                                 Attack.Kill(Enemy, _G.Level)
-                            until not _G.Level or Enemy.Humanoid.Health <= 0 or not Enemy.Parent or QuestGui.Visible == false
-                        else
-                            replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
-                        end
-                    else
-                        -- Teleporta para a área de spawn do inimigo ou para onde ele deveria estar
-                        _tp(QuestNeta()[4])
-                        -- Se o inimigo reaparecer, teletransporta-se para ele
-                        if workspace.Enemies:FindFirstChild(TargetName) then
-                            _tp(workspace.Enemies:FindFirstChild(TargetName).HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
+                            until not _G.Level or not Enemy.Parent or Enemy.Humanoid.Health <= 0
                         end
                     end
+
+                    -- Depois que todos morrerem, vai para o ponto de spawn / espera
+                    _tp(QuestNeta()[4])
                 end
             end)
         end
     end
 end)
-
 -- Button Teleport Submerged Island (SEM MEXER)
 FarmingSection:AddButton({
     Title = "Teleport Submerged Island",
