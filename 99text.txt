@@ -2759,29 +2759,81 @@ spawn(function()
 		end)
 	end
 end)
-	local FarmLevel = Tabs.Main:AddToggle("FarmLevel", {
-Title = "Auto Farm Level",
-Description = "Famar Níveis Automaticamente",
-Default = false
+	--== CRIAR SECTION FARMING ==--
+local FarmingSection = Tabs.Main:AddSection("Farming")
+
+--== TOGGLE FARM LEVEL ==--
+local FarmLevel = FarmingSection:AddToggle({
+    Title = "Auto Farm Level",
+    Description = "Famar Níveis Automaticamente",
+    Default = false
 })
 FarmLevel:OnChanged(function(Value)
     _G.Level = Value
 end)
 
+--== BUTTON TELEPORT SUBMERGED ISLAND ==--
+local TP_Sub = FarmingSection:AddButton({
+    Title = "Teleport Submerged Island",
+    Description = "Ir até o NPC e viajar para Submerged Island",
+    Callback = function()
+        GoToNPC()
+    end
+})
+
+--== SISTEMA DE FARM LEVEL (o que você mandou, sem alterações) ==--
+spawn(function()
+    while wait(Sec) do
+        if G.Level then
+            pcall(function()
+                local QuestTitle = plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text
+                if not string.find(QuestTitle, QuestNeta()[5]) then
+                    replicated.Remotes.CommF:InvokeServer("AbandonQuest")
+                end
+                if plr.PlayerGui.Main.Quest.Visible == false then
+                    tp(QuestNeta()[6])
+                    if (Root.Position - QuestNeta()[6].Position).Magnitude <= 5 then
+                        replicated.Remotes.CommF:InvokeServer("StartQuest", QuestNeta()[3], QuestNeta()[2])
+                    end
+                elseif plr.PlayerGui.Main.Quest.Visible == true then
+                    if workspace.Enemies:FindFirstChild(QuestNeta()[1]) then
+                        for i, v in pairs(workspace.Enemies:GetChildren()) do
+                            if Attack.Alive(v) then
+                                if v.Name == QuestNeta()[1] then
+                                    if string.find(QuestTitle, QuestNeta()[5]) then
+                                        repeat
+                                            wait()
+                                            Attack.Kill(v, _G.Level)
+                                        until not G.Level or v.Humanoid.Health <= 0 or not v.Parent or plr.PlayerGui.Main.Quest.Visible == false
+                                    else
+                                        replicated.Remotes.CommF:InvokeServer("AbandonQuest")
+                                    end
+                                end
+                            end
+                        end
+                    else
+                        _tp(QuestNeta()[4])
+                        if replicated:FindFirstChild(QuestNeta()[1]) then
+                            _tp(replicated:FindFirstChild(QuestNeta()[1]).HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
+                        end
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+--====================================================--
+--== SISTEMA DE TELEPORTE (COM BUTTON AGORA) ==--
+--====================================================--
+
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local workspace = workspace
 local task = task
 
 local MaxSpeed = 350
--- Posição do NPC para iniciar a quest/viagem para Submerged
 local npcPosition = CFrame.new(-16269.1016, 29.5177539, 1372.3204)
--- Variável de controle: Indica se a viagem para Submerged Island já foi tentada/concluída nesta sessão de farm.
-local _G_WentToSubmerged = false
-
--- Ilha real
-local SubmergedIsland = workspace.Map:WaitForChild("Submerged Island")
 
 local function getCharacter()
     if not LocalPlayer.Character then
@@ -2793,7 +2845,7 @@ end
 
 local function toggleNoclip(Toggle)
     local char = getCharacter()
-    for _,v in pairs(char:GetChildren()) do
+    for _, v in pairs(char:GetChildren()) do
         if v:IsA("BasePart") then
             v.CanCollide = not Toggle
         end
@@ -2805,167 +2857,48 @@ local function Teleport(GoalCFrame, Speed)
     local char = getCharacter()
     local hrp = char:WaitForChild("HumanoidRootPart")
 
-    toggleNoclip(true)  
-    local magnitude = (hrp.Position - GoalCFrame.Position).Magnitude  
+    toggleNoclip(true)
+    local magnitude = (hrp.Position - GoalCFrame.Position).Magnitude
 
-    while magnitude > 1 and _G.Level do  
-        local direction = (GoalCFrame.Position - hrp.Position).Unit  
-        hrp.CFrame = hrp.CFrame + direction * (Speed * task.wait())  
-        magnitude = (hrp.Position - GoalCFrame.Position).Magnitude  
-    end  
+    while magnitude > 1 do
+        local direction = (GoalCFrame.Position - hrp.Position).Unit
+        hrp.CFrame = hrp.CFrame + direction * (Speed * task.wait())
+        magnitude = (hrp.Position - GoalCFrame.Position).Magnitude
+    end
 
     toggleNoclip(false)
 end
 
--- Checa se o player está dentro da ilha Submerged (Usado para confirmar o sucesso do TP)
-local function IsInSubmergedIsland()
-    local char = getCharacter()
-    local hrp = char:FindFirstChild("HumanoidRootPart")
-    if not hrp then return false end
-    
-    -- Usando GetBoundingBox para pegar a CFrame e Size da bounding box da ilha.
-    local cf, size = SubmergedIsland:GetBoundingBox() 
-    local sizeHalf = size / 2
-    local pos = hrp.Position
-    local delta = pos - cf.Position
-    
-    return math.abs(delta.X) <= sizeHalf.X and math.abs(delta.Y) <= sizeHalf.Y and math.abs(delta.Z) <= sizeHalf.Z
-end
-
--- Função que leva o player para a Submerged Island
-local function GoToNPC()
-    local level = LocalPlayer.Data.Level.Value  
-    
-    -- VERIFICAÇÃO CHAVE: Só continua se o nível for alto O SUFICIENTE E a viagem AINDA NÃO foi feita/tentada.
-    if level >= 2650 and not _G_WentToSubmerged then
+function GoToNPC()
+    local level = LocalPlayer.Data.Level.Value
+    if level >= 2650 then
         
-        Teleport(npcPosition, MaxSpeed)  
-        task.wait(3)  
+        -- Vai até o NPC
+        Teleport(npcPosition, MaxSpeed)
 
-        local SubmarineWorker = ReplicatedStorage.Modules.Net:FindFirstChild("RF/SubmarineWorkerSpeak")  
-        local CommF = ReplicatedStorage.Modules.Net:FindFirstChild("CommF_")  
+        -- Espera 3 segundos
+        task.wait(3)
 
-        if SubmarineWorker then  
-            pcall(function()  
-                SubmarineWorker:InvokeServer("TravelToSubmergedIsland")  
-            end)  
-        end  
+        -- Remote Functions
+        local SubmarineWorker = ReplicatedStorage.Modules.Net:FindFirstChild("RF/SubmarineWorkerSpeak")
+        local CommF = ReplicatedStorage.Modules.Net:FindFirstChild("CommF_")
 
-        if CommF then  
-            pcall(function()  
-                CommF:InvokeServer("SetLastSpawnPoint", "SubmergedIsland")  
-            end)  
-        end  
-        
-        -- Após o Invoke, marcamos que a tentativa foi feita.
-        -- O spawn abaixo irá confirmar se o player chegou.
-        _G_WentToSubmerged = true 
-
-        -- Espera o player realmente entrar na ilha para confirmar o sucesso.
-        spawn(function()  
-            local max_wait = 15 -- Timeout de 15 segundos
-            while max_wait > 0 do  
-                task.wait(1)  
-                if IsInSubmergedIsland() then  
-                    print("[Auto Farm] Sucesso: Player na Submerged Island.")
-                    break
-                end
-                max_wait = max_wait - 1
-            end
-            if max_wait <= 0 then
-                print("[Auto Farm] Aviso: Falha ao confirmar Submerged Island. Tentará novamente no próximo ciclo.")
-                _G_WentToSubmerged = false -- Se falhar, permite tentar novamente
-            end
-        end)  
-    end
-end
-
--- Reset quando o player sai da ilha
-spawn(function()
-    while true do
-        task.wait(1)
-        -- Se a variável de controle indica que a ilha foi alcançada,
-        -- mas a checagem de posição indica que o player saiu, reseta a variável.
-        if _G_WentToSubmerged and not IsInSubmergedIsland() then
-            print("[Auto Farm] Player saiu da Submerged Island. Resetando variável de controle.")
-            _G_WentToSubmerged = false
+        if SubmarineWorker then
+            pcall(function()
+                SubmarineWorker:InvokeServer("TravelToSubmergedIsland")
+            end)
         end
+
+        if CommF then
+            pcall(function()
+                CommF:InvokeServer("SetLastSpawnPoint", "SubmergedIsland")
+            end)
+        end
+
+    else
+        warn("Level insuficiente (precisa ser 2650).")
     end
-end)
-
--- LOOP PRINCIPAL DE FARM
-spawn(function()
-    while wait(0.2) do
-        if _G.Level then
-            local LevelNow = LocalPlayer.Data.Level.Value
-
-            -- LÓGICA CHAVE DE CONTROLE: 
-            -- Tenta ir para Submerged Island SÓ SE o nível for >= 2650 
-            -- E AINDA não estiver na ilha (IsInSubmergedIsland()) 
-            -- E a variável de controle de tentativa for falsa (_G_WentToSubmerged)
-            if LevelNow >= 2650 and not IsInSubmergedIsland() and not _G_WentToSubmerged then
-                GoToNPC()
-                -- Após chamar GoToNPC, a variável _G_WentToSubmerged será definida como true dentro da função,
-                -- prevenindo repetições imediatas.
-            end
-
-            -- SE ESTIVER NA ILHA SUBMERGED, PULA O FARM NORMAL ENQUANTO ESPERA A QUEST OU NPC.
-            -- Você pode adicionar aqui a lógica de farm específica da Submerged Island se for diferente.
-            if IsInSubmergedIsland() then
-                -- Player está na Submerged Island. Adicionar lógica de farm/quest aqui, se necessário.
-                -- Por agora, apenas pula a lógica de farm antiga.
-                -- print("[Auto Farm] Mantendo na Submerged Island. Próxima lógica de farm a ser implementada.")
-                
-                -- Se não houver lógica específica, o script apenas espera o próximo loop.
-                -- O código abaixo (farm normal) será executado se NÃO estiver na ilha.
-            else 
-            
-                -- CONTINUA O FARM NORMAL
-                -- (Este bloco só será executado se o player NÃO estiver na Submerged Island)
-                pcall(function()  
-                    local plr = LocalPlayer  
-                    local QuestTitle = plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text  
-
-                    -- O restante do seu código de farm genérico aqui
-                    -- Certifique-se que as funções QuestNeta(), _tp(), Attack.Alive(), Attack.Kill(), etc. 
-                    -- estejam definidas em outras partes do seu script que você não incluiu.
-
-                    -- if not string.find(QuestTitle, QuestNeta()[5]) then  
-                    --     replicated.Remotes.CommF_:InvokeServer("AbandonQuest")  
-                    -- end  
-
-                    -- if plr.PlayerGui.Main.Quest.Visible == false then  
-                    --     _tp(QuestNeta()[6])  
-                    --     if (Root.Position - QuestNeta()[6].Position).Magnitude <= 5 then  
-                    --         replicated.Remotes.CommF_:InvokeServer("StartQuest", QuestNeta()[3], QuestNeta()[2])  
-                    --     end  
-                    -- elseif plr.PlayerGui.Main.Quest.Visible == true then  
-                    --     if workspace.Enemies:FindFirstChild(QuestNeta()[1]) then  
-                    --         for i, v in pairs(workspace.Enemies:GetChildren()) do  
-                    --             if Attack.Alive(v) and v.Name == QuestNeta()[1] then  
-                    --                 if string.find(QuestTitle, QuestNeta()[5]) then  
-                    --                     repeat  
-                    --                         wait()  
-                    --                         Attack.Kill(v, _G.Level)  
-                    --                     until not _G.Level or v.Humanoid.Health <= 0 or not v.Parent or plr.PlayerGui.Main.Quest.Visible == false  
-                    --                 else  
-                    --                     replicated.Remotes.CommF_:InvokeServer("AbandonQuest")  
-                    --                 end  
-                    --             end  
-                    --         end  
-                    --     else  
-                    --         _tp(QuestNeta()[4])  
-                    --         if replicated:FindFirstChild(QuestNeta()[1]) then  
-                    --             _tp(replicated:FindFirstChild(QuestNeta()[1]).HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))  
-                    --         end  
-                    --     end  
-                    -- end  
-                end)
-            end 
-        end  
-    end
-end)
-
+end
 	local BossDropdown = Tabs.Main:AddDropdown("BossDropdown", {
 		Title = "Selecione o Boss",
 		Description = "Selecione o Boss Para Farm",
