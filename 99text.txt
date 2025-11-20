@@ -9875,10 +9875,6 @@ end)
 
 	Tabs.Combat:AddSection("LocalPlayer Settings / Misc")
 
-----------------------------------------------------------
--- ==========  SET SPEED / JUMP SYSTEM  ==========
-----------------------------------------------------------
-
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 
@@ -9891,13 +9887,18 @@ end)
 
 local SpeedEnabled = false
 local JumpEnabled = false
+
 local desiredSpeed = 16
 local desiredJump = 50
 
 local function applyStats()
     if humanoid then
-        if SpeedEnabled then humanoid.WalkSpeed = desiredSpeed end
-        if JumpEnabled then humanoid.JumpPower = desiredJump end
+        if SpeedEnabled then
+            humanoid.WalkSpeed = desiredSpeed
+        end
+        if JumpEnabled then
+            humanoid.JumpPower = desiredJump
+        end
     end
 end
 
@@ -9912,20 +9913,17 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
-----------------------------------------------------------
--- TOGGLE: SET SPEED
-----------------------------------------------------------
 local toggleSpeed = Tabs.Combat:AddToggle("SetSpeed", {
     Title = "Set Speed",
     Description = "Enable custom WalkSpeed",
     Default = false
 })
+
 toggleSpeed:OnChanged(function(Value)
     SpeedEnabled = Value
     applyStats()
 end)
 
--- SLIDER SPEED
 Tabs.Combat:AddSlider("SpeedSlider", {
     Title = "Speed Value",
     Min = 1,
@@ -9937,20 +9935,17 @@ Tabs.Combat:AddSlider("SpeedSlider", {
     end
 })
 
-----------------------------------------------------------
--- TOGGLE: SET JUMPPOWER
-----------------------------------------------------------
 local toggleJump = Tabs.Combat:AddToggle("SetJump", {
     Title = "Set JumpPower",
     Description = "Enable custom JumpPower",
     Default = false
 })
+
 toggleJump:OnChanged(function(Value)
     JumpEnabled = Value
     applyStats()
 end)
 
--- SLIDER JUMP
 Tabs.Combat:AddSlider("JumpSlider", {
     Title = "Jump Value",
     Min = 10,
@@ -9961,6 +9956,7 @@ Tabs.Combat:AddSlider("JumpSlider", {
         applyStats()
     end
 })
+
 	Tabs.Combat:AddSection("Settings Combat / Aimbot Settings")
 
 	Q = Tabs.Combat:AddToggle("Q", {
