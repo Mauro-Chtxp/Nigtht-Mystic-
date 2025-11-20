@@ -9874,63 +9874,93 @@ end)
 	end)
 
 	Tabs.Combat:AddSection("LocalPlayer Settings / Misc")
-	Q = Tabs.Combat:AddToggle("Q", {
-		Title = "Instance Mink V3 [ INF ]",
-		Description = "turn on for make mink v3 infinity",
-		Default = false
-	})
-	Q:OnChanged(function(Value)
-		InfAblities = Value
-	end)
-	spawn(function()
-		while wait(.2) do
-			pcall(function()
-				if InfAblities then
-					if not plr.Character.HumanoidRootPart:FindFirstChild("Agility") then
-						local agility = replicated.FX["Agility"]:Clone()
-						agility.Name = "Agility"
-						agility.Parent = plr.Character.HumanoidRootPart
-					end
-				else
-					plr.Character.HumanoidRootPart["Agility"]:Destroy()
-				end
-			end)
-		end
-	end)
-	Q = Tabs.Combat:AddToggle("Q", {
-		Title = "Instance Energy [ INF ]",
-		Description = "turn on for make energy infinity",
-		Default = false
-	})
-	Q:OnChanged(function(Value)
-		infEnergy = Value
-		if Value then
-			getInfinity_Ability("Energy", infEnergy)
-		end
-	end)
-	Q = Tabs.Combat:AddToggle("Q", {
-		Title = "Instance Soru [ INF ]",
-		Description = "turn on for make soru infinity",
-		Default = false
-	})
-	Q:OnChanged(function(Value)
-		_G.InfSoru = Value
-		if Value then
-			getInfinity_Ability("Soru", _G.InfSoru)
-		end
-	end)
-	Q = Tabs.Combat:AddToggle("Q", {
-		Title = "Instance Observation Range [ INF ]",
-		Description = "turn on for make observation range infinity",
-		Default = false
-	})
-	Q:OnChanged(function(Value)
-		_G.InfiniteObRange = Value
-		if Value then
-			getInfinity_Ability("Observation", _G.InfiniteObRange)
-		end
-	end)
 
+----------------------------------------------------------
+-- ==========  SET SPEED / JUMP SYSTEM  ==========
+----------------------------------------------------------
+
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+
+local plr = Players.LocalPlayer
+local humanoid = plr.Character and plr.Character:FindFirstChildOfClass("Humanoid") or nil
+
+plr.CharacterAdded:Connect(function(char)
+    humanoid = char:WaitForChild("Humanoid")
+end)
+
+local SpeedEnabled = false
+local JumpEnabled = false
+local desiredSpeed = 16
+local desiredJump = 50
+
+local function applyStats()
+    if humanoid then
+        if SpeedEnabled then humanoid.WalkSpeed = desiredSpeed end
+        if JumpEnabled then humanoid.JumpPower = desiredJump end
+    end
+end
+
+RunService.Heartbeat:Connect(function()
+    if humanoid then
+        if SpeedEnabled and humanoid.WalkSpeed ~= desiredSpeed then
+            humanoid.WalkSpeed = desiredSpeed
+        end
+        if JumpEnabled and humanoid.JumpPower ~= desiredJump then
+            humanoid.JumpPower = desiredJump
+        end
+    end
+end)
+
+----------------------------------------------------------
+-- TOGGLE: SET SPEED
+----------------------------------------------------------
+local toggleSpeed = Tabs.Combat:AddToggle("SetSpeed", {
+    Title = "Set Speed",
+    Description = "Enable custom WalkSpeed",
+    Default = false
+})
+toggleSpeed:OnChanged(function(Value)
+    SpeedEnabled = Value
+    applyStats()
+end)
+
+-- SLIDER SPEED
+Tabs.Combat:AddSlider("SpeedSlider", {
+    Title = "Speed Value",
+    Min = 1,
+    Max = 500,
+    Default = desiredSpeed,
+    Callback = function(Value)
+        desiredSpeed = Value
+        applyStats()
+    end
+})
+
+----------------------------------------------------------
+-- TOGGLE: SET JUMPPOWER
+----------------------------------------------------------
+local toggleJump = Tabs.Combat:AddToggle("SetJump", {
+    Title = "Set JumpPower",
+    Description = "Enable custom JumpPower",
+    Default = false
+})
+toggleJump:OnChanged(function(Value)
+    JumpEnabled = Value
+    applyStats()
+end)
+
+-- SLIDER JUMP
+Tabs.Combat:AddSlider("JumpSlider", {
+    Title = "Jump Value",
+    Min = 10,
+    Max = 500,
+    Default = desiredJump,
+    Callback = function(Value)
+        desiredJump = Value
+        applyStats()
+    end
+})
 	Tabs.Combat:AddSection("Settings Combat / Aimbot Settings")
 
 	Q = Tabs.Combat:AddToggle("Q", {
