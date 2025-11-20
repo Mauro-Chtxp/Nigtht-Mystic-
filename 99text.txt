@@ -4443,34 +4443,19 @@ spawn(function()
             pcall(function()
                 local player = game.Players.LocalPlayer
                 local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-                if not root then return end
-
-                -- 🎯 PRIMEIRO TP DIRETO PARA A ILHA EM QUALQUER ATIVAÇÃO
-                local CakeTargetPos = CFrame.new(-2077, 252, -12373)
-
-                if (root.Position - CakeTargetPos.Position).Magnitude > 100 then
-                    _tp(CakeTargetPos)
-                    repeat wait() until (root.Position - CakeTargetPos.Position).Magnitude < 50
-                end
-
-                -- 🔥 DEPOIS DE ESTAR NA ILHA, ELE SEGUE O SCRIPT ORIGINAL
                 local questUI = player.PlayerGui.Main.Quest
                 local enemies = workspace.Enemies
                 local bigMirror = workspace.Map.CakeLoaf.BigMirror
+                if not root then return end
 
-                local fixPos = CFrame.new(-1943.6765, 251.50956, -12337.8808)
-                if (root.Position - fixPos.Position).Magnitude > 2000 then
-                    _tp(fixPos)
-                    repeat wait() until (root.Position - fixPos.Position).Magnitude < 50
-                end
-
-                if (root.Position - CakeTargetPos.Position).Magnitude > 3000 then
-                    _tp(CakeTargetPos)
-                    repeat wait() until (root.Position - CakeTargetPos.Position).Magnitude < 600
+                local cakeIslandPos = Vector3.new(-2077, 252, -12373)
+                if (root.Position - cakeIslandPos).Magnitude > 3000 then
+                    _tp(CFrame.new(-2077, 252, -12373))
+                    repeat wait() until (root.Position - cakeIslandPos).Magnitude < 600
                 end
 
                 if not bigMirror:FindFirstChild("Other") then
-                    _tp(CakeTargetPos)
+                    _tp(CFrame.new(-2077, 252, -12373))
                 end
 
                 local function GetNearestEnemy(names)
@@ -4500,7 +4485,7 @@ spawn(function()
                         until not _G.Auto_Cake_Prince or not v.Parent or v.Humanoid.Health <= 0
                     else
                         if bigMirror.Other.Transparency == 0 and (CFrame.new(-1990.67, 4533, -14973.67).Position - root.Position).Magnitude >= 2000 then
-                            _tp(CakeTargetPos)
+                            _tp(CFrame.new(-2151.82, 149.32, -12404.91))
                         end
                     end
                 else
@@ -4537,13 +4522,14 @@ spawn(function()
                             Attack.Kill(v, _G.Auto_Cake_Prince)
                         until not _G.Auto_Cake_Prince or v.Humanoid.Health <= 0 or bigMirror.Other.Transparency == 0 or (_G.AcceptQuestC and not questUI.Visible)
                     else
-                        _tp(CakeTargetPos)
+                        _tp(CFrame.new(-2077, 252, -12373))
                     end
                 end
             end)
         end
     end
 end)
+
 local Mirror = SectionCake:AddToggle("Mirror", {
     Title = "Auto Kill Dough",
     Default = false
