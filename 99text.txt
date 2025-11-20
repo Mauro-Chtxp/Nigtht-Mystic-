@@ -2759,37 +2759,27 @@ spawn(function()
 		end)
 	end
 end)
-	--== CRIAR SECTION FARMING ==--
-local FarmingSection = Tabs.Main:AddSection("Farming")
+	local FarmingSection = Tabs.Main:AddSection("Farming")
 
---== TOGGLE FARM LEVEL ==--
-local FarmLevel = FarmingSection:AddToggle({
+local FarmLevel = FarmingSection:AddToggle("FarmLevel", {
     Title = "Auto Farm Level",
     Description = "Famar Níveis Automaticamente",
     Default = false
 })
+
 FarmLevel:OnChanged(function(Value)
     _G.Level = Value
 end)
 
---== BUTTON TELEPORT SUBMERGED ISLAND ==--
-local TP_Sub = FarmingSection:AddButton({
-    Title = "Teleport Submerged Island",
-    Description = "Ir até o NPC e viajar para Submerged Island",
-    Callback = function()
-        GoToNPC()
-    end
-})
-
---== SISTEMA DE FARM LEVEL (o que você mandou, sem alterações) ==--
 spawn(function()
     while wait(Sec) do
-        if G.Level then
+        if _G.Level then
             pcall(function()
                 local QuestTitle = plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text
                 if not string.find(QuestTitle, QuestNeta()[5]) then
                     replicated.Remotes.CommF:InvokeServer("AbandonQuest")
                 end
+
                 if plr.PlayerGui.Main.Quest.Visible == false then
                     tp(QuestNeta()[6])
                     if (Root.Position - QuestNeta()[6].Position).Magnitude <= 5 then
@@ -2804,7 +2794,7 @@ spawn(function()
                                         repeat
                                             wait()
                                             Attack.Kill(v, _G.Level)
-                                        until not G.Level or v.Humanoid.Health <= 0 or not v.Parent or plr.PlayerGui.Main.Quest.Visible == false
+                                        until not _G.Level or v.Humanoid.Health <= 0 or not v.Parent or plr.PlayerGui.Main.Quest.Visible == false
                                     else
                                         replicated.Remotes.CommF:InvokeServer("AbandonQuest")
                                     end
@@ -2823,9 +2813,13 @@ spawn(function()
     end
 end)
 
---====================================================--
---== SISTEMA DE TELEPORTE (COM BUTTON AGORA) ==--
---====================================================--
+local TP_Sub = FarmingSection:AddButton({
+    Title = "Teleport Submerged Island",
+    Description = "Ir até o NPC e viajar para Submerged Island",
+    Callback = function()
+        GoToNPC()
+    end
+end)
 
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
@@ -2872,14 +2866,9 @@ end
 function GoToNPC()
     local level = LocalPlayer.Data.Level.Value
     if level >= 2650 then
-        
-        -- Vai até o NPC
         Teleport(npcPosition, MaxSpeed)
-
-        -- Espera 3 segundos
         task.wait(3)
 
-        -- Remote Functions
         local SubmarineWorker = ReplicatedStorage.Modules.Net:FindFirstChild("RF/SubmarineWorkerSpeak")
         local CommF = ReplicatedStorage.Modules.Net:FindFirstChild("CommF_")
 
@@ -2894,7 +2883,6 @@ function GoToNPC()
                 CommF:InvokeServer("SetLastSpawnPoint", "SubmergedIsland")
             end)
         end
-
     else
         warn("Level insuficiente (precisa ser 2650).")
     end
