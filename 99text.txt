@@ -2057,11 +2057,18 @@ end
 local Window = Fluent:CreateWindow({
     Title = "Night Mystic",
     SubTitle = "By Hey Star & MauroZzx | Blox Fruits",
-    TabWidth = 160,
+
+    -- ADICIONADOS DA OUTRA WINDOW:
+    TitleIcon = "",
+    Image = "rbxassetid://9513555247",
+    Search = true,
+    Icon = "rbxassetid://9513555247",
+    TabWidth = 160, -- você já tinha, deixei igual
     Theme = "PurpleBlack",
     Acrylic = false,
     Size = UDim2.fromOffset(340, 340),
     MinimizeKey = Enum.KeyCode.End,
+
     UserInfo = true,
     UserInfoTop = false,
     UserInfoTitle = game.Players.LocalPlayer.DisplayName,
