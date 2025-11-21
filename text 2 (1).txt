@@ -3152,6 +3152,92 @@ FarmingSection:AddButton({
         GoToNPC()  
     end
 })
+	local BossDropdown = Tabs.Main:AddDropdown("BossDropdown", {
+		Title = "Selecione o Boss",
+		Description = "Selecione o Boss Para Farm",
+		Values = Boss,
+		Default = 1,
+		Callback = function(value)
+			_G.FindBoss = value
+		end
+	})
+	local FarmBoss = Tabs.Main:AddToggle("FarmBoss", {
+		Title = "Auto Farm Boss",
+		Description = "Farma o Boss Selecionado",
+		Default = false
+	})
+	FarmBoss:OnChanged(function(value)
+		_G.FarmBoss = value
+		spawn(function()
+		while wait(Sec) do
+			if _G.FarmBoss then
+				pcall(function()
+					-- Kiểm tra boss có quest hay không
+					local HasQuest = QuestBeta()[2] ~= nil and QuestBeta()[3] ~= nil
+					
+					if HasQuest then
+						-- BOSS CÓ QUEST
+						local QuestTitle = plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text
+						
+						if not string.find(QuestTitle, QuestBeta()[0]) then
+							replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
+						end
+						
+						if plr.PlayerGui.Main.Quest.Visible == false then
+							_tp(QuestBeta()[5])
+							if (Root.Position - QuestBeta()[5].Position).Magnitude <= 5 then
+								replicated.Remotes.CommF_:InvokeServer("StartQuest", QuestBeta()[3], QuestBeta()[2])
+							end
+							
+						elseif plr.PlayerGui.Main.Quest.Visible == true then
+							if workspace.Enemies:FindFirstChild(QuestBeta()[1]) then
+								for i, v in pairs(workspace.Enemies:GetChildren()) do
+									if Attack.Alive(v) then
+										if v.Name == QuestBeta()[1] then
+											if string.find(QuestTitle, QuestBeta()[0]) then
+												repeat
+													wait()
+													Attack.Kill(v, _G.FarmBoss)
+												until not _G.FarmBoss or v.Humanoid.Health <= 0 or not v.Parent or plr.PlayerGui.Main.Quest.Visible == false
+											else
+												replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
+											end
+										end
+									end
+								end
+							else
+								_tp(QuestBeta()[4])
+								if replicated:FindFirstChild(QuestBeta()[1]) then
+									_tp(replicated:FindFirstChild(QuestBeta()[1]).HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
+								end
+							end
+						end
+						
+					else
+						-- BOSS KHÔNG CÓ QUEST - Farm trực tiếp
+						if workspace.Enemies:FindFirstChild(QuestBeta()[1]) then
+							for i, v in pairs(workspace.Enemies:GetChildren()) do
+								if Attack.Alive(v) then
+									if v.Name == QuestBeta()[1] then
+										repeat
+											wait()
+											Attack.Kill(v, _G.FarmBoss)
+										until not _G.FarmBoss or v.Humanoid.Health <= 0 or not v.Parent
+									end
+								end
+							end
+						else
+							_tp(QuestBeta()[4])
+							if replicated:FindFirstChild(QuestBeta()[1]) then
+								_tp(replicated:FindFirstChild(QuestBeta()[1]).HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
+							end
+						end
+					end
+				end)
+			end
+		end
+	end)
+	end)
 	if World3 then
 	Tabs.Main:AddSection("Boss Tyrant of the Skies")
 
@@ -5019,134 +5105,50 @@ end)
 		end
 	end)
 	local Q = Tabs.Main:AddToggle("Q", {
-    Title = "Auto Sharkman V2/V3",
-    Description = "",
-    Default = false
-})
-Q:OnChanged(function(Value)
-    _G.Auto_Fish = Value
-end)
+		Title = "Auto Sharkman V2/V3",
+		Description = "",
+		Default = false
+	})
+	Q:OnChanged(function(Value)
+		_G.Auto_Fish = Value
+	end)
+	spawn(function()
+		while wait(Sec) do
+			pcall(function()
+				if _G.Auto_Fish then
+					if replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") ~= -2 then
+						if replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") == 0 then
+							replicated.Remotes.CommF_:InvokeServer("Alchemist", "2")
+						elseif replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") == 1 then
+							if not plr.Backpack:FindFirstChild("Flower 1") and not plr.Character:FindFirstChild("Flower 1") then
+								_tp(workspace.Flower1.CFrame)
+							elseif not plr.Backpack:FindFirstChild("Flower 2") and not plr.Character:FindFirstChild("Flower 2") then
+								_tp(workspace.Flower2.CFrame)
+							elseif not plr.Backpack:FindFirstChild("Flower 3") and not plr.Character:FindFirstChild("Flower 3") then
+								local v = GetConnectionEnemies("Swan Pirate")
+								if v then
+									repeat
+										wait()
+										Attack.Kill(v, _G.Auto_Fish)
+									until plr.Backpack:FindFirstChild("Flower 3") or not v.Parent or v.Humanoid.Health <= 0 or _G.Auto_Fish == false
+								else
+									_tp(CFrame.new(980.0985107421875, 121.331298828125, 1287.2093505859375))
+								end
+							end
+						elseif replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") == 2 then
+							replicated.Remotes.CommF_:InvokeServer("Alchemist", "3")
+						end
+					elseif replicated.Remotes.CommF_:InvokeServer("Wenlocktoad", "1") == 0 then
+						replicated.Remotes.CommF_:InvokeServer("Wenlocktoad", "2")
+					elseif replicated.Remotes.CommF_:InvokeServer("Wenlocktoad", "1") == 1 then
+						warn("Sea Beast Soon")
+					end
+				end
+			end)
+		end
+	end)
 
-spawn(function()
-    while wait(Sec) do
-        pcall(function()
-            if _G.Auto_Fish then
-                if replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") ~= -2 then
-                    if replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") == 0 then
-                        replicated.Remotes.CommF_:InvokeServer("Alchemist", "2")
-                    elseif replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") == 1 then
-                        if not plr.Backpack:FindFirstChild("Flower 1") and not plr.Character:FindFirstChild("Flower 1") then
-                            _tp(workspace.Flower1.CFrame)
-                        elseif not plr.Backpack:FindFirstChild("Flower 2") and not plr.Character:FindFirstChild("Flower 2") then
-                            _tp(workspace.Flower2.CFrame)
-                        elseif not plr.Backpack:FindFirstChild("Flower 3") and not plr.Character:FindFirstChild("Flower 3") then
-                            local v = GetConnectionEnemies("Swan Pirate")
-                            if v then
-                                repeat
-                                    wait()
-                                    Attack.Kill(v, _G.Auto_Fish)
-                                until plr.Backpack:FindFirstChild("Flower 3") or not v.Parent or v.Humanoid.Health <= 0 or not _G.Auto_Fish
-                            else
-                                _tp(CFrame.new(980.0985107421875, 121.331298828125, 1287.2093505859375))
-                            end
-                        end
-                    elseif replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") == 2 then
-                        replicated.Remotes.CommF_:InvokeServer("Alchemist", "3")
-                    end
-                elseif replicated.Remotes.CommF_:InvokeServer("Wenlocktoad", "1") == 0 then
-                    replicated.Remotes.CommF_:InvokeServer("Wenlocktoad", "2")
-                elseif replicated.Remotes.CommF_:InvokeServer("Wenlocktoad", "1") == 1 then
-                    warn("Sea Beast Soon")
-                end
-            end
-        end)
-    end
-end)
-
-local BossSection = Tabs.Main:AddSection("Boss Farming")
-
-local BossDropdown = BossSection:AddDropdown("BossDropdown", {
-    Title = "Selecione o Boss",
-    Description = "Selecione o Boss Para Farm",
-    Values = Boss,
-    Default = 1,
-    Callback = function(value)
-        _G.FindBoss = value
-    end
-})
-
-local FarmBoss = BossSection:AddToggle("FarmBoss", {
-    Title = "Auto Farm Boss",
-    Description = "Farma o Boss Selecionado",
-    Default = false
-})
-FarmBoss:OnChanged(function(value)
-    _G.FarmBoss = value
-    spawn(function()
-        while wait(Sec) do
-            if _G.FarmBoss then
-                pcall(function()
-                    local HasQuest = QuestBeta()[2] ~= nil and QuestBeta()[3] ~= nil
-                    local Root = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
-
-                    if HasQuest then
-                        local QuestTitle = plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text
-
-                        if not string.find(QuestTitle, QuestBeta()[0]) then
-                            replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
-                        end
-
-                        if not plr.PlayerGui.Main.Quest.Visible then
-                            _tp(QuestBeta()[5])
-                            if Root and (Root.Position - QuestBeta()[5].Position).Magnitude <= 5 then
-                                replicated.Remotes.CommF_:InvokeServer("StartQuest", QuestBeta()[3], QuestBeta()[2])
-                            end
-                        else
-                            if workspace.Enemies:FindFirstChild(QuestBeta()[1]) then
-                                for _, v in pairs(workspace.Enemies:GetChildren()) do
-                                    if Attack.Alive(v) and v.Name == QuestBeta()[1] then
-                                        if string.find(QuestTitle, QuestBeta()[0]) then
-                                            repeat
-                                                wait()
-                                                Attack.Kill(v, _G.FarmBoss)
-                                            until not _G.FarmBoss or v.Humanoid.Health <= 0 or not v.Parent or not plr.PlayerGui.Main.Quest.Visible
-                                        else
-                                            replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
-                                        end
-                                    end
-                                end
-                            else
-                                _tp(QuestBeta()[4])
-                                if replicated:FindFirstChild(QuestBeta()[1]) then
-                                    _tp(replicated[QuestBeta()[1]].HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
-                                end
-                            end
-                        end
-
-                    else
-                        if workspace.Enemies:FindFirstChild(QuestBeta()[1]) then
-                            for _, v in pairs(workspace.Enemies:GetChildren()) do
-                                if Attack.Alive(v) and v.Name == QuestBeta()[1] then
-                                    repeat
-                                        wait()
-                                        Attack.Kill(v, _G.FarmBoss)
-                                    until not _G.FarmBoss or v.Humanoid.Health <= 0 or not v.Parent
-                                end
-                            end
-                        else
-                            _tp(QuestBeta()[4])
-                            if replicated:FindFirstChild(QuestBeta()[1]) then
-                                _tp(replicated[QuestBeta()[1]].HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
-                            end
-                        end
-                    end
-                end)
-            end
-        end
-    end)
-end)
-if World3 then
-Tabs.Main:AddSection("Dark Dragger + Valkyrie")
+	Tabs.Main:AddSection("Dark Dragger + Valkyrie")
 	local Q = Tabs.Main:AddToggle("Q", {
 		Title = "Auto Kill Rip_indra",
 		Description = "",
@@ -5239,7 +5241,7 @@ Tabs.Main:AddSection("Dark Dragger + Valkyrie")
 		_G.Seriality = Value
 	end)
 	local Bringmob = Tabs.Settings:AddToggle("Bringmob", {
-		Title = "Bring Mobs",
+		Title = "Bring Mobs (Beta)",
 		Description = "Junta Os Mobs (Se Bugar Reative)",
 		Default = true 
 	})
