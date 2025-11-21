@@ -3152,317 +3152,6 @@ FarmingSection:AddButton({
         GoToNPC()  
     end
 })
-	if World3 then
-	Tabs.Main:AddSection("Boss Tyrant of the Skies")
-
-	local TyrantStatus = Tabs.Main:AddParagraph({
-		Title = "Tyrant of the Skies",
-		Content = ""
-	})
-	spawn(function()
-		pcall(function()
-			while wait(1) do
-				if game:GetService("Workspace").Enemies:FindFirstChild("Tyrant of the Skies") then
-					TyrantStatus:SetDesc("✅")
-				else
-					TyrantStatus:SetDesc("❌")
-				end
-			end
-		end)
-	end) 
-	plr = plr or game.Players.LocalPlayer
-	Sec = Sec or 0.1
-	_G.FarmTyrant = _G.FarmTyrant or false
-
-	local FarmTyrant = Tabs.Main:AddToggle("FarmTyrant", {
-		Title = " Auto Farm Tyrant",
-		Description = "Farma o Boss Tyrant Automaticamente",
-		Default = false
-	})
-	FarmTyrant:OnChanged(function(Value)
-		_G.FarmTyrant = Value
-	end)
-
-	spawn(function()
-		while wait(Sec) do
-			if _G.FarmTyrant then
-				pcall(function()
-					local player = plr or game.Players.LocalPlayer
-					if not (player and player.Character) then
-						return
-					end
-					local hrp = player.Character:FindFirstChild("HumanoidRootPart")
-					if not hrp then
-						return
-					end
-					local enemiesFolder = workspace:FindFirstChild("Enemies")
-					local bossPos = Vector3.new(-16268.287, 152.616, 1390.773)
-					if (hrp.Position - bossPos).Magnitude > 5 then
-						if _tp then
-							pcall(_tp, CFrame.new(bossPos))
-						elseif Tween then
-							pcall(Tween, CFrame.new(bossPos))
-						elseif notween then
-							pcall(notween, CFrame.new(bossPos))
-						else
-							pcall(function()
-								player.Character.HumanoidRootPart.CFrame = CFrame.new(bossPos)
-							end)
-						end
-						repeat
-							wait()
-						until not _G.FarmTyrant or (player.Character and player.Character:FindFirstChild("HumanoidRootPart") and (player.Character.HumanoidRootPart.Position - bossPos).Magnitude <= 5)
-					end
-					local boss = enemiesFolder and enemiesFolder:FindFirstChild("Tyrant of the Skies")
-					if boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then
-						repeat
-							if not _G.FarmTyrant then
-								break
-							end
-							if AutoHaki then
-								pcall(AutoHaki)
-							end
-							if SelectWeapon and EquipTool then
-								pcall(EquipTool, SelectWeapon)
-							end
-							if Attack and Attack.Kill then
-								pcall(function()
-									Attack.Kill(boss, _G.FarmTyrant)
-								end)
-							elseif AttackNoCoolDown then
-								pcall(AttackNoCoolDown)
-							end
-							wait()
-						until not _G.FarmTyrant or not boss.Parent or not boss:FindFirstChild("Humanoid") or boss.Humanoid.Health <= 0
-						return
-					end
-					local mobList = {
-						"Serpent Hunter",
-						"Skull Slayer",
-						"Isle Champion",
-						"Sun-kissed Warrior"
-					}
-					if enemiesFolder then
-						for _, mobName in ipairs(mobList) do
-							if not _G.FarmTyrant then
-								break
-							end
-							for _, mob in ipairs(enemiesFolder:GetChildren()) do
-								if not _G.FarmTyrant then
-									break
-								end
-								if mob and mob.Name == mobName and mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
-									hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-									if not hrp then
-										break
-									end
-									if (hrp.Position - mob.HumanoidRootPart.Position).Magnitude > 5000 then
-										if _tp then
-											pcall(_tp, mob.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
-										elseif Tween then
-											pcall(Tween, mob.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
-										elseif notween then
-											pcall(notween, mob.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
-										else
-											pcall(function()
-												player.Character.HumanoidRootPart.CFrame = mob.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0)
-											end)
-										end
-										local t0 = tick()
-										repeat
-											wait()
-											hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-										until not _G.FarmTyrant or not hrp or (hrp.Position - mob.HumanoidRootPart.Position).Magnitude <= 6 or tick() - t0 > 8
-									end
-									repeat
-										if not _G.FarmTyrant then
-											break
-										end
-										if AutoHaki then
-											pcall(AutoHaki)
-										end
-										if SelectWeapon and EquipTool then
-											pcall(EquipTool, SelectWeapon)
-										end
-										if Attack and Attack.Kill then
-											pcall(function()
-												Attack.Kill(mob, _G.FarmTyrant)
-											end)
-										elseif AttackNoCoolDown then
-											pcall(AttackNoCoolDown)
-										end
-										wait()
-									until not _G.FarmTyrant or not mob.Parent or not mob:FindFirstChild("Humanoid") or mob.Humanoid.Health <= 0
-								end
-							end
-						end
-					else
-						for _, mobName in ipairs(mobList) do
-							if not _G.FarmTyrant then
-								break
-							end
-							for _, mob in ipairs(workspace:GetChildren()) do
-								if not _G.FarmTyrant then
-									break
-								end
-								if mob and mob.Name == mobName and mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
-									if _tp then
-										pcall(_tp, mob.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
-									else
-										pcall(function()
-											player.Character.HumanoidRootPart.CFrame = mob.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0)
-										end)
-									end
-									repeat
-										wait()
-									until not _G.FarmTyrant or (player.Character and player.Character:FindFirstChild("HumanoidRootPart") and (player.Character.HumanoidRootPart.Position - mob.HumanoidRootPart.Position).Magnitude <= 6)
-									repeat
-										if not _G.FarmTyrant then
-											break
-										end
-										if Attack and Attack.Kill then
-											pcall(function()
-												Attack.Kill(mob, _G.FarmTyrant)
-											end)
-										elseif AttackNoCoolDown then
-											pcall(AttackNoCoolDown)
-										end
-										wait()
-									until not _G.FarmTyrant or not mob.Parent or mob.Humanoid.Health <= 0
-								end
-							end
-						end
-					end
-				end)
-			end
-		end
-	end)
-	end
-	if World3 then
-	local FarmPhaBinh = Tabs.Main:AddToggle("FarmPhaBinh", {
-		Title = "Quebrar Vasos",
-		Description = "Quebrar Vasos pra matar o Tyrant",
-		Default = false
-	})
-	FarmPhaBinh:OnChanged(function(Value)
-		_G.FarmPhaBinh = Value
-		if not Value then
-			if StopTween then
-				pcall(StopTween)
-			end
-		end
-	end)
-
-	local function sendSkillKey(skillKey)
-		local virtualInputManager = game:GetService("VirtualInputManager")
-		virtualInputManager:SendKeyEvent(true, skillKey, false, game)
-		wait(0.05)
-		virtualInputManager:SendKeyEvent(false, skillKey, false, game)
-	end
-
-	local function equipAndUseSkill(toolType)
-		local player = game.Players.LocalPlayer
-		local character = player.Character
-		local backpack = player.Backpack
-		if not (character and character:FindFirstChild("Humanoid") and character.Humanoid.Health > 0) then
-			return
-		end
-		for _, item in pairs(backpack:GetChildren()) do
-			if item:IsA("Tool") and item.ToolTip == toolType then
-				item.Parent = character
-				wait(0.12)
-				for _, skill in ipairs({
-					"Z",
-					"X",
-					"C",
-					"V",
-					"F"
-				}) do
-					if not _G.FarmPhaBinh then
-						break
-					end
-					pcall(function()
-						sendSkillKey(skill)
-					end)
-					wait(0.12)
-				end
-				item.Parent = backpack
-				break
-			end
-		end
-	end
-
-	local PhaBinhPoints = {
-		CFrame.new(-16332.5263671875, 158.07200622558594, 1440.324951171875),
-		CFrame.new(-16288.609375, 158.16700744628906, 1470.3680419921875),
-		CFrame.new(-16245.412109375, 158.43699645996094, 1463.365966796875),
-		CFrame.new(-16212.46875, 158.16700744628906, 1466.343994140625),
-		CFrame.new(-16211.9462890625, 158.07200622558594, 1322.39794921875),
-		CFrame.new(-16260.921875, 154.92100524902344, 1323.615966796875),
-		CFrame.new(-16297.0595703125, 159.322998046875, 1317.2239990234375),
-		CFrame.new(-16335.0966796875, 159.33399963378906, 1324.885986328125),
-	}
-
-	spawn(function()
-		while wait(Sec) do
-			if _G.FarmPhaBinh then
-				pcall(function()
-					pcall(function()
-						if AutoHaki then
-							AutoHaki()
-						end
-					end)
-					if not (plr and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") and plr.Character:FindFirstChild("Humanoid") and plr.Character.Humanoid.Health > 0) then
-						return
-					end
-					for _, point in ipairs(PhaBinhPoints) do
-						if not _G.FarmPhaBinh then
-							break
-						end
-						if _tp then
-							pcall(_tp, point)
-						else
-							if notween then
-								pcall(notween, point)
-							else
-								if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-									plr.Character.HumanoidRootPart.CFrame = point
-								end
-							end
-						end
-						local arrived = false
-						local start = tick()
-						while tick() - start < 12 and not arrived and _G.FarmPhaBinh do
-							local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
-							if not hrp or not plr.Character or not plr.Character:FindFirstChild("Humanoid") or plr.Character.Humanoid.Health <= 0 then
-								break
-							end
-							local dist = (hrp.Position - point.Position).Magnitude
-							if dist <= 3 then
-								arrived = true
-								break
-							end
-							wait(0.1)
-						end
-						if _G.FarmPhaBinh then
-							local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
-							local dist2 = hrp and (hrp.Position - point.Position).Magnitude or math.huge
-							if dist2 <= 3 then
-								equipAndUseSkill("Melee")
-								equipAndUseSkill("Sword")
-								equipAndUseSkill("Gun")
-							else
-								if StopTween then
-									pcall(StopTween)
-								end
-							end
-						end
-					end
-				end)
-			end
-		end
-	end)
-	end
 	Tabs.Main:AddSection("Quests/Outros")
 	local ClosetMons = Tabs.Main:AddToggle("ClosetMons", {
 		Title = "Auto Farm Inimigos Próximos",
@@ -4259,15 +3948,202 @@ spawn(function()
     end
 end)
 
--- Toggle de Accept Quest
+-- ===============================
+-- Accept Quest Cake Prince
+-- ===============================
 local AcceptQuestC = Tabs.Main:AddToggle("AcceptQuestC", {
     Title = "Accept Quest Cake Prince",
     Default = false
 })
-
 AcceptQuestC:OnChanged(function(Value)
     _G.AcceptQuestC = Value
 end)
+
+-- ===============================
+-- Boss Tyrant of the Skies
+-- ===============================
+if World3 then
+    Tabs.Main:AddSection("Boss Tyrant of the Skies")
+
+    local TyrantStatus = Tabs.Main:AddParagraph({
+        Title = "Tyrant of the Skies",
+        Content = ""
+    })
+
+    spawn(function()
+        pcall(function()
+            while wait(1) do
+                if game:GetService("Workspace").Enemies:FindFirstChild("Tyrant of the Skies") then
+                    TyrantStatus:SetDesc("✅")
+                else
+                    TyrantStatus:SetDesc("❌")
+                end
+            end
+        end)
+    end) 
+
+    plr = plr or game.Players.LocalPlayer
+    Sec = Sec or 0.1
+    _G.FarmTyrant = _G.FarmTyrant or false
+
+    -- Toggle Auto Farm Tyrant
+    local FarmTyrant = Tabs.Main:AddToggle("FarmTyrant", {
+        Title = "Auto Farm Tyrant",
+        Description = "Farma o Boss Tyrant Automaticamente",
+        Default = false
+    })
+    FarmTyrant:OnChanged(function(Value)
+        _G.FarmTyrant = Value
+    end)
+
+    spawn(function()
+        while wait(Sec) do
+            if _G.FarmTyrant then
+                pcall(function()
+                    local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+                    if not hrp then return end
+
+                    local bossPos = Vector3.new(-16268.287, 152.616, 1390.773)
+                    if (hrp.Position - bossPos).Magnitude > 5 then
+                        if _tp then pcall(_tp, CFrame.new(bossPos))
+                        elseif Tween then pcall(Tween, CFrame.new(bossPos))
+                        elseif notween then pcall(notween, CFrame.new(bossPos))
+                        else hrp.CFrame = CFrame.new(bossPos) end
+                        repeat wait() until not _G.FarmTyrant or (hrp.Position - bossPos).Magnitude <= 5
+                    end
+
+                    local enemiesFolder = workspace:FindFirstChild("Enemies")
+                    local boss = enemiesFolder and enemiesFolder:FindFirstChild("Tyrant of the Skies")
+                    if boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then
+                        repeat
+                            if not _G.FarmTyrant then break end
+                            if AutoHaki then pcall(AutoHaki) end
+                            if SelectWeapon and EquipTool then pcall(EquipTool, SelectWeapon) end
+                            if Attack and Attack.Kill then pcall(function() Attack.Kill(boss, _G.FarmTyrant) end)
+                            elseif AttackNoCoolDown then pcall(AttackNoCoolDown) end
+                            wait()
+                        until not _G.FarmTyrant or not boss.Parent or boss.Humanoid.Health <= 0
+                        return
+                    end
+
+                    -- Loop pelos mobs para farm Tyrant
+                    local mobList = {"Serpent Hunter", "Skull Slayer", "Isle Champion", "Sun-kissed Warrior"}
+                    if enemiesFolder then
+                        for _, mobName in ipairs(mobList) do
+                            if not _G.FarmTyrant then break end
+                            for _, mob in ipairs(enemiesFolder:GetChildren()) do
+                                if not _G.FarmTyrant then break end
+                                if mob and mob.Name == mobName and mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
+                                    if (hrp.Position - mob.HumanoidRootPart.Position).Magnitude > 5000 then
+                                        if _tp then pcall(_tp, mob.HumanoidRootPart.CFrame * CFrame.new(0,30,0))
+                                        elseif Tween then pcall(Tween, mob.HumanoidRootPart.CFrame * CFrame.new(0,30,0))
+                                        elseif notween then pcall(notween, mob.HumanoidRootPart.CFrame * CFrame.new(0,30,0))
+                                        else hrp.CFrame = mob.HumanoidRootPart.CFrame * CFrame.new(0,30,0) end
+                                    end
+                                    repeat
+                                        if not _G.FarmTyrant then break end
+                                        if AutoHaki then pcall(AutoHaki) end
+                                        if SelectWeapon and EquipTool then pcall(EquipTool, SelectWeapon) end
+                                        if Attack and Attack.Kill then pcall(function() Attack.Kill(mob, _G.FarmTyrant) end)
+                                        elseif AttackNoCoolDown then pcall(AttackNoCoolDown) end
+                                        wait()
+                                    until not _G.FarmTyrant or not mob.Parent or mob.Humanoid.Health <= 0
+                                end
+                            end
+                        end
+                    end
+                end)
+            end
+        end
+    end)
+
+    -- Toggle Farm PhaBinh (Quebrar Vasos)
+    local FarmPhaBinh = Tabs.Main:AddToggle("FarmPhaBinh", {
+        Title = "Quebrar Vasos",
+        Description = "Quebrar Vasos pra matar o Tyrant",
+        Default = false
+    })
+    FarmPhaBinh:OnChanged(function(Value)
+        _G.FarmPhaBinh = Value
+        if not Value and StopTween then pcall(StopTween) end
+    end)
+
+    local function sendSkillKey(skillKey)
+        local virtualInputManager = game:GetService("VirtualInputManager")
+        virtualInputManager:SendKeyEvent(true, skillKey, false, game)
+        wait(0.05)
+        virtualInputManager:SendKeyEvent(false, skillKey, false, game)
+    end
+
+    local function equipAndUseSkill(toolType)
+        local character = plr.Character
+        local backpack = plr.Backpack
+        if not (character and character:FindFirstChild("Humanoid") and character.Humanoid.Health > 0) then return end
+        for _, item in pairs(backpack:GetChildren()) do
+            if item:IsA("Tool") and item.ToolTip == toolType then
+                item.Parent = character
+                wait(0.12)
+                for _, skill in ipairs({"Z","X","C","V","F"}) do
+                    if not _G.FarmPhaBinh then break end
+                    pcall(function() sendSkillKey(skill) end)
+                    wait(0.12)
+                end
+                item.Parent = backpack
+                break
+            end
+        end
+    end
+
+    local PhaBinhPoints = {
+        CFrame.new(-16332.52,158.07,1440.32),
+        CFrame.new(-16288.60,158.16,1470.36),
+        CFrame.new(-16245.41,158.43,1463.36),
+        CFrame.new(-16212.46,158.16,1466.34),
+        CFrame.new(-16211.94,158.07,1322.39),
+        CFrame.new(-16260.92,154.92,1323.61),
+        CFrame.new(-16297.05,159.32,1317.22),
+        CFrame.new(-16335.09,159.33,1324.88)
+    }
+
+    spawn(function()
+        while wait(Sec) do
+            if _G.FarmPhaBinh then
+                pcall(function()
+                    if AutoHaki then pcall(AutoHaki) end
+                    if not (plr and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") and plr.Character:FindFirstChild("Humanoid") and plr.Character.Humanoid.Health > 0) then return end
+                    for _, point in ipairs(PhaBinhPoints) do
+                        if not _G.FarmPhaBinh then break end
+                        if _tp then pcall(_tp, point)
+                        elseif notween then pcall(notween, point)
+                        else plr.Character.HumanoidRootPart.CFrame = point end
+
+                        local arrived = false
+                        local start = tick()
+                        while tick() - start < 12 and not arrived and _G.FarmPhaBinh do
+                            local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+                            if not hrp or plr.Character.Humanoid.Health <= 0 then break end
+                            if (hrp.Position - point.Position).Magnitude <= 3 then
+                                arrived = true
+                                break
+                            end
+                            wait(0.1)
+                        end
+                        if _G.FarmPhaBinh then
+                            local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+                            if hrp and (hrp.Position - point.Position).Magnitude <= 3 then
+                                equipAndUseSkill("Melee")
+                                equipAndUseSkill("Sword")
+                                equipAndUseSkill("Gun")
+                            elseif StopTween then
+                                pcall(StopTween)
+                            end
+                        end
+                    end
+                end)
+            end
+        end
+    end)
+end
 
 -- Section Mastery
 Tabs.Main:AddSection("Mastery")
