@@ -3239,30 +3239,27 @@ FarmingSection:AddButton({
 	end)
 	end)
 	if World3 then
-    Tabs.Main:AddSection("Auto Tyrant of the Skies")
+    Tabs.Main:AddSection("Boss Tyrant of the Skies")
 
-    -- STATUS DO BOSS
     local TyrantStatus = Tabs.Main:AddParagraph({
         Title = "Tyrant of the Skies",
-        Content = "❌"
+        Content = ""
     })
-
     spawn(function()
-        while task.wait(1) do
-            pcall(function()
-                if workspace.Enemies:FindFirstChild("Tyrant of the Skies") then
+        pcall(function()
+            while wait(1) do
+                if game:GetService("Workspace").Enemies:FindFirstChild("Tyrant of the Skies") then
                     TyrantStatus:SetDesc("✅")
                 else
                     TyrantStatus:SetDesc("❌")
                 end
-            end)
-        end
+            end
+        end)
     end)
 
     -- VARIÁVEIS
-    local plr = game.Players.LocalPlayer
-    local hrp
-    local Sec = 0.1
+    local plr = plr or game.Players.LocalPlayer
+    local Sec = Sec or 0.1
     local killCount = 0
 
     local MobList = {
@@ -3287,7 +3284,6 @@ FarmingSection:AddButton({
     -- DROPDOWN MULTI-SELEÇÃO DAS SKILLS
     ------------------------------------------
     local SkillList = {"Z","X","C","V","F"}
-
     local SelectSkills = Tabs.Main:AddDropdown("SelectSkills", {
         Title = "Skills Para Usar nos Vasos",
         Description = "Escolha quais skills o script irá usar",
@@ -3295,59 +3291,71 @@ FarmingSection:AddButton({
         Multi = true,
         Default = {"Z","X","C"}
     })
-
     _G.TyrantSkills = {"Z","X","C"}
+    SelectSkills:OnChanged(function(value) _G.TyrantSkills = value end)
 
-    SelectSkills:OnChanged(function(value)
-        _G.TyrantSkills = value
+    ------------------------------------------
+    -- TOGGLE PRINCIPAL (mantendo nome original)
+    ------------------------------------------
+    _G.FarmTyrant = _G.FarmTyrant or false
+    local FarmTyrant = Tabs.Main:AddToggle("FarmTyrant", {
+        Title = " Auto Farm Tyrant",
+        Description = "Mata mobs, quebra vasos e depois mata o Tyrant automaticamente",
+        Default = false
+    })
+    FarmTyrant:OnChanged(function(Value)
+        _G.FarmTyrant = Value
+        if not Value and StopTween then pcall(StopTween) end
     end)
 
     ------------------------------------------
-
-    -- TOGGLE PRINCIPAL
-    local AutoTyrant = Tabs.Main:AddToggle("AutoTyrant", {
-        Title = "Auto Tyrant",
-        Description = "Mata mobs, quebra vasos e depois mata o Tyrant.",
+    -- MANTENHO DO FARM PHA BINH (OPCIONAL)
+    ------------------------------------------
+    _G.FarmPhaBinh = _G.FarmPhaBinh or false
+    local FarmPhaBinh = Tabs.Main:AddToggle("FarmPhaBinh", {
+        Title = "Quebrar Vasos (manual)",
+        Description = "Quebrar Vasos pra matar o Tyrant (toggle separado)",
         Default = false
     })
-
-    AutoTyrant:OnChanged(function(v)
-        _G.AutoTyrant = v
-        if not v and StopTween then pcall(StopTween) end
+    FarmPhaBinh:OnChanged(function(Value)
+        _G.FarmPhaBinh = Value
+        if not Value and StopTween then pcall(StopTween) end
     end)
 
-    -- ENVIAR TECLA
-    local function sendSkill(key)
-        local vim = game:GetService("VirtualInputManager")
-        vim:SendKeyEvent(true, key, false, game)
-        task.wait(0.07)
-        vim:SendKeyEvent(false, key, false, game)
+    -- funções de envio de tecla / equip
+    local function sendSkillKey(skillKey)
+        local virtualInputManager = game:GetService("VirtualInputManager")
+        virtualInputManager:SendKeyEvent(true, skillKey, false, game)
+        wait(0.05)
+        virtualInputManager:SendKeyEvent(false, skillKey, false, game)
     end
 
-    -- SISTEMA DE SKILLS COM DROPDOWN
-    local function useSkills(toolType)
-        local char = plr.Character
-        if not char then return end
-
-        for _, item in ipairs(plr.Backpack:GetChildren()) do
+    local function equipAndUseSkill(toolType)
+        local player = game.Players.LocalPlayer
+        local character = player.Character
+        local backpack = player.Backpack
+        if not (character and character:FindFirstChild("Humanoid") and character.Humanoid.Health > 0) then
+            return
+        end
+        for _, item in pairs(backpack:GetChildren()) do
             if item:IsA("Tool") and item.ToolTip == toolType then
-                item.Parent = char
-                task.wait(0.12)
-
+                item.Parent = character
+                wait(0.12)
                 for _, key in ipairs(_G.TyrantSkills or {}) do
-                    if not _G.AutoTyrant then return end
-                    pcall(function() sendSkill(key) end)
-                    task.wait(0.12)
+                    if not _G.FarmTyrant and not _G.FarmPhaBinh then
+                        break
+                    end
+                    pcall(function() sendSkillKey(key) end)
+                    wait(0.12)
                 end
-
-                item.Parent = plr.Backpack
+                item.Parent = backpack
                 break
             end
         end
     end
 
-    -- MOVIMENTO
-    local function tp(cf)
+    -- movimento seguro (usa _tp / Tween / notween / fallback)
+    local function safeTP(cf)
         if _tp then
             pcall(_tp, cf)
         elseif Tween then
@@ -3364,103 +3372,231 @@ FarmingSection:AddButton({
     local BossPos = CFrame.new(-16268.287,152.616,1390.773)
 
     ------------------------------------------
-    -- LOOP PRINCIPAL
+    -- LOOP PRINCIPAL (FarmTyrant faz tudo: mobs -> vasos -> boss)
     ------------------------------------------
     spawn(function()
-        while task.wait(Sec) do
-            if not _G.AutoTyrant then continue end
+        while wait(Sec) do
+            if not _G.FarmTyrant then
+                -- se FarmTyrant desligado, só segue
+            else
+                pcall(function()
+                    local player = plr or game.Players.LocalPlayer
+                    if not (player and player.Character) then return end
+                    local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+                    if not hrp then return end
 
-            pcall(function()
+                    local enemiesFolder = workspace:FindFirstChild("Enemies")
+                    -- 1) SE TYRANT SPAWNOU -> IR NELE E MATAR
+                    local tyrant = enemiesFolder and enemiesFolder:FindFirstChild("Tyrant of the Skies")
+                    if tyrant and tyrant:FindFirstChild("Humanoid") and tyrant.Humanoid.Health > 0 then
+                        safeTP(BossPos)
+                        repeat
+                            if not _G.FarmTyrant then break end
+                            if AutoHaki then pcall(AutoHaki) end
+                            if SelectWeapon and EquipTool then pcall(EquipTool, SelectWeapon) end
+                            if Attack and Attack.Kill then
+                                pcall(function() Attack.Kill(tyrant, true) end)
+                            elseif AttackNoCoolDown then
+                                pcall(AttackNoCoolDown)
+                            end
+                            wait()
+                        until not tyrant.Parent or tyrant.Humanoid.Health <= 0 or not _G.FarmTyrant
 
-                plr = game.Players.LocalPlayer
-                hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
-                if not hrp then return end
+                        killCount = 0
+                        return
+                    end
 
-                local Enemies = workspace:FindFirstChild("Enemies")
+                    -- 2) SE AINDA NÃO CHEGOU EM 400 -> MATAR MOBS
+                    if killCount < 400 then
+                        local found = false
+                        if enemiesFolder then
+                            for _, mobName in ipairs(MobList) do
+                                if not _G.FarmTyrant then break end
+                                for _, mob in ipairs(enemiesFolder:GetChildren()) do
+                                    if not _G.FarmTyrant then break end
+                                    if mob and mob.Name == mobName and mob:FindFirstChild("HumanoidRootPart") 
+                                        and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
 
-                ----------------------------------------
-                -- 1) TYRANT SPAWNADO → IR PRA ELE
-                ----------------------------------------
-                local Tyrant = Enemies and Enemies:FindFirstChild("Tyrant of the Skies")
-                if Tyrant and Tyrant:FindFirstChild("Humanoid") and Tyrant.Humanoid.Health > 0 then
-                    
-                    tp(BossPos)
+                                        found = true
+                                        local targetHRP = mob.HumanoidRootPart
+                                        -- teleporta próximo (usa mesma lógica do seu original)
+                                        if (hrp.Position - targetHRP.Position).Magnitude > 5000 then
+                                            if _tp then
+                                                pcall(_tp, targetHRP.CFrame * CFrame.new(0,30,0))
+                                            elseif Tween then
+                                                pcall(Tween, targetHRP.CFrame * CFrame.new(0,30,0))
+                                            elseif notween then
+                                                pcall(notween, targetHRP.CFrame * CFrame.new(0,30,0))
+                                            else
+                                                pcall(function()
+                                                    player.Character.HumanoidRootPart.CFrame = targetHRP.CFrame * CFrame.new(0,30,0)
+                                                end)
+                                            end
+                                            local t0 = tick()
+                                            repeat
+                                                wait()
+                                                hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+                                            until not _G.FarmTyrant or not hrp or (hrp.Position - targetHRP.Position).Magnitude <= 6 or tick() - t0 > 8
+                                        end
 
-                    repeat
-                        if not _G.AutoTyrant then return end
+                                        -- atacar o mob até morrer
+                                        repeat
+                                            if not _G.FarmTyrant then break end
+                                            if AutoHaki then pcall(AutoHaki) end
+                                            if SelectWeapon and EquipTool then pcall(EquipTool, SelectWeapon) end
+                                            if Attack and Attack.Kill then
+                                                pcall(function() Attack.Kill(mob, true) end)
+                                            elseif AttackNoCoolDown then
+                                                pcall(AttackNoCoolDown)
+                                            end
+                                            wait()
+                                        until not mob.Parent or not mob:FindFirstChild("Humanoid") or mob.Humanoid.Health <= 0 or not _G.FarmTyrant
 
-                        if AutoHaki then pcall(AutoHaki) end
-                        if SelectWeapon and EquipTool then pcall(EquipTool, SelectWeapon) end
-                        if Attack and Attack.Kill then
-                            pcall(function() Attack.Kill(Tyrant, true) end)
+                                        -- só incrementa se realmente morreu / sumiu
+                                        if not mob.Parent or (mob:FindFirstChild("Humanoid") and mob.Humanoid.Health <= 0) then
+                                            killCount = killCount + 1
+                                        end
+
+                                        return
+                                    end
+                                end
+                            end
+                        else
+                            -- fallback: procurar no workspace (igual original)
+                            for _, mobName in ipairs(MobList) do
+                                if not _G.FarmTyrant then break end
+                                for _, mob in ipairs(workspace:GetChildren()) do
+                                    if not _G.FarmTyrant then break end
+                                    if mob and mob.Name == mobName and mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
+                                        -- teleporta e mata (mesma lógica)
+                                        if _tp then
+                                            pcall(_tp, mob.HumanoidRootPart.CFrame * CFrame.new(0,30,0))
+                                        else
+                                            pcall(function()
+                                                player.Character.HumanoidRootPart.CFrame = mob.HumanoidRootPart.CFrame * CFrame.new(0,30,0)
+                                            end)
+                                        end
+                                        repeat wait() until not _G.FarmTyrant or (player.Character and player.Character:FindFirstChild("HumanoidRootPart") and (player.Character.HumanoidRootPart.Position - mob.HumanoidRootPart.Position).Magnitude <= 6)
+                                        repeat
+                                            if not _G.FarmTyrant then break end
+                                            if Attack and Attack.Kill then
+                                                pcall(function() Attack.Kill(mob, true) end)
+                                            elseif AttackNoCoolDown then
+                                                pcall(AttackNoCoolDown)
+                                            end
+                                            wait()
+                                        until not _G.FarmTyrant or not mob.Parent or mob.Humanoid.Health <= 0
+                                        if not mob.Parent or mob.Humanoid.Health <= 0 then
+                                            killCount = killCount + 1
+                                        end
+                                        return
+                                    end
+                                end
+                            end
                         end
 
-                        task.wait()
+                        -- se não encontrou nenhum mob: apenas retorna e continua o loop
+                        if not found then return end
+                    end
 
-                    until not Tyrant.Parent or Tyrant.Humanoid.Health <= 0 or not _G.AutoTyrant
+                    -- 3) SE 400 KILLS -> QUEBRAR VASOS (usa skills do dropdown)
+                    if killCount >= 400 then
+                        for _, vasoCF in ipairs(Vases) do
+                            if not _G.FarmTyrant then return end
+                            safeTP(vasoCF)
+                            local t0 = tick()
+                            repeat
+                                hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+                                if not hrp then break end
+                                if (hrp.Position - vasoCF.Position).Magnitude <= 3 then break end
+                                wait(0.1)
+                            until tick() - t0 >= 8 or not _G.FarmTyrant
 
-                    killCount = 0
-                    return
-                end
+                            if not _G.FarmTyrant then return end
 
-                ----------------------------------------
-                -- 2) MATAR MOBS ATÉ 400
-                ----------------------------------------
-                if killCount < 400 then
-                    if Enemies then
-                        for _, mob in ipairs(Enemies:GetChildren()) do
-                            if not _G.AutoTyrant then return end
+                            equipAndUseSkill("Melee")
+                            equipAndUseSkill("Sword")
+                            equipAndUseSkill("Gun")
 
-                            if table.find(MobList, mob.Name) and mob:FindFirstChild("HumanoidRootPart") 
-                                and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
+                            -- checar se o Tyrant spawnou enquanto quebra vasos
+                            local tyrantNow = enemiesFolder and enemiesFolder:FindFirstChild("Tyrant of the Skies")
+                            if tyrantNow and tyrantNow:FindFirstChild("Humanoid") and tyrantNow.Humanoid.Health > 0 then
+                                -- será tratado no topo do loop (vai pro boss e reset)
+                                break
+                            end
+                        end
+                        -- após quebrar vasos, fica esperando Tyrant spawnar ou voltar a farmar mobs
+                        -- não resetamos killCount aqui, só reset quando matar o boss
+                    end
 
-                                tp(mob.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0))
+                end)
+            end
+        end
+    end)
 
-                                repeat
-                                    if not _G.AutoTyrant then return end
-                                    if AutoHaki then pcall(AutoHaki) end
-                                    if SelectWeapon and EquipTool then pcall(EquipTool, SelectWeapon) end
-                                    if Attack and Attack.Kill then
-                                        pcall(function() Attack.Kill(mob, true) end)
-                                    end
-                                    task.wait()
-                                until not mob.Parent or mob.Humanoid.Health <= 0 or not _G.AutoTyrant
+    ------------------------------------------
+    -- LOOP SEPARADO: FarmPhaBinh manual (mantive o seu original adaptado para skills dropdown)
+    ------------------------------------------
+    local PhaBinhPoints = {
+        CFrame.new(-16332.5263671875, 158.07200622558594, 1440.324951171875),
+        CFrame.new(-16288.609375, 158.16700744628906, 1470.3680419921875),
+        CFrame.new(-16245.412109375, 158.43699645996094, 1463.365966796875),
+        CFrame.new(-16212.46875, 158.16700744628906, 1466.343994140625),
+        CFrame.new(-16211.9462890625, 158.07200622558594, 1322.39794921875),
+        CFrame.new(-16260.921875, 154.92100524902344, 1323.615966796875),
+        CFrame.new(-16297.0595703125, 159.322998046875, 1317.2239990234375),
+        CFrame.new(-16335.0966796875, 159.33399963378906, 1324.885986328125),
+    }
 
-                                killCount = killCount + 1
-                                return
+    spawn(function()
+        while wait(Sec) do
+            if _G.FarmPhaBinh then
+                pcall(function()
+                    if AutoHaki then pcall(AutoHaki) end
+                    if not (plr and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") and plr.Character:FindFirstChild("Humanoid") and plr.Character.Humanoid.Health > 0) then
+                        return
+                    end
+                    for _, point in ipairs(PhaBinhPoints) do
+                        if not _G.FarmPhaBinh then break end
+                        if _tp then
+                            pcall(_tp, point)
+                        else
+                            if notween then
+                                pcall(notween, point)
+                            else
+                                if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                                    plr.Character.HumanoidRootPart.CFrame = point
+                                end
+                            end
+                        end
+                        local arrived = false
+                        local start = tick()
+                        while tick() - start < 12 and not arrived and _G.FarmPhaBinh do
+                            local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+                            if not hrp or not plr.Character or not plr.Character:FindFirstChild("Humanoid") or plr.Character.Humanoid.Health <= 0 then
+                                break
+                            end
+                            local dist = (hrp.Position - point.Position).Magnitude
+                            if dist <= 3 then
+                                arrived = true
+                                break
+                            end
+                            wait(0.1)
+                        end
+                        if _G.FarmPhaBinh then
+                            local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+                            local dist2 = hrp and (hrp.Position - point.Position).Magnitude or math.huge
+                            if dist2 <= 3 then
+                                equipAndUseSkill("Melee")
+                                equipAndUseSkill("Sword")
+                                equipAndUseSkill("Gun")
+                            else
+                                if StopTween then pcall(StopTween) end
                             end
                         end
                     end
-
-                    return
-                end
-
-                ----------------------------------------
-                -- 3) QUEBRAR VASOS COM AS SKILLS DO DROPDOWN
-                ----------------------------------------
-                for _, vasoCF in ipairs(Vases) do
-                    if not _G.AutoTyrant then return end
-
-                    tp(vasoCF)
-
-                    local t0 = tick()
-                    repeat
-                        hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
-                        if not hrp then break end
-
-                        if (hrp.Position - vasoCF.Position).Magnitude <= 3 then break end
-                        task.wait(0.1)
-
-                    until tick() - t0 >= 8 or not _G.AutoTyrant
-
-                    if not _G.AutoTyrant then return end
-
-                    useSkills("Melee")
-                    useSkills("Sword")
-                    useSkills("Gun")
-                end
-
-            end)
+                end)
+            end
         end
     end)
 end
