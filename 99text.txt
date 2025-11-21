@@ -4583,136 +4583,6 @@ end)
 		end
 	end)
 
-	Tabs.Main:AddSection("Buso/Aura Colours")
-	local Q = Tabs.Main:AddToggle("Q", {
-		Title = "Teleport Barista Cousin",
-		Description = "",
-		Default = false
-	})
-	Q:OnChanged(function(Value)
-		_G.Tp_MasterA = Value
-	end)
-	spawn(function()
-		while wait() do
-			if _G.Tp_MasterA then
-				pcall(function()
-					for _, v in pairs(replicated.NPCs:GetChildren()) do
-						if v.Name == "Barista Cousin" then
-							_tp(v.HumanoidRootPart.CFrame)
-						end
-					end
-				end)
-			end
-		end
-	end)
-	Tabs.Main:AddButton({
-		Title = "Comprar Cores de haki",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("ColorsDealer", "2")
-		end
-	})
-	local Q = Tabs.Main:AddToggle("Q", {
-		Title = "Auto Rainbow Colors",
-		Description = "",
-		Default = false
-	})
-	Q:OnChanged(function(Value)
-		_G.Auto_Rainbow_Haki = Value
-	end)
-	spawn(function()
-		pcall(function()
-			while wait(Sec) do
-				if _G.Auto_Rainbow_Haki then
-					if plr.PlayerGui.Main.Quest.Visible == false then
-						if _G.GetQFast then
-							if plr.PlayerGui.Main.Quest.Visible == false then
-								replicated.Remotes.CommF_:InvokeServer("HornedMan", "Bet")
-							end
-						else
-							Rainbow1 = CFrame.new(-11892.0703125, 930.57672119141, -8760.1591796875)
-							if (plr.Character.HumanoidRootPart.CFrame ~= Rainbow1) then
-								_tp(Rainbow1)
-							elseif (plr.Character.HumanoidRootPart.CFrame == Rainbow1) then
-								wait(1)
-								replicated.Remotes.CommF_:InvokeServer("HornedMan", "Bet")
-							end
-						end
-					elseif plr.PlayerGui.Main.Quest.Visible == true and string.find(plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "Stone") then
-						local v = GetConnectionEnemies("Stone")
-						if v then
-							repeat
-								wait()
-								Attack.Kill(v, _G.Auto_Rainbow_Haki)
-							until _G.Auto_Rainbow_Haki == false or v.Humanoid.Health <= 0 or not v.Parent or plr.PlayerGui.Main.Quest.Visible == false
-						else
-							_tp(CFrame.new(-1086.11621, 38.8425903, 6768.71436, 0.0231462717, -0.592676699, 0.805107772, 2.03251839e-05, 0.805323839, 0.592835128, -0.999732077, -0.0137055516, 0.0186523199))
-						end
-					elseif plr.PlayerGui.Main.Quest.Visible == true and string.find(plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "Hydra Leader") then
-						local v = GetConnectionEnemies("Hydra Leader")
-						if v then
-							repeat
-								task.wait()
-								Attack.Kill(v, _G.Auto_Rainbow_Haki)
-							until _G.Auto_Rainbow_Haki == false or v.Humanoid.Health <= 0 or not v.Parent or plr.PlayerGui.Main.Quest.Visible == false
-						else
-							replicated.Remotes.CommF_:InvokeServer("requestEntrance", Vector3.new(5643.45263671875, 1013.0858154296875, -340.51025390625))
-							local framelong1 = Vector3.new(5643.45263671875, 1013.0858154296875, -340.51025390625)
-							local framelong2 = CFrame.new(5821.89794921875, 1019.0950927734375, -73.71923065185547)
-							if (plr.Character.HumanoidRootPart.CFrame.Position == framelong1) then
-								_tp(framelong2)
-							end
-						end
-					elseif plr.PlayerGui.Main.Quest.Visible == true and string.find(plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "Kilo Admiral") then
-						local v = GetConnectionEnemies("Kilo Admiral")
-						if v then
-							repeat
-								task.wait()
-								Attack.Kill(v, _G.Auto_Rainbow_Haki)
-							until _G.Auto_Rainbow_Haki == false or v.Humanoid.Health <= 0 or not v.Parent or plr.PlayerGui.Main.Quest.Visible == false
-						else
-							_tp(CFrame.new(2877.61743, 423.558685, -7207.31006, -0.989591599, -0, -0.143904909, -0, 1.00000012, -0, 0.143904924, 0, -0.989591479))
-						end
-					elseif plr.PlayerGui.Main.Quest.Visible == true and string.find(plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "Captain Elephant") then
-						local v = GetConnectionEnemies("Captain Elephant")
-						if v then
-							repeat
-								task.wait()
-								Attack.Kill(v, _G.Auto_Rainbow_Haki)
-							until _G.Auto_Rainbow_Haki == false or v.Humanoid.Health <= 0 or not v.Parent or plr.PlayerGui.Main.Quest.Visible == false
-						else
-							local gamergayror1 = Vector3.new(-12471.169921875, 374.94024658203, -7551.677734375)
-							local gamergayror2 = CFrame.new(-13376.7578125, 433.28689575195, -8071.392578125)
-							if (plr.Character.HumanoidRootPart.CFrame.Position ~= gamergayror1) then
-								replicated.Remotes.CommF_:InvokeServer("requestEntrance", Vector3.new(-12471.169921875, 374.94024658203, -7551.677734375))
-							elseif (plr.Character.HumanoidRootPart.CFrame.Position == gamergayror1) then
-								_tp(gamergayror2)
-							end
-						end
-					elseif plr.PlayerGui.Main.Quest.Visible == true and string.find(plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "Beautiful Pirate") then
-						local v = GetConnectionEnemies("Captain Elephant")
-						if v then
-							repeat
-								task.wait()
-								Attack.Kill(v, _G.Auto_Rainbow_Haki)
-							until _G.Auto_Rainbow_Haki == false or v.Humanoid.Health <= 0 or not v.Parent or plr.PlayerGui.Main.Quest.Visible == false
-						else
-							replicated.Remotes.CommF_:InvokeServer("requestEntrance", Vector3.new(5314.54638671875, 22.562219619750977, -127.06755065917969))
-						end
-					end
-				end
-			end
-		end)
-	end)
-	local Q = Tabs.Main:AddToggle("Q", {
-		Title = "Accept Rainbow Quest Faster",
-		Description = "",
-		Default = false
-	})
-	Q:OnChanged(function(Value)
-		_G.GetQFast = Value
-	end)
-
 	Tabs.Main:AddSection("Instinct / Observation")
 	local Q = Tabs.Main:AddToggle("Q", {
 		Title = "Auto Farm Haki da observaçao",
@@ -5506,7 +5376,7 @@ end)
 		end
 	end)
 	local Q = Tabs.Quests:AddToggle("Q", {
-		Title = "Auto Elite Quest",
+		Title = "Auto Elite Hunter",
 		Description = "",
 		Default = false
 	})
@@ -5541,7 +5411,7 @@ end)
 		end
 	end)
 	local Q = Tabs.Quests:AddToggle("Q", {
-		Title = "Stop when got God's Chalice",
+		Title = "Parar Se Obter o God Cálice",
 		Description = "",
 		Default = true
 	})
@@ -5620,38 +5490,189 @@ end)
 			end)
 		end
 	end)
-	local Q = Tabs.Quests:AddToggle("Q", {
-		Title = "Auto Yama Sword",
-		Description = "",
-		Default = false
-	})
-	Q:OnChanged(function(Value)
-		_G.Auto_Yama = Value
-	end)
-	spawn(function()
-		while wait(Sec) do
-			pcall(function()
-				if _G.Auto_Yama then
-					if replicated.Remotes.CommF_:InvokeServer("EliteHunter", "Progress") < 30 then
-						_G.FarmEliteHunt = true
-					elseif replicated.Remotes.CommF_:InvokeServer("EliteHunter", "Progress") > 30 then
-						_G.FarmEliteHunt = false
-						if (workspace.Map.Waterfall.SealedKatana.Handle.Position - plr.Character.HumanoidRootPart.Position).Magnitude >= 20 then
-							_tp(workspace.Map.Waterfall.SealedKatana.Handle.CFrame)
-							local zx = GetConnectionEnemies("Ghost")
-							if zx then
-								repeat
-									wait()
-									Attack.Kill(zx, _G.Auto_Yama)
-								until zx.Humanoid.Health <= 0 or not zx.Parent or not _G.Auto_Yama
-								fireclickdetector(workspace.Map.Waterfall.SealedKatana.Handle.ClickDetector)
-							end
-						end
-					end
-				end
-			end)
-		end
-	end)
+	-- ===============================
+-- Auto Yama Sword (fora de Section)
+-- ===============================
+local Q = Tabs.Quests:AddToggle("Q", {
+    Title = "Auto Yama Sword",
+    Description = "",
+    Default = false
+})
+Q:OnChanged(function(Value)
+    _G.Auto_Yama = Value
+end)
+
+spawn(function()
+    while wait(Sec) do
+        pcall(function()
+            if _G.Auto_Yama then
+                if replicated.Remotes.CommF_:InvokeServer("EliteHunter", "Progress") < 30 then
+                    _G.FarmEliteHunt = true
+                elseif replicated.Remotes.CommF_:InvokeServer("EliteHunter", "Progress") > 30 then
+                    _G.FarmEliteHunt = false
+                    if (workspace.Map.Waterfall.SealedKatana.Handle.Position - plr.Character.HumanoidRootPart.Position).Magnitude >= 20 then
+                        _tp(workspace.Map.Waterfall.SealedKatana.Handle.CFrame)
+                        local zx = GetConnectionEnemies("Ghost")
+                        if zx then
+                            repeat
+                                wait()
+                                Attack.Kill(zx, _G.Auto_Yama)
+                            until zx.Humanoid.Health <= 0 or not zx.Parent or not _G.Auto_Yama
+                            fireclickdetector(workspace.Map.Waterfall.SealedKatana.Handle.ClickDetector)
+                        end
+                    end
+                end
+            end
+        end)
+    end
+end)
+
+-- ===============================================
+-- Buso/Aura Colours Section
+-- ===============================================
+Tabs.Main:AddSection("Buso/Aura Colours")
+
+-- Teleport Barista Cousin
+local Q = Tabs.Main:AddToggle("Q", {
+    Title = "Teleport Barista Cousin",
+    Description = "",
+    Default = false
+})
+Q:OnChanged(function(Value)
+    _G.Tp_MasterA = Value
+end)
+
+spawn(function()
+    while wait() do
+        if _G.Tp_MasterA then
+            pcall(function()
+                for _, v in pairs(replicated.NPCs:GetChildren()) do
+                    if v.Name == "Barista Cousin" then
+                        _tp(v.HumanoidRootPart.CFrame)
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+-- Comprar Cores de Haki
+Tabs.Main:AddButton({
+    Title = "Comprar Cores de haki",
+    Description = "",
+    Callback = function()
+        replicated.Remotes.CommF_:InvokeServer("ColorsDealer", "2")
+    end
+})
+
+-- Auto Rainbow Colors
+local Q = Tabs.Main:AddToggle("Q", {
+    Title = "Auto Rainbow Haki",
+    Description = "",
+    Default = false
+})
+Q:OnChanged(function(Value)
+    _G.Auto_Rainbow_Haki = Value
+end)
+
+spawn(function()
+    while wait(Sec) do
+        pcall(function()
+            if _G.Auto_Rainbow_Haki then
+                -- Toda a lógica de Rainbow Haki (quests, tp, ataques)
+                if plr.PlayerGui.Main.Quest.Visible == false then
+                    if _G.GetQFast then
+                        if plr.PlayerGui.Main.Quest.Visible == false then
+                            replicated.Remotes.CommF_:InvokeServer("HornedMan", "Bet")
+                        end
+                    else
+                        Rainbow1 = CFrame.new(-11892.0703125, 930.57672119141, -8760.1591796875)
+                        if (plr.Character.HumanoidRootPart.CFrame ~= Rainbow1) then
+                            _tp(Rainbow1)
+                        elseif (plr.Character.HumanoidRootPart.CFrame == Rainbow1) then
+                            wait(1)
+                            replicated.Remotes.CommF_:InvokeServer("HornedMan", "Bet")
+                        end
+                    end
+                elseif plr.PlayerGui.Main.Quest.Visible == true then
+                    local questText = plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text
+                    if string.find(questText, "Stone") then
+                        local v = GetConnectionEnemies("Stone")
+                        if v then
+                            repeat
+                                wait()
+                                Attack.Kill(v, _G.Auto_Rainbow_Haki)
+                            until not v.Parent or v.Humanoid.Health <= 0 or not _G.Auto_Rainbow_Haki or plr.PlayerGui.Main.Quest.Visible == false
+                        else
+                            _tp(CFrame.new(-1086.11621, 38.8425903, 6768.71436, 0.0231462717, -0.592676699, 0.805107772, 2.03251839e-05, 0.805323839, 0.592835128, -0.999732077, -0.0137055516, 0.0186523199))
+                        end
+                    elseif string.find(questText, "Hydra Leader") then
+                        local v = GetConnectionEnemies("Hydra Leader")
+                        if v then
+                            repeat
+                                task.wait()
+                                Attack.Kill(v, _G.Auto_Rainbow_Haki)
+                            until not v.Parent or v.Humanoid.Health <= 0 or not _G.Auto_Rainbow_Haki or plr.PlayerGui.Main.Quest.Visible == false
+                        else
+                            replicated.Remotes.CommF_:InvokeServer("requestEntrance", Vector3.new(5643.45263671875, 1013.0858154296875, -340.51025390625))
+                            local framelong1 = Vector3.new(5643.45263671875, 1013.0858154296875, -340.51025390625)
+                            local framelong2 = CFrame.new(5821.89794921875, 1019.0950927734375, -73.71923065185547)
+                            if (plr.Character.HumanoidRootPart.CFrame.Position == framelong1) then
+                                _tp(framelong2)
+                            end
+                        end
+                    elseif string.find(questText, "Kilo Admiral") then
+                        local v = GetConnectionEnemies("Kilo Admiral")
+                        if v then
+                            repeat
+                                task.wait()
+                                Attack.Kill(v, _G.Auto_Rainbow_Haki)
+                            until not v.Parent or v.Humanoid.Health <= 0 or not _G.Auto_Rainbow_Haki or plr.PlayerGui.Main.Quest.Visible == false
+                        else
+                            _tp(CFrame.new(2877.61743, 423.558685, -7207.31006, -0.989591599, -0, -0.143904909, -0, 1.00000012, -0, 0.143904924, 0, -0.989591479))
+                        end
+                    elseif string.find(questText, "Captain Elephant") then
+                        local v = GetConnectionEnemies("Captain Elephant")
+                        if v then
+                            repeat
+                                task.wait()
+                                Attack.Kill(v, _G.Auto_Rainbow_Haki)
+                            until not v.Parent or v.Humanoid.Health <= 0 or not _G.Auto_Rainbow_Haki or plr.PlayerGui.Main.Quest.Visible == false
+                        else
+                            local gamergayror1 = Vector3.new(-12471.169921875, 374.94024658203, -7551.677734375)
+                            local gamergayror2 = CFrame.new(-13376.7578125, 433.28689575195, -8071.392578125)
+                            if (plr.Character.HumanoidRootPart.CFrame.Position ~= gamergayror1) then
+                                replicated.Remotes.CommF_:InvokeServer("requestEntrance", gamergayror1)
+                            elseif (plr.Character.HumanoidRootPart.CFrame.Position == gamergayror1) then
+                                _tp(gamergayror2)
+                            end
+                        end
+                    elseif string.find(questText, "Beautiful Pirate") then
+                        local v = GetConnectionEnemies("Captain Elephant")
+                        if v then
+                            repeat
+                                task.wait()
+                                Attack.Kill(v, _G.Auto_Rainbow_Haki)
+                            until not v.Parent or v.Humanoid.Health <= 0 or not _G.Auto_Rainbow_Haki or plr.PlayerGui.Main.Quest.Visible == false
+                        else
+                            _tp(CFrame.new(5314.54638671875, 22.562219619750977, -127.06755065917969))
+                        end
+                    end
+                end
+            end
+        end)
+    end
+end)
+
+-- Accept Rainbow Quest Faster
+local Q = Tabs.Main:AddToggle("Q", {
+    Title = "Accept Quest Bypass",
+    Description = "",
+    Default = false
+})
+Q:OnChanged(function(Value)
+    _G.GetQFast = Value
+end)
 
 	Tabs.Quests:AddSection("Cursed Dual Katana")
 	local CheckCDK = Tabs.Quests:AddParagraph({
