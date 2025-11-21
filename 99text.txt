@@ -8924,251 +8924,233 @@ end
 			end)
 		end
 	end)
-	Tabs.SeaEvent:AddSection("Entity Sea Event")
-	Q = Tabs.SeaEvent:AddToggle("Q", {
-		Title = "Auto Shark",
-		Description = "",
-		Default = false
-	})
-	Q:OnChanged(function(Value)
-		_G.Shark = Value
-	end)
-	Q = Tabs.SeaEvent:AddToggle("Q", {
-		Title = "Auto Piranha",
-		Description = "",
-		Default = false
-	})
-	Q:OnChanged(function(Value)
-		_G.Piranha = Value
-	end)
-	Q = Tabs.SeaEvent:AddToggle("Q", {
-		Title = "Auto Terror Shark",
-		Description = "",
-		Default = false
-	})
-	Q:OnChanged(function(Value)
-		_G.TerrorShark = Value
-	end)
-	Q = Tabs.SeaEvent:AddToggle("Q", {
-		Title = "Auto Fish Crew Member",
-		Description = "",
-		Default = false
-	})
-	Q:OnChanged(function(Value)
-		_G.MobCrew = Value
-	end)
-	Q = Tabs.SeaEvent:AddToggle("Q", {
-		Title = "Auto Haunted Crew Member",
-		Description = "",
-		Default = false
-	})
-	Q:OnChanged(function(Value)
-		_G.HCM = Value
-	end)
-	Q = Tabs.SeaEvent:AddToggle("Q", {
-		Title = "Auto Pirate Grand Brigade",
-		Description = "",
-		Default = false
-	})
-	Q:OnChanged(function(Value)
-		_G.PGB = Value
-	end)
-	Q = Tabs.SeaEvent:AddToggle("Q", {
-		Title = "AutoFish Boat",
-		Description = "",
-		Default = false
-	})
-	Q:OnChanged(function(Value)
-		_G.FishBoat = Value
-	end)
-	Q = Tabs.SeaEvent:AddToggle("Q", {
-		Title = "Auto Sea Beast",
-		Description = "",
-		Default = false
-	})
-	Q:OnChanged(function(Value)
-		_G.SeaBeast1 = Value
-	end)
-	Q = Tabs.SeaEvent:AddToggle("Q", {
-		Title = "Auto Attack Leviathan",
-		Description = "",
-		Default = false
-	})
-	Q:OnChanged(function(Value)
-		_G.Leviathan1 = Value
-	end)
-	spawn(function()
-		while wait() do
-			pcall(function()
-				if _G.Shark then
-					local a = {
-						"Shark"
-					}
-					if CheckShark() then
-						for b, c in pairs(workspace.Enemies:GetChildren()) do
-							if table.find(a, c.Name) then
-								if Attack.Alive(c) then
-									repeat
-										task.wait()
-										Attack.Kill(c, _G.Shark)
-									until _G.Shark == false or not c.Parent or c.Humanoid.Health <= 0
-								end
-							end
-						end
-					end
-				end
-				if _G.TerrorShark then
-					local a = {
-						"Terrorshark"
-					}
-					if CheckTerrorShark() then
-						for b, c in pairs(workspace.Enemies:GetChildren()) do
-							if table.find(a, c.Name) then
-								if Attack.Alive(c) then
-									repeat
-										task.wait()
-										Attack.KillSea(c, _G.TerrorShark)
-									until _G.TerrorShark == false or not c.Parent or c.Humanoid.Health <= 0
-								end
-							end
-						end
-					end
-				end
-				if _G.Piranha then
-					local a = {
-						"Piranha"
-					}
-					if CheckPiranha() then
-						for b, c in pairs(workspace.Enemies:GetChildren()) do
-							if table.find(a, c.Name) then
-								if Attack.Alive(c) then
-									repeat
-										task.wait()
-										Attack.Kill(c, _G.Piranha)
-									until _G.Piranha == false or not c.Parent or c.Humanoid.Health <= 0
-								end
-							end
-						end
-					end
-				end
-				if _G.MobCrew then
-					local a = {
-						"Fish Crew Member"
-					}
-					if CheckFishCrew() then
-						for b, c in pairs(workspace.Enemies:GetChildren()) do
-							if table.find(a, c.Name) then
-								if Attack.Alive(c) then
-									repeat
-										task.wait()
-										Attack.Kill(c, _G.MobCrew)
-									until _G.MobCrew == false or not c.Parent or c.Humanoid.Health <= 0
-								end
-							end
-						end
-					end
-				end
-				if _G.HCM then
-					local a = {
-						"Haunted Crew Member"
-					}
-					if CheckHauntedCrew() then
-						for b, c in pairs(workspace.Enemies:GetChildren()) do
-							if table.find(a, c.Name) then
-								if Attack.Alive(c) then
-									repeat
-										task.wait()
-										Attack.Kill(c, _G.HCM)
-									until _G.HCM == false or not c.Parent or c.Humanoid.Health <= 0
-								end
-							end
-						end
-					end
-				end
-				if _G.SeaBeast1 then
-					if workspace.SeaBeasts:FindFirstChild("SeaBeast1") then
-						for a, b in pairs(workspace.SeaBeasts:GetChildren()) do
-							if b:FindFirstChild("HumanoidRootPart") and b:FindFirstChild("Health") and b.Health.Value > 0 then
-								repeat
-									task.wait()
-									spawn(function()
-										_tp(CFrame.new(b.HumanoidRootPart.Position.X, game:GetService("Workspace").Map["WaterBase-Plane"].Position.Y + 200, b.HumanoidRootPart.Position.Z))
-									end)
-									if plr:DistanceFromCharacter(b.HumanoidRootPart.CFrame.Position) <= 500 then
-										AitSeaSkill_Custom = b.HumanoidRootPart.CFrame;
-										MousePos = AitSeaSkill_Custom.Position;
-										AttackWithSelectedSkills() -- Chamada da nova função
-									end
-								until _G.SeaBeast1 == false or not b:FindFirstChild("HumanoidRootPart") or not b.Parent or b.Health.Value <= 0
-							end
-						end
-					end
-				end
-				if _G.Leviathan1 then
-					if workspace.SeaBeasts:FindFirstChild("Leviathan") then
-						for a, b in pairs(workspace.SeaBeasts:GetChildren()) do
-							if b:FindFirstChild("HumanoidRootPart") and b:FindFirstChild("Leviathan Segment") and b:FindFirstChild("Health") and b.Health.Value > 0 then
-								repeat
-									task.wait()
-									spawn(function()
-										_tp(CFrame.new(b.HumanoidRootPart.Position.X, game:GetService("Workspace").Map["WaterBase-Plane"].Position.Y + 200, b.HumanoidRootPart.Position.Z))
-									end)
-									if plr:DistanceFromCharacter(b.HumanoidRootPart.CFrame.Position) <= 500 then
-										MousePos = b:FindFirstChild("Leviathan Segment").Position;
-										AttackWithSelectedSkills() -- Chamada da nova função
-									end
-								until _G.Leviathan1 == false or not b:FindFirstChild("HumanoidRootPart") or not b.Parent or b.Health.Value <= 0
-							end
-						end
-					end
-				end
-				if _G.FishBoat then
-					if CheckEnemiesBoat() then
-						for a, b in pairs(workspace.Enemies:GetChildren()) do
-							if b:FindFirstChild("Health") and b.Health.Value > 0 and b:FindFirstChild("VehicleSeat") then
-								repeat
-									task.wait()
-									spawn(function()
-										if b.Name == "FishBoat" then
-											_tp(b.Engine.CFrame * CFrame.new(0, -50, -25))
-										end
-									end)
-									if plr:DistanceFromCharacter(b.Engine.CFrame.Position) <= 150 then
-										AitSeaSkill_Custom = b.Engine.CFrame;
-										MousePos = AitSeaSkill_Custom.Position;
-										AttackWithSelectedSkills() -- Chamada da nova função
-									end
-								until _G.FishBoat == false or not b:FindFirstChild("VehicleSeat") or b.Health.Value <= 0
-							end
-						end
-					end
-				end
-				if _G.PGB then
-					if CheckPirateGrandBrigade() then
-						for a, b in pairs(workspace.Enemies:GetChildren()) do
-							if b:FindFirstChild("Health") and b.Health.Value > 0 and b:FindFirstChild("VehicleSeat") then
-								repeat
-									task.wait()
-									spawn(function()
-										if b.Name == "PirateBrigade" then
-											_tp(b.Engine.CFrame * CFrame.new(0, -30, -10))
-										elseif b.Name == "PirateGrandBrigade" then
-											_tp(b.Engine.CFrame * CFrame.new(0, -50, -50))
-										end
-									end)
-									if plr:DistanceFromCharacter(b.Engine.CFrame.Position) <= 150 then
-										AitSeaSkill_Custom = b.Engine.CFrame;
-										MousePos = AitSeaSkill_Custom.Position;
-										AttackWithSelectedSkills() -- Chamada da nova função
-									end
-								until _G.PGB == false or not b:FindFirstChild("VehicleSeat") or b.Health.Value <= 0
-							end
-						end
-					end
-				end
-			end)
-		end
-	end)
+	local SeaEventSection = Tabs.SeaEvent:AddSection("Entity Sea Event")
+
+-- Dropdown multi-select
+local EntityDropdown = SeaEventSection:AddDropdown("Auto Farm Entities", {
+    Values = {
+        "Shark",
+        "Piranha",
+        "Terror Shark",
+        "Fish Crew Member",
+        "Haunted Crew Member",
+        "Pirate Grand Brigade",
+        "Fish Boat",
+        "Sea Beast",
+        "Leviathan"
+    },
+    Default = {},
+    Multi = true -- Permite selecionar várias opções
+})
+
+-- Atualizar variáveis globais conforme seleção
+EntityDropdown:OnChanged(function(Values)
+    -- Resetar todas
+    _G.Shark = false
+    _G.Piranha = false
+    _G.TerrorShark = false
+    _G.MobCrew = false
+    _G.HCM = false
+    _G.PGB = false
+    _G.FishBoat = false
+    _G.SeaBeast1 = false
+    _G.Leviathan1 = false
+
+    -- Ativar os selecionados
+    for _, value in pairs(Values) do
+        if value == "Shark" then
+            _G.Shark = true
+        elseif value == "Piranha" then
+            _G.Piranha = true
+        elseif value == "Terror Shark" then
+            _G.TerrorShark = true
+        elseif value == "Fish Crew Member" then
+            _G.MobCrew = true
+        elseif value == "Haunted Crew Member" then
+            _G.HCM = true
+        elseif value == "Pirate Grand Brigade" then
+            _G.PGB = true
+        elseif value == "Fish Boat" then
+            _G.FishBoat = true
+        elseif value == "Sea Beast" then
+            _G.SeaBeast1 = true
+        elseif value == "Leviathan" then
+            _G.Leviathan1 = true
+        end
+    end
+end)
+
+-- Função de ataque (loop)
+spawn(function()
+    while wait() do
+        pcall(function()
+            -- Shark
+            if _G.Shark then
+                local targets = {"Shark"}
+                if CheckShark() then
+                    for _, enemy in pairs(workspace.Enemies:GetChildren()) do
+                        if table.find(targets, enemy.Name) and Attack.Alive(enemy) then
+                            repeat
+                                task.wait()
+                                Attack.Kill(enemy, _G.Shark)
+                            until not _G.Shark or not enemy.Parent or enemy.Humanoid.Health <= 0
+                        end
+                    end
+                end
+            end
+
+            -- Terror Shark
+            if _G.TerrorShark then
+                local targets = {"Terrorshark"}
+                if CheckTerrorShark() then
+                    for _, enemy in pairs(workspace.Enemies:GetChildren()) do
+                        if table.find(targets, enemy.Name) and Attack.Alive(enemy) then
+                            repeat
+                                task.wait()
+                                Attack.KillSea(enemy, _G.TerrorShark)
+                            until not _G.TerrorShark or not enemy.Parent or enemy.Humanoid.Health <= 0
+                        end
+                    end
+                end
+            end
+
+            -- Piranha
+            if _G.Piranha then
+                local targets = {"Piranha"}
+                if CheckPiranha() then
+                    for _, enemy in pairs(workspace.Enemies:GetChildren()) do
+                        if table.find(targets, enemy.Name) and Attack.Alive(enemy) then
+                            repeat
+                                task.wait()
+                                Attack.Kill(enemy, _G.Piranha)
+                            until not _G.Piranha or not enemy.Parent or enemy.Humanoid.Health <= 0
+                        end
+                    end
+                end
+            end
+
+            -- Fish Crew Member
+            if _G.MobCrew then
+                local targets = {"Fish Crew Member"}
+                if CheckFishCrew() then
+                    for _, enemy in pairs(workspace.Enemies:GetChildren()) do
+                        if table.find(targets, enemy.Name) and Attack.Alive(enemy) then
+                            repeat
+                                task.wait()
+                                Attack.Kill(enemy, _G.MobCrew)
+                            until not _G.MobCrew or not enemy.Parent or enemy.Humanoid.Health <= 0
+                        end
+                    end
+                end
+            end
+
+            -- Haunted Crew Member
+            if _G.HCM then
+                local targets = {"Haunted Crew Member"}
+                if CheckHauntedCrew() then
+                    for _, enemy in pairs(workspace.Enemies:GetChildren()) do
+                        if table.find(targets, enemy.Name) and Attack.Alive(enemy) then
+                            repeat
+                                task.wait()
+                                Attack.Kill(enemy, _G.HCM)
+                            until not _G.HCM or not enemy.Parent or enemy.Humanoid.Health <= 0
+                        end
+                    end
+                end
+            end
+
+            -- Pirate Grand Brigade
+            if _G.PGB then
+                if CheckPirateGrandBrigade() then
+                    for _, enemy in pairs(workspace.Enemies:GetChildren()) do
+                        if enemy:FindFirstChild("VehicleSeat") and enemy:FindFirstChild("Health") and enemy.Health.Value > 0 then
+                            repeat
+                                task.wait()
+                                spawn(function()
+                                    if enemy.Name == "PirateBrigade" then
+                                        _tp(enemy.Engine.CFrame * CFrame.new(0, -30, -10))
+                                    elseif enemy.Name == "PirateGrandBrigade" then
+                                        _tp(enemy.Engine.CFrame * CFrame.new(0, -50, -50))
+                                    end
+                                end)
+                                if plr:DistanceFromCharacter(enemy.Engine.CFrame.Position) <= 150 then
+                                    AitSeaSkill_Custom = enemy.Engine.CFrame
+                                    MousePos = AitSeaSkill_Custom.Position
+                                    AttackWithSelectedSkills()
+                                end
+                            until not _G.PGB or not enemy:FindFirstChild("VehicleSeat") or enemy.Health.Value <= 0
+                        end
+                    end
+                end
+            end
+
+            -- Fish Boat
+            if _G.FishBoat then
+                if CheckEnemiesBoat() then
+                    for _, enemy in pairs(workspace.Enemies:GetChildren()) do
+                        if enemy:FindFirstChild("VehicleSeat") and enemy:FindFirstChild("Health") and enemy.Health.Value > 0 then
+                            repeat
+                                task.wait()
+                                spawn(function()
+                                    if enemy.Name == "FishBoat" then
+                                        _tp(enemy.Engine.CFrame * CFrame.new(0, -50, -25))
+                                    end
+                                end)
+                                if plr:DistanceFromCharacter(enemy.Engine.CFrame.Position) <= 150 then
+                                    AitSeaSkill_Custom = enemy.Engine.CFrame
+                                    MousePos = AitSeaSkill_Custom.Position
+                                    AttackWithSelectedSkills()
+                                end
+                            until not _G.FishBoat or not enemy:FindFirstChild("VehicleSeat") or enemy.Health.Value <= 0
+                        end
+                    end
+                end
+            end
+
+            -- Sea Beast
+            if _G.SeaBeast1 then
+                if workspace.SeaBeasts:FindFirstChild("SeaBeast1") then
+                    for _, beast in pairs(workspace.SeaBeasts:GetChildren()) do
+                        if beast:FindFirstChild("HumanoidRootPart") and beast:FindFirstChild("Health") and beast.Health.Value > 0 then
+                            repeat
+                                task.wait()
+                                spawn(function()
+                                    _tp(CFrame.new(beast.HumanoidRootPart.Position.X, workspace.Map["WaterBase-Plane"].Position.Y + 200, beast.HumanoidRootPart.Position.Z))
+                                end)
+                                if plr:DistanceFromCharacter(beast.HumanoidRootPart.Position) <= 500 then
+                                    AitSeaSkill_Custom = beast.HumanoidRootPart.CFrame
+                                    MousePos = AitSeaSkill_Custom.Position
+                                    AttackWithSelectedSkills()
+                                end
+                            until not _G.SeaBeast1 or not beast:FindFirstChild("HumanoidRootPart") or not beast.Parent or beast.Health.Value <= 0
+                        end
+                    end
+                end
+            end
+
+            -- Leviathan
+            if _G.Leviathan1 then
+                if workspace.SeaBeasts:FindFirstChild("Leviathan") then
+                    for _, beast in pairs(workspace.SeaBeasts:GetChildren()) do
+                        if beast:FindFirstChild("HumanoidRootPart") and beast:FindFirstChild("Leviathan Segment") and beast:FindFirstChild("Health") and beast.Health.Value > 0 then
+                            repeat
+                                task.wait()
+                                spawn(function()
+                                    _tp(CFrame.new(beast.HumanoidRootPart.Position.X, workspace.Map["WaterBase-Plane"].Position.Y + 200, beast.HumanoidRootPart.Position.Z))
+                                end)
+                                if plr:DistanceFromCharacter(beast.HumanoidRootPart.Position) <= 500 then
+                                    MousePos = beast:FindFirstChild("Leviathan Segment").Position
+                                    AttackWithSelectedSkills()
+                                end
+                            until not _G.Leviathan1 or not beast:FindFirstChild("HumanoidRootPart") or not beast.Parent or beast.Health.Value <= 0
+                        end
+                    end
+                end
+            end
+
+        end)
+    end
+end)
 
 
 	Tabs.SeaEvent:AddSection("Kitsune Island / Event")
