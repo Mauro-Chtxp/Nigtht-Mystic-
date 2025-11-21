@@ -3369,15 +3369,17 @@ FarmingSection:AddButton({
         end
     end
 
+    -- pontos importantes
+    local BasePoint = CFrame.new(-16250, 155, 1400) -- ponto base antes de começar a farmar
     local BossPos = CFrame.new(-16268.287,152.616,1390.773)
 
     ------------------------------------------
-    -- LOOP PRINCIPAL (FarmTyrant faz tudo: mobs -> vasos -> boss)
+    -- LOOP PRINCIPAL (FarmTyrant faz tudo: base -> mobs -> vasos -> boss)
     ------------------------------------------
     spawn(function()
         while wait(Sec) do
             if not _G.FarmTyrant then
-                -- se FarmTyrant desligado, só segue
+                -- desligado: nada a fazer
             else
                 pcall(function()
                     local player = plr or game.Players.LocalPlayer
@@ -3386,6 +3388,17 @@ FarmingSection:AddButton({
                     if not hrp then return end
 
                     local enemiesFolder = workspace:FindFirstChild("Enemies")
+
+                    -- 0) TP pro ponto base antes de iniciar o farm (igual original)
+                    if (hrp.Position - BasePoint.Position).Magnitude > 5 then
+                        safeTP(BasePoint)
+                        repeat
+                            wait()
+                            hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+                        until not _G.FarmTyrant or (hrp and (hrp.Position - BasePoint.Position).Magnitude <= 5)
+                        if not _G.FarmTyrant then return end
+                    end
+
                     -- 1) SE TYRANT SPAWNOU -> IR NELE E MATAR
                     local tyrant = enemiesFolder and enemiesFolder:FindFirstChild("Tyrant of the Skies")
                     if tyrant and tyrant:FindFirstChild("Humanoid") and tyrant.Humanoid.Health > 0 then
@@ -3406,19 +3419,20 @@ FarmingSection:AddButton({
                         return
                     end
 
-                    -- 2) SE AINDA NÃO CHEGOU EM 400 -> MATAR MOBS
+                    -- 2) SE AINDA NÃO CHEGOU EM 400 -> MATAR MOBS (com failsafe e reset pra base)
                     if killCount < 400 then
-                        local found = false
+                        local foundAny = false
                         if enemiesFolder then
                             for _, mobName in ipairs(MobList) do
                                 if not _G.FarmTyrant then break end
                                 for _, mob in ipairs(enemiesFolder:GetChildren()) do
                                     if not _G.FarmTyrant then break end
-                                    if mob and mob.Name == mobName and mob:FindFirstChild("HumanoidRootPart") 
+                                    if mob and mob.Name == mobName and mob:FindFirstChild("HumanoidRootPart")
                                         and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
 
-                                        found = true
+                                        foundAny = true
                                         local targetHRP = mob.HumanoidRootPart
+
                                         -- teleporta próximo (usa mesma lógica do seu original)
                                         if (hrp.Position - targetHRP.Position).Magnitude > 5000 then
                                             if _tp then
@@ -3439,7 +3453,7 @@ FarmingSection:AddButton({
                                             until not _G.FarmTyrant or not hrp or (hrp.Position - targetHRP.Position).Magnitude <= 6 or tick() - t0 > 8
                                         end
 
-                                        -- atacar o mob até morrer
+                                        -- atacar o mob até morrer (ou até desativar)
                                         repeat
                                             if not _G.FarmTyrant then break end
                                             if AutoHaki then pcall(AutoHaki) end
@@ -3496,7 +3510,7 @@ FarmingSection:AddButton({
                         end
 
                         -- se não encontrou nenhum mob: apenas retorna e continua o loop
-                        if not found then return end
+                        if not foundAny then return end
                     end
 
                     -- 3) SE 400 KILLS -> QUEBRAR VASOS (usa skills do dropdown)
@@ -3521,12 +3535,10 @@ FarmingSection:AddButton({
                             -- checar se o Tyrant spawnou enquanto quebra vasos
                             local tyrantNow = enemiesFolder and enemiesFolder:FindFirstChild("Tyrant of the Skies")
                             if tyrantNow and tyrantNow:FindFirstChild("Humanoid") and tyrantNow.Humanoid.Health > 0 then
-                                -- será tratado no topo do loop (vai pro boss e reset)
                                 break
                             end
                         end
-                        -- após quebrar vasos, fica esperando Tyrant spawnar ou voltar a farmar mobs
-                        -- não resetamos killCount aqui, só reset quando matar o boss
+                        -- após quebrar vasos, fica esperando Tyrant spawnar ou voltar a farmar mobs (killCount só reseta quando matar o boss)
                     end
 
                 end)
