@@ -3378,12 +3378,11 @@ end
 end)
 end
 
--- Início da Section Quest
+-- INÍCIO DA SECTION QUEST (APENAS SE FOR WORLD 2)
 if World2 then
 Tabs.Main:AddSection("Quests")
 
 -- 7. Auto Bartilo Quest (World 2)
-if World2 then
 local Bartilo = Tabs.Main:AddToggle("Bartilo", {
 Title = "Auto Bartilo Quest",
 Description = "",
@@ -3467,6 +3466,7 @@ end)
 end
 end)
 end
+-- FIM DA SECTION QUEST (APENAS SE FOR WORLD 2)
 
 -- Início da Section Collect
 Tabs.Main:AddSection("Collect")
