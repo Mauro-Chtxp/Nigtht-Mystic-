@@ -3241,6 +3241,7 @@ FarmingSection:AddButton({
 	if World3 then
     Tabs.Main:AddSection("Boss Tyrant of the Skies")
 
+    -- STATUS DO BOSS
     local TyrantStatus = Tabs.Main:AddParagraph({
         Title = "Tyrant of the Skies",
         Content = ""
@@ -3295,7 +3296,7 @@ FarmingSection:AddButton({
     SelectSkills:OnChanged(function(value) _G.TyrantSkills = value end)
 
     ------------------------------------------
-    -- TOGGLE PRINCIPAL (mantendo nome original)
+    -- TOGGLES PRINCIPAIS
     ------------------------------------------
     _G.FarmTyrant = _G.FarmTyrant or false
     local FarmTyrant = Tabs.Main:AddToggle("FarmTyrant", {
@@ -3305,12 +3306,12 @@ FarmingSection:AddButton({
     })
     FarmTyrant:OnChanged(function(Value)
         _G.FarmTyrant = Value
-        if not Value and StopTween then pcall(StopTween) end
+        if not Value then
+            if StopTween then pcall(StopTween) end
+            _G._TyrantBaseDone = false -- reset flag quando desligar
+        end
     end)
 
-    ------------------------------------------
-    -- MANTENHO DO FARM PHA BINH (OPCIONAL)
-    ------------------------------------------
     _G.FarmPhaBinh = _G.FarmPhaBinh or false
     local FarmPhaBinh = Tabs.Main:AddToggle("FarmPhaBinh", {
         Title = "Quebrar Vasos (manual)",
@@ -3322,14 +3323,15 @@ FarmingSection:AddButton({
         if not Value and StopTween then pcall(StopTween) end
     end)
 
-    -- funções de envio de tecla / equip
+    -- ENVIAR TECLA
     local function sendSkillKey(skillKey)
         local virtualInputManager = game:GetService("VirtualInputManager")
         virtualInputManager:SendKeyEvent(true, skillKey, false, game)
-        wait(0.05)
+        task.wait(0.05)
         virtualInputManager:SendKeyEvent(false, skillKey, false, game)
     end
 
+    -- EQUIP + USAR SKILLS (usa dropdown)
     local function equipAndUseSkill(toolType)
         local player = game.Players.LocalPlayer
         local character = player.Character
@@ -3340,13 +3342,13 @@ FarmingSection:AddButton({
         for _, item in pairs(backpack:GetChildren()) do
             if item:IsA("Tool") and item.ToolTip == toolType then
                 item.Parent = character
-                wait(0.12)
+                task.wait(0.12)
                 for _, key in ipairs(_G.TyrantSkills or {}) do
                     if not _G.FarmTyrant and not _G.FarmPhaBinh then
                         break
                     end
                     pcall(function() sendSkillKey(key) end)
-                    wait(0.12)
+                    task.wait(0.12)
                 end
                 item.Parent = backpack
                 break
@@ -3354,7 +3356,7 @@ FarmingSection:AddButton({
         end
     end
 
-    -- movimento seguro (usa _tp / Tween / notween / fallback)
+    -- MOVIMENTO SEGURO: _tp / Tween / notween / fallback
     local function safeTP(cf)
         if _tp then
             pcall(_tp, cf)
@@ -3370,16 +3372,41 @@ FarmingSection:AddButton({
     end
 
     -- pontos importantes
-    local BasePoint = CFrame.new(-16250, 155, 1400) -- ponto base antes de começar a farmar
+    local BasePoint = CFrame.new(-16250, 155, 1400) -- ponto base antes de começar a farmar (TP apenas 1x)
     local BossPos = CFrame.new(-16268.287,152.616,1390.773)
+
+    ------------------------------------------
+    -- FUNÇÃO AUXILIAR: PEGAR O MOB MAIS PRÓXIMO DA LISTA
+    ------------------------------------------
+    local function GetClosestMobFromList(hrp)
+        local enemiesFolder = workspace:FindFirstChild("Enemies")
+        if not enemiesFolder then return nil end
+        local closest = nil
+        local closestDist = math.huge
+        for _, mob in ipairs(enemiesFolder:GetChildren()) do
+            if mob and mob.Name and table.find(MobList, mob.Name)
+               and mob:FindFirstChild("HumanoidRootPart")
+               and mob:FindFirstChild("Humanoid")
+               and mob.Humanoid.Health > 0 then
+                local ok, dist = pcall(function()
+                    return (hrp.Position - mob.HumanoidRootPart.Position).Magnitude
+                end)
+                if ok and dist and dist < closestDist then
+                    closestDist = dist
+                    closest = mob
+                end
+            end
+        end
+        return closest, closestDist
+    end
 
     ------------------------------------------
     -- LOOP PRINCIPAL (FarmTyrant faz tudo: base -> mobs -> vasos -> boss)
     ------------------------------------------
     spawn(function()
-        while wait(Sec) do
+        while task.wait(Sec) do
             if not _G.FarmTyrant then
-                -- desligado: nada a fazer
+                -- desligado: segue o loop, nada a fazer
             else
                 pcall(function()
                     local player = plr or game.Players.LocalPlayer
@@ -3389,17 +3416,21 @@ FarmingSection:AddButton({
 
                     local enemiesFolder = workspace:FindFirstChild("Enemies")
 
-                    -- 0) TP pro ponto base antes de iniciar o farm (igual original)
-                    if (hrp.Position - BasePoint.Position).Magnitude > 5 then
+                    -- 0) TP pro ponto base APENAS UMA VEZ (não volta enquanto farming mobs)
+                    if not _G._TyrantBaseDone then
                         safeTP(BasePoint)
                         repeat
-                            wait()
+                            task.wait()
                             hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
                         until not _G.FarmTyrant or (hrp and (hrp.Position - BasePoint.Position).Magnitude <= 5)
-                        if not _G.FarmTyrant then return end
+                        if not _G.FarmTyrant then
+                            _G._TyrantBaseDone = false
+                            return
+                        end
+                        _G._TyrantBaseDone = true
                     end
 
-                    -- 1) SE TYRANT SPAWNOU -> IR NELE E MATAR
+                    -- 1) SE TYRANT SPAWNOU -> IR NELE E MATAR (sempre prioriza o boss)
                     local tyrant = enemiesFolder and enemiesFolder:FindFirstChild("Tyrant of the Skies")
                     if tyrant and tyrant:FindFirstChild("Humanoid") and tyrant.Humanoid.Health > 0 then
                         safeTP(BossPos)
@@ -3412,105 +3443,80 @@ FarmingSection:AddButton({
                             elseif AttackNoCoolDown then
                                 pcall(AttackNoCoolDown)
                             end
-                            wait()
+                            task.wait()
                         until not tyrant.Parent or tyrant.Humanoid.Health <= 0 or not _G.FarmTyrant
 
+                        -- ao matar o boss, reset do contador e do base flag pra re-TP da próxima vez
                         killCount = 0
+                        _G._TyrantBaseDone = false
                         return
                     end
 
-                    -- 2) SE AINDA NÃO CHEGOU EM 400 -> MATAR MOBS (com failsafe e reset pra base)
+                    -- 2) SE AINDA NÃO CHEGOU EM 400 -> MATAR MOBS (ir pro mais próximo; NÃO voltar ao base enquanto houver mobs)
                     if killCount < 400 then
-                        local foundAny = false
-                        if enemiesFolder then
-                            for _, mobName in ipairs(MobList) do
-                                if not _G.FarmTyrant then break end
-                                for _, mob in ipairs(enemiesFolder:GetChildren()) do
-                                    if not _G.FarmTyrant then break end
-                                    if mob and mob.Name == mobName and mob:FindFirstChild("HumanoidRootPart")
-                                        and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
+                        local hrpNow = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+                        if not hrpNow then return end
 
-                                        foundAny = true
-                                        local targetHRP = mob.HumanoidRootPart
+                        local closestMob, dist = GetClosestMobFromList(hrpNow)
 
-                                        -- teleporta próximo (usa mesma lógica do seu original)
-                                        if (hrp.Position - targetHRP.Position).Magnitude > 5000 then
-                                            if _tp then
-                                                pcall(_tp, targetHRP.CFrame * CFrame.new(0,30,0))
-                                            elseif Tween then
-                                                pcall(Tween, targetHRP.CFrame * CFrame.new(0,30,0))
-                                            elseif notween then
-                                                pcall(notween, targetHRP.CFrame * CFrame.new(0,30,0))
-                                            else
-                                                pcall(function()
-                                                    player.Character.HumanoidRootPart.CFrame = targetHRP.CFrame * CFrame.new(0,30,0)
-                                                end)
-                                            end
-                                            local t0 = tick()
-                                            repeat
-                                                wait()
-                                                hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-                                            until not _G.FarmTyrant or not hrp or (hrp.Position - targetHRP.Position).Magnitude <= 6 or tick() - t0 > 8
-                                        end
+                        if not closestMob then
+                            -- nenhum mob válido no momento; espera e repete (sem voltar pro base)
+                            return
+                        end
 
-                                        -- atacar o mob até morrer (ou até desativar)
-                                        repeat
-                                            if not _G.FarmTyrant then break end
-                                            if AutoHaki then pcall(AutoHaki) end
-                                            if SelectWeapon and EquipTool then pcall(EquipTool, SelectWeapon) end
-                                            if Attack and Attack.Kill then
-                                                pcall(function() Attack.Kill(mob, true) end)
-                                            elseif AttackNoCoolDown then
-                                                pcall(AttackNoCoolDown)
-                                            end
-                                            wait()
-                                        until not mob.Parent or not mob:FindFirstChild("Humanoid") or mob.Humanoid.Health <= 0 or not _G.FarmTyrant
-
-                                        -- só incrementa se realmente morreu / sumiu
-                                        if not mob.Parent or (mob:FindFirstChild("Humanoid") and mob.Humanoid.Health <= 0) then
-                                            killCount = killCount + 1
-                                        end
-
-                                        return
-                                    end
-                                end
-                            end
-                        else
-                            -- fallback: procurar no workspace (igual original)
-                            for _, mobName in ipairs(MobList) do
-                                if not _G.FarmTyrant then break end
-                                for _, mob in ipairs(workspace:GetChildren()) do
-                                    if not _G.FarmTyrant then break end
-                                    if mob and mob.Name == mobName and mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
-                                        -- teleporta e mata (mesma lógica)
-                                        if _tp then
-                                            pcall(_tp, mob.HumanoidRootPart.CFrame * CFrame.new(0,30,0))
-                                        else
-                                            pcall(function()
-                                                player.Character.HumanoidRootPart.CFrame = mob.HumanoidRootPart.CFrame * CFrame.new(0,30,0)
-                                            end)
-                                        end
-                                        repeat wait() until not _G.FarmTyrant or (player.Character and player.Character:FindFirstChild("HumanoidRootPart") and (player.Character.HumanoidRootPart.Position - mob.HumanoidRootPart.Position).Magnitude <= 6)
-                                        repeat
-                                            if not _G.FarmTyrant then break end
-                                            if Attack and Attack.Kill then
-                                                pcall(function() Attack.Kill(mob, true) end)
-                                            elseif AttackNoCoolDown then
-                                                pcall(AttackNoCoolDown)
-                                            end
-                                            wait()
-                                        until not _G.FarmTyrant or not mob.Parent or mob.Humanoid.Health <= 0
-                                        if not mob.Parent or mob.Humanoid.Health <= 0 then
-                                            killCount = killCount + 1
-                                        end
-                                        return
-                                    end
+                        -- TELEPORTAR PARA O MOB MAIS PERTO (usa fallback)
+                        local targetHRP = closestMob:FindFirstChild("HumanoidRootPart")
+                        if targetHRP then
+                            if (hrpNow.Position - targetHRP.Position).Magnitude > 5000 then
+                                if _tp then
+                                    pcall(_tp, targetHRP.CFrame * CFrame.new(0,30,0))
+                                elseif Tween then
+                                    pcall(Tween, targetHRP.CFrame * CFrame.new(0,30,0))
+                                elseif notween then
+                                    pcall(notween, targetHRP.CFrame * CFrame.new(0,30,0))
+                                else
+                                    pcall(function()
+                                        player.Character.HumanoidRootPart.CFrame = targetHRP.CFrame * CFrame.new(0,30,0)
+                                    end)
                                 end
                             end
                         end
 
-                        -- se não encontrou nenhum mob: apenas retorna e continua o loop
-                        if not foundAny then return end
+                        -- espera chegar perto do mob (failsafe 8s)
+                        local t0 = tick()
+                        repeat
+                            task.wait()
+                            hrpNow = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+                        until not _G.FarmTyrant
+                          or not hrpNow
+                          or not closestMob.Parent
+                          or (closestMob:FindFirstChild("HumanoidRootPart") and (hrpNow.Position - closestMob.HumanoidRootPart.Position).Magnitude <= 6)
+                          or tick() - t0 > 8
+
+                        -- se demorou muito e ainda tá longe, vai pro próximo ciclo (não volta pro base)
+                        if tick() - t0 > 8 then
+                            return
+                        end
+
+                        -- atacar o mob até morrer (ou até desativar)
+                        repeat
+                            if not _G.FarmTyrant then break end
+                            if AutoHaki then pcall(AutoHaki) end
+                            if SelectWeapon and EquipTool then pcall(EquipTool, SelectWeapon) end
+                            if Attack and Attack.Kill then
+                                pcall(function() Attack.Kill(closestMob, true) end)
+                            elseif AttackNoCoolDown then
+                                pcall(AttackNoCoolDown)
+                            end
+                            task.wait()
+                        until not closestMob.Parent or not closestMob:FindFirstChild("Humanoid") or closestMob.Humanoid.Health <= 0 or not _G.FarmTyrant
+
+                        -- confirmar kill
+                        if not closestMob.Parent or (closestMob:FindFirstChild("Humanoid") and closestMob.Humanoid.Health <= 0) then
+                            killCount = killCount + 1
+                        end
+
+                        return
                     end
 
                     -- 3) SE 400 KILLS -> QUEBRAR VASOS (usa skills do dropdown)
@@ -3523,7 +3529,7 @@ FarmingSection:AddButton({
                                 hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
                                 if not hrp then break end
                                 if (hrp.Position - vasoCF.Position).Magnitude <= 3 then break end
-                                wait(0.1)
+                                task.wait(0.1)
                             until tick() - t0 >= 8 or not _G.FarmTyrant
 
                             if not _G.FarmTyrant then return end
@@ -3538,7 +3544,7 @@ FarmingSection:AddButton({
                                 break
                             end
                         end
-                        -- após quebrar vasos, fica esperando Tyrant spawnar ou voltar a farmar mobs (killCount só reseta quando matar o boss)
+                        -- após quebrar vasos, espera spawn do boss ou volta matar mobs (killCount só reset quando matar o boss)
                     end
 
                 end)
@@ -3561,7 +3567,7 @@ FarmingSection:AddButton({
     }
 
     spawn(function()
-        while wait(Sec) do
+        while task.wait(Sec) do
             if _G.FarmPhaBinh then
                 pcall(function()
                     if AutoHaki then pcall(AutoHaki) end
@@ -3593,7 +3599,7 @@ FarmingSection:AddButton({
                                 arrived = true
                                 break
                             end
-                            wait(0.1)
+                            task.wait(0.1)
                         end
                         if _G.FarmPhaBinh then
                             local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
