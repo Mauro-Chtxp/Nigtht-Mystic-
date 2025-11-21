@@ -3152,92 +3152,6 @@ FarmingSection:AddButton({
         GoToNPC()  
     end
 })
-	local BossDropdown = Tabs.Main:AddDropdown("BossDropdown", {
-		Title = "Selecione o Boss",
-		Description = "Selecione o Boss Para Farm",
-		Values = Boss,
-		Default = 1,
-		Callback = function(value)
-			_G.FindBoss = value
-		end
-	})
-	local FarmBoss = Tabs.Main:AddToggle("FarmBoss", {
-		Title = "Auto Farm Boss",
-		Description = "Farma o Boss Selecionado",
-		Default = false
-	})
-	FarmBoss:OnChanged(function(value)
-		_G.FarmBoss = value
-		spawn(function()
-		while wait(Sec) do
-			if _G.FarmBoss then
-				pcall(function()
-					-- Kiểm tra boss có quest hay không
-					local HasQuest = QuestBeta()[2] ~= nil and QuestBeta()[3] ~= nil
-					
-					if HasQuest then
-						-- BOSS CÓ QUEST
-						local QuestTitle = plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text
-						
-						if not string.find(QuestTitle, QuestBeta()[0]) then
-							replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
-						end
-						
-						if plr.PlayerGui.Main.Quest.Visible == false then
-							_tp(QuestBeta()[5])
-							if (Root.Position - QuestBeta()[5].Position).Magnitude <= 5 then
-								replicated.Remotes.CommF_:InvokeServer("StartQuest", QuestBeta()[3], QuestBeta()[2])
-							end
-							
-						elseif plr.PlayerGui.Main.Quest.Visible == true then
-							if workspace.Enemies:FindFirstChild(QuestBeta()[1]) then
-								for i, v in pairs(workspace.Enemies:GetChildren()) do
-									if Attack.Alive(v) then
-										if v.Name == QuestBeta()[1] then
-											if string.find(QuestTitle, QuestBeta()[0]) then
-												repeat
-													wait()
-													Attack.Kill(v, _G.FarmBoss)
-												until not _G.FarmBoss or v.Humanoid.Health <= 0 or not v.Parent or plr.PlayerGui.Main.Quest.Visible == false
-											else
-												replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
-											end
-										end
-									end
-								end
-							else
-								_tp(QuestBeta()[4])
-								if replicated:FindFirstChild(QuestBeta()[1]) then
-									_tp(replicated:FindFirstChild(QuestBeta()[1]).HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
-								end
-							end
-						end
-						
-					else
-						-- BOSS KHÔNG CÓ QUEST - Farm trực tiếp
-						if workspace.Enemies:FindFirstChild(QuestBeta()[1]) then
-							for i, v in pairs(workspace.Enemies:GetChildren()) do
-								if Attack.Alive(v) then
-									if v.Name == QuestBeta()[1] then
-										repeat
-											wait()
-											Attack.Kill(v, _G.FarmBoss)
-										until not _G.FarmBoss or v.Humanoid.Health <= 0 or not v.Parent
-									end
-								end
-							end
-						else
-							_tp(QuestBeta()[4])
-							if replicated:FindFirstChild(QuestBeta()[1]) then
-								_tp(replicated:FindFirstChild(QuestBeta()[1]).HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
-							end
-						end
-					end
-				end)
-			end
-		end
-	end)
-	end)
 	if World3 then
 	Tabs.Main:AddSection("Boss Tyrant of the Skies")
 
@@ -4430,7 +4344,9 @@ spawn(function()
     end
 end)
 
--- Toggle Auto Mastery Gun
+-- ===============================
+-- Auto Mastery Gun (fora de Section)
+-- ===============================
 local MasteryGun = Tabs.Main:AddToggle("MasteryGun", {
     Title = "Auto Farm Mastery Gun",
     Description = "",
@@ -4440,7 +4356,6 @@ MasteryGun:OnChanged(function(Value)
     _G.FarmMastery_G = Value
 end)
 
--- Loop Auto Mastery Gun
 spawn(function()
     while wait(Sec) do
         if _G.FarmMastery_G then
@@ -4475,6 +4390,95 @@ spawn(function()
             end)
         end
     end
+end)
+
+-- ===============================================
+-- Boss Section
+-- ===============================================
+Tabs.Main:AddSection("Boss")
+
+-- Dropdown para selecionar o boss
+local BossDropdown = Tabs.Main:AddDropdown("BossDropdown", {
+    Title = "Selecione o Boss",
+    Description = "Selecione o Boss Para Farm",
+    Values = Boss,
+    Default = 1,
+    Callback = function(value)
+        _G.FindBoss = value
+    end
+})
+
+-- Toggle Auto Farm Boss
+local FarmBoss = Tabs.Main:AddToggle("FarmBoss", {
+    Title = "Auto Farm Boss",
+    Description = "Farma o Boss Selecionado",
+    Default = false
+})
+FarmBoss:OnChanged(function(value)
+    _G.FarmBoss = value
+    spawn(function()
+        while wait(Sec) do
+            if _G.FarmBoss then
+                pcall(function()
+                    -- Verifica se o boss tem quest
+                    local HasQuest = QuestBeta()[2] ~= nil and QuestBeta()[3] ~= nil
+                    
+                    if HasQuest then
+                        -- Boss com quest
+                        local QuestTitle = plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text
+                        
+                        if not string.find(QuestTitle, QuestBeta()[0]) then
+                            replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
+                        end
+                        
+                        if plr.PlayerGui.Main.Quest.Visible == false then
+                            _tp(QuestBeta()[5])
+                            if (Root.Position - QuestBeta()[5].Position).Magnitude <= 5 then
+                                replicated.Remotes.CommF_:InvokeServer("StartQuest", QuestBeta()[3], QuestBeta()[2])
+                            end
+                        elseif plr.PlayerGui.Main.Quest.Visible == true then
+                            if workspace.Enemies:FindFirstChild(QuestBeta()[1]) then
+                                for i, v in pairs(workspace.Enemies:GetChildren()) do
+                                    if Attack.Alive(v) and v.Name == QuestBeta()[1] then
+                                        if string.find(QuestTitle, QuestBeta()[0]) then
+                                            repeat
+                                                wait()
+                                                Attack.Kill(v, _G.FarmBoss)
+                                            until not _G.FarmBoss or v.Humanoid.Health <= 0 or not v.Parent or plr.PlayerGui.Main.Quest.Visible == false
+                                        else
+                                            replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
+                                        end
+                                    end
+                                end
+                            else
+                                _tp(QuestBeta()[4])
+                                if replicated:FindFirstChild(QuestBeta()[1]) then
+                                    _tp(replicated:FindFirstChild(QuestBeta()[1]).HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
+                                end
+                            end
+                        end
+                    else
+                        -- Boss sem quest - farm direto
+                        if workspace.Enemies:FindFirstChild(QuestBeta()[1]) then
+                            for i, v in pairs(workspace.Enemies:GetChildren()) do
+                                if Attack.Alive(v) and v.Name == QuestBeta()[1] then
+                                    repeat
+                                        wait()
+                                        Attack.Kill(v, _G.FarmBoss)
+                                    until not _G.FarmBoss or v.Humanoid.Health <= 0 or not v.Parent
+                                end
+                            end
+                        else
+                            _tp(QuestBeta()[4])
+                            if replicated:FindFirstChild(QuestBeta()[1]) then
+                                _tp(replicated:FindFirstChild(QuestBeta()[1]).HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
+                            end
+                        end
+                    end
+                end)
+            end
+        end
+    end)
 end)
 	Tabs.Main:AddSection("Unlocked Dungeon")
 	local Q = Tabs.Main:AddToggle("Q", {
