@@ -3466,10 +3466,11 @@ end)
 end
 end)
 end
+
 -- Início da Section Collect
 Tabs.Main:AddSection("Collect")
 
--- 10. Auto Collect Berry
+-- 8. Auto Collect Berry
 local Berry = Tabs.Main:AddToggle("Berry", {
 Title = "Auto Collect Berry",
 Description = "",
@@ -3507,7 +3508,7 @@ end
 end
 end)
 
--- 11. Auto Collect Chest
+-- 9. Auto Collect Chest
 local Chest = Tabs.Main:AddToggle("Chest", {
 Title = "Auto Collect Chest",
 Description = "",
@@ -3547,6 +3548,7 @@ end)
 end
 end
 end)
+
 
 	if World3 then
 	local plr = game.Players.LocalPlayer
@@ -8097,6 +8099,32 @@ end)
 			end
 		end
 	end)
+	local UpTalon = Tabs.Drago:AddToggle("UpTalon", {
+		Title = "Upgrade Dragon Talon With Uzoth",
+		Description = "",
+		Default = false
+	})
+	UpTalon:OnChanged(function(Value)
+		_G.DT_Uzoth = Value
+	end)
+	spawn(function()
+		while wait(Sec) do
+			if _G.DT_Uzoth then
+				local Uz_POS = CFrame.new(5661.89014, 1211.31909, 864.836731, 0.811413169, -1.36805838e-08, -0.584473014, 4.75227395e-08, 1, 4.25682458e-08, 0.584473014, -6.23161966e-08, 0.811413169)
+				_tp(Uz_POS)
+				if (Uz_POS.Position - plr.Character.HumanoidRootPart.Position).Magnitude <= 25 then
+					local ohTable1 = {
+						["NPC"] = "Uzoth",
+						["Command"] = "Upgrade"
+					}
+					replicated.Modules.Net["RF/InteractDragonQuest"]:InvokeServer(ohTable1)
+				end
+			end
+		end
+	end)
+	else
+	Tabs.Drago:AddSection("Sea 3")
+	end
 	if World3 then
 	Tabs.Prehistoric:AddSection("Volcanic Magnet")
 	Toggle = Tabs.Prehistoric:AddToggle("Toggle", {
