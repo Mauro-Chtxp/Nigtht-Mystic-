@@ -3379,6 +3379,7 @@ end)
 end
 
 -- Início da Section Quest
+if World2 then
 Tabs.Main:AddSection("Quests")
 
 -- 7. Auto Bartilo Quest (World 2)
