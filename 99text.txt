@@ -441,79 +441,23 @@ Sea = World1 or World2 or World3 or plr:Kick("❌ Error : Not Support Game")
 	local plr = game.Players.LocalPlayer
 local TweenService = game:GetService("TweenService")
 
---// Optimized BringEnemy Function (Compatible with Aurora Script)
-local plr = game.Players.LocalPlayer
-local TweenService = game:GetService("TweenService")
-
--- Tween movement for mobs
-local function TweenObject(Object, Pos, Speed)
-    Speed = Speed or 350
-    if not Object or not Pos then return end
-    local Distance = (Pos.Position - Object.Position).Magnitude
-    local info = TweenInfo.new(Distance / Speed, Enum.EasingStyle.Linear)
-    local tween = TweenService:Create(Object, info, {CFrame = Pos})
-    tween:Play()
-end
-
--- Get average position of mobs with the same name
-local function GetMobPosition(EnemiesName)
-    local pos = Vector3.zero
-    local count = 0
-    for _, v in pairs(workspace.Enemies:GetChildren()) do
-        if v.Name == EnemiesName and v:FindFirstChild("HumanoidRootPart") then
-            pos += v.HumanoidRootPart.Position
-            count += 1
-        end
-    end
-    if count == 0 then
-        return nil
-    end
-    return pos / count
-end
-
--- Bring mobs closer together
 BringEnemy = function()
-    if not _B then return end
-    local enemies = workspace.Enemies:GetChildren()
-    if #enemies == 0 then return end
-
-    local totalpos = {}
-
-    -- Get average position for each enemy type
-    for _, v in pairs(enemies) do
-        if not totalpos[v.Name] then
-            totalpos[v.Name] = GetMobPosition(v.Name)
-        end
-    end
-
-    -- Group mobs around their average position
-    for _, v in pairs(workspace.Enemies:GetChildren()) do
-        if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") then
-            local hrp = v.HumanoidRootPart
-            local humanoid = v.Humanoid
-            if humanoid.Health > 0 and (hrp.Position - plr.Character.HumanoidRootPart.Position).Magnitude <= 230 then
-                local mobPos = totalpos[v.Name]
-                if mobPos then
-                    local TargetCFrame = CFrame.new(mobPos.X, mobPos.Y, mobPos.Z)
-                    local Distance = (hrp.Position - TargetCFrame.Position).Magnitude
-
-                    if Distance > 3 and Distance <= 230 then
-                        TweenObject(hrp, TargetCFrame, 300)
-                        hrp.CanCollide = false
-                        humanoid.WalkSpeed = 16
-                        humanoid.JumpPower = 50
-                        if humanoid:FindFirstChild("Animator") then
-                            humanoid.Animator:Destroy()
-                        end
-                        pcall(function()
-                            sethiddenproperty(plr, "SimulationRadius", math.huge)
-                        end)
-                    end
-                end
-            end
-        end
-    end
-end
+		if not _B then
+			return
+		end
+		for _, v in pairs(workspace.Enemies:GetChildren()) do
+			if v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+				if (v.PrimaryPart.Position - PosMon).Magnitude <= 244 then
+					v.PrimaryPart.CFrame = CFrame.new(PosMon)
+					v.PrimaryPart.CanCollide = true;
+					v:FindFirstChild("Humanoid").WalkSpeed = 16;
+					v:FindFirstChild("Humanoid").JumpPower = 50;
+					
+					plr.SimulationRadius = math.huge
+				end
+			end
+		end                    	
+	end
 	Useskills = function(weapon, skill)
 		if weapon == "Melee" then
 			weaponSc("Melee")
@@ -2527,6 +2471,227 @@ Tabs.MiscFarm:AddButton({
         replicated.Remotes.CommF_:InvokeServer("Cousin", "HalloweenGacha25")
     end
 })
+
+-- 🔥 Nova Section Farming
+local FarmingSection = Tabs.MiscFarm:AddSection("Farming")
+
+if World1 then
+    local TravelDress = FarmingSection:AddToggle("TravelDress", {
+        Title = "Auto Sea 2",
+        Description = "Faz As Missões Para Desbloquear o Sea 2 Automaticamente",
+        Default = false
+    })
+
+    TravelDress:OnChanged(function(Value)
+        _G.TravelDres = Value
+    end)
+
+    spawn(function()
+        while wait(Sec) do
+            pcall(function()
+                if _G.TravelDres then
+                    if plr.Data.Level.Value >= 700 then
+
+                        -- Porta fechada
+                        if workspace.Map.Ice.Door.CanCollide == true and workspace.Map.Ice.Door.Transparency == 0 then
+                            replicated.Remotes.CommF_:InvokeServer("DressrosaQuestProgress", "Detective")
+                            EquipWeapon("Key")
+
+                            repeat
+                                wait()
+                                _tp(CFrame.new(1347.7124, 37.3751602, -1325.6488))
+                            until not _G.TravelDres or (Root.Position == CFrame.new(1347.7124, 37.3751602, -1325.6488).Position)
+
+                        -- Porta aberta
+                        elseif workspace.Map.Ice.Door.CanCollide == false and workspace.Map.Ice.Door.Transparency == 1 then
+                            if Enemies:FindFirstChild("Ice Admiral") then
+                                for _, xz in pairs(Enemies:GetChildren()) do
+                                    if xz.Name == "Ice Admiral" and Attack.Alive(xz) then
+                                        repeat
+                                            task.wait()
+                                            Attack.Kill(xz, _G.TravelDres)
+                                        until not _G.TravelDres or xz.Humanoid.Health <= 0
+
+                                        replicated.Remotes.CommF_:InvokeServer("TravelDressrosa")
+                                    end
+                                end
+                            else
+                                _tp(CFrame.new(1347.7124, 37.3751602, -1325.6488))
+                            end
+                        else
+                            replicated.Remotes.CommF_:InvokeServer("TravelDressrosa")
+                        end
+
+                    end
+                end
+            end)
+        end
+    end)
+end
+
+if World2 then
+    local Zou = FarmingSection:AddToggle("Zou", {
+        Title = "Auto Sea 3",
+        Description = "As As Missões Para Liberar o Sea 3 Automaticamente",
+        Default = false
+    })
+
+    Zou:OnChanged(function(Value)
+        _G.AutoZou = Value
+    end)
+
+    spawn(function()
+        while wait(Sec) do
+            pcall(function()
+                if _G.AutoZou then
+                    if plr.Data.Level.Value >= 1500 then
+
+                        if replicated.Remotes.CommF_:InvokeServer("BartiloQuestProgress", "Bartilo") == 3 then
+                            if replicated.Remotes.CommF_:InvokeServer("GetUnlockables").FlamingoAccess ~= nil then
+                                replicated.Remotes.CommF_:InvokeServer("F_", "TravelZou")
+
+                                if replicated.Remotes.CommF_:InvokeServer("ZQuestProgress", "Check") == 0 then
+                                    local v = GetConnectionEnemies("rip_indra")
+                                    if v then
+                                        repeat
+                                            wait()
+                                            Attack.Kill(v, _G.AutoZou)
+                                        until not _G.AutoZou or not v.Parent or v.Humanoid.Health <= 0
+
+                                        Check = 2
+
+                                        repeat
+                                            wait()
+                                            replicated.Remotes.CommF_:InvokeServer("F_", "TravelZou")
+                                        until Check == 1
+                                    else
+                                        replicated.Remotes.CommF_:InvokeServer("F_", "ZQuestProgress", "Check")
+                                        wait(.1)
+                                        replicated.Remotes.CommF_:InvokeServer("F_", "ZQuestProgress", "Begin")
+                                    end
+
+                                elseif replicated.Remotes.CommF_:InvokeServer("ZQuestProgress", "Check") == 1 then
+                                    replicated.Remotes.CommF_:InvokeServer("F_", "TravelZou")
+
+                                else
+                                    local v = GetConnectionEnemies("Don Swan")
+                                    if v then
+                                        repeat
+                                            wait()
+                                            Attack.Kill(v, _G.AutoZou)
+                                        until not _G.AutoZou or not v.Parent or v.Humanoid.Health <= 0
+                                    else
+                                        repeat
+                                            wait()
+                                            _tp(CFrame.new(2288.802, 15.1870775, 863.034607))
+                                        until not _G.AutoZou or (Root.Position == CFrame.new(2288.802, 15.1870775, 863.034607).Position)
+
+                                        if (Root.CFrame == CFrame.new(2288.802, 15.1870775, 863.034607)) then
+                                            notween(CFrame.new(2288.802, 15.1870775, 863.034607))
+                                        end
+                                    end
+                                end
+
+                            else
+                                -- Sistema do Trevor / flamingo access
+                                TabelDevilFruitStore = {}
+                                TabelDevilFruitOpen = {}
+
+                                for _, v in pairs(replicated.Remotes.CommF_:InvokeServer("getInventoryFruits")) do
+                                    for k, n in pairs(v) do
+                                        if k == "Name" then
+                                            table.insert(TabelDevilFruitStore, n)
+                                        end
+                                    end
+                                end
+
+                                for _, v in next, replicated.Remotes.CommF_:InvokeServer("GetFruits") do
+                                    if v.Price >= 1000000 then
+                                        table.insert(TabelDevilFruitOpen, v.Name)
+                                    end
+                                end
+
+                                for _, open in pairs(TabelDevilFruitOpen) do
+                                    for _, store in pairs(TabelDevilFruitStore) do
+                                        if open == store and replicated.Remotes.CommF_:InvokeServer("GetUnlockables").FlamingoAccess == nil then
+                                            if not plr.Backpack:FindFirstChild(store) then
+                                                replicated.Remotes.CommF_:InvokeServer("F_", "LoadFruit", store)
+                                            else
+                                                replicated.Remotes.CommF_:InvokeServer("F_", "TalkTrevor", "1")
+                                                replicated.Remotes.CommF_:InvokeServer("F_", "TalkTrevor", "2")
+                                                replicated.Remotes.CommF_:InvokeServer("F_", "TalkTrevor", "3")
+                                            end
+                                        end
+                                    end
+                                end
+
+                                replicated.Remotes.CommF_:InvokeServer("F_", "TalkTrevor", "1")
+                                replicated.Remotes.CommF_:InvokeServer("F_", "TalkTrevor", "2")
+                                replicated.Remotes.CommF_:InvokeServer("F_", "TalkTrevor", "3")
+
+                            end
+
+                        else
+                            -- Sistema Bartilo 0 / 1 / 2
+                            local Bart = replicated.Remotes.CommF_:InvokeServer("BartiloQuestProgress", "Bartilo")
+
+                            if Bart == 0 then
+                                if string.find(plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "Swan Pirates")
+                                and string.find(plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "50")
+                                and plr.PlayerGui.Main.Quest.Visible == true then
+
+                                    local v = GetConnectionEnemies("Swan Pirate")
+                                    if v then
+                                        repeat
+                                            wait()
+                                            Attack.Kill(v, _G.AutoZou)
+                                        until not v.Parent or v.Humanoid.Health <= 0 or not _G.AutoZou or plr.PlayerGui.Main.Quest.Visible == false
+                                    else
+                                        _tp(CFrame.new(1057.92761, 137.614319, 1242.08069))
+                                    end
+
+                                else
+                                    _tp(CFrame.new(-456.28952, 73.0200958, 299.895966))
+                                end
+
+                            elseif Bart == 1 then
+                                local v = GetConnectionEnemies("Jeremy")
+                                if v then
+                                    repeat
+                                        wait()
+                                        Attack.Kill(v, _G.AutoZou)
+                                    until not v.Parent or v.Humanoid.Health <= 0 or not _G.AutoZou
+                                else
+                                    _tp(CFrame.new(2099.88159, 448.931, 648.997375))
+                                end
+
+                            elseif Bart == 2 then
+                                repeat
+                                    wait()
+                                    _tp(CFrame.new(-1836, 11, 1714))
+                                until not _G.AutoZou or (Root.Position == CFrame.new(-1836, 11, 1714).Position)
+
+                                if (Root.CFrame == CFrame.new(-1836, 11, 1714)) then
+                                    notween(CFrame.new(-1836, 11, 1714))
+                                end
+
+                                notween(CFrame.new(-1850.49329, 13.1789551, 1750.89685)) wait(.1)
+                                notween(CFrame.new(-1858.87305, 19.3777466, 1712.01807)) wait(.1)
+                                notween(CFrame.new(-1803.94324, 16.5789185, 1750.89685)) wait(.1)
+                                notween(CFrame.new(-1858.55835, 16.8604317, 1724.79541)) wait(.1)
+                                notween(CFrame.new(-1869.54224, 15.987854, 1681.00659)) wait(.1)
+                                notween(CFrame.new(-1800.0979, 16.4978027, 1684.52368)) wait(.1)
+                                notween(CFrame.new(-1819.26343, 14.795166, 1717.90625)) wait(.1)
+                                notween(CFrame.new(-1813.51843, 14.8604736, 1724.79541))
+
+                            end
+                        end
+                    end
+                end
+            end)
+        end
+    end)
+end
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local plr = Players.LocalPlayer
@@ -2987,281 +3152,6 @@ FarmingSection:AddButton({
         GoToNPC()  
     end
 })
-	local BossDropdown = Tabs.Main:AddDropdown("BossDropdown", {
-		Title = "Selecione o Boss",
-		Description = "Selecione o Boss Para Farm",
-		Values = Boss,
-		Default = 1,
-		Callback = function(value)
-			_G.FindBoss = value
-		end
-	})
-	local FarmBoss = Tabs.Main:AddToggle("FarmBoss", {
-		Title = "Auto Farm Boss",
-		Description = "Farma o Boss Selecionado",
-		Default = false
-	})
-	FarmBoss:OnChanged(function(value)
-		_G.FarmBoss = value
-		spawn(function()
-		while wait(Sec) do
-			if _G.FarmBoss then
-				pcall(function()
-					-- Kiểm tra boss có quest hay không
-					local HasQuest = QuestBeta()[2] ~= nil and QuestBeta()[3] ~= nil
-					
-					if HasQuest then
-						-- BOSS CÓ QUEST
-						local QuestTitle = plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text
-						
-						if not string.find(QuestTitle, QuestBeta()[0]) then
-							replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
-						end
-						
-						if plr.PlayerGui.Main.Quest.Visible == false then
-							_tp(QuestBeta()[5])
-							if (Root.Position - QuestBeta()[5].Position).Magnitude <= 5 then
-								replicated.Remotes.CommF_:InvokeServer("StartQuest", QuestBeta()[3], QuestBeta()[2])
-							end
-							
-						elseif plr.PlayerGui.Main.Quest.Visible == true then
-							if workspace.Enemies:FindFirstChild(QuestBeta()[1]) then
-								for i, v in pairs(workspace.Enemies:GetChildren()) do
-									if Attack.Alive(v) then
-										if v.Name == QuestBeta()[1] then
-											if string.find(QuestTitle, QuestBeta()[0]) then
-												repeat
-													wait()
-													Attack.Kill(v, _G.FarmBoss)
-												until not _G.FarmBoss or v.Humanoid.Health <= 0 or not v.Parent or plr.PlayerGui.Main.Quest.Visible == false
-											else
-												replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
-											end
-										end
-									end
-								end
-							else
-								_tp(QuestBeta()[4])
-								if replicated:FindFirstChild(QuestBeta()[1]) then
-									_tp(replicated:FindFirstChild(QuestBeta()[1]).HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
-								end
-							end
-						end
-						
-					else
-						-- BOSS KHÔNG CÓ QUEST - Farm trực tiếp
-						if workspace.Enemies:FindFirstChild(QuestBeta()[1]) then
-							for i, v in pairs(workspace.Enemies:GetChildren()) do
-								if Attack.Alive(v) then
-									if v.Name == QuestBeta()[1] then
-										repeat
-											wait()
-											Attack.Kill(v, _G.FarmBoss)
-										until not _G.FarmBoss or v.Humanoid.Health <= 0 or not v.Parent
-									end
-								end
-							end
-						else
-							_tp(QuestBeta()[4])
-							if replicated:FindFirstChild(QuestBeta()[1]) then
-								_tp(replicated:FindFirstChild(QuestBeta()[1]).HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
-							end
-						end
-					end
-				end)
-			end
-		end
-	end)
-	end)
-	if World1 then
-	local TravelDress = Tabs.Main:AddToggle("TravelDress", {
-		Title = "Auto Sea 2",
-		Description = "Faz As Missões Para Desbloquear o Sea 2 Automaticamente",
-		Default = false
-	})
-	TravelDress:OnChanged(function(Value)
-		_G.TravelDres = Value
-	end)
-	spawn(function()
-		while wait(Sec) do
-			pcall(function()
-				if _G.TravelDres then
-					if plr.Data.Level.Value >= 700 then
-						if workspace.Map.Ice.Door.CanCollide == true and workspace.Map.Ice.Door.Transparency == 0 then
-							replicated.Remotes.CommF_:InvokeServer("DressrosaQuestProgress", "Detective")
-							EquipWeapon("Key")
-							repeat
-								wait()
-								_tp(CFrame.new(1347.7124, 37.3751602, -1325.6488))
-							until not _G.TravelDres or (Root.Position == CFrame.new(1347.7124, 37.3751602, -1325.6488).Position)
-						elseif workspace.Map.Ice.Door.CanCollide == false and workspace.Map.Ice.Door.Transparency == 1 then
-							if Enemies:FindFirstChild("Ice Admiral") then
-								for _, xz in pairs(Enemies:GetChildren()) do
-									if xz.Name == "Ice Admiral" and Attack.Alive(xz) then
-										repeat
-											task.wait()
-											Attack.Kill(xz, _G.TravelDres)
-										until _G.TravelDres == false or xz.Humanoid.Health <= 0
-										replicated.Remotes.CommF_:InvokeServer("TravelDressrosa")
-									end
-								end
-							else
-								_tp(CFrame.new(1347.7124, 37.3751602, -1325.6488))
-							end
-						else
-							replicated.Remotes.CommF_:InvokeServer("TravelDressrosa")
-						end
-					end
-				end
-			end)
-		end
-	end)
-	end
-	if World2 then
-	local Zou = Tabs.Main:AddToggle("Zou", {
-		Title = "Auto Sea 3",
-		Description = "As As Missões Para Liberar o Sea 3 Automaticamente",
-		Default = false
-	})
-	Zou:OnChanged(function(Value)
-		_G.AutoZou = Value
-	end)
-	spawn(function()
-		while wait(Sec) do
-			pcall(function()
-				if _G.AutoZou then
-					if plr.Data.Level.Value >= 1500 then
-						if replicated.Remotes.CommF_:InvokeServer("BartiloQuestProgress", "Bartilo") == 3 then
-							if replicated.Remotes.CommF_:InvokeServer("GetUnlockables").FlamingoAccess ~= nil then
-								replicated.Remotes.CommF_:InvokeServer("F_", "TravelZou")
-								if replicated.Remotes.CommF_:InvokeServer("ZQuestProgress", "Check") == 0 then
-									local v = GetConnectionEnemies("rip_indra")
-									if v then
-										repeat
-											wait()
-											Attack.Kill(v, _G.AutoZou)
-										until not _G.AutoZou or not v.Parent or v.Humanoid.Health <= 0
-										Check = 2
-										repeat
-											wait()
-											replicated.Remotes.CommF_:InvokeServer("F_", "TravelZou")
-										until Check == 1
-									else
-										replicated.Remotes.CommF_:InvokeServer("F_", "ZQuestProgress", "Check")
-										wait(.1)
-										replicated.Remotes.CommF_:InvokeServer("F_", "ZQuestProgress", "Begin")
-									end
-								elseif replicated.Remotes["CommF_"]:InvokeServer("ZQuestProgress", "Check") == 1 then
-									replicated.Remotes.CommF_:InvokeServer("F_", "TravelZou")
-								else
-									local v = GetConnectionEnemies("Don Swan")
-									if v then
-										repeat
-											wait()
-											Attack.Kill(v, _G.AutoZou)
-										until not _G.AutoZou or not v.Parent or v.Humanoid.Health <= 0
-									else
-										repeat
-											wait()
-											_tp(CFrame.new(2288.802, 15.1870775, 863.034607))
-										until not _G.AutoZou or (Root.Position == CFrame.new(2288.802, 15.1870775, 863.034607).Position)
-										if (Root.CFrame == CFrame.new(2288.802, 15.1870775, 863.034607)) then
-											notween(CFrame.new(2288.802, 15.1870775, 863.034607))
-										end
-									end
-								end
-							else
-								if replicated.Remotes.CommF_:InvokeServer("GetUnlockables").FlamingoAccess == nil then
-									TabelDevilFruitStore = {}
-									TabelDevilFruitOpen = {}
-									for i, v in pairs(replicated.Remotes["CommF_"]:InvokeServer("getInventoryFruits")) do
-										for i1, v1 in pairs(v) do
-											if i1 == "Name" then
-												table.insert(TabelDevilFruitStore, v1)
-											end
-										end
-									end
-									for i, v in next, game.ReplicatedStorage:WaitForChild("Remotes").CommF_:InvokeServer("GetFruits") do
-										if v.Price >= 1000000 then
-											table.insert(TabelDevilFruitOpen, v.Name)
-										end
-									end
-									for i, DevilFruitOpenDoor in pairs(TabelDevilFruitOpen) do
-										for i1, DevilFruitStore in pairs(TabelDevilFruitStore) do
-											if DevilFruitOpenDoor == DevilFruitStore and replicated.Remotes.CommF_:InvokeServer("GetUnlockables").FlamingoAccess == nil then
-												if not plr.Backpack:FindFirstChild(DevilFruitStore) then
-													replicated.Remotes.CommF_:InvokeServer("F_", "LoadFruit", DevilFruitStore)
-												else
-													replicated.Remotes.CommF_:InvokeServer("F_", "TalkTrevor", "1")
-													replicated.Remotes.CommF_:InvokeServer("F_", "TalkTrevor", "2")
-													replicated.Remotes.CommF_:InvokeServer("F_", "TalkTrevor", "3")
-												end
-											end
-										end
-									end
-									replicated.Remotes.CommF_:InvokeServer("F_", "TalkTrevor", "1")
-									replicated.Remotes.CommF_:InvokeServer("F_", "TalkTrevor", "2")
-									replicated.Remotes.CommF_:InvokeServer("F_", "TalkTrevor", "3")
-								end
-							end
-						else
-							if replicated.Remotes.CommF_:InvokeServer("BartiloQuestProgress", "Bartilo") == 0 then
-								if string.find(plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "Swan Pirates") and string.find(plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "50") and plr.PlayerGui.Main.Quest.Visible == true then
-									local v = GetConnectionEnemies("Swan Pirate")
-									if v then
-										pcall(function()
-											repeat
-												wait()
-												Attack.Kill(v, _G.AutoZou)
-											until not v.Parent or v.Humanoid.Health <= 0 or _G.AutoZou == false or plr.PlayerGui.Main.Quest.Visible == false
-										end)
-									else
-										_tp(CFrame.new(1057.92761, 137.614319, 1242.08069))
-									end
-								else
-									_tp(CFrame.new(-456.28952, 73.0200958, 299.895966))
-								end
-							elseif replicated.Remotes.CommF_:InvokeServer("BartiloQuestProgress", "Bartilo") == 1 then
-								local v = GetConnectionEnemies("Jeremy")
-								if v then
-									repeat
-										wait()
-										Attack.Kill(v, _G.AutoZou)
-									until not v.Parent or v.Humanoid.Health <= 0 or _G.AutoZou == false
-								else
-									_tp(CFrame.new(2099.88159, 448.931, 648.997375))
-								end
-							elseif replicated.Remotes.CommF_:InvokeServer("BartiloQuestProgress", "Bartilo") == 2 then
-								repeat
-									wait()
-									_tp(CFrame.new(-1836, 11, 1714))
-								until not _G.AutoZou or (Root.Position == CFrame.new(-1836, 11, 1714).Position)
-								if (Root.CFrame == CFrame.new(-1836, 11, 1714)) then
-									notween(CFrame.new(-1836, 11, 1714))
-								end
-								notween(CFrame.new(-1850.49329, 13.1789551, 1750.89685))
-								wait(.1)
-								notween(CFrame.new(-1858.87305, 19.3777466, 1712.01807))
-								wait(.1)
-								notween(CFrame.new(-1803.94324, 16.5789185, 1750.89685))
-								wait(.1)
-								notween(CFrame.new(-1858.55835, 16.8604317, 1724.79541))
-								wait(.1)
-								notween(CFrame.new(-1869.54224, 15.987854, 1681.00659))
-								wait(.1)
-								notween(CFrame.new(-1800.0979, 16.4978027, 1684.52368))
-								wait(.1)
-								notween(CFrame.new(-1819.26343, 14.795166, 1717.90625))
-								wait(.1)
-								notween(CFrame.new(-1813.51843, 14.8604736, 1724.79541))
-							end
-						end
-					end
-				end
-			end)
-		end
-	end)
-	end
 	if World3 then
 	Tabs.Main:AddSection("Boss Tyrant of the Skies")
 
@@ -5129,50 +5019,134 @@ end)
 		end
 	end)
 	local Q = Tabs.Main:AddToggle("Q", {
-		Title = "Auto Sharkman V2/V3",
-		Description = "",
-		Default = false
-	})
-	Q:OnChanged(function(Value)
-		_G.Auto_Fish = Value
-	end)
-	spawn(function()
-		while wait(Sec) do
-			pcall(function()
-				if _G.Auto_Fish then
-					if replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") ~= -2 then
-						if replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") == 0 then
-							replicated.Remotes.CommF_:InvokeServer("Alchemist", "2")
-						elseif replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") == 1 then
-							if not plr.Backpack:FindFirstChild("Flower 1") and not plr.Character:FindFirstChild("Flower 1") then
-								_tp(workspace.Flower1.CFrame)
-							elseif not plr.Backpack:FindFirstChild("Flower 2") and not plr.Character:FindFirstChild("Flower 2") then
-								_tp(workspace.Flower2.CFrame)
-							elseif not plr.Backpack:FindFirstChild("Flower 3") and not plr.Character:FindFirstChild("Flower 3") then
-								local v = GetConnectionEnemies("Swan Pirate")
-								if v then
-									repeat
-										wait()
-										Attack.Kill(v, _G.Auto_Fish)
-									until plr.Backpack:FindFirstChild("Flower 3") or not v.Parent or v.Humanoid.Health <= 0 or _G.Auto_Fish == false
-								else
-									_tp(CFrame.new(980.0985107421875, 121.331298828125, 1287.2093505859375))
-								end
-							end
-						elseif replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") == 2 then
-							replicated.Remotes.CommF_:InvokeServer("Alchemist", "3")
-						end
-					elseif replicated.Remotes.CommF_:InvokeServer("Wenlocktoad", "1") == 0 then
-						replicated.Remotes.CommF_:InvokeServer("Wenlocktoad", "2")
-					elseif replicated.Remotes.CommF_:InvokeServer("Wenlocktoad", "1") == 1 then
-						warn("Sea Beast Soon")
-					end
-				end
-			end)
-		end
-	end)
+    Title = "Auto Sharkman V2/V3",
+    Description = "",
+    Default = false
+})
+Q:OnChanged(function(Value)
+    _G.Auto_Fish = Value
+end)
 
-	Tabs.Main:AddSection("Dark Dragger + Valkyrie")
+spawn(function()
+    while wait(Sec) do
+        pcall(function()
+            if _G.Auto_Fish then
+                if replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") ~= -2 then
+                    if replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") == 0 then
+                        replicated.Remotes.CommF_:InvokeServer("Alchemist", "2")
+                    elseif replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") == 1 then
+                        if not plr.Backpack:FindFirstChild("Flower 1") and not plr.Character:FindFirstChild("Flower 1") then
+                            _tp(workspace.Flower1.CFrame)
+                        elseif not plr.Backpack:FindFirstChild("Flower 2") and not plr.Character:FindFirstChild("Flower 2") then
+                            _tp(workspace.Flower2.CFrame)
+                        elseif not plr.Backpack:FindFirstChild("Flower 3") and not plr.Character:FindFirstChild("Flower 3") then
+                            local v = GetConnectionEnemies("Swan Pirate")
+                            if v then
+                                repeat
+                                    wait()
+                                    Attack.Kill(v, _G.Auto_Fish)
+                                until plr.Backpack:FindFirstChild("Flower 3") or not v.Parent or v.Humanoid.Health <= 0 or not _G.Auto_Fish
+                            else
+                                _tp(CFrame.new(980.0985107421875, 121.331298828125, 1287.2093505859375))
+                            end
+                        end
+                    elseif replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") == 2 then
+                        replicated.Remotes.CommF_:InvokeServer("Alchemist", "3")
+                    end
+                elseif replicated.Remotes.CommF_:InvokeServer("Wenlocktoad", "1") == 0 then
+                    replicated.Remotes.CommF_:InvokeServer("Wenlocktoad", "2")
+                elseif replicated.Remotes.CommF_:InvokeServer("Wenlocktoad", "1") == 1 then
+                    warn("Sea Beast Soon")
+                end
+            end
+        end)
+    end
+end)
+
+local BossSection = Tabs.Main:AddSection("Boss Farming")
+
+local BossDropdown = BossSection:AddDropdown("BossDropdown", {
+    Title = "Selecione o Boss",
+    Description = "Selecione o Boss Para Farm",
+    Values = Boss,
+    Default = 1,
+    Callback = function(value)
+        _G.FindBoss = value
+    end
+})
+
+local FarmBoss = BossSection:AddToggle("FarmBoss", {
+    Title = "Auto Farm Boss",
+    Description = "Farma o Boss Selecionado",
+    Default = false
+})
+FarmBoss:OnChanged(function(value)
+    _G.FarmBoss = value
+    spawn(function()
+        while wait(Sec) do
+            if _G.FarmBoss then
+                pcall(function()
+                    local HasQuest = QuestBeta()[2] ~= nil and QuestBeta()[3] ~= nil
+                    local Root = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+
+                    if HasQuest then
+                        local QuestTitle = plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text
+
+                        if not string.find(QuestTitle, QuestBeta()[0]) then
+                            replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
+                        end
+
+                        if not plr.PlayerGui.Main.Quest.Visible then
+                            _tp(QuestBeta()[5])
+                            if Root and (Root.Position - QuestBeta()[5].Position).Magnitude <= 5 then
+                                replicated.Remotes.CommF_:InvokeServer("StartQuest", QuestBeta()[3], QuestBeta()[2])
+                            end
+                        else
+                            if workspace.Enemies:FindFirstChild(QuestBeta()[1]) then
+                                for _, v in pairs(workspace.Enemies:GetChildren()) do
+                                    if Attack.Alive(v) and v.Name == QuestBeta()[1] then
+                                        if string.find(QuestTitle, QuestBeta()[0]) then
+                                            repeat
+                                                wait()
+                                                Attack.Kill(v, _G.FarmBoss)
+                                            until not _G.FarmBoss or v.Humanoid.Health <= 0 or not v.Parent or not plr.PlayerGui.Main.Quest.Visible
+                                        else
+                                            replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
+                                        end
+                                    end
+                                end
+                            else
+                                _tp(QuestBeta()[4])
+                                if replicated:FindFirstChild(QuestBeta()[1]) then
+                                    _tp(replicated[QuestBeta()[1]].HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
+                                end
+                            end
+                        end
+
+                    else
+                        if workspace.Enemies:FindFirstChild(QuestBeta()[1]) then
+                            for _, v in pairs(workspace.Enemies:GetChildren()) do
+                                if Attack.Alive(v) and v.Name == QuestBeta()[1] then
+                                    repeat
+                                        wait()
+                                        Attack.Kill(v, _G.FarmBoss)
+                                    until not _G.FarmBoss or v.Humanoid.Health <= 0 or not v.Parent
+                                end
+                            end
+                        else
+                            _tp(QuestBeta()[4])
+                            if replicated:FindFirstChild(QuestBeta()[1]) then
+                                _tp(replicated[QuestBeta()[1]].HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
+                            end
+                        end
+                    end
+                end)
+            end
+        end
+    end)
+end)
+if World3 then
+Tabs.Main:AddSection("Dark Dragger + Valkyrie")
 	local Q = Tabs.Main:AddToggle("Q", {
 		Title = "Auto Kill Rip_indra",
 		Description = "",
@@ -5265,7 +5239,7 @@ end)
 		_G.Seriality = Value
 	end)
 	local Bringmob = Tabs.Settings:AddToggle("Bringmob", {
-		Title = "Bring Mobs (Beta)",
+		Title = "Bring Mobs",
 		Description = "Junta Os Mobs (Se Bugar Reative)",
 		Default = true 
 	})
