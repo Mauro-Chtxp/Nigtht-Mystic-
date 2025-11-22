@@ -2931,7 +2931,7 @@ local DiscordSection = Tabs.Discord:AddSection("Discord")
 DiscordSection:AddButton({
 	Title = "Nosso Servidor do Discord",
 	Callback = function()
-		setclipboard("https://discord.gg/PENfzNkFR")
+		setclipboard("https://discord.gg/k6gUtQcfz")
 	end
 })
 
@@ -4892,8 +4892,8 @@ end)
 		_G.Seriality = Value
 	end)
 	local Bringmob = Tabs.Settings:AddToggle("Bringmob", {
-		Title = "Bring Mobs (Beta)",
-		Description = "Junta Os Mobs (Se Bugar Reative)",
+		Title = "Bring Mobs",
+		Description = "",
 		Default = true 
 	})
 	Bringmob:OnChanged(function(Value)
