@@ -4124,6 +4124,7 @@ local MasteryGun = Tabs.Main:AddToggle("MasteryGun", {
     Description = "",
     Default = false
 })
+
 MasteryGun:OnChanged(function(Value)
     _G.FarmMastery_G = Value
 end)
@@ -4164,17 +4165,13 @@ spawn(function()
     end
 end)
 
--- ===============================================
--- Boss Section
--- ===============================================
-Tabs.Main:AddSection("Boss")
+Tabs.Main:AddSection("Boss Section")
 
 local BossDropdown = Tabs.Main:AddDropdown("BossDropdown", {
     Title = "Selecione o Boss",
-    Description = "Escolha o boss para farm",
+    Description = "Selecione o Boss Para Farm",
     Values = Boss,
-    Default = Boss[1],
-    Multi = false,
+    Default = 1,
     Callback = function(value)
         _G.FindBoss = value
     end
@@ -4182,15 +4179,14 @@ local BossDropdown = Tabs.Main:AddDropdown("BossDropdown", {
 
 local FarmBoss = Tabs.Main:AddToggle("FarmBoss", {
     Title = "Auto Farm Boss",
-    Description = "Liga/Desliga o farm de boss",
+    Description = "Farma o Boss Selecionado",
     Default = false
 })
 
 FarmBoss:OnChanged(function(value)
     _G.FarmBoss = value
-
-    task.spawn(function()
-        while task.wait(Sec) do
+    spawn(function()
+        while wait(Sec) do
             if _G.FarmBoss then
                 pcall(function()
 
@@ -4208,29 +4204,34 @@ FarmBoss:OnChanged(function(value)
                             if (Root.Position - QuestBeta()[5].Position).Magnitude <= 5 then
                                 replicated.Remotes.CommF_:InvokeServer("StartQuest", QuestBeta()[3], QuestBeta()[2])
                             end
-                        else
+
+                        elseif plr.PlayerGui.Main.Quest.Visible == true then
+
                             if workspace.Enemies:FindFirstChild(QuestBeta()[1]) then
-                                for _, v in pairs(workspace.Enemies:GetChildren()) do
+                                for i, v in ipairs(workspace.Enemies:GetChildren()) do
                                     if Attack.Alive(v) and v.Name == QuestBeta()[1] then
-                                        repeat
-                                            task.wait()
-                                            Attack.Kill(v, _G.FarmBoss)
-                                        until not _G.FarmBoss or v.Humanoid.Health <= 0 or not v.Parent
+                                        if string.find(QuestTitle, QuestBeta()[0]) then
+                                            repeat wait()
+                                                Attack.Kill(v, _G.FarmBoss)
+                                            until not _G.FarmBoss or v.Humanoid.Health <= 0 or not v.Parent
+                                        else
+                                            replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
+                                        end
                                     end
                                 end
                             else
                                 _tp(QuestBeta()[4])
                                 if replicated:FindFirstChild(QuestBeta()[1]) then
-                                    _tp(replicated[QuestBeta()[1]].HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
+                                    _tp(replicated:FindFirstChild(QuestBeta()[1]).HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
                                 end
                             end
                         end
+
                     else
                         if workspace.Enemies:FindFirstChild(QuestBeta()[1]) then
-                            for _, v in pairs(workspace.Enemies:GetChildren()) do
+                            for i, v in ipairs(workspace.Enemies:GetChildren()) do
                                 if Attack.Alive(v) and v.Name == QuestBeta()[1] then
-                                    repeat
-                                        task.wait()
+                                    repeat wait()
                                         Attack.Kill(v, _G.FarmBoss)
                                     until not _G.FarmBoss or v.Humanoid.Health <= 0 or not v.Parent
                                 end
@@ -4238,7 +4239,7 @@ FarmBoss:OnChanged(function(value)
                         else
                             _tp(QuestBeta()[4])
                             if replicated:FindFirstChild(QuestBeta()[1]) then
-                                _tp(replicated[QuestBeta()[1]].HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
+                                _tp(replicated:FindFirstChild(QuestBeta()[1]).HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
                             end
                         end
                     end
