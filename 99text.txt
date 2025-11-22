@@ -8327,184 +8327,210 @@ Tabs.Prehistoric:AddButton({
 		Tabs.Prehistoric:AddSection("Sea 3")
 		end
 	if World3 then
-	Tabs.SeaEvent:AddSection("Sea Event / Setting Sail")
-	local ListSeaBoat = {
-		"Guardian",
-		"PirateGrandBrigade",
-		"MarineGrandBrigade",
-		"PirateBrigade",
-		"MarineBrigade",
-		"PirateSloop",
-		"MarineSloop",
-		"Beast Hunter"
-	}
-	local ListSeaZone = {
-		"Lv 1",
-		"Lv 2",
-		"Lv 3",
-		"Lv 4",
-		"Lv 5",
-		"Lv 6",
-		"Lv Infinite"
-	}
-	local SPYING = Tabs.SeaEvent:AddParagraph({
-		Title = " Spy Status ",
-		Content = ""
-	})
-	spawn(function()
-		while wait(.2) do
-			pcall(function()
-				local spycheck = string.match(replicated.Remotes.CommF_:InvokeServer("InfoLeviathan", "1"), "%d+")
-				if spycheck then
-					SPYING:SetDesc(" Spy Leviathan  : " .. tostring(spycheck))
-					if tostring(spycheck) == 5 then
-						SPYING:SetDesc(" Spy Leviathan : Already Done!!")
-					end
-				end
-			end)
-		end
-	end)
-	Tabs.SeaEvent:AddButton({
-		Title = "Buy Fracments with Spy",
-		Description = "Buy the spy for finding leviathan",
-		Callback = function()
-			replicated:WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer("InfoLeviathan", "2")
-		end
-	})
-	local FloD = Tabs.SeaEvent:AddParagraph({
-		Title = " Frozen Dimension Status ",
-		Content = ""
-	})
-	spawn(function()
-		pcall(function()
-			while wait(.2) do
-				if workspace._WorldOrigin.Locations:FindFirstChild('Frozen Dimension') then
-					FloD:SetDesc(' Flozen Dimension : True')
-				else
-					FloD:SetDesc(' Flozen Dimension : False')
-				end
-			end
-		end)
-	end)
-	local Q = Tabs.SeaEvent:AddToggle("Q", {
-		Title = "Teleport Frozen Dimension",
-		Description = "turn on for teleport to frozen dimension and start the leviathan gate",
-		Default = false
-	})
-	Q:OnChanged(function(Value)
-		_G.FrozenTP = Value
-	end)
-	spawn(function()
-		while wait(.1) do
-			if _G.FrozenTP then
-				pcall(function()
-					if workspace.Map:FindFirstChild("LeviathanGate") then
-						_tp(workspace.Map.LeviathanGate.CFrame)
-						replicated:WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer("OpenLeviathanGate")
-					end
-				end)
-			end
-		end
-	end)
-	local Q = Tabs.SeaEvent:AddToggle("Q", {
-		Title = "Auto Levar Barco até Hydra",
-		Description = "",
-		Default = false
-	})
-	Q:OnChanged(function(Value)
-		_G.SailBoat_Hydra = Value
-	end)
-	spawn(function()
-		while wait() do
-			if _G.SailBoat_Hydra then
-				pcall(function()
-					local myBoat = CheckBoat()
-					if not myBoat then
-						local buyBoatCFrame = CFrame.new(-16927.451, 9.086, 433.864)
-						TeleportToTarget(buyBoatCFrame)
-						if (buyBoatCFrame.Position - plr.Character.HumanoidRootPart.Position).Magnitude <= 10 then
-							replicated.Remotes.CommF_:InvokeServer("BuyBoat", _G.SelectedBoat)
-						end
-					elseif myBoat then
-						if plr.Character.Humanoid.Sit == false then
-							local boatSeatCFrame = myBoat.VehicleSeat.CFrame * CFrame.new(0, 1, 0)
-							_tp(boatSeatCFrame)
-						else
-							repeat
-								wait()
-								if CheckEnemiesBoat() or CheckPirateGrandBrigade() or CheckTerrorShark() then
-									_tp(CFrame.new(5433, 150, 290))
-								else
-									_tp(CFrame.new(5433, 35, 290))
-								end
-							until _G.SailBoat_Hydra == false or plr.Character:WaitForChild("Humanoid").Sit == false
-							plr.Character.Humanoid.Sit = false
-						end
-					end
-				end)
-			end
-		end
-	end)
-	local Q = Tabs.SeaEvent:AddDropdown("Q", {
-    Title = "Selecionar Boats",
+	-- ===============================================
+-- REORGANIZAÇÃO DA ABA Tabs.SeaEvent
+-- ===============================================
+
+local ListSeaBoat = {
+    "Guardian",
+    "PirateGrandBrigade",
+    "MarineGrandBrigade",
+    "PirateBrigade",
+    "MarineBrigade",
+    "PirateSloop",
+    "MarineSloop",
+    "Beast Hunter"
+}
+local ListSeaZone = {
+    "Lv 1",
+    "Lv 2",
+    "Lv 3",
+    "Lv 4",
+    "Lv 5",
+    "Lv 6",
+    "Lv Infinite"
+}
+local MonsterList = {
+    "Shark",
+    "Piranha",
+    "Terrorshark",
+    "Fish Crew Member",
+    "Haunted Crew Member",
+    "Pirate Grand Brigade",
+    "Fish Boat",
+    "Sea Beast"
+}
+local SkillList = {"Z", "X", "C", "V", "F"}
+
+-- Limpeza/Reinicialização da aba (Se o script for executado várias vezes)
+-- *Este passo não está no seu código original, mas é boa prática em scripts reexecutáveis.*
+-- Se for uma execução única, o código abaixo deve apenas adicionar/reorganizar.
+
+-- ===============================================
+-- I. Section Sea Events
+-- ===============================================
+Tabs.SeaEvent:AddSection("Sea Events / Setting Sail")
+
+-- Dropdown De Select Boat
+local SelectBoat = Tabs.SeaEvent:AddDropdown("SelectBoat", {
+    Title = "Selecionar Barco",
     Values = ListSeaBoat,
     Multi = false,
     Default = 1
 })
-Q:OnChanged(function(Value)
+SelectBoat:OnChanged(function(Value)
     _G.SelectedBoat = Value
 end)
 
-Tabs.SeaEvent:AddButton({
-    Title = "Buy Boats",
-    Description = "Buy the select boats",
-    Callback = function()
-        replicated.Remotes.CommF_:InvokeServer("BuyBoat", _G.SelectedBoat)
-    end
+-- Toggle de Sail Boat
+local AutoSailBoat = Tabs.SeaEvent:AddToggle("AutoSailBoat", {
+    Title = "Auto Sail Boat",
+    Description = "Navega automaticamente para a zona de nível selecionada.",
+    Default = false
 })
-
-local Q = Tabs.SeaEvent:AddDropdown("Q", {
-    Title = "Choose Boats",
-    Values = ListSeaBoat,
-    Multi = false,
-    Default = 1
-})
-Q:OnChanged(function(Value)
-    _G.SelectedBoat = Value
+AutoSailBoat:OnChanged(function(Value)
+    _G.SailBoats = Value
 end)
 
-Tabs.SeaEvent:AddButton({
-    Title = "Comprar Boats",
-    Description = "Buy the select boats",
-    Callback = function()
-        replicated.Remotes.CommF_:InvokeServer("BuyBoat", _G.SelectedBoat)
-    end
-})
-
-local Q = Tabs.SeaEvent:AddDropdown("Q", {
-    Title = "Selecionar Level Sea",
+-- Dropdown De Select Nivel Sea
+local SelectSeaLevel = Tabs.SeaEvent:AddDropdown("SelectSeaLevel", {
+    Title = "Selecionar Nível do Mar",
     Values = ListSeaZone,
     Multi = false,
     Default = 1
 })
-Q:OnChanged(function(Value)
+SelectSeaLevel:OnChanged(function(Value)
     _G.DangerSc = Value
 end)
 
-local Q = Tabs.SeaEvent:AddToggle("Q", {
-    Title = "Auto Sail Boat",
-    Description = "",
-    Default = false
+-- Dropdown De Selecionar Monstros do Mar que ele Vai Matar, Shark etc... (Todos, exceto o Leviathan)
+local SelectSeaMonsters = Tabs.SeaEvent:AddDropdown("SelectSeaMonsters", {
+    Title = "Selecionar Monstros para Caçar",
+    Values = MonsterList,
+    Multi = true,
+    Default = {"Shark", "Terrorshark", "Sea Beast"}
 })
-Q:OnChanged(function(Value)
-    _G.SailBoats = Value
+SelectSeaMonsters:OnChanged(function(Value)
+    -- Reseta todos os toggles globais de monstros (exceto Leviathan)
+    _G.Shark = false
+    _G.Piranha = false
+    _G.TerrorShark = false
+    _G.MobCrew = false
+    _G.HCM = false
+    _G.PGB = false
+    _G.FishBoat = false
+    _G.SeaBeast1 = false
+
+    -- Define os toggles globais com base no Dropdown
+    for MonsterName, Enabled in pairs(Value) do
+        if Enabled then
+            if MonsterName == "Shark" then _G.Shark = true
+            elseif MonsterName == "Piranha" then _G.Piranha = true
+            elseif MonsterName == "Terrorshark" then _G.TerrorShark = true
+            elseif MonsterName == "Fish Crew Member" then _G.MobCrew = true
+            elseif MonsterName == "Haunted Crew Member" then _G.HCM = true
+            elseif MonsterName == "Pirate Grand Brigade" then _G.PGB = true
+            elseif MonsterName == "Fish Boat" then _G.FishBoat = true
+            elseif MonsterName == "Sea Beast" then _G.SeaBeast1 = true
+            end
+        end
+    end
 end)
 
-local SkillList = {"Z", "X", "C", "V", "F"}
+-- ===============================================
+-- II. Section Frozen Dimension
+-- ===============================================
+Tabs.SeaEvent:AddSection("Frozen Dimension")
 
+-- Paragraph de Frozen Dimension Status
+local FloD = Tabs.SeaEvent:AddParagraph({
+    Title = " Frozen Dimension Status ",
+    Content = ""
+})
+spawn(function()
+    pcall(function()
+        while wait(.2) do
+            if workspace._WorldOrigin.Locations:FindFirstChild('Frozen Dimension') then
+                FloD:SetDesc(' Flozen Dimension : True')
+            else
+                FloD:SetDesc(' Flozen Dimension : False')
+            end
+        end
+    end)
+end)
+
+-- Button de Buy Fracments with Spy (com lógica do Spy Status embutida/adjacente)
+local SPYING = Tabs.SeaEvent:AddParagraph({
+    Title = " Spy Status ",
+    Content = ""
+})
+spawn(function()
+    while wait(.2) do
+        pcall(function()
+            local spycheck = string.match(replicated.Remotes.CommF_:InvokeServer("InfoLeviathan", "1"), "%d+")
+            if spycheck then
+                SPYING:SetDesc(" Spy Leviathan  : " .. tostring(spycheck))
+                if tostring(spycheck) == "5" then
+                    SPYING:SetDesc(" Spy Leviathan : Already Done!!")
+                end
+            end
+        end)
+    end
+end)
+Tabs.SeaEvent:AddButton({
+    Title = "Buy Fracments with Spy",
+    Description = "Buy the spy for finding leviathan",
+    Callback = function()
+        replicated:WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer("InfoLeviathan", "2")
+    end
+})
+
+-- Toggle de Teleport Frozen Dimension
+local FrozenDimensionTP = Tabs.SeaEvent:AddToggle("FrozenDimensionTP", {
+    Title = "Teleport Frozen Dimension",
+    Description = "turn on for teleport to frozen dimension and start the leviathan gate",
+    Default = false
+})
+FrozenDimensionTP:OnChanged(function(Value)
+    _G.FrozenTP = Value
+end)
+spawn(function()
+    while wait(.1) do
+        if _G.FrozenTP then
+            pcall(function()
+                if workspace.Map:FindFirstChild("LeviathanGate") then
+                    _tp(workspace.Map.LeviathanGate.CFrame)
+                    replicated:WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer("OpenLeviathanGate")
+                end
+            end)
+        end
+    end
+end)
+
+-- ===============================================
+-- III. Section Leviathan
+-- ===============================================
+Tabs.SeaEvent:AddSection("Leviathan")
+
+-- Toggle de Auto Attack Leviathan
+local AutoAttackLeviathan = Tabs.SeaEvent:AddToggle("AutoAttackLeviathan", {
+    Title = "Auto Attack Leviathan",
+    Description = "Automatically attacks the Leviathan.",
+    Default = false
+})
+AutoAttackLeviathan:OnChanged(function(Value)
+    _G.Leviathan1 = Value
+end)
+
+-- ===============================================
+-- IV. Section Config
+-- ===============================================
+Tabs.SeaEvent:AddSection("Configuração de Combate")
+
+-- Dropdown de Select Skills
 local SelectSkills = Tabs.SeaEvent:AddDropdown("SelectSkills", {
-    Title = "Select Skill",
-    Description = "Choose which skills will be used automatically",
+    Title = "Selecionar Skills",
+    Description = "Escolha quais skills serão usadas automaticamente (Ex: Z, X, C, V, F)",
     Values = SkillList,
     Multi = true,
     Default = {"Z", "X", "C"}
@@ -8519,9 +8545,10 @@ SelectSkills:OnChanged(function(Value)
     end
 end)
 
+-- Toggle de Use M1 Fruit
 local UseM1Fruit = Tabs.SeaEvent:AddToggle("UseM1Fruit", {
-    Title = "Use M1 Fruit",
-    Description = "Use only M1 with your Blox Fruit during Sea Events",
+    Title = "Usar M1 (Apenas Fruta)",
+    Description = "Use apenas o ataque básico (M1) da sua Blox Fruit em Sea Events.",
     Default = false
 })
 
@@ -8529,9 +8556,81 @@ UseM1Fruit:OnChanged(function(Value)
     _G.UseM1Fruit = Value
 end)
 
--- ===========================
--- CORREÇÃO: Equipar a fruta de verdade
--- ===========================
+
+-- ===============================================
+-- LÓGICAS E SPWANS (Mantidas e Adaptadas)
+-- ===============================================
+
+-- Lógica do Auto Sail Boat (Mantida e ajustada)
+spawn(function()
+    while wait() do
+        if _G.SailBoats then
+            pcall(function()
+                local myBoat = CheckBoat()
+                -- Lógica de navegação: continua se não estiver atacando nenhum monstro/barco marcado.
+                if not myBoat and not(CheckShark() and _G.Shark or CheckTerrorShark() and _G.TerrorShark or CheckFishCrew() and _G.MobCrew or CheckPiranha() and _G.Piranha) and not(CheckEnemiesBoat() and _G.FishBoat) and not(CheckSeaBeast() and _G.SeaBeast1) and not(_G.PGB and CheckPirateGrandBrigade()) and not(_G.HCM and CheckHauntedCrew()) and not(_G.Leviathan1 and CheckLeviathan()) then
+                    local buyBoatCFrame = CFrame.new(-16927.451, 9.086, 433.864)
+                    TeleportToTarget(buyBoatCFrame)
+                    if (buyBoatCFrame.Position - plr.Character.HumanoidRootPart.Position).Magnitude <= 10 then
+                        replicated.Remotes.CommF_:InvokeServer("BuyBoat", _G.SelectedBoat)
+                    end
+                elseif myBoat and not(CheckShark() and _G.Shark or CheckTerrorShark() and _G.TerrorShark or CheckFishCrew() and _G.MobCrew or CheckPiranha() and _G.Piranha) and not(CheckEnemiesBoat() and _G.FishBoat) and not(CheckSeaBeast() and _G.SeaBeast1) and not(_G.PGB and CheckPirateGrandBrigade()) and not(_G.HCM and CheckHauntedCrew()) and not(_G.Leviathan1 and CheckLeviathan()) then
+                    if plr.Character.Humanoid.Sit == false then
+                        local boatSeatCFrame = myBoat.VehicleSeat.CFrame * CFrame.new(0, 1, 0)
+                        _tp(boatSeatCFrame)
+                    else
+                        local CFrameSelectedZone
+                        if _G.DangerSc == "Lv 1" then
+                            CFrameSelectedZone = CFrame.new(-21998.375, 30.0006084, -682.309143)
+                        elseif _G.DangerSc == "Lv 2" then
+                            CFrameSelectedZone = CFrame.new(-26779.5215, 30.0005474, -822.858032)
+                        elseif _G.DangerSc == "Lv 3" then
+                            CFrameSelectedZone = CFrame.new(-31171.957, 30.0001011, -2256.93774)
+                        elseif _G.DangerSc == "Lv 4" then
+                            CFrameSelectedZone = CFrame.new(-34054.6875, 30.2187767, -2560.12012)
+                        elseif _G.DangerSc == "Lv 5" then
+                            CFrameSelectedZone = CFrame.new(-38887.5547, 30.0004578, -2162.99023)
+                        elseif _G.DangerSc == "Lv 6" then
+                            CFrameSelectedZone = CFrame.new(-44541.7617, 30.0003204, -1244.8584)
+                        elseif _G.DangerSc == "Lv Infinite" then
+                            CFrameSelectedZone = CFrame.new(-10000000, 31, 37016.25)
+                        end
+                        repeat
+                            wait()
+                            if (not _G.FishBoat and CheckEnemiesBoat()) or (not _G.PGB and CheckPirateGrandBrigade()) or (not _G.TerrorShark and CheckTerrorShark()) then
+                                _tp(CFrameSelectedZone * CFrame.new(0, 150, 0))
+                            else
+                                _tp(CFrameSelectedZone)
+                            end
+                        until _G.SailBoats == false or (CheckShark() and _G.Shark or CheckTerrorShark() and _G.TerrorShark or CheckFishCrew() and _G.MobCrew or CheckPiranha() and _G.Piranha) or CheckSeaBeast() and _G.SeaBeast1 or CheckEnemiesBoat() and _G.FishBoat or _G.Leviathan1 and CheckLeviathan() or _G.HCM and CheckHauntedCrew() or _G.PGB and CheckPirateGrandBrigade() or plr.Character:WaitForChild("Humanoid").Sit == false
+                        plr.Character.Humanoid.Sit = false
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+-- Lógica para CanCollide dos barcos (Mantida)
+spawn(function()
+    while wait(Sec) do
+        pcall(function()
+            for a, b in pairs(workspace.Boats:GetChildren()) do
+                for c, d in pairs(workspace.Boats[b.Name]:GetDescendants()) do
+                    if d:IsA("BasePart") then
+                        if _G.SailBoats or _G.Prehis_Find or _G.FindMirage or _G.SailBoat_Hydra or _G.AutofindKitIs then
+                            d.CanCollide = false
+                        else
+                            d.CanCollide = true
+                        end
+                    end
+                end
+            end
+        end)
+    end
+end)
+
+-- Funções de Suporte (Mantidas e adaptadas)
 local function ForceEquipFruit()
     local plr = game.Players.LocalPlayer
     local char = plr.Character
@@ -8546,27 +8645,15 @@ local function ForceEquipFruit()
     end
 end
 
--- ===========================
--- FUNÇÃO DE ATAQUE
--- ===========================
 local function AttackWithSelectedSkills()
-
-    -- =======================
-    -- MODO M1 FRUIT ATIVADO
-    -- =======================
     if _G.UseM1Fruit then
         ForceEquipFruit()  -- EQUIPA A FRUTA DE VERDADE
-
         if CheckF() then
             click()  -- M1
         end
-
         return
     end
 
-    -- =======================
-    -- MODO DE SKILLS NORMAL
-    -- =======================
     local skillsToUse = _G.SelectedSkills
     if not skillsToUse or #skillsToUse == 0 then
         skillsToUse = {"Z", "X", "C"}
@@ -8589,317 +8676,124 @@ local function AttackWithSelectedSkills()
         end
     end
 end
--- FIM DAS CORREÇÕES E ADIÇÕES
--- *******************************************
 
-	spawn(function()
-		while wait() do
-			if _G.SailBoats then
-				pcall(function()
-					local myBoat = CheckBoat()
-					if not myBoat and not(CheckShark() and _G.Shark or CheckTerrorShark() and _G.TerrorShark or CheckFishCrew() and _G.MobCrew or CheckPiranha() and _G.Piranha) and not(CheckEnemiesBoat() and _G.FishBoat) and not(CheckSeaBeast() and _G.SeaBeast1) and not(_G.PGB and CheckPirateGrandBrigade()) and not(_G.HCM and CheckHauntedCrew()) and not(_G.Leviathan1 and CheckLeviathan()) then
-						local buyBoatCFrame = CFrame.new(-16927.451, 9.086, 433.864)
-						TeleportToTarget(buyBoatCFrame)
-						if (buyBoatCFrame.Position - plr.Character.HumanoidRootPart.Position).Magnitude <= 10 then
-							replicated.Remotes.CommF_:InvokeServer("BuyBoat", _G.SelectedBoat)
-						end
-					elseif myBoat and not(CheckShark() and _G.Shark or CheckTerrorShark() and _G.TerrorShark or CheckFishCrew() and _G.MobCrew or CheckPiranha() and _G.Piranha) and not(CheckEnemiesBoat() and _G.FishBoat) and not(CheckSeaBeast() and _G.SeaBeast1) and not(_G.PGB and CheckPirateGrandBrigade()) and not(_G.HCM and CheckHauntedCrew()) and not(_G.Leviathan1 and CheckLeviathan()) then
-						if plr.Character.Humanoid.Sit == false then
-							local boatSeatCFrame = myBoat.VehicleSeat.CFrame * CFrame.new(0, 1, 0)
-							_tp(boatSeatCFrame)
-						else
-							if _G.DangerSc == "Lv 1" then
-								CFrameSelectedZone = CFrame.new(-21998.375, 30.0006084, -682.309143)
-							elseif _G.DangerSc == "Lv 2" then
-								CFrameSelectedZone = CFrame.new(-26779.5215, 30.0005474, -822.858032)
-							elseif _G.DangerSc == "Lv 3" then
-								CFrameSelectedZone = CFrame.new(-31171.957, 30.0001011, -2256.93774)
-							elseif _G.DangerSc == "Lv 4" then
-								CFrameSelectedZone = CFrame.new(-34054.6875, 30.2187767, -2560.12012)
-							elseif _G.DangerSc == "Lv 5" then
-								CFrameSelectedZone = CFrame.new(-38887.5547, 30.0004578, -2162.99023)
-							elseif _G.DangerSc == "Lv 6" then
-								CFrameSelectedZone = CFrame.new(-44541.7617, 30.0003204, -1244.8584)
-							elseif _G.DangerSc == "Lv Infinite" then
-								CFrameSelectedZone = CFrame.new(-10000000, 31, 37016.25)
-							end
-							repeat
-								wait()
-								if (not _G.FishBoat and CheckEnemiesBoat()) or (not _G.PGB and CheckPirateGrandBrigade()) or (not _G.TerrorShark and CheckTerrorShark()) then
-									_tp(CFrameSelectedZone * CFrame.new(0, 150, 0))
-								else
-									_tp(CFrameSelectedZone)
-								end
-							until _G.SailBoats == false or (CheckShark() and _G.Shark or CheckTerrorShark() and _G.TerrorShark or CheckFishCrew() and _G.MobCrew or CheckPiranha() and _G.Piranha) or CheckSeaBeast() and _G.SeaBeast1 or CheckEnemiesBoat() and _G.FishBoat or _G.Leviathan1 and CheckLeviathan() or _G.HCM and CheckHauntedCrew() or _G.PGB and CheckPirateGrandBrigade() or plr.Character:WaitForChild("Humanoid").Sit == false
-							plr.Character.Humanoid.Sit = false
-						end
-					end
-				end)
-			end
-		end
-	end)
-	spawn(function()
-		while wait(Sec) do
-			pcall(function()
-				for a, b in pairs(workspace.Boats:GetChildren()) do
-					for c, d in pairs(workspace.Boats[b.Name]:GetDescendants()) do
-						if d:IsA("BasePart") then
-							if _G.SailBoats or _G.Prehis_Find or _G.FindMirage or _G.SailBoat_Hydra or _G.AutofindKitIs then
-								d.CanCollide = false
-							else
-								d.CanCollide = true
-							end
-						end
-					end
-				end
-			end)
-		end
-	end)
-	Tabs.SeaEvent:AddSection("Entity Sea Event")
-	Q = Tabs.SeaEvent:AddToggle("Q", {
-		Title = "Auto Shark",
-		Description = "",
-		Default = false
-	})
-	Q:OnChanged(function(Value)
-		_G.Shark = Value
-	end)
-	Q = Tabs.SeaEvent:AddToggle("Q", {
-		Title = "Auto Piranha",
-		Description = "",
-		Default = false
-	})
-	Q:OnChanged(function(Value)
-		_G.Piranha = Value
-	end)
-	Q = Tabs.SeaEvent:AddToggle("Q", {
-		Title = "Auto Terror Shark",
-		Description = "",
-		Default = false
-	})
-	Q:OnChanged(function(Value)
-		_G.TerrorShark = Value
-	end)
-	Q = Tabs.SeaEvent:AddToggle("Q", {
-		Title = "Auto Fish Crew Member",
-		Description = "",
-		Default = false
-	})
-	Q:OnChanged(function(Value)
-		_G.MobCrew = Value
-	end)
-	Q = Tabs.SeaEvent:AddToggle("Q", {
-		Title = "Auto Haunted Crew Member",
-		Description = "",
-		Default = false
-	})
-	Q:OnChanged(function(Value)
-		_G.HCM = Value
-	end)
-	Q = Tabs.SeaEvent:AddToggle("Q", {
-		Title = "Auto Pirate Grand Brigade",
-		Description = "",
-		Default = false
-	})
-	Q:OnChanged(function(Value)
-		_G.PGB = Value
-	end)
-	Q = Tabs.SeaEvent:AddToggle("Q", {
-		Title = "AutoFish Boat",
-		Description = "",
-		Default = false
-	})
-	Q:OnChanged(function(Value)
-		_G.FishBoat = Value
-	end)
-	Q = Tabs.SeaEvent:AddToggle("Q", {
-		Title = "Auto Sea Beast",
-		Description = "",
-		Default = false
-	})
-	Q:OnChanged(function(Value)
-		_G.SeaBeast1 = Value
-	end)
-	Q = Tabs.SeaEvent:AddToggle("Q", {
-		Title = "Auto Attack Leviathan",
-		Description = "",
-		Default = false
-	})
-	Q:OnChanged(function(Value)
-		_G.Leviathan1 = Value
-	end)
-	spawn(function()
-		while wait() do
-			pcall(function()
-				if _G.Shark then
-					local a = {
-						"Shark"
-					}
-					if CheckShark() then
-						for b, c in pairs(workspace.Enemies:GetChildren()) do
-							if table.find(a, c.Name) then
-								if Attack.Alive(c) then
-									repeat
-										task.wait()
-										Attack.Kill(c, _G.Shark)
-									until _G.Shark == false or not c.Parent or c.Humanoid.Health <= 0
-								end
-							end
-						end
-					end
-				end
-				if _G.TerrorShark then
-					local a = {
-						"Terrorshark"
-					}
-					if CheckTerrorShark() then
-						for b, c in pairs(workspace.Enemies:GetChildren()) do
-							if table.find(a, c.Name) then
-								if Attack.Alive(c) then
-									repeat
-										task.wait()
-										Attack.KillSea(c, _G.TerrorShark)
-									until _G.TerrorShark == false or not c.Parent or c.Humanoid.Health <= 0
-								end
-							end
-						end
-					end
-				end
-				if _G.Piranha then
-					local a = {
-						"Piranha"
-					}
-					if CheckPiranha() then
-						for b, c in pairs(workspace.Enemies:GetChildren()) do
-							if table.find(a, c.Name) then
-								if Attack.Alive(c) then
-									repeat
-										task.wait()
-										Attack.Kill(c, _G.Piranha)
-									until _G.Piranha == false or not c.Parent or c.Humanoid.Health <= 0
-								end
-							end
-						end
-					end
-				end
-				if _G.MobCrew then
-					local a = {
-						"Fish Crew Member"
-					}
-					if CheckFishCrew() then
-						for b, c in pairs(workspace.Enemies:GetChildren()) do
-							if table.find(a, c.Name) then
-								if Attack.Alive(c) then
-									repeat
-										task.wait()
-										Attack.Kill(c, _G.MobCrew)
-									until _G.MobCrew == false or not c.Parent or c.Humanoid.Health <= 0
-								end
-							end
-						end
-					end
-				end
-				if _G.HCM then
-					local a = {
-						"Haunted Crew Member"
-					}
-					if CheckHauntedCrew() then
-						for b, c in pairs(workspace.Enemies:GetChildren()) do
-							if table.find(a, c.Name) then
-								if Attack.Alive(c) then
-									repeat
-										task.wait()
-										Attack.Kill(c, _G.HCM)
-									until _G.HCM == false or not c.Parent or c.Humanoid.Health <= 0
-								end
-							end
-						end
-					end
-				end
-				if _G.SeaBeast1 then
-					if workspace.SeaBeasts:FindFirstChild("SeaBeast1") then
-						for a, b in pairs(workspace.SeaBeasts:GetChildren()) do
-							if b:FindFirstChild("HumanoidRootPart") and b:FindFirstChild("Health") and b.Health.Value > 0 then
-								repeat
-									task.wait()
-									spawn(function()
-										_tp(CFrame.new(b.HumanoidRootPart.Position.X, game:GetService("Workspace").Map["WaterBase-Plane"].Position.Y + 200, b.HumanoidRootPart.Position.Z))
-									end)
-									if plr:DistanceFromCharacter(b.HumanoidRootPart.CFrame.Position) <= 500 then
-										AitSeaSkill_Custom = b.HumanoidRootPart.CFrame;
-										MousePos = AitSeaSkill_Custom.Position;
-										AttackWithSelectedSkills() -- Chamada da nova função
-									end
-								until _G.SeaBeast1 == false or not b:FindFirstChild("HumanoidRootPart") or not b.Parent or b.Health.Value <= 0
-							end
-						end
-					end
-				end
-				if _G.Leviathan1 then
-					if workspace.SeaBeasts:FindFirstChild("Leviathan") then
-						for a, b in pairs(workspace.SeaBeasts:GetChildren()) do
-							if b:FindFirstChild("HumanoidRootPart") and b:FindFirstChild("Leviathan Segment") and b:FindFirstChild("Health") and b.Health.Value > 0 then
-								repeat
-									task.wait()
-									spawn(function()
-										_tp(CFrame.new(b.HumanoidRootPart.Position.X, game:GetService("Workspace").Map["WaterBase-Plane"].Position.Y + 200, b.HumanoidRootPart.Position.Z))
-									end)
-									if plr:DistanceFromCharacter(b.HumanoidRootPart.CFrame.Position) <= 500 then
-										MousePos = b:FindFirstChild("Leviathan Segment").Position;
-										AttackWithSelectedSkills() -- Chamada da nova função
-									end
-								until _G.Leviathan1 == false or not b:FindFirstChild("HumanoidRootPart") or not b.Parent or b.Health.Value <= 0
-							end
-						end
-					end
-				end
-				if _G.FishBoat then
-					if CheckEnemiesBoat() then
-						for a, b in pairs(workspace.Enemies:GetChildren()) do
-							if b:FindFirstChild("Health") and b.Health.Value > 0 and b:FindFirstChild("VehicleSeat") then
-								repeat
-									task.wait()
-									spawn(function()
-										if b.Name == "FishBoat" then
-											_tp(b.Engine.CFrame * CFrame.new(0, -50, -25))
-										end
-									end)
-									if plr:DistanceFromCharacter(b.Engine.CFrame.Position) <= 150 then
-										AitSeaSkill_Custom = b.Engine.CFrame;
-										MousePos = AitSeaSkill_Custom.Position;
-										AttackWithSelectedSkills() -- Chamada da nova função
-									end
-								until _G.FishBoat == false or not b:FindFirstChild("VehicleSeat") or b.Health.Value <= 0
-							end
-						end
-					end
-				end
-				if _G.PGB then
-					if CheckPirateGrandBrigade() then
-						for a, b in pairs(workspace.Enemies:GetChildren()) do
-							if b:FindFirstChild("Health") and b.Health.Value > 0 and b:FindFirstChild("VehicleSeat") then
-								repeat
-									task.wait()
-									spawn(function()
-										if b.Name == "PirateBrigade" then
-											_tp(b.Engine.CFrame * CFrame.new(0, -30, -10))
-										elseif b.Name == "PirateGrandBrigade" then
-											_tp(b.Engine.CFrame * CFrame.new(0, -50, -50))
-										end
-									end)
-									if plr:DistanceFromCharacter(b.Engine.CFrame.Position) <= 150 then
-										AitSeaSkill_Custom = b.Engine.CFrame;
-										MousePos = AitSeaSkill_Custom.Position;
-										AttackWithSelectedSkills() -- Chamada da nova função
-									end
-								until _G.PGB == false or not b:FindFirstChild("VehicleSeat") or b.Health.Value <= 0
-							end
-						end
-					end
-				end
-			end)
-		end
-	end)
+-- Lógica de Ataque aos Monstros do Mar (Unificada e adaptada para _G. variáveis)
+spawn(function()
+    while wait() do
+        pcall(function()
+            -- Lógica para ataque a criaturas de mar (mob)
+            local seaMobs = {
+                { name = "Shark", global = _G.Shark, check = CheckShark, kill = Attack.Kill },
+                { name = "Piranha", global = _G.Piranha, check = CheckPiranha, kill = Attack.Kill },
+                { name = "Fish Crew Member", global = _G.MobCrew, check = CheckFishCrew, kill = Attack.Kill },
+                { name = "Haunted Crew Member", global = _G.HCM, check = CheckHauntedCrew, kill = Attack.Kill },
+            }
+
+            for _, mob in ipairs(seaMobs) do
+                if mob.global then
+                    if mob.check() then
+                        for b, c in pairs(workspace.Enemies:GetChildren()) do
+                            if c.Name == mob.name then
+                                if Attack.Alive(c) then
+                                    repeat
+                                        task.wait()
+                                        mob.kill(c, mob.global)
+                                    until mob.global == false or not c.Parent or c.Humanoid.Health <= 0
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+
+            -- Lógica para Terror Shark (usa KillSea)
+            if _G.TerrorShark then
+                if CheckTerrorShark() then
+                    for b, c in pairs(workspace.Enemies:GetChildren()) do
+                        if c.Name == "Terrorshark" then
+                            if Attack.Alive(c) then
+                                repeat
+                                    task.wait()
+                                    Attack.KillSea(c, _G.TerrorShark)
+                                until _G.TerrorShark == false or not c.Parent or c.Humanoid.Health <= 0
+                            end
+                        end
+                    end
+                end
+            end
+
+            -- Lógica para Sea Beast (usa AttackWithSelectedSkills)
+            if _G.SeaBeast1 then
+                if workspace.SeaBeasts:FindFirstChild("SeaBeast1") then
+                    for a, b in pairs(workspace.SeaBeasts:GetChildren()) do
+                        if b:FindFirstChild("HumanoidRootPart") and b:FindFirstChild("Health") and b.Health.Value > 0 then
+                            repeat
+                                task.wait()
+                                spawn(function()
+                                    _tp(CFrame.new(b.HumanoidRootPart.Position.X, game:GetService("Workspace").Map["WaterBase-Plane"].Position.Y + 200, b.HumanoidRootPart.Position.Z))
+                                end)
+                                if plr:DistanceFromCharacter(b.HumanoidRootPart.CFrame.Position) <= 500 then
+                                    AitSeaSkill_Custom = b.HumanoidRootPart.CFrame;
+                                    MousePos = AitSeaSkill_Custom.Position;
+                                    AttackWithSelectedSkills()
+                                end
+                            until _G.SeaBeast1 == false or not b:FindFirstChild("HumanoidRootPart") or not b.Parent or b.Health.Value <= 0
+                        end
+                    end
+                end
+            end
+            
+            -- Lógica para Leviathan (usa AttackWithSelectedSkills)
+            if _G.Leviathan1 then
+                if workspace.SeaBeasts:FindFirstChild("Leviathan") then
+                    for a, b in pairs(workspace.SeaBeasts:GetChildren()) do
+                        if b:FindFirstChild("HumanoidRootPart") and b:FindFirstChild("Leviathan Segment") and b:FindFirstChild("Health") and b.Health.Value > 0 then
+                            repeat
+                                task.wait()
+                                spawn(function()
+                                    _tp(CFrame.new(b.HumanoidRootPart.Position.X, game:GetService("Workspace").Map["WaterBase-Plane"].Position.Y + 200, b.HumanoidRootPart.Position.Z))
+                                end)
+                                if plr:DistanceFromCharacter(b.HumanoidRootPart.CFrame.Position) <= 500 then
+                                    MousePos = b:FindFirstChild("Leviathan Segment").Position;
+                                    AttackWithSelectedSkills()
+                                end
+                            until _G.Leviathan1 == false or not b:FindFirstChild("HumanoidRootPart") or not b.Parent or b.Health.Value <= 0
+                        end
+                    end
+                end
+            end
+
+            -- Lógica para Barcos Inimigos (FishBoat e Pirate Grand Brigade)
+            local enemyBoats = {
+                { global = _G.FishBoat, check = CheckEnemiesBoat, name = "FishBoat", tp_offset = CFrame.new(0, -50, -25) },
+                { global = _G.PGB, check = CheckPirateGrandBrigade, name = "PirateGrandBrigade", tp_offset = CFrame.new(0, -50, -50) },
+                { global = _G.PGB, check = CheckPirateGrandBrigade, name = "PirateBrigade", tp_offset = CFrame.new(0, -30, -10) },
+            }
+
+            for _, boat in ipairs(enemyBoats) do
+                if boat.global then
+                    if boat.check() then
+                        for a, b in pairs(workspace.Enemies:GetChildren()) do
+                            if b.Name == boat.name and b:FindFirstChild("Health") and b.Health.Value > 0 and b:FindFirstChild("VehicleSeat") then
+                                repeat
+                                    task.wait()
+                                    spawn(function()
+                                        _tp(b.Engine.CFrame * boat.tp_offset)
+                                    end)
+                                    if plr:DistanceFromCharacter(b.Engine.CFrame.Position) <= 150 then
+                                        AitSeaSkill_Custom = b.Engine.CFrame;
+                                        MousePos = AitSeaSkill_Custom.Position;
+                                        AttackWithSelectedSkills()
+                                    end
+                                until boat.global == false or not b:FindFirstChild("VehicleSeat") or b.Health.Value <= 0
+                            end
+                        end
+                    end
+                end
+            end
+        end)
+    end
+end)
 
 
 	Tabs.SeaEvent:AddSection("Kitsune Island / Event")
