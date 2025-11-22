@@ -2012,7 +2012,7 @@ local Window = Fluent:CreateWindow({
     Search = false,
     Icon = "rbxassetid://9513555247",
     TabWidth = 170, -- você já tinha, deixei igual
-    Theme = "PurpleBlack",
+    Theme = "Darker",
     Acrylic = false,
     Size = UDim2.fromOffset(425, 365),
     MinimizeKey = Enum.KeyCode.End,
@@ -10417,46 +10417,28 @@ end)
 			replicated.Remotes.CommF_:InvokeServer("BuyGodhuman")
 		end
 	})
-	-- Configuração
-local NPClist = "Shafi" -- Nome do NPC
-local Sec = 1 -- Intervalo do loop em segundos
-
--- Detecta NPCs mudando
-GoNPCs.OnChanged(function(Value)
-    _G.TPNpc = Value
-end)
-
--- Função para teleportar até o NPC
-local function TeleportToNPC()
-    for _, v in pairs(replicated.NPCs:GetChildren()) do
-        if v.Name == NPClist and v:FindFirstChild("HumanoidRootPart") then
-            _tp(v.HumanoidRootPart.CFrame)
-            return true
-        end
-    end
-    return false
-end
-
--- Loop que tenta ir até o NPC
-spawn(function()
-    while wait(Sec) do
-        if _G.TPNpc then
-            pcall(TeleportToNPC)
-        end
-    end
-end)
-
--- Botão para comprar o estilo
-Tabs.Shop:AddButton({
+	Tabs.Shop:AddButton({
     Title = "Buy SanguineArt",
     Description = "",
     Callback = function()
-        -- Aqui só executa a compra depois de estar próximo do NPC
-        if TeleportToNPC() then
-            replicated.Remotes.CommF_:InvokeServer("BuySanguineArt")
-        else
-            print("NPC não encontrado!")
-        end
+        local player = game.Players.LocalPlayer
+        local replicated = game:GetService("ReplicatedStorage")
+        local character = player.Character or player.CharacterAdded:Wait()
+        local hrp = character:WaitForChild("HumanoidRootPart")
+
+        -- Teleporte direto
+        local targetCFrame = CFrame.new(
+            1651.8906, 
+            23.082445, 
+            -197.833191, 
+            -0.994794369, 5.98604188e-08, -0.101902537,
+            6.31683648e-08, -2.92349487e-07, -0.101902537,
+            -3.5519791e-08, -0.994794369, 0
+        )
+        hrp.CFrame = targetCFrame
+
+        -- Ative o Remote
+        replicated.Remotes.CommF_:InvokeServer("BuySanguineArt")
     end
 })
 
