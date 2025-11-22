@@ -2004,7 +2004,7 @@ BringEnemy = function()
 
 local Window = Fluent:CreateWindow({
     Title = "Night Mystic",
-    SubTitle = "By Hey Star & MauroZzx | Blox Fruits",
+    SubTitle = "By MauroZzx | Blox Fruits",
 
     -- ADICIONADOS DA OUTRA WINDOW:
     TitleIcon = "",
@@ -2103,50 +2103,67 @@ end)
         Title = "Server",
         Icon = "server"
     }),
+
     Main = Window:AddTab({
         Title = "Main",
         Icon = "home"
     }),
+
     Fruit = Window:AddTab({
         Title = "Fruit",
         Icon = "apple"
     }),
+
     Quests = Window:AddTab({
         Title = "Farm Outros",
         Icon = "scroll"
     }),
+
     MiscFarm = Window:AddTab({
         Title = "Misc Farm",
         Icon = "anchor"
     }),
+
     SeaEvent = Window:AddTab({
         Title = "Sea Events",
         Icon = "waves"
     }),
+
     Mirage = Window:AddTab({
         Title = "Race V4",
         Icon = "moon"
     }),
+
     Drago = Window:AddTab({
         Title = "Dragon Dojo",
         Icon = "flame"
     }),
+
     Prehistoric = Window:AddTab({
         Title = "Prehistoric",
         Icon = "skull"
     }),
+
     Raids = Window:AddTab({
         Title = "Raids",
         Icon = "axe"
     }),
+
+    LocalPlayer = Window:AddTab({
+        Title = "Local Player",
+        Icon = "user"
+    }),
+
     Combat = Window:AddTab({
         Title = "Pvp",
         Icon = "crosshair"
     }),
+
     Travel = Window:AddTab({
         Title = "Travel",
         Icon = "map-pin"
     }),
+
     Misc = Window:AddTab({
         Title = "Misc",
         Icon = "package"
@@ -2157,6 +2174,160 @@ end)
         Icon = "settings"
     })
 }
+
+Tabs.LocalPlayer:AddSection("Stats Upgrade")
+
+local StatsList = { "Melee", "Sword", "Gun", "Defense", "Devil" }
+
+local StatSelect = Tabs.LocalPlayer:AddDropdown("StatSelect", {
+    Title = "Selecionar Stat",
+    Values = StatsList,
+    Multi = false,
+    Default = "Melee"
+})
+
+SelectedStat = "Melee"
+
+StatSelect:OnChanged(function(Value)
+    SelectedStat = Value
+end)
+
+local StatAmountSlider = Tabs.LocalPlayer:AddSlider("StatAmountSlider", {
+    Title = "Quantidade de Pontos",
+    Description = "Quantidade que será adicionada ao Stat",
+    Default = 10,
+    Min = 1,
+    Max = 1000,
+    Rounding = 1
+})
+
+pSats = 10
+
+StatAmountSlider:OnChanged(function(Value)
+    pSats = Value
+end)
+
+local AutoStatsToggle = Tabs.LocalPlayer:AddToggle("AutoStatsToggle", {
+    Title = "Add Points",
+    Default = false
+})
+
+AutoStatsToggle:OnChanged(function(Value)
+    _G.Auto_Stats = Value
+end)
+
+spawn(function()
+    while wait(Sec) do
+        pcall(function()
+            if _G.Auto_Stats and SelectedStat then
+                statsSetings(SelectedStat, pSats)
+            end
+        end)
+    end
+end)
+
+Tabs.LocalPlayer:AddSection("LocalPlayer Settings / Misc")
+
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+
+local plr = Players.LocalPlayer
+local humanoid = plr.Character and plr.Character:FindFirstChildOfClass("Humanoid") or nil
+
+plr.CharacterAdded:Connect(function(char)
+    humanoid = char:WaitForChild("Humanoid")
+end)
+
+local SpeedEnabled = false
+local JumpEnabled = false
+
+local desiredSpeed = 16
+local desiredJump = 50
+
+local function protectSpeed()
+    if humanoid then
+        humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
+            if SpeedEnabled and humanoid.WalkSpeed ~= desiredSpeed then
+                humanoid.WalkSpeed = desiredSpeed
+            end
+        end)
+    end
+end
+
+local function applyStats()
+    if humanoid then
+        if SpeedEnabled then humanoid.WalkSpeed = desiredSpeed end
+        if JumpEnabled then humanoid.JumpPower = desiredJump end
+    end
+end
+
+RunService.Heartbeat:Connect(function()
+    if humanoid then
+        if SpeedEnabled and humanoid.WalkSpeed ~= desiredSpeed then
+            humanoid.WalkSpeed = desiredSpeed
+        end
+        if JumpEnabled and humanoid.JumpPower ~= desiredJump then
+            humanoid.JumpPower = desiredJump
+        end
+    end
+end)
+
+plr.CharacterAdded:Connect(function(char)
+    humanoid = char:WaitForChild("Humanoid")
+    protectSpeed()
+end)
+
+protectSpeed()
+
+local SetSpeed = Tabs.LocalPlayer:AddToggle("SetSpeed", {
+    Title = "Set WalkSpeed",
+    Description = "Enable custom WalkSpeed",
+    Default = false
+})
+
+SetSpeed:OnChanged(function(Value)
+    SpeedEnabled = Value
+    applyStats()
+end)
+
+local SpeedSlider = Tabs.LocalPlayer:AddSlider("SpeedSlider", {
+    Title = "Speed Value",
+    Description = "WalkSpeed Amount",
+    Min = 1,
+    Max = 500,
+    Default = desiredSpeed,
+    Rounding = 0
+})
+
+SpeedSlider:OnChanged(function(Value)
+    desiredSpeed = Value
+    applyStats()
+end)
+
+local SetJump = Tabs.LocalPlayer:AddToggle("SetJump", {
+    Title = "Set JumpPower",
+    Description = "Enable custom JumpPower",
+    Default = false
+})
+
+SetJump:OnChanged(function(Value)
+    JumpEnabled = Value
+    applyStats()
+end)
+
+local JumpSlider = Tabs.LocalPlayer:AddSlider("JumpSlider", {
+    Title = "JumpPower Value",
+    Description = "JumpPower Amount",
+    Min = 10,
+    Max = 500,
+    Default = desiredJump,
+    Rounding = 0
+})
+
+JumpSlider:OnChanged(function(Value)
+    desiredJump = Value
+    applyStats()
+end)
 ---------------------------------------------------------------------
 -- SECTION FISHING
 ---------------------------------------------------------------------
@@ -5087,108 +5258,6 @@ end)
 		end
 	end)      
 
-	Tabs.Settings:AddSection("Stats Upgrade")
-	local StatusSelect = Tabs.Settings:AddSlider("StatusSelect", {
-		Title = "Stats Value",
-		Description = "Adiciona Pontos No Item Selecinado",
-		Default = 10,
-		Min = 0,
-		Max = 1000,
-		Rounding = 1,
-		Callback = function(Value)
-			pSats = Value
-		end
-	})
-	StatusSelect:OnChanged(function(Value)
-		pSats = Value
-	end)
-
-	local StatsUpg = Tabs.Settings:AddToggle("StatsUpg", {
-		Title = "Melee",
-		Description = "",
-		Default = false
-	})
-	StatsUpg:OnChanged(function(Value)
-		_G.Auto_Melee = Value
-	end)
-	spawn(function()
-		while wait(Sec) do
-			pcall(function()
-				if _G.Auto_Melee then
-					statsSetings("Melee", pSats)
-				end
-			end)
-		end
-	end)
-
-	local StatsUpg = Tabs.Settings:AddToggle("StatsUpg", {
-		Title = "Sword",
-		Description = "",
-		Default = false
-	})
-	StatsUpg:OnChanged(function(Value)
-		_G.Auto_Sword = Value
-	end)
-	spawn(function()
-		while wait(Sec) do
-			pcall(function()
-				if _G.Auto_Sword then
-					statsSetings("Sword", pSats)
-				end
-			end)
-		end
-	end)
-	local StatsUpg = Tabs.Settings:AddToggle("StatsUpg", {
-		Title = "Gun",
-		Description = "",
-		Default = false
-	})
-	StatsUpg:OnChanged(function(Value)
-		_G.Auto_Gun = Value
-	end)
-	spawn(function()
-		while wait(Sec) do
-			pcall(function()
-				if _G.Auto_Gun then
-					statsSetings("Gun", pSats)
-				end
-			end)
-		end
-	end)
-	local StatsUpg = Tabs.Settings:AddToggle("StatsUpg", {
-		Title = "Blox Fruit",
-		Description = "",
-		Default = false
-	})
-	StatsUpg:OnChanged(function(Value)
-		_G.Auto_DevilFruit = Value
-	end)
-	spawn(function()
-		while wait(Sec) do
-			pcall(function()
-				if _G.Auto_DevilFruit then
-					statsSetings("Devil", pSats)
-				end
-			end)
-		end
-	end)
-	local StatsUpg = Tabs.Settings:AddToggle("StatsUpg", {
-		Title = "Defense",
-		Description = "",
-		Default = false
-	})
-	StatsUpg:OnChanged(function(Value)
-		_G.Auto_Defense = Value
-	end)
-	spawn(function()
-		while wait(Sec) do
-			pcall(function()
-				if _G.Auto_Defense then
-					statsSetings("Defense", pSats)
-				end
-			end)
-		end
-	end)
 	Tabs.Quests:AddSection("Tushita + Yama")
 	local Process = Tabs.Quests:AddParagraph({
 		Title = "Elites Process ",
@@ -9648,115 +9717,6 @@ end)
 			end)
 		end
 	end)
-
-	Tabs.Combat:AddSection("LocalPlayer Settings / Misc")
-
-local RunService = game:GetService("RunService")
-local Players = game:GetService("Players")
-
-local plr = Players.LocalPlayer
-local humanoid = plr.Character and plr.Character:FindFirstChildOfClass("Humanoid") or nil
-
-plr.CharacterAdded:Connect(function(char)
-    humanoid = char:WaitForChild("Humanoid")
-end)
-
-local SpeedEnabled = false
-local JumpEnabled = false
-
-local desiredSpeed = 16
-local desiredJump = 50
-
--- IMPEDIR QUE O JOGO REDEFINA O WALKSPEED
-local function protectSpeed()
-    if humanoid then
-        humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
-            if SpeedEnabled and humanoid.WalkSpeed ~= desiredSpeed then
-                humanoid.WalkSpeed = desiredSpeed
-            end
-        end)
-    end
-end
-
-local function applyStats()
-    if humanoid then
-        if SpeedEnabled then
-            humanoid.WalkSpeed = desiredSpeed
-        end
-        if JumpEnabled then
-            humanoid.JumpPower = desiredJump
-        end
-    end
-end
-
-RunService.Heartbeat:Connect(function()
-    if humanoid then
-        if SpeedEnabled and humanoid.WalkSpeed ~= desiredSpeed then
-            humanoid.WalkSpeed = desiredSpeed
-        end
-        if JumpEnabled and humanoid.JumpPower ~= desiredJump then
-            humanoid.JumpPower = desiredJump
-        end
-    end
-end)
-
--- Toda vez que trocar de boneco, ativa o anti-reset
-plr.CharacterAdded:Connect(function(char)
-    humanoid = char:WaitForChild("Humanoid")
-    protectSpeed()
-end)
-
-protectSpeed()
-
--- TOGGLE SPEED
-local SetSpeed = Tabs.Combat:AddToggle("SetSpeed", {
-    Title = "Set Speed",
-    Description = "Enable custom WalkSpeed",
-    Default = false
-})
-
-SetSpeed:OnChanged(function(Value)
-    SpeedEnabled = Value
-    applyStats()
-end)
-
--- SLIDER SPEED
-local SpeedSlider = Tabs.Combat:AddSlider("SpeedSlider", {
-    Title = "Speed Value",
-    Description = "WalkSpeed Amount",
-    Min = 1,
-    Max = 500,
-    Default = desiredSpeed,
-    Rounding = 0
-})
-
-SpeedSlider:OnChanged(function(Value)
-    desiredSpeed = Value
-    applyStats()
-end)
-
--- TOGGLE JUMP
-local SetJump = Tabs.Combat:AddToggle("SetJump", {
-    Title = "Set JumpPower",
-    Description = "Enable custom JumpPower",
-    Default = false
-})
-
-SetJump:OnChanged(function(Value)
-    JumpEnabled = Value
-    applyStats()
-end)
-
--- SLIDER JUMP
-local JumpSlider = Tabs.Combat:AddSlider("JumpSlider", {
-    Title = "JumpPower Value",
-    Description = "JumpPower Amount",
-    Min = 10,
-    Max = 500,
-    Default = desiredJump,
-    Rounding = 0
-})
-
 JumpSlider:OnChanged(function(Value)
     desiredJump = Value
     applyStats()
