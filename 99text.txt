@@ -3501,7 +3501,6 @@ end
 end)
 
 
-	if World3 then
 	local plr = game.Players.LocalPlayer
 local replicated = game.ReplicatedStorage
 local Sec = 0.1
@@ -3858,7 +3857,6 @@ end)
 -- ===============================
 -- Boss Tyrant of the Skies
 -- ===============================
-if World3 then
     Tabs.Main:AddSection("Boss Tyrant of the Skies")
 
     local TyrantStatus = Tabs.Main:AddParagraph({
@@ -4124,7 +4122,6 @@ local MasteryGun = Tabs.Main:AddToggle("MasteryGun", {
     Description = "",
     Default = false
 })
-
 MasteryGun:OnChanged(function(Value)
     _G.FarmMastery_G = Value
 end)
@@ -4163,91 +4160,6 @@ spawn(function()
             end)
         end
     end
-end)
-
-Tabs.Main:AddSection("Boss Section")
-
-local BossDropdown = Tabs.Main:AddDropdown("BossDropdown", {
-    Title = "Selecione o Boss",
-    Description = "Selecione o Boss Para Farm",
-    Values = Boss,
-    Default = 1,
-    Callback = function(value)
-        _G.FindBoss = value
-    end
-})
-
-local FarmBoss = Tabs.Main:AddToggle("FarmBoss", {
-    Title = "Auto Farm Boss",
-    Description = "Farma o Boss Selecionado",
-    Default = false
-})
-
-FarmBoss:OnChanged(function(value)
-    _G.FarmBoss = value
-    spawn(function()
-        while wait(Sec) do
-            if _G.FarmBoss then
-                pcall(function()
-
-                    local HasQuest = QuestBeta()[2] ~= nil and QuestBeta()[3] ~= nil
-
-                    if HasQuest then
-                        local QuestTitle = plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text
-
-                        if not string.find(QuestTitle, QuestBeta()[0]) then
-                            replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
-                        end
-
-                        if plr.PlayerGui.Main.Quest.Visible == false then
-                            _tp(QuestBeta()[5])
-                            if (Root.Position - QuestBeta()[5].Position).Magnitude <= 5 then
-                                replicated.Remotes.CommF_:InvokeServer("StartQuest", QuestBeta()[3], QuestBeta()[2])
-                            end
-
-                        elseif plr.PlayerGui.Main.Quest.Visible == true then
-
-                            if workspace.Enemies:FindFirstChild(QuestBeta()[1]) then
-                                for i, v in ipairs(workspace.Enemies:GetChildren()) do
-                                    if Attack.Alive(v) and v.Name == QuestBeta()[1] then
-                                        if string.find(QuestTitle, QuestBeta()[0]) then
-                                            repeat wait()
-                                                Attack.Kill(v, _G.FarmBoss)
-                                            until not _G.FarmBoss or v.Humanoid.Health <= 0 or not v.Parent
-                                        else
-                                            replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
-                                        end
-                                    end
-                                end
-                            else
-                                _tp(QuestBeta()[4])
-                                if replicated:FindFirstChild(QuestBeta()[1]) then
-                                    _tp(replicated:FindFirstChild(QuestBeta()[1]).HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
-                                end
-                            end
-                        end
-
-                    else
-                        if workspace.Enemies:FindFirstChild(QuestBeta()[1]) then
-                            for i, v in ipairs(workspace.Enemies:GetChildren()) do
-                                if Attack.Alive(v) and v.Name == QuestBeta()[1] then
-                                    repeat wait()
-                                        Attack.Kill(v, _G.FarmBoss)
-                                    until not _G.FarmBoss or v.Humanoid.Health <= 0 or not v.Parent
-                                end
-                            end
-                        else
-                            _tp(QuestBeta()[4])
-                            if replicated:FindFirstChild(QuestBeta()[1]) then
-                                _tp(replicated:FindFirstChild(QuestBeta()[1]).HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
-                            end
-                        end
-                    end
-
-                end)
-            end
-        end
-    end)
 end)
 	Tabs.Main:AddSection("Unlocked Dungeon")
 	local Q = Tabs.Main:AddToggle("Q", {
