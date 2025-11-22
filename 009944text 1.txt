@@ -2004,20 +2004,20 @@ BringEnemy = function()
 
 local Window = Fluent:CreateWindow({
     Title = "Night Mystic",
-    SubTitle = "By Hey Star & MauroZzx | Blox Fruits",
+    SubTitle = "By MauroZzx | Blox Fruits",
 
     -- ADICIONADOS DA OUTRA WINDOW:
     TitleIcon = "",
-    Image = "",
+    Image = "rbxassetid://9513555247",
     Search = false,
-    Icon = "",
+    Icon = "rbxassetid://9513555247",
     TabWidth = 170, -- você já tinha, deixei igual
-    Theme = "Dark",
+    Theme = "Viow Mars",
     Acrylic = false,
-    Size = UDim2.fromOffset(427, 400),
+    Size = UDim2.fromOffset(425, 365),
     MinimizeKey = Enum.KeyCode.End,
 
-    UserInfo = false,
+    UserInfo = true,
     UserInfoTop = false,
     UserInfoTitle = game.Players.LocalPlayer.DisplayName,
     UserInfoSubtitle = "Player",
@@ -2103,50 +2103,67 @@ end)
         Title = "Server",
         Icon = "server"
     }),
+
     Main = Window:AddTab({
         Title = "Main",
         Icon = "home"
     }),
+
     Fruit = Window:AddTab({
         Title = "Fruit",
         Icon = "apple"
     }),
+
     Quests = Window:AddTab({
         Title = "Farm Outros",
         Icon = "scroll"
     }),
+
     MiscFarm = Window:AddTab({
         Title = "Misc Farm",
         Icon = "anchor"
     }),
+
     SeaEvent = Window:AddTab({
         Title = "Sea Events",
         Icon = "waves"
     }),
+
     Mirage = Window:AddTab({
         Title = "Race V4",
         Icon = "moon"
     }),
+
     Drago = Window:AddTab({
         Title = "Dragon Dojo",
         Icon = "flame"
     }),
+
     Prehistoric = Window:AddTab({
         Title = "Prehistoric",
         Icon = "skull"
     }),
+
     Raids = Window:AddTab({
         Title = "Raids",
         Icon = "axe"
     }),
+
+    LocalPlayer = Window:AddTab({
+        Title = "Local Player",
+        Icon = "user"
+    }),
+
     Combat = Window:AddTab({
         Title = "Pvp",
         Icon = "crosshair"
     }),
+
     Travel = Window:AddTab({
         Title = "Travel",
         Icon = "map-pin"
     }),
+
     Misc = Window:AddTab({
         Title = "Misc",
         Icon = "package"
@@ -2157,6 +2174,160 @@ end)
         Icon = "settings"
     })
 }
+
+Tabs.LocalPlayer:AddSection("Stats Upgrade")
+
+local StatsList = { "Melee", "Sword", "Gun", "Defense", "Devil" }
+
+local StatSelect = Tabs.LocalPlayer:AddDropdown("StatSelect", {
+    Title = "Selecionar Stat",
+    Values = StatsList,
+    Multi = false,
+    Default = "Melee"
+})
+
+SelectedStat = "Melee"
+
+StatSelect:OnChanged(function(Value)
+    SelectedStat = Value
+end)
+
+local StatAmountSlider = Tabs.LocalPlayer:AddSlider("StatAmountSlider", {
+    Title = "Quantidade de Pontos",
+    Description = "Quantidade que será adicionada ao Stat",
+    Default = 10,
+    Min = 1,
+    Max = 1000,
+    Rounding = 1
+})
+
+pSats = 10
+
+StatAmountSlider:OnChanged(function(Value)
+    pSats = Value
+end)
+
+local AutoStatsToggle = Tabs.LocalPlayer:AddToggle("AutoStatsToggle", {
+    Title = "Ativar Auto Stats",
+    Default = false
+})
+
+AutoStatsToggle:OnChanged(function(Value)
+    _G.Auto_Stats = Value
+end)
+
+spawn(function()
+    while wait(Sec) do
+        pcall(function()
+            if _G.Auto_Stats and SelectedStat then
+                statsSetings(SelectedStat, pSats)
+            end
+        end)
+    end
+end)
+
+Tabs.LocalPlayer:AddSection("LocalPlayer Settings / Misc")
+
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+
+local plr = Players.LocalPlayer
+local humanoid = plr.Character and plr.Character:FindFirstChildOfClass("Humanoid") or nil
+
+plr.CharacterAdded:Connect(function(char)
+    humanoid = char:WaitForChild("Humanoid")
+end)
+
+local SpeedEnabled = false
+local JumpEnabled = false
+
+local desiredSpeed = 16
+local desiredJump = 50
+
+local function protectSpeed()
+    if humanoid then
+        humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
+            if SpeedEnabled and humanoid.WalkSpeed ~= desiredSpeed then
+                humanoid.WalkSpeed = desiredSpeed
+            end
+        end)
+    end
+end
+
+local function applyStats()
+    if humanoid then
+        if SpeedEnabled then humanoid.WalkSpeed = desiredSpeed end
+        if JumpEnabled then humanoid.JumpPower = desiredJump end
+    end
+end
+
+RunService.Heartbeat:Connect(function()
+    if humanoid then
+        if SpeedEnabled and humanoid.WalkSpeed ~= desiredSpeed then
+            humanoid.WalkSpeed = desiredSpeed
+        end
+        if JumpEnabled and humanoid.JumpPower ~= desiredJump then
+            humanoid.JumpPower = desiredJump
+        end
+    end
+end)
+
+plr.CharacterAdded:Connect(function(char)
+    humanoid = char:WaitForChild("Humanoid")
+    protectSpeed()
+end)
+
+protectSpeed()
+
+local SetSpeed = Tabs.LocalPlayer:AddToggle("SetSpeed", {
+    Title = "Set Speed",
+    Description = "Enable custom WalkSpeed",
+    Default = false
+})
+
+SetSpeed:OnChanged(function(Value)
+    SpeedEnabled = Value
+    applyStats()
+end)
+
+local SpeedSlider = Tabs.LocalPlayer:AddSlider("SpeedSlider", {
+    Title = "Speed Value",
+    Description = "WalkSpeed Amount",
+    Min = 1,
+    Max = 500,
+    Default = desiredSpeed,
+    Rounding = 0
+})
+
+SpeedSlider:OnChanged(function(Value)
+    desiredSpeed = Value
+    applyStats()
+end)
+
+local SetJump = Tabs.LocalPlayer:AddToggle("SetJump", {
+    Title = "Set JumpPower",
+    Description = "Enable custom JumpPower",
+    Default = false
+})
+
+SetJump:OnChanged(function(Value)
+    JumpEnabled = Value
+    applyStats()
+end)
+
+local JumpSlider = Tabs.LocalPlayer:AddSlider("JumpSlider", {
+    Title = "JumpPower Value",
+    Description = "JumpPower Amount",
+    Min = 10,
+    Max = 500,
+    Default = desiredJump,
+    Rounding = 0
+})
+
+JumpSlider:OnChanged(function(Value)
+    desiredJump = Value
+    applyStats()
+end)
 ---------------------------------------------------------------------
 -- SECTION FISHING
 ---------------------------------------------------------------------
@@ -2931,7 +3102,7 @@ local DiscordSection = Tabs.Discord:AddSection("Discord")
 DiscordSection:AddButton({
 	Title = "Nosso Servidor do Discord",
 	Callback = function()
-		setclipboard("https://discord.gg/PENfzNkFR")
+		setclipboard("https://discord.gg/k6gUtQcfz")
 	end
 })
 
@@ -3152,1023 +3323,405 @@ FarmingSection:AddButton({
         GoToNPC()  
     end
 })
-	local BossDropdown = Tabs.Main:AddDropdown("BossDropdown", {
-		Title = "Selecione o Boss",
-		Description = "Selecione o Boss Para Farm",
-		Values = Boss,
-		Default = 1,
-		Callback = function(value)
-			_G.FindBoss = value
-		end
-	})
-	local FarmBoss = Tabs.Main:AddToggle("FarmBoss", {
-		Title = "Auto Farm Boss",
-		Description = "Farma o Boss Selecionado",
-		Default = false
-	})
-	FarmBoss:OnChanged(function(value)
-		_G.FarmBoss = value
-		spawn(function()
-		while wait(Sec) do
-			if _G.FarmBoss then
-				pcall(function()
-					-- Kiểm tra boss có quest hay không
-					local HasQuest = QuestBeta()[2] ~= nil and QuestBeta()[3] ~= nil
-					
-					if HasQuest then
-						-- BOSS CÓ QUEST
-						local QuestTitle = plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text
-						
-						if not string.find(QuestTitle, QuestBeta()[0]) then
-							replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
-						end
-						
-						if plr.PlayerGui.Main.Quest.Visible == false then
-							_tp(QuestBeta()[5])
-							if (Root.Position - QuestBeta()[5].Position).Magnitude <= 5 then
-								replicated.Remotes.CommF_:InvokeServer("StartQuest", QuestBeta()[3], QuestBeta()[2])
-							end
-							
-						elseif plr.PlayerGui.Main.Quest.Visible == true then
-							if workspace.Enemies:FindFirstChild(QuestBeta()[1]) then
-								for i, v in pairs(workspace.Enemies:GetChildren()) do
-									if Attack.Alive(v) then
-										if v.Name == QuestBeta()[1] then
-											if string.find(QuestTitle, QuestBeta()[0]) then
-												repeat
-													wait()
-													Attack.Kill(v, _G.FarmBoss)
-												until not _G.FarmBoss or v.Humanoid.Health <= 0 or not v.Parent or plr.PlayerGui.Main.Quest.Visible == false
-											else
-												replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
-											end
-										end
-									end
-								end
-							else
-								_tp(QuestBeta()[4])
-								if replicated:FindFirstChild(QuestBeta()[1]) then
-									_tp(replicated:FindFirstChild(QuestBeta()[1]).HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
-								end
-							end
-						end
-						
-					else
-						-- BOSS KHÔNG CÓ QUEST - Farm trực tiếp
-						if workspace.Enemies:FindFirstChild(QuestBeta()[1]) then
-							for i, v in pairs(workspace.Enemies:GetChildren()) do
-								if Attack.Alive(v) then
-									if v.Name == QuestBeta()[1] then
-										repeat
-											wait()
-											Attack.Kill(v, _G.FarmBoss)
-										until not _G.FarmBoss or v.Humanoid.Health <= 0 or not v.Parent
-									end
-								end
-							end
-						else
-							_tp(QuestBeta()[4])
-							if replicated:FindFirstChild(QuestBeta()[1]) then
-								_tp(replicated:FindFirstChild(QuestBeta()[1]).HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
-							end
-						end
-					end
-				end)
-			end
-		end
-	end)
-	end)
-	if World3 then
-	Tabs.Main:AddSection("Boss Tyrant of the Skies")
+	-- Definição da seção principal (Outros)
+Tabs.Main:AddSection("Quests/Outros")
 
-	local TyrantStatus = Tabs.Main:AddParagraph({
-		Title = "Tyrant of the Skies",
-		Content = ""
-	})
-	spawn(function()
-		pcall(function()
-			while wait(1) do
-				if game:GetService("Workspace").Enemies:FindFirstChild("Tyrant of the Skies") then
-					TyrantStatus:SetDesc("✅")
-				else
-					TyrantStatus:SetDesc("❌")
-				end
-			end
-		end)
-	end) 
-	plr = plr or game.Players.LocalPlayer
-	Sec = Sec or 0.1
-	_G.FarmTyrant = _G.FarmTyrant or false
+-- 1. Farm Mobs Perto
+local ClosetMons = Tabs.Main:AddToggle("ClosetMons", {
+Title = "Auto Farm Inimigos Próximos",
+Description = "Farm Mobs Perto",
+Default = false
+})
+ClosetMons:OnChanged(function(Value)
+_G.AutoFarmNear = Value
+end)
+spawn(function()
+while wait() do
+pcall(function()
+if _G.AutoFarmNear then
+for i, v in pairs(workspace.Enemies:GetChildren()) do
+if v:FindFirstChild("Humanoid") or v:FindFirstChild("HumanoidRootPart") then
+if v.Humanoid.Health > 0 then
+repeat
+wait()
+Attack.Kill(v, _G.AutoFarmNear)
+until not _G.AutoFarmNear or not v.Parent or v.Humanoid.Health <= 0
+end
+end
+end
+end
+end)
+end
+end)
 
-	local FarmTyrant = Tabs.Main:AddToggle("FarmTyrant", {
-		Title = " Auto Farm Tyrant",
-		Description = "Farma o Boss Tyrant Automaticamente",
-		Default = false
-	})
-	FarmTyrant:OnChanged(function(Value)
-		_G.FarmTyrant = Value
-	end)
+-- Lógica para World 2
+if World2 then
+-- 2. Auto Factory Raid
+local FactoryRaids = Tabs.Main:AddToggle("FactoryRaids", {
+Title = "Auto Factory Raid",
+Description = "Auto Factory",
+Default = false
+})
+FactoryRaids:OnChanged(function(Value)
+_G.AutoFactory = Value
+end)
+spawn(function()
+while wait(Sec) do
+pcall(function()
+if _G.AutoFactory then
+local v = GetConnectionEnemies("Core")
+if v then
+repeat
+wait()
+EquipWeapon(_G.SelectWeapon)
+_tp(CFrame.new(448.46756, 199.356781, -441.389252)) -- Local de teleporte (ajustar se necessário)
+until v.Humanoid.Health <= 0 or _G.AutoFactory == false
+else
+_tp(CFrame.new(448.46756, 199.356781, -441.389252)) -- Local de teleporte para aguardar
+end
+end
+end)
+end
+end)
+end
 
-	spawn(function()
-		while wait(Sec) do
-			if _G.FarmTyrant then
-				pcall(function()
-					local player = plr or game.Players.LocalPlayer
-					if not (player and player.Character) then
-						return
-					end
-					local hrp = player.Character:FindFirstChild("HumanoidRootPart")
-					if not hrp then
-						return
-					end
-					local enemiesFolder = workspace:FindFirstChild("Enemies")
-					local bossPos = Vector3.new(-16268.287, 152.616, 1390.773)
-					if (hrp.Position - bossPos).Magnitude > 5 then
-						if _tp then
-							pcall(_tp, CFrame.new(bossPos))
-						elseif Tween then
-							pcall(Tween, CFrame.new(bossPos))
-						elseif notween then
-							pcall(notween, CFrame.new(bossPos))
-						else
-							pcall(function()
-								player.Character.HumanoidRootPart.CFrame = CFrame.new(bossPos)
-							end)
-						end
-						repeat
-							wait()
-						until not _G.FarmTyrant or (player.Character and player.Character:FindFirstChild("HumanoidRootPart") and (player.Character.HumanoidRootPart.Position - bossPos).Magnitude <= 5)
-					end
-					local boss = enemiesFolder and enemiesFolder:FindFirstChild("Tyrant of the Skies")
-					if boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then
-						repeat
-							if not _G.FarmTyrant then
-								break
-							end
-							if AutoHaki then
-								pcall(AutoHaki)
-							end
-							if SelectWeapon and EquipTool then
-								pcall(EquipTool, SelectWeapon)
-							end
-							if Attack and Attack.Kill then
-								pcall(function()
-									Attack.Kill(boss, _G.FarmTyrant)
-								end)
-							elseif AttackNoCoolDown then
-								pcall(AttackNoCoolDown)
-							end
-							wait()
-						until not _G.FarmTyrant or not boss.Parent or not boss:FindFirstChild("Humanoid") or boss.Humanoid.Health <= 0
-						return
-					end
-					local mobList = {
-						"Serpent Hunter",
-						"Skull Slayer",
-						"Isle Champion",
-						"Sun-kissed Warrior"
-					}
-					if enemiesFolder then
-						for _, mobName in ipairs(mobList) do
-							if not _G.FarmTyrant then
-								break
-							end
-							for _, mob in ipairs(enemiesFolder:GetChildren()) do
-								if not _G.FarmTyrant then
-									break
-								end
-								if mob and mob.Name == mobName and mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
-									hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-									if not hrp then
-										break
-									end
-									if (hrp.Position - mob.HumanoidRootPart.Position).Magnitude > 5000 then
-										if _tp then
-											pcall(_tp, mob.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
-										elseif Tween then
-											pcall(Tween, mob.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
-										elseif notween then
-											pcall(notween, mob.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
-										else
-											pcall(function()
-												player.Character.HumanoidRootPart.CFrame = mob.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0)
-											end)
-										end
-										local t0 = tick()
-										repeat
-											wait()
-											hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-										until not _G.FarmTyrant or not hrp or (hrp.Position - mob.HumanoidRootPart.Position).Magnitude <= 6 or tick() - t0 > 8
-									end
-									repeat
-										if not _G.FarmTyrant then
-											break
-										end
-										if AutoHaki then
-											pcall(AutoHaki)
-										end
-										if SelectWeapon and EquipTool then
-											pcall(EquipTool, SelectWeapon)
-										end
-										if Attack and Attack.Kill then
-											pcall(function()
-												Attack.Kill(mob, _G.FarmTyrant)
-											end)
-										elseif AttackNoCoolDown then
-											pcall(AttackNoCoolDown)
-										end
-										wait()
-									until not _G.FarmTyrant or not mob.Parent or not mob:FindFirstChild("Humanoid") or mob.Humanoid.Health <= 0
-								end
-							end
-						end
-					else
-						for _, mobName in ipairs(mobList) do
-							if not _G.FarmTyrant then
-								break
-							end
-							for _, mob in ipairs(workspace:GetChildren()) do
-								if not _G.FarmTyrant then
-									break
-								end
-								if mob and mob.Name == mobName and mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
-									if _tp then
-										pcall(_tp, mob.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
-									else
-										pcall(function()
-											player.Character.HumanoidRootPart.CFrame = mob.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0)
-										end)
-									end
-									repeat
-										wait()
-									until not _G.FarmTyrant or (player.Character and player.Character:FindFirstChild("HumanoidRootPart") and (player.Character.HumanoidRootPart.Position - mob.HumanoidRootPart.Position).Magnitude <= 6)
-									repeat
-										if not _G.FarmTyrant then
-											break
-										end
-										if Attack and Attack.Kill then
-											pcall(function()
-												Attack.Kill(mob, _G.FarmTyrant)
-											end)
-										elseif AttackNoCoolDown then
-											pcall(AttackNoCoolDown)
-										end
-										wait()
-									until not _G.FarmTyrant or not mob.Parent or mob.Humanoid.Health <= 0
-								end
-							end
-						end
-					end
-				end)
-			end
-		end
-	end)
-	end
-	if World3 then
-	local FarmPhaBinh = Tabs.Main:AddToggle("FarmPhaBinh", {
-		Title = "Quebrar Vasos",
-		Description = "Quebrar Vasos pra matar o Tyrant",
-		Default = false
-	})
-	FarmPhaBinh:OnChanged(function(Value)
-		_G.FarmPhaBinh = Value
-		if not Value then
-			if StopTween then
-				pcall(StopTween)
-			end
-		end
-	end)
+-- Lógica para World 3
+if World3 then
+-- 3. Auto Pirate Raid
+local CastleRaids = Tabs.Main:AddToggle("CastleRaids", {
+Title = "Auto Pirate Raid",
+Description = "Auto Raid Pirate",
+Default = false
+})
+CastleRaids:OnChanged(function(Value)
+_G.AutoRaidCastle = Value
+end)
+spawn(function()
+while wait(Sec) do
+if _G.AutoRaidCastle then
+pcall(function()
+local CFrameCastleRaid = CFrame.new(-5496.17432, 313.768921, -2841.53027, 0.924894512, 7.37058015e-09, 0.380223751, 3.5881019e-08, 1, -1.06665446e-07, -0.380223751, 1.12297109e-07, 0.924894512)
+if (CFrame.new(-5539.3115234375, 313.800537109375, -2972.372314453125).Position - Root.Position).Magnitude <= 500 then
+for i, v in pairs(workspace.Enemies:GetChildren()) do
+if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+if v.Name then
+if (v.HumanoidRootPart.Position - Root.Position).Magnitude <= 2000 then
+repeat
+wait()
+Attack.Kill(v, _G.AutoRaidCastle)
+until not _G.AutoRaidCastle or not v.Parent or v.Humanoid.Health <= 0 or not workspace.Enemies:FindFirstChild(v.Name)
+end
+end
+end
+end
+else
+local Castle_Mob = {
+"Galley Pirate",
+"Galley Captain",
+"Raider",
+"Mercenary",
+"Vampire",
+"Zombie",
+"Snow Trooper",
+"Winter Warrior",
+"Lab Subordinate",
+"Horned Warrior",
+"Magma Ninja",
+"Lava Pirate",
+"Ship Deckhand",
+"Ship Engineer",
+"Ship Steward",
+"Ship Officer",
+"Arctic Warrior",
+"Snow Lurker",
+"Sea Soldier",
+"Water Fighter"
+}
+for i = 1, #Castle_Mob do
+if replicated:FindFirstChild(Castle_Mob[i]) then
+for _, v in pairs(replicated:GetChildren()) do
+if table.find(Castle_Mob, v.Name) then
+_tp(CFrameCastleRaid)
+end
+end
+end
+end
+end
+end)
+end
+end
+end)
+end
 
-	local function sendSkillKey(skillKey)
-		local virtualInputManager = game:GetService("VirtualInputManager")
-		virtualInputManager:SendKeyEvent(true, skillKey, false, game)
-		wait(0.05)
-		virtualInputManager:SendKeyEvent(false, skillKey, false, game)
-	end
+-- 4. Dropdown De Material
+Test = Tabs.Main:AddDropdown("Test", {
+Title = "Material",
+Values = MaterialList, -- Assume-se que MaterialList está definido em outro lugar
+Multi = false,
+Default = nil
+})
+Test:OnChanged(function(Value)
+getgenv().SelectMaterial = Value
+end)
 
-	local function equipAndUseSkill(toolType)
-		local player = game.Players.LocalPlayer
-		local character = player.Character
-		local backpack = player.Backpack
-		if not (character and character:FindFirstChild("Humanoid") and character.Humanoid.Health > 0) then
-			return
-		end
-		for _, item in pairs(backpack:GetChildren()) do
-			if item:IsA("Tool") and item.ToolTip == toolType then
-				item.Parent = character
-				wait(0.12)
-				for _, skill in ipairs({
-					"Z",
-					"X",
-					"C",
-					"V",
-					"F"
-				}) do
-					if not _G.FarmPhaBinh then
-						break
-					end
-					pcall(function()
-						sendSkillKey(skill)
-					end)
-					wait(0.12)
-				end
-				item.Parent = backpack
-				break
-			end
-		end
-	end
+-- 5. Toggle de Farm Masterial
+Toggle = Tabs.Main:AddToggle("Toggle", {
+Title = "Auto Materials",
+Description = "Farm Material Selecionado",
+Default = false
+})
+Toggle:OnChanged(function(Value)
+getgenv().AutoMaterial = Value
+end)
+spawn(function()
+local function processEnemy(v, EnemyName)
+if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
+if v.Name == EnemyName then
+repeat
+wait()
+Attack.Kill(v, getgenv().AutoMaterial)
+until not getgenv().AutoMaterial or not v.Parent or v.Humanoid.Health <= 0
+end
+end
+end
+local function handleEnemySpawns()
+for _, v in pairs(game:GetService("Workspace")["_WorldOrigin"].EnemySpawns:GetChildren()) do
+for _, EnemyName in ipairs(MMon) do -- Assume-se que MMon está definido em outro lugar
+if string.find(v.Name, EnemyName) then
+if (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - v.Position).Magnitude >= 10 then
+_tp(v.CFrame * Pos) -- Assume-se que Pos está definido em outro lugar
+end
+end
+end
+end
+end
+while wait() do
+if getgenv().AutoMaterial then
+pcall(function()
+if getgenv().SelectMaterial then
+MaterialMon(getgenv().SelectMaterial) -- Assume-se que MaterialMon está definido em outro lugar
+_tp(MPos) -- Assume-se que MPos está definido em outro lugar
+end
+for _, EnemyName in ipairs(MMon) do
+for _, v in pairs(workspace.Enemies:GetChildren()) do
+processEnemy(v, EnemyName)
+end
+end
+handleEnemySpawns()
+end)
+end
+end
+end)
 
-	local PhaBinhPoints = {
-		CFrame.new(-16332.5263671875, 158.07200622558594, 1440.324951171875),
-		CFrame.new(-16288.609375, 158.16700744628906, 1470.3680419921875),
-		CFrame.new(-16245.412109375, 158.43699645996094, 1463.365966796875),
-		CFrame.new(-16212.46875, 158.16700744628906, 1466.343994140625),
-		CFrame.new(-16211.9462890625, 158.07200622558594, 1322.39794921875),
-		CFrame.new(-16260.921875, 154.92100524902344, 1323.615966796875),
-		CFrame.new(-16297.0595703125, 159.322998046875, 1317.2239990234375),
-		CFrame.new(-16335.0966796875, 159.33399963378906, 1324.885986328125),
-	}
+-- 6. Farm Ectoplasm (World 2)
+if World2 then
+local Q = Tabs.Main:AddToggle("Q", {
+Title = "Auto Farm Ectoplasm",
+Description = "Farmar Ectoplasma Automatico",
+Default = false
+})
+Q:OnChanged(function(Value)
+_G.AutoEctoplasm = Value
+end)
+spawn(function()
+while wait(Sec) do
+pcall(function()
+if _G.AutoEctoplasm then
+local EctoTable = {
+"Ship Deckhand",
+"Ship Engineer",
+"Ship Steward",
+"Ship Officer",
+"Arctic Warrior"
+}
+local v = GetConnectionEnemies(EctoTable) -- Assume-se que GetConnectionEnemies está definido em outro lugar
+if Attack.Alive(v) then -- Assume-se que Attack.Alive está definido em outro lugar
+repeat
+wait()
+Attack.Kill(v, _G.AutoEctoplasm) -- Assume-se que Attack.Kill está definido em outro lugar
+until not _G.AutoEctoplasm or not v.Parent or v.Humanoid.Health <= 0
+else
+replicated.Remotes.CommF:InvokeServer("requestEntrance", Vector3.new(923.21252441406, 126.9760055542, 32852.83203125))
+end
+end
+end)
+end
+end)
+end
 
-	spawn(function()
-		while wait(Sec) do
-			if _G.FarmPhaBinh then
-				pcall(function()
-					pcall(function()
-						if AutoHaki then
-							AutoHaki()
-						end
-					end)
-					if not (plr and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") and plr.Character:FindFirstChild("Humanoid") and plr.Character.Humanoid.Health > 0) then
-						return
-					end
-					for _, point in ipairs(PhaBinhPoints) do
-						if not _G.FarmPhaBinh then
-							break
-						end
-						if _tp then
-							pcall(_tp, point)
-						else
-							if notween then
-								pcall(notween, point)
-							else
-								if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-									plr.Character.HumanoidRootPart.CFrame = point
-								end
-							end
-						end
-						local arrived = false
-						local start = tick()
-						while tick() - start < 12 and not arrived and _G.FarmPhaBinh do
-							local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
-							if not hrp or not plr.Character or not plr.Character:FindFirstChild("Humanoid") or plr.Character.Humanoid.Health <= 0 then
-								break
-							end
-							local dist = (hrp.Position - point.Position).Magnitude
-							if dist <= 3 then
-								arrived = true
-								break
-							end
-							wait(0.1)
-						end
-						if _G.FarmPhaBinh then
-							local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
-							local dist2 = hrp and (hrp.Position - point.Position).Magnitude or math.huge
-							if dist2 <= 3 then
-								equipAndUseSkill("Melee")
-								equipAndUseSkill("Sword")
-								equipAndUseSkill("Gun")
-							else
-								if StopTween then
-									pcall(StopTween)
-								end
-							end
-						end
-					end
-				end)
-			end
-		end
-	end)
-	end
-	Tabs.Main:AddSection("Quests/Outros")
-	local ClosetMons = Tabs.Main:AddToggle("ClosetMons", {
-		Title = "Auto Farm Inimigos Próximos",
-		Description = "Farm Mobs Perto",
-		Default = false
-	})
-	ClosetMons:OnChanged(function(Value)
-		_G.AutoFarmNear = Value
-	end)
-	spawn(function()
-		while wait() do
-			pcall(function()
-				if _G.AutoFarmNear then
-					for i, v in pairs(workspace.Enemies:GetChildren()) do
-						if v:FindFirstChild("Humanoid") or v:FindFirstChild("HumanoidRootPart") then
-							if v.Humanoid.Health > 0 then
-								repeat
-									wait()
-									Attack.Kill(v, _G.AutoFarmNear)
-								until not _G.AutoFarmNear or not v.Parent or v.Humanoid.Health <= 0
-							end
-						end
-					end
-				end
-			end)
-		end
-	end)
-	if World2 then
-	local FactoryRaids = Tabs.Main:AddToggle("FactoryRaids", {
-		Title = "Auto Factory Raid",
-		Description = "Auto Factory",
-		Default = false
-	})
-	FactoryRaids:OnChanged(function(Value)
-		_G.AutoFactory = Value
-	end)
-	spawn(function()
-		while wait(Sec) do
-			pcall(function()
-				if _G.AutoFactory then
-					local v = GetConnectionEnemies("Core")
-					if v then
-						repeat
-							wait()
-							EquipWeapon(_G.SelectWeapon)
-							_tp(CFrame.new(448.46756, 199.356781, -441.389252))
-						until v.Humanoid.Health <= 0 or _G.AutoFactory == false
-					else
-						_tp(CFrame.new(448.46756, 199.356781, -441.389252))
-					end
-				end
-			end)
-		end
-	end)
-	end
-	if World3 then
-	local CastleRaids = Tabs.Main:AddToggle("CastleRaids", {
-		Title = "Auto Pirate Raid",
-		Description = "Auto Raid Pirate",
-		Default = false
-	})
-	CastleRaids:OnChanged(function(Value)
-		_G.AutoRaidCastle = Value
-	end)
-	spawn(function()
-		while wait(Sec) do
-			if _G.AutoRaidCastle then
-				pcall(function()
-					local CFrameCastleRaid = CFrame.new(-5496.17432, 313.768921, -2841.53027, 0.924894512, 7.37058015e-09, 0.380223751, 3.5881019e-08, 1, -1.06665446e-07, -0.380223751, 1.12297109e-07, 0.924894512)
-					if (CFrame.new(-5539.3115234375, 313.800537109375, -2972.372314453125).Position - Root.Position).Magnitude <= 500 then
-						for i, v in pairs(workspace.Enemies:GetChildren()) do
-							if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
-								if v.Name then
-									if (v.HumanoidRootPart.Position - Root.Position).Magnitude <= 2000 then
-										repeat
-											wait()
-											Attack.Kill(v, _G.AutoRaidCastle)
-										until not _G.AutoRaidCastle or not v.Parent or v.Humanoid.Health <= 0 or not workspace.Enemies:FindFirstChild(v.Name)
-									end
-								end
-							end
-						end
-					else
-						local Castle_Mob = {
-							"Galley Pirate",
-							"Galley Captain",
-							"Raider",
-							"Mercenary",
-							"Vampire",
-							"Zombie",
-							"Snow Trooper",
-							"Winter Warrior",
-							"Lab Subordinate",
-							"Horned Warrior",
-							"Magma Ninja",
-							"Lava Pirate",
-							"Ship Deckhand",
-							"Ship Engineer",
-							"Ship Steward",
-							"Ship Officer",
-							"Arctic Warrior",
-							"Snow Lurker",
-							"Sea Soldier",
-							"Water Fighter"
-						}
-						for i = 1, #Castle_Mob do
-							if replicated:FindFirstChild(Castle_Mob[i]) then
-								for _, v in pairs(replicated:GetChildren()) do
-									if table.find(Castle_Mob, v.Name) then
-										_tp(CFrameCastleRaid)
-									end
-								end
-							end
-						end
-					end
-				end)
-			end
-		end
-	end)
-	end
-	Test = Tabs.Main:AddDropdown("Test", {
-		Title = "Material",
-		Values = MaterialList,
-		Multi = false,
-		Default = nil
-	})
-	Test:OnChanged(function(Value)
-		getgenv().SelectMaterial = Value
-	end)
-	Toggle = Tabs.Main:AddToggle("Toggle", {
-		Title = "Auto Materials",
-		Description = "Farm Material Selecionado",
-		Default = false
-	})
-	Toggle:OnChanged(function(Value)
-		getgenv().AutoMaterial = Value
-	end)
-	spawn(function()
-		local function processEnemy(v, EnemyName)
-			if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
-				if v.Name == EnemyName then
-					repeat
-						wait()
-						Attack.Kill(v, getgenv().AutoMaterial)
-					until not getgenv().AutoMaterial or not v.Parent or v.Humanoid.Health <= 0
-				end
-			end
-		end
-		local function handleEnemySpawns()
-			for _, v in pairs(game:GetService("Workspace")["_WorldOrigin"].EnemySpawns:GetChildren()) do
-				for _, EnemyName in ipairs(MMon) do
-					if string.find(v.Name, EnemyName) then
-						if (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - v.Position).Magnitude >= 10 then
-							_tp(v.CFrame * Pos)
-						end
-					end
-				end
-			end
-		end
-		while wait() do
-			if getgenv().AutoMaterial then
-				pcall(function()
-					if getgenv().SelectMaterial then
-						MaterialMon(getgenv().SelectMaterial)
-						_tp(MPos)
-					end
-					for _, EnemyName in ipairs(MMon) do
-						for _, v in pairs(workspace.Enemies:GetChildren()) do
-							processEnemy(v, EnemyName)
-						end
-					end
-					handleEnemySpawns()
-				end)
-			end
-		end
-	end)
-	if World2 then
-	local Q = Tabs.Main:AddToggle("Q", {
-		Title = "Auto Farm Ectoplasm",
-		Description = "Farmar Ectoplasma Automatico",
-		Default = false
-	})
-	Q:OnChanged(function(Value)
-		_G.AutoEctoplasm = Value
-	end)
-	spawn(function()
-		while wait(Sec) do
-			pcall(function()
-				if _G.AutoEctoplasm then
-					local EctoTable = {
-						"Ship Deckhand",
-						"Ship Engineer",
-						"Ship Steward",
-						"Ship Officer",
-						"Arctic Warrior"
-					}
-					local v = GetConnectionEnemies(EctoTable)
-					if Attack.Alive(v) then
-						repeat
-							wait()
-							Attack.Kill(v, _G.AutoEctoplasm)
-						until not _G.AutoEctoplasm or not v.Parent or v.Humanoid.Health <= 0
-					else
-						replicated.Remotes.CommF_:InvokeServer("requestEntrance", Vector3.new(923.21252441406, 126.9760055542, 32852.83203125))
-					end
-				end
-			end)
-		end
-	end)
-	local Bartilo = Tabs.Main:AddToggle("Bartilo", {
-		Title = "Auto Bartilo Quest",
-		Description = "",
-		Default = false
-	})
-	Bartilo:OnChanged(function(Value)
-		_G.Bartilo_Quest = Value
-	end)
-	spawn(function()
-		while wait(.1) do
-			pcall(function()
-				if _G.Bartilo_Quest and Lv >= 850 then
-					local Qbart = plr.PlayerGui.Main.Quest
-					if replicated.Remotes.CommF_:InvokeServer("BartiloQuestProgress", "Bartilo") == 0 then
-						_G.Level = false
-						if Qbart.Visible == true then
-							local v = GetConnectionEnemies("Swan Pirate")
-							if v then
-								local x = GetConnectionEnemies(BartMon)
-								if x then
-									repeat
-										task.wait()
-										if not string.find(plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "Swan Pirate") then
-											replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
-										else
-											Attack.Kill(x, _G.Bartilo_Quest)
-										end
-									until _G.Bartilo_Quest == false or not x.Parent or x.Humanoid.Health <= 0 or Qbart.Visible == false or not x:FindFirstChild("HumanoidRootPart")
-								end
-							else
-								_tp(CFrame.nee(970.369446, 142.653198, 1217.3667, 0.162079468, -4.85452638e-08, -0.986777723, 1.03357589e-08, 1, -4.74980872e-08, 0.986777723, -2.50063148e-09, 0.162079468))
-							end
-						else
-							repeat
-								wait()
-								_tp(CFrame.new(-461.533203, 72.3478546, 300.311096, 0.050853312, -0, -0.998706102, 0, 1, -0, 0.998706102, 0, 0.050853312))
-							until (CFrame.new(-461.533203, 72.3478546, 300.311096, 0.050853312, -0, -0.998706102, 0, 1, -0, 0.998706102, 0, 0.050853312).Position - plr.Character.HumanoidRootPart.Position).Magnitude <= 20 or _G.Bartilo_Quest == false
-							if (CFrame.new(-461.533203, 72.3478546, 300.311096, 0.050853312, -0, -0.998706102, 0, 1, -0, 0.998706102, 0, 0.050853312).Position - plr.Character.HumanoidRootPart.Position).Magnitude <= 1 then
-								replicated.Remotes.CommF_:InvokeServer("StartQuest", "BartiloQuest", 1)
-							end
-						end
-					elseif replicated.Remotes.CommF_:InvokeServer("BartiloQuestProgress", "Bartilo") == 1 then
-						_G.Level = false
-						local je = GetConnectionEnemies("Jeremy")
-						if je then
-							repeat
-								task.wait()
-								Attack.Kill(je, _G.Bartilo_Quest)
-							until _G.Bartilo_Quest == false or not je.Parent or je.Humanoid.Health <= 0 or Qbart.Visible == false or not je:FindFirstChild("HumanoidRootPart")
-						else
-							_tp(CFrame.new(2158.97412, 449.056244, 705.411682, -0.754199564, -4.17389057e-09, -0.656645238, -4.47752875e-08, 1, 4.50709301e-08, 0.656645238, 6.3393955e-08, -0.754199564))
-						end
-					elseif replicated.Remotes.CommF_:InvokeServer("BartiloQuestProgress", "Bartilo") == 2 then
-						repeat
-							wait()
-							_tp(CFrame.new(-1830.83972, 10.5578213, 1680.60229, 0.979988456, -2.02152783e-08, -0.199054286, 2.20792113e-08, 1, 7.1442483e-09, 0.199054286, -1.13962431e-08, 0.979988456))
-						until (CFrame.new(-1830.83972, 10.5578213, 1680.60229, 0.979988456, -2.02152783e-08, -0.199054286, 2.20792113e-08, 1, 7.1442483e-09, 0.199054286, -1.13962431e-08, 0.979988456).Position - plr.Character.HumanoidRootPart.Position).Magnitude <= 1 or _G.Bartilo_Quest == false
-						wait(0.5)
-						plr.Character.HumanoidRootPart.CFrame = workspace.Map.Dressrosa.BartiloPlates.Plate1.CFrame
-						wait(0.5)
-						plr.Character.HumanoidRootPart.CFrame = workspace.Map.Dressrosa.BartiloPlates.Plate2.CFrame
-						wait(0.5)
-						plr.Character.HumanoidRootPart.CFrame = workspace.Map.Dressrosa.BartiloPlates.Plate3.CFrame
-						wait(0.5)
-						plr.Character.HumanoidRootPart.CFrame = workspace.Map.Dressrosa.BartiloPlates.Plate4.CFrame
-						wait(0.5)
-						plr.Character.HumanoidRootPart.CFrame = workspace.Map.Dressrosa.BartiloPlates.Plate5.CFrame
-						wait(0.5)
-						plr.Character.HumanoidRootPart.CFrame = workspace.Map.Dressrosa.BartiloPlates.Plate6.CFrame
-						wait(0.5)
-						plr.Character.HumanoidRootPart.CFrame = workspace.Map.Dressrosa.BartiloPlates.Plate7.CFrame
-						wait(0.5)
-						plr.Character.HumanoidRootPart.CFrame = workspace.Map.Dressrosa.BartiloPlates.Plate8.CFrame
-						wait(2.5)
-					end
-				end
-			end)
-		end
-	end)
-	end
-	if World3 then
-	local CitizenQ = Tabs.Main:AddToggle("CitizenQ", {
-		Title = "Auto Citizen Quest",
-		Description = "",
-		Default = false
-	})
-	CitizenQ:OnChanged(function(Value)
-		_G.CitizenQuest = Value
-	end)
-	spawn(function()
-		while wait(Sec) do
-			pcall(function()
-				if _G.CitizenQuest then
-					if Lv >= 1800 and replicated.Remotes.CommF_:InvokeServer("CitizenQuestProgress").KilledBandits == false then
-						if string.find(plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "Forest Pirate") and string.find(plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "50") and plr.PlayerGui.Main.Quest.Visible == true then
-							local v = GetConnectionEnemies("Forest Pirate")
-							if v then
-								repeat
-									task.wait()
-									Attack.Kill(v, _G.CitizenQuest)
-								until _G.CitizenQuest == false or not v.Parent or v.Humanoid.Health <= 0 or plr.PlayerGui.Main.Quest.Visible == false
-							else
-								_tp(CFrame.new(-13206.452148438, 425.89199829102, -7964.5537109375))
-							end
-						else
-							_tp(CFrame.new(-12443.8671875, 332.40396118164, -7675.4892578125))
-							if (Vector3.new(-12443.8671875, 332.40396118164, -7675.4892578125) - plr.Character.HumanoidRootPart.Position).Magnitude <= 30 then
-								wait(1.5)
-								replicated.Remotes.CommF_:InvokeServer("StartQuest", "CitizenQuest", 1)
-							end
-						end
-					elseif Lv >= 1800 and replicated.Remotes.CommF_:InvokeServer("CitizenQuestProgress").KilledBoss == false then
-						local v = GetConnectionEnemies("Captain Elephant")
-						if plr.PlayerGui.Main.Quest.Visible and string.find(plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "Captain Elephant") and plr.PlayerGui.Main.Quest.Visible == true then
-							if v then
-								repeat
-									task.wait()
-									Attack.Kill(v, _G.CitizenQuest)
-								until _G.CitizenQuest == false or v.Humanoid.Health <= 0 or not v.Parent or plr.PlayerGui.Main.Quest.Visible == false
-							else
-								_tp(CFrame.new(-13374.889648438, 421.27752685547, -8225.208984375))
-							end
-						else
-							_tp(CFrame.new(-12443.8671875, 332.40396118164, -7675.4892578125))
-							if (CFrame.new(-12443.8671875, 332.40396118164, -7675.4892578125).Position - plr.Character.HumanoidRootPart.Position).Magnitude <= 4 then
-								wait(1.5)
-								replicated.Remotes.CommF_:InvokeServer("CitizenQuestProgress", "Citizen")
-							end
-						end
-					elseif Lv >= 1800 and replicated.Remotes.CommF_:InvokeServer("CitizenQuestProgress", "Citizen") == 2 then
-						_tp(CFrame.new(-12512.138671875, 340.39279174805, -9872.8203125))
-					end
-				end
-			end)
-		end
-	end)
-	local Q = Tabs.Main:AddToggle("Q", {
-		Title = "Auto Training Dummy",
-		Description = "",
-		Default = false
-	})
-	Q:OnChanged(function(Value)
-		_G.DummyMan = Value
-	end)
-	spawn(function()
-		while wait(Sec) do
-			if _G.DummyMan then
-				pcall(function()
-					if plr.PlayerGui.Main.Quest.Visible == false then
-						local xxx = {
-							[1] = "ArenaTrainer"
-						}
-						replicated:WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer(unpack(xxx))
-					else
-						local v = GetConnectionEnemies("Training Dummy")
-						if v then
-							repeat
-								wait()
-								Attack.Kill(v, _G.DummyMan)
-							until not _G.DummyMan or not v.Parent or v.Humanoid.Health <= 0
-						else
-							_tp(CFrame.new(3688.005126953125, 12.746943473815918, 170.20953369140625))
-						end
-					end
-				end)
-			end
-		end
-	end)
-	end
-	local Berry = Tabs.Main:AddToggle("Berry", {
-		Title = "Auto Collect Berry",
-		Description = "",
-		Default = false
-	})
-	Berry:OnChanged(function(Value)
-		_G.AutoBerry = Value
-	end)
-	spawn(function()
-		while wait(Sec) do
-			if _G.AutoBerry then
-				local CollectionService = game:GetService("CollectionService")
-				local Players = game:GetService("Players")
-				local Player = Players.LocalPlayer
-				local BerryBush = CollectionService:GetTagged("BerryBush")
-				local Distance, Nearest = math.huge
-				for i = 1, #BerryBush do
-					local Bush = BerryBush[i]
-					for AttributeName, BerryName in pairs(Bush:GetAttributes()) do
-						if not BerryArray or table.find(BerryArray, BerryName) then
-							_tp(Bush.Parent:GetPivot())
-							for i = 1, #BerryBush do
-								local Bush = BerryBush[i]
-								for AttributeName, BerryName in pairs(Bush:GetChildren()) do
-									if not BerryArray or table.find(BerryArray, BerryName) then
-										_tp(BerryName.WorldPivot)
-										fireproximityprompt(BerryName.ProximityPrompt, math.huge)
-									end
-								end
-							end
-						end
-					end
-				end
-			end
-		end
-	end)
-	local Chest = Tabs.Main:AddToggle("Chest", {
-		Title = "Auto Collect Chest",
-		Description = "",
-		Default = false
-	})
-	Chest:OnChanged(function(Value)
-		_G.AutoFarmChest = Value
-	end)
-	spawn(function()
-		while wait(Sec) do
-			if _G.AutoFarmChest then
-				pcall(function()
-					local CollectionService = game:GetService("CollectionService")
-					local Players = game:GetService("Players")
-					local Player = Players.LocalPlayer
-					local Character = Player.Character or Player.CharacterAdded:Wait()
-					if not Character then
-						return
-					end
-					local Position = Character:GetPivot().Position
-					local Chests = CollectionService:GetTagged("_ChestTagged")
-					local Distance, Nearest = math.huge, nil
-					for i = 1, #Chests do
-						local Chest = Chests[i]
-						local Magnitude = (Chest:GetPivot().Position - Position).Magnitude
-						if not SelectedIsland or Chest:IsDescendantOf(SelectedIsland) then
-							if not Chest:GetAttribute("IsDisabled") and Magnitude < Distance then
-								Distance = Magnitude
-								Nearest = Chest
-							end
-						end
-					end
-					if Nearest then
-						_tp(Nearest:GetPivot())
-					end
-				end)
-			end
-		end
-	end)
-	Tabs.Main:AddSection("Mastery")
-	local posMastery = {
-		"Cake",
-		"Bone"
-	}
-	local Mastery_Config = Tabs.Main:AddDropdown("Mastery_Config", {
-		Title = "Choose Island",
-		Values = posMastery,
-		Multi = false,
-		Default = 1
-	})
-	Mastery_Config:OnChanged(function(Value)
-		SelectIsland = Value
-	end)
-	local MasteryFruits = Tabs.Main:AddToggle("MasteryFruits", {
-		Title = "Auto Mastery Fruit",
-		Description = "",
-		Default = false
-	})
-	MasteryFruits:OnChanged(function(Value)
-		_G.FarmMastery_Dev = Value
-	end)
-	spawn(function()
-		RunSer.RenderStepped:Connect(function()
-			pcall(function()
-				if _G.FarmMastery_Dev or _G.FarmMastery_G or _G.FarmMastery_S then
-					for a, b in pairs(plr.PlayerGui.Notifications:GetChildren()) do
-						if b.Name == "NotificationTemplate" then
-							if string.find(b.Text, "Skill locked!") then
-								b:Destroy()
-							end
-						end
-					end
-				end
-			end)
-		end)
-	end)
-	spawn(function()
-		while wait(Sec) do
-			if _G.FarmMastery_Dev then
-				pcall(function()
-					if SelectIsland == "Cake" then
-						local v = GetConnectionEnemies(mastery1)
-						if v then
-							HealthM = v.Humanoid.MaxHealth * 70 / 100
-							repeat
-								wait()
-								MousePos = v.HumanoidRootPart.Position
-								Attack.Mas(v, _G.FarmMastery_Dev)
-							until _G.FarmMastery_Dev == false or v.Humanoid.Health <= 0 or not v.Parent
-						else
-							_tp(CFrame.new(-1943.676513671875, 251.5095672607422, -12337.880859375))
-						end
-					elseif SelectIsland == "Bone" then
-						local v = GetConnectionEnemies(mastery2)
-						if v then
-							HealthM = v.Humanoid.MaxHealth * 70 / 100
-							repeat
-								wait()
-								MousePos = v.HumanoidRootPart.Position
-								Attack.Mas(v, _G.FarmMastery_Dev)
-							until _G.FarmMastery_Dev == false or v.Humanoid.Health <= 0 or not v.Parent
-						else
-							_tp(CFrame.new(-9495.6806640625, 453.58624267578125, 5977.3486328125))
-						end
-					end
-				end)
-			end
-		end
-	end)
-	local MasteryGun = Tabs.Main:AddToggle("MasteryGun", {
-		Title = "Auto Farm Mastery Gun",
-		Description = "",
-		Default = false
-	})
-	MasteryGun:OnChanged(function(Value)
-		_G.FarmMastery_G = Value
-	end)
-	spawn(function()
-		while wait(Sec) do
-			if _G.FarmMastery_G then
-				pcall(function()
-					if SelectIsland == "Cake" then
-						local v = GetConnectionEnemies(mastery1)
-						if v then
-							HealthM = v.Humanoid.MaxHealth * 70 / 100
-							repeat
-								wait()
-								MousePos = v.HumanoidRootPart.Position
-								Attack.Masgun(v, _G.FarmMastery_G)
-								local Modules = replicated:FindFirstChild("Modules")
-								local Net = Modules:FindFirstChild("Net")
-								local RE_ShootGunEvent = Net:FindFirstChild("RE/ShootGunEvent")
-								if plr.Character:FindFirstChildOfClass("Tool").ToolTip ~= "Gun" then
-									return
-								end
-								if plr.Character:FindFirstChildOfClass("Tool") and plr.Character:FindFirstChildOfClass("Tool").Name == 'Skull Guitar' then
-									SoulGuitar = true
-									plr.Character:FindFirstChildOfClass("Tool").RemoteEvent:FireServer("TAP", MousePos)
-									if _G.FarmMastery_G then
-										vim1:SendMouseButtonEvent(0, 0, 0, true, game, 1);
-										wait(0.05)
-										vim1:SendMouseButtonEvent(0, 0, 0, false, game, 1);
-										wait(0.05)
-									end
-								elseif plr.Character:FindFirstChildOfClass("Tool") and plr.Character:FindFirstChildOfClass("Tool").Name ~= 'Skull Guitar' then
-									SoulGuitar = false
-									RE_ShootGunEvent:FireServer(MousePos, {
-										v.HumanoidRootPart
-									})
-									if _G.FarmMastery_G then
-										vim1:SendMouseButtonEvent(0, 0, 0, true, game, 1);
-										wait(0.05)
-										vim1:SendMouseButtonEvent(0, 0, 0, false, game, 1);
-										wait(0.05)
-									end
-								end
-							until _G.FarmMastery_G == false or v.Humanoid.Health <= 0 or not v.Parent
-							SoulGuitar = false
-						else
-							_tp(CFrame.new(-1943.676513671875, 251.5095672607422, -12337.880859375))
-						end
-					elseif SelectIsland == "Bone" then
-						local v = GetConnectionEnemies(mastery2)
-						if v then
-							HealthM = v.Humanoid.MaxHealth * 70 / 100
-							repeat
-								wait()
-								MousePos = v.HumanoidRootPart.Position
-								Attack.Masgun(v, _G.FarmMastery_G)
-								local Modules = replicated:FindFirstChild("Modules")
-								local Net = Modules:FindFirstChild("Net")
-								local RE_ShootGunEvent = Net:FindFirstChild("RE/ShootGunEvent")
-								if plr.Character:FindFirstChildOfClass("Tool").ToolTip ~= "Gun" then
-									return
-								end
-								if plr.Character:FindFirstChildOfClass("Tool") and plr.Character:FindFirstChildOfClass("Tool").Name == 'Skull Guitar' then
-									SoulGuitar = true
-									plr.Character:FindFirstChildOfClass("Tool").RemoteEvent:FireServer("TAP", MousePos)
-									if _G.FarmMastery_G then
-										vim1:SendMouseButtonEvent(0, 0, 0, true, game, 1);
-										wait(0.05)
-										vim1:SendMouseButtonEvent(0, 0, 0, false, game, 1);
-										wait(0.05)
-									end
-								elseif plr.Character:FindFirstChildOfClass("Tool") and plr.Character:FindFirstChildOfClass("Tool").Name ~= 'Skull Guitar' then
-									SoulGuitar = false
-									RE_ShootGunEvent:FireServer(MousePos, {
-										v.HumanoidRootPart
-									})
-									if _G.FarmMastery_G then
-										vim1:SendMouseButtonEvent(0, 0, 0, true, game, 1);
-										wait(0.05)
-										vim1:SendMouseButtonEvent(0, 0, 0, false, game, 1);
-										wait(0.05)
-									end
-								end
-							until _G.FarmMastery_G == false or v.Humanoid.Health <= 0 or not v.Parent
-							SoulGuitar = false
-						else
-							_tp(CFrame.new(-9495.6806640625, 453.58624267578125, 5977.3486328125))
-						end
-					end
-				end)
-			end
-		end
-	end)
+-- INÍCIO DA SECTION QUEST (APENAS SE FOR WORLD 2)
+if World2 then
+Tabs.Main:AddSection("Quests")
+
+-- 7. Auto Bartilo Quest (World 2)
+local Bartilo = Tabs.Main:AddToggle("Bartilo", {
+Title = "Auto Bartilo Quest",
+Description = "",
+Default = false
+})
+Bartilo:OnChanged(function(Value)
+_G.Bartilo_Quest = Value
+end)
+spawn(function()
+while wait(.1) do
+pcall(function()
+if _G.Bartilo_Quest and Lv >= 850 then -- Assume-se que Lv está definido em outro lugar
+local Qbart = plr.PlayerGui.Main.Quest -- Assume-se que plr está definido em outro lugar
+-- Passo 0: Pegar a quest
+if replicated.Remotes.CommF:InvokeServer("BartiloQuestProgress", "Bartilo") == 0 then
+_G.Level = false -- Assume-se que _G.Level está definido em outro lugar
+if Qbart.Visible == true then
+local v = GetConnectionEnemies("Swan Pirate")
+if v then
+local x = GetConnectionEnemies(BartMon) -- Assume-se que BartMon está definido em outro lugar
+if x then
+repeat
+task.wait()
+if not string.find(plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "Swan Pirate") then
+replicated.Remotes.CommF:InvokeServer("AbandonQuest")
+else
+Attack.Kill(x, _G.Bartilo_Quest)
+end
+until _G.Bartilo_Quest == false or not x.Parent or x.Humanoid.Health <= 0 or Qbart.Visible == false or not x:FindFirstChild("HumanoidRootPart")
+end
+else
+_tp(CFrame.new(970.369446, 142.653198, 1217.3667, 0.162079468, -4.85452638e-08, -0.986777723, 1.03357589e-08, 1, -4.74980872e-08, 0.986777723, -2.50063148e-09, 0.162079468)) -- Local do NPC Bartilo
+end
+else
+repeat
+wait()
+_tp(CFrame.new(-461.533203, 72.3478546, 300.311096, 0.050853312, -0, -0.998706102, 0, 1, -0, 0.998706102, 0, 0.050853312)) -- Local do NPC Bartilo
+until (CFrame.new(-461.533203, 72.3478546, 300.311096, 0.050853312, -0, -0.998706102, 0, 1, -0, 0.998706102, 0, 0.050853312).Position - plr.Character.HumanoidRootPart.Position).Magnitude <= 20 or _G.Bartilo_Quest == false
+if (CFrame.new(-461.533203, 72.3478546, 300.311096, 0.050853312, -0, -0.998706102, 0, 1, -0, 0.998706102, 0, 0.050853312).Position - plr.Character.HumanoidRootPart.Position).Magnitude <= 1 then
+replicated.Remotes.CommF:InvokeServer("StartQuest", "BartiloQuest", 1)
+end
+end
+-- Passo 1: Matar Jeremy
+elseif replicated.Remotes.CommF:InvokeServer("BartiloQuestProgress", "Bartilo") == 1 then
+_G.Level = false
+local je = GetConnectionEnemies("Jeremy")
+if je then
+repeat
+task.wait()
+Attack.Kill(je, _G.Bartilo_Quest)
+until _G.Bartilo_Quest == false or not je.Parent or je.Humanoid.Health <= 0 or Qbart.Visible == false or not je:FindFirstChild("HumanoidRootPart")
+else
+_tp(CFrame.new(2158.97412, 449.056244, 705.411682, -0.754199564, -4.17389057e-09, -0.656645238, -4.47752875e-08, 1, 4.50709301e-08, 0.656645238, 6.3393955e-08, -0.754199564)) -- Local do Boss Jeremy
+end
+-- Passo 2: Acionar Placas
+elseif replicated.Remotes.CommF:InvokeServer("BartiloQuestProgress", "Bartilo") == 2 then
+repeat
+wait()
+_tp(CFrame.new(-1830.83972, 10.5578213, 1680.60229, 0.979988456, -2.02152783e-08, -0.199054286, 2.20792113e-08, 1, 7.1442483e-09, 0.199054286, -1.13962431e-08, 0.979988456)) -- Local perto das placas
+until (CFrame.new(-1830.83972, 10.5578213, 1680.60229, 0.979988456, -2.02152783e-08, -0.199054286, 2.20792113e-08, 1, 7.1442483e-09, 0.199054286, -1.13962431e-08, 0.979988456).Position - plr.Character.HumanoidRootPart.Position).Magnitude <= 1 or _G.Bartilo_Quest == false
+wait(0.5)
+plr.Character.HumanoidRootPart.CFrame = workspace.Map.Dressrosa.BartiloPlates.Plate1.CFrame
+wait(0.5)
+plr.Character.HumanoidRootPart.CFrame = workspace.Map.Dressrosa.BartiloPlates.Plate2.CFrame
+wait(0.5)
+plr.Character.HumanoidRootPart.CFrame = workspace.Map.Dressrosa.BartiloPlates.Plate3.CFrame
+wait(0.5)
+plr.Character.HumanoidRootPart.CFrame = workspace.Map.Dressrosa.BartiloPlates.Plate4.CFrame
+wait(0.5)
+plr.Character.HumanoidRootPart.CFrame = workspace.Map.Dressrosa.BartiloPlates.Plate5.CFrame
+wait(0.5)
+plr.Character.HumanoidRootPart.CFrame = workspace.Map.Dressrosa.BartiloPlates.Plate6.CFrame
+wait(0.5)
+plr.Character.HumanoidRootPart.CFrame = workspace.Map.Dressrosa.BartiloPlates.Plate7.CFrame
+wait(0.5)
+plr.Character.HumanoidRootPart.CFrame = workspace.Map.Dressrosa.BartiloPlates.Plate8.CFrame
+wait(2.5) -- Tempo para a quest completar
+end
+end
+end)
+end
+end)
+end
+-- FIM DA SECTION QUEST (APENAS SE FOR WORLD 2)
+
+-- Início da Section Collect
+Tabs.Main:AddSection("Collect")
+
+-- 8. Auto Collect Berry
+local Berry = Tabs.Main:AddToggle("Berry", {
+Title = "Auto Collect Berry",
+Description = "",
+Default = false
+})
+Berry:OnChanged(function(Value)
+_G.AutoBerry = Value
+end)
+spawn(function()
+while wait(Sec) do
+if _G.AutoBerry then
+local CollectionService = game:GetService("CollectionService")
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+local BerryBush = CollectionService:GetTagged("BerryBush")
+local Distance, Nearest = math.huge
+for i = 1, #BerryBush do
+local Bush = BerryBush[i]
+for AttributeName, BerryName in pairs(Bush:GetAttributes()) do -- Lógica de iteração parece ser para atributos, pode precisar de ajuste dependendo do seu jogo
+if not BerryArray or table.find(BerryArray, BerryName) then -- Assume-se que BerryArray está definido
+_tp(Bush.Parent:GetPivot()) -- Teleporta para o arbusto pai
+for i = 1, #BerryBush do
+local Bush = BerryBush[i]
+for AttributeName, BerryName in pairs(Bush:GetChildren()) do -- Itera pelos filhos do arbusto
+if not BerryArray or table.find(BerryArray, BerryName) then
+_tp(BerryName.WorldPivot)
+fireproximityprompt(BerryName.ProximityPrompt, math.huge)
+end
+end
+end
+end
+end
+end
+end
+end
+end)
+
+-- 9. Auto Collect Chest
+local Chest = Tabs.Main:AddToggle("Chest", {
+Title = "Auto Collect Chest",
+Description = "",
+Default = false
+})
+Chest:OnChanged(function(Value)
+_G.AutoFarmChest = Value
+end)
+spawn(function()
+while wait(Sec) do
+if _G.AutoFarmChest then
+pcall(function()
+local CollectionService = game:GetService("CollectionService")
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+local Character = Player.Character or Player.CharacterAdded:Wait()
+if not Character then
+return
+end
+local Position = Character:GetPivot().Position
+local Chests = CollectionService:GetTagged("_ChestTagged")
+local Distance, Nearest = math.huge, nil
+for i = 1, #Chests do
+local Chest = Chests[i]
+local Magnitude = (Chest:GetPivot().Position - Position).Magnitude
+if not SelectedIsland or Chest:IsDescendantOf(SelectedIsland) then -- Assume-se que SelectedIsland está definido
+if not Chest:GetAttribute("IsDisabled") and Magnitude < Distance then
+Distance = Magnitude
+Nearest = Chest
+end
+end
+end
+if Nearest then
+_tp(Nearest:GetPivot()) -- Teleporta para o baú mais próximo
+end
+end)
+end
+end
+end)
+
+
 	if World3 then
 	local plr = game.Players.LocalPlayer
 local replicated = game.ReplicatedStorage
@@ -4512,15 +4065,414 @@ spawn(function()
     end
 end)
 
-local AcceptQuestC = SectionCake:AddToggle("AcceptQuestC", {
+-- ===============================
+-- Accept Quest Cake Prince
+-- ===============================
+local AcceptQuestC = Tabs.Main:AddToggle("AcceptQuestC", {
     Title = "Accept Quest Cake Prince",
     Default = false
 })
-
 AcceptQuestC:OnChanged(function(Value)
     _G.AcceptQuestC = Value
 end)
 
+-- ===============================
+-- Boss Tyrant of the Skies
+-- ===============================
+if World3 then
+    Tabs.Main:AddSection("Boss Tyrant of the Skies")
+
+    local TyrantStatus = Tabs.Main:AddParagraph({
+        Title = "Tyrant of the Skies",
+        Content = ""
+    })
+
+    spawn(function()
+        pcall(function()
+            while wait(1) do
+                if game:GetService("Workspace").Enemies:FindFirstChild("Tyrant of the Skies") then
+                    TyrantStatus:SetDesc("✅")
+                else
+                    TyrantStatus:SetDesc("❌")
+                end
+            end
+        end)
+    end) 
+
+    plr = plr or game.Players.LocalPlayer
+    Sec = Sec or 0.1
+    _G.FarmTyrant = _G.FarmTyrant or false
+
+    -- Toggle Auto Farm Tyrant
+    local FarmTyrant = Tabs.Main:AddToggle("FarmTyrant", {
+        Title = "Auto Farm Tyrant",
+        Description = "Farma o Boss Tyrant Automaticamente",
+        Default = false
+    })
+    FarmTyrant:OnChanged(function(Value)
+        _G.FarmTyrant = Value
+    end)
+
+    spawn(function()
+        while wait(Sec) do
+            if _G.FarmTyrant then
+                pcall(function()
+                    local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+                    if not hrp then return end
+
+                    local bossPos = Vector3.new(-16268.287, 152.616, 1390.773)
+                    if (hrp.Position - bossPos).Magnitude > 5 then
+                        if _tp then pcall(_tp, CFrame.new(bossPos))
+                        elseif Tween then pcall(Tween, CFrame.new(bossPos))
+                        elseif notween then pcall(notween, CFrame.new(bossPos))
+                        else hrp.CFrame = CFrame.new(bossPos) end
+                        repeat wait() until not _G.FarmTyrant or (hrp.Position - bossPos).Magnitude <= 5
+                    end
+
+                    local enemiesFolder = workspace:FindFirstChild("Enemies")
+                    local boss = enemiesFolder and enemiesFolder:FindFirstChild("Tyrant of the Skies")
+                    if boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then
+                        repeat
+                            if not _G.FarmTyrant then break end
+                            if AutoHaki then pcall(AutoHaki) end
+                            if SelectWeapon and EquipTool then pcall(EquipTool, SelectWeapon) end
+                            if Attack and Attack.Kill then pcall(function() Attack.Kill(boss, _G.FarmTyrant) end)
+                            elseif AttackNoCoolDown then pcall(AttackNoCoolDown) end
+                            wait()
+                        until not _G.FarmTyrant or not boss.Parent or boss.Humanoid.Health <= 0
+                        return
+                    end
+
+                    -- Loop pelos mobs para farm Tyrant
+                    local mobList = {"Serpent Hunter", "Skull Slayer", "Isle Champion", "Sun-kissed Warrior"}
+                    if enemiesFolder then
+                        for _, mobName in ipairs(mobList) do
+                            if not _G.FarmTyrant then break end
+                            for _, mob in ipairs(enemiesFolder:GetChildren()) do
+                                if not _G.FarmTyrant then break end
+                                if mob and mob.Name == mobName and mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
+                                    if (hrp.Position - mob.HumanoidRootPart.Position).Magnitude > 5000 then
+                                        if _tp then pcall(_tp, mob.HumanoidRootPart.CFrame * CFrame.new(0,30,0))
+                                        elseif Tween then pcall(Tween, mob.HumanoidRootPart.CFrame * CFrame.new(0,30,0))
+                                        elseif notween then pcall(notween, mob.HumanoidRootPart.CFrame * CFrame.new(0,30,0))
+                                        else hrp.CFrame = mob.HumanoidRootPart.CFrame * CFrame.new(0,30,0) end
+                                    end
+                                    repeat
+                                        if not _G.FarmTyrant then break end
+                                        if AutoHaki then pcall(AutoHaki) end
+                                        if SelectWeapon and EquipTool then pcall(EquipTool, SelectWeapon) end
+                                        if Attack and Attack.Kill then pcall(function() Attack.Kill(mob, _G.FarmTyrant) end)
+                                        elseif AttackNoCoolDown then pcall(AttackNoCoolDown) end
+                                        wait()
+                                    until not _G.FarmTyrant or not mob.Parent or mob.Humanoid.Health <= 0
+                                end
+                            end
+                        end
+                    end
+                end)
+            end
+        end
+    end)
+
+    -- Toggle Farm PhaBinh (Quebrar Vasos)
+    local FarmPhaBinh = Tabs.Main:AddToggle("FarmPhaBinh", {
+        Title = "Quebrar Vasos",
+        Description = "Quebrar Vasos pra matar o Tyrant",
+        Default = false
+    })
+    FarmPhaBinh:OnChanged(function(Value)
+        _G.FarmPhaBinh = Value
+        if not Value and StopTween then pcall(StopTween) end
+    end)
+
+    local function sendSkillKey(skillKey)
+        local virtualInputManager = game:GetService("VirtualInputManager")
+        virtualInputManager:SendKeyEvent(true, skillKey, false, game)
+        wait(0.05)
+        virtualInputManager:SendKeyEvent(false, skillKey, false, game)
+    end
+
+    local function equipAndUseSkill(toolType)
+        local character = plr.Character
+        local backpack = plr.Backpack
+        if not (character and character:FindFirstChild("Humanoid") and character.Humanoid.Health > 0) then return end
+        for _, item in pairs(backpack:GetChildren()) do
+            if item:IsA("Tool") and item.ToolTip == toolType then
+                item.Parent = character
+                wait(0.12)
+                for _, skill in ipairs({"Z","X","C","V","F"}) do
+                    if not _G.FarmPhaBinh then break end
+                    pcall(function() sendSkillKey(skill) end)
+                    wait(0.12)
+                end
+                item.Parent = backpack
+                break
+            end
+        end
+    end
+
+    local PhaBinhPoints = {
+        CFrame.new(-16332.52,158.07,1440.32),
+        CFrame.new(-16288.60,158.16,1470.36),
+        CFrame.new(-16245.41,158.43,1463.36),
+        CFrame.new(-16212.46,158.16,1466.34),
+        CFrame.new(-16211.94,158.07,1322.39),
+        CFrame.new(-16260.92,154.92,1323.61),
+        CFrame.new(-16297.05,159.32,1317.22),
+        CFrame.new(-16335.09,159.33,1324.88)
+    }
+
+    spawn(function()
+        while wait(Sec) do
+            if _G.FarmPhaBinh then
+                pcall(function()
+                    if AutoHaki then pcall(AutoHaki) end
+                    if not (plr and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") and plr.Character:FindFirstChild("Humanoid") and plr.Character.Humanoid.Health > 0) then return end
+                    for _, point in ipairs(PhaBinhPoints) do
+                        if not _G.FarmPhaBinh then break end
+                        if _tp then pcall(_tp, point)
+                        elseif notween then pcall(notween, point)
+                        else plr.Character.HumanoidRootPart.CFrame = point end
+
+                        local arrived = false
+                        local start = tick()
+                        while tick() - start < 12 and not arrived and _G.FarmPhaBinh do
+                            local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+                            if not hrp or plr.Character.Humanoid.Health <= 0 then break end
+                            if (hrp.Position - point.Position).Magnitude <= 3 then
+                                arrived = true
+                                break
+                            end
+                            wait(0.1)
+                        end
+                        if _G.FarmPhaBinh then
+                            local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+                            if hrp and (hrp.Position - point.Position).Magnitude <= 3 then
+                                equipAndUseSkill("Melee")
+                                equipAndUseSkill("Sword")
+                                equipAndUseSkill("Gun")
+                            elseif StopTween then
+                                pcall(StopTween)
+                            end
+                        end
+                    end
+                end)
+            end
+        end
+    end)
+end
+
+-- Section Mastery
+Tabs.Main:AddSection("Mastery")
+
+-- Dropdown para escolher ilha
+local posMastery = {"Cake", "Bone"}
+local Mastery_Config = Tabs.Main:AddDropdown("Mastery_Config", {
+    Title = "Choose Island",
+    Values = posMastery,
+    Multi = false,
+    Default = 1
+})
+Mastery_Config:OnChanged(function(Value)
+    SelectIsland = Value
+end)
+
+-- Toggle Auto Mastery Fruit
+local MasteryFruits = Tabs.Main:AddToggle("MasteryFruits", {
+    Title = "Auto Mastery Fruit",
+    Description = "",
+    Default = false
+})
+MasteryFruits:OnChanged(function(Value)
+    _G.FarmMastery_Dev = Value
+end)
+
+-- Cleanup notification "Skill locked!"
+spawn(function()
+    RunSer.RenderStepped:Connect(function()
+        pcall(function()
+            if _G.FarmMastery_Dev or _G.FarmMastery_G or _G.FarmMastery_S then
+                for _, b in pairs(plr.PlayerGui.Notifications:GetChildren()) do
+                    if b.Name == "NotificationTemplate" and string.find(b.Text, "Skill locked!") then
+                        b:Destroy()
+                    end
+                end
+            end
+        end)
+    end)
+end)
+
+-- Loop Auto Mastery Fruit
+spawn(function()
+    while wait(Sec) do
+        if _G.FarmMastery_Dev then
+            pcall(function()
+                if SelectIsland == "Cake" then
+                    local v = GetConnectionEnemies(mastery1)
+                    if v then
+                        HealthM = v.Humanoid.MaxHealth * 70 / 100
+                        repeat
+                            wait()
+                            MousePos = v.HumanoidRootPart.Position
+                            Attack.Mas(v, _G.FarmMastery_Dev)
+                        until not _G.FarmMastery_Dev or not v.Parent or v.Humanoid.Health <= 0
+                    else
+                        _tp(CFrame.new(-1943.6765, 251.5095, -12337.8808))
+                    end
+                elseif SelectIsland == "Bone" then
+                    local v = GetConnectionEnemies(mastery2)
+                    if v then
+                        HealthM = v.Humanoid.MaxHealth * 70 / 100
+                        repeat
+                            wait()
+                            MousePos = v.HumanoidRootPart.Position
+                            Attack.Mas(v, _G.FarmMastery_Dev)
+                        until not _G.FarmMastery_Dev or not v.Parent or v.Humanoid.Health <= 0
+                    else
+                        _tp(CFrame.new(-9495.6806, 453.5862, 5977.3486))
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+-- ===============================
+-- Auto Mastery Gun (fora de Section)
+-- ===============================
+local MasteryGun = Tabs.Main:AddToggle("MasteryGun", {
+    Title = "Auto Farm Mastery Gun",
+    Description = "",
+    Default = false
+})
+MasteryGun:OnChanged(function(Value)
+    _G.FarmMastery_G = Value
+end)
+
+spawn(function()
+    while wait(Sec) do
+        if _G.FarmMastery_G then
+            pcall(function()
+                local v
+                if SelectIsland == "Cake" then
+                    v = GetConnectionEnemies(mastery1)
+                    if not v then _tp(CFrame.new(-1943.6765, 251.5095, -12337.8808)) end
+                elseif SelectIsland == "Bone" then
+                    v = GetConnectionEnemies(mastery2)
+                    if not v then _tp(CFrame.new(-9495.6806, 453.5862, 5977.3486)) end
+                end
+                if v then
+                    HealthM = v.Humanoid.MaxHealth * 70 / 100
+                    repeat
+                        wait()
+                        MousePos = v.HumanoidRootPart.Position
+                        Attack.Masgun(v, _G.FarmMastery_G)
+                        local Modules = replicated:FindFirstChild("Modules")
+                        local Net = Modules and Modules:FindFirstChild("Net")
+                        local RE_ShootGunEvent = Net and Net:FindFirstChild("RE/ShootGunEvent")
+                        if plr.Character:FindFirstChildOfClass("Tool") then
+                            local tool = plr.Character:FindFirstChildOfClass("Tool")
+                            if tool.ToolTip == "Gun" and RE_ShootGunEvent then
+                                RE_ShootGunEvent:FireServer(MousePos, {v.HumanoidRootPart})
+                            elseif tool.Name == 'Skull Guitar' then
+                                tool.RemoteEvent:FireServer("TAP", MousePos)
+                            end
+                        end
+                    until not _G.FarmMastery_G or not v.Parent or v.Humanoid.Health <= 0
+                end
+            end)
+        end
+    end
+end)
+
+-- ===============================================
+-- Boss Section
+-- ===============================================
+Tabs.Main:AddSection("Boss")
+
+-- Dropdown para selecionar o boss
+local BossDropdown = Tabs.Main:AddDropdown("BossDropdown", {
+    Title = "Selecione o Boss",
+    Description = "Selecione o Boss Para Farm",
+    Values = Boss,
+    Default = 1,
+    Callback = function(value)
+        _G.FindBoss = value
+    end
+})
+
+-- Toggle Auto Farm Boss
+local FarmBoss = Tabs.Main:AddToggle("FarmBoss", {
+    Title = "Auto Farm Boss",
+    Description = "Farma o Boss Selecionado",
+    Default = false
+})
+FarmBoss:OnChanged(function(value)
+    _G.FarmBoss = value
+    spawn(function()
+        while wait(Sec) do
+            if _G.FarmBoss then
+                pcall(function()
+                    -- Verifica se o boss tem quest
+                    local HasQuest = QuestBeta()[2] ~= nil and QuestBeta()[3] ~= nil
+                    
+                    if HasQuest then
+                        -- Boss com quest
+                        local QuestTitle = plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text
+                        
+                        if not string.find(QuestTitle, QuestBeta()[0]) then
+                            replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
+                        end
+                        
+                        if plr.PlayerGui.Main.Quest.Visible == false then
+                            _tp(QuestBeta()[5])
+                            if (Root.Position - QuestBeta()[5].Position).Magnitude <= 5 then
+                                replicated.Remotes.CommF_:InvokeServer("StartQuest", QuestBeta()[3], QuestBeta()[2])
+                            end
+                        elseif plr.PlayerGui.Main.Quest.Visible == true then
+                            if workspace.Enemies:FindFirstChild(QuestBeta()[1]) then
+                                for i, v in pairs(workspace.Enemies:GetChildren()) do
+                                    if Attack.Alive(v) and v.Name == QuestBeta()[1] then
+                                        if string.find(QuestTitle, QuestBeta()[0]) then
+                                            repeat
+                                                wait()
+                                                Attack.Kill(v, _G.FarmBoss)
+                                            until not _G.FarmBoss or v.Humanoid.Health <= 0 or not v.Parent or plr.PlayerGui.Main.Quest.Visible == false
+                                        else
+                                            replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
+                                        end
+                                    end
+                                end
+                            else
+                                _tp(QuestBeta()[4])
+                                if replicated:FindFirstChild(QuestBeta()[1]) then
+                                    _tp(replicated:FindFirstChild(QuestBeta()[1]).HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
+                                end
+                            end
+                        end
+                    else
+                        -- Boss sem quest - farm direto
+                        if workspace.Enemies:FindFirstChild(QuestBeta()[1]) then
+                            for i, v in pairs(workspace.Enemies:GetChildren()) do
+                                if Attack.Alive(v) and v.Name == QuestBeta()[1] then
+                                    repeat
+                                        wait()
+                                        Attack.Kill(v, _G.FarmBoss)
+                                    until not _G.FarmBoss or v.Humanoid.Health <= 0 or not v.Parent
+                                end
+                            end
+                        else
+                            _tp(QuestBeta()[4])
+                            if replicated:FindFirstChild(QuestBeta()[1]) then
+                                _tp(replicated:FindFirstChild(QuestBeta()[1]).HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
+                            end
+                        end
+                    end
+                end)
+            end
+        end
+    end)
+end)
 	Tabs.Main:AddSection("Unlocked Dungeon")
 	local Q = Tabs.Main:AddToggle("Q", {
 		Title = "Auto Desbloquear Raid Dough",
@@ -4626,136 +4578,6 @@ end)
 				end)
 			end
 		end
-	end)
-
-	Tabs.Main:AddSection("Buso/Aura Colours")
-	local Q = Tabs.Main:AddToggle("Q", {
-		Title = "Teleport Barista Cousin",
-		Description = "",
-		Default = false
-	})
-	Q:OnChanged(function(Value)
-		_G.Tp_MasterA = Value
-	end)
-	spawn(function()
-		while wait() do
-			if _G.Tp_MasterA then
-				pcall(function()
-					for _, v in pairs(replicated.NPCs:GetChildren()) do
-						if v.Name == "Barista Cousin" then
-							_tp(v.HumanoidRootPart.CFrame)
-						end
-					end
-				end)
-			end
-		end
-	end)
-	Tabs.Main:AddButton({
-		Title = "Comprar Cores de haki",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("ColorsDealer", "2")
-		end
-	})
-	local Q = Tabs.Main:AddToggle("Q", {
-		Title = "Auto Rainbow Colors",
-		Description = "",
-		Default = false
-	})
-	Q:OnChanged(function(Value)
-		_G.Auto_Rainbow_Haki = Value
-	end)
-	spawn(function()
-		pcall(function()
-			while wait(Sec) do
-				if _G.Auto_Rainbow_Haki then
-					if plr.PlayerGui.Main.Quest.Visible == false then
-						if _G.GetQFast then
-							if plr.PlayerGui.Main.Quest.Visible == false then
-								replicated.Remotes.CommF_:InvokeServer("HornedMan", "Bet")
-							end
-						else
-							Rainbow1 = CFrame.new(-11892.0703125, 930.57672119141, -8760.1591796875)
-							if (plr.Character.HumanoidRootPart.CFrame ~= Rainbow1) then
-								_tp(Rainbow1)
-							elseif (plr.Character.HumanoidRootPart.CFrame == Rainbow1) then
-								wait(1)
-								replicated.Remotes.CommF_:InvokeServer("HornedMan", "Bet")
-							end
-						end
-					elseif plr.PlayerGui.Main.Quest.Visible == true and string.find(plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "Stone") then
-						local v = GetConnectionEnemies("Stone")
-						if v then
-							repeat
-								wait()
-								Attack.Kill(v, _G.Auto_Rainbow_Haki)
-							until _G.Auto_Rainbow_Haki == false or v.Humanoid.Health <= 0 or not v.Parent or plr.PlayerGui.Main.Quest.Visible == false
-						else
-							_tp(CFrame.new(-1086.11621, 38.8425903, 6768.71436, 0.0231462717, -0.592676699, 0.805107772, 2.03251839e-05, 0.805323839, 0.592835128, -0.999732077, -0.0137055516, 0.0186523199))
-						end
-					elseif plr.PlayerGui.Main.Quest.Visible == true and string.find(plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "Hydra Leader") then
-						local v = GetConnectionEnemies("Hydra Leader")
-						if v then
-							repeat
-								task.wait()
-								Attack.Kill(v, _G.Auto_Rainbow_Haki)
-							until _G.Auto_Rainbow_Haki == false or v.Humanoid.Health <= 0 or not v.Parent or plr.PlayerGui.Main.Quest.Visible == false
-						else
-							replicated.Remotes.CommF_:InvokeServer("requestEntrance", Vector3.new(5643.45263671875, 1013.0858154296875, -340.51025390625))
-							local framelong1 = Vector3.new(5643.45263671875, 1013.0858154296875, -340.51025390625)
-							local framelong2 = CFrame.new(5821.89794921875, 1019.0950927734375, -73.71923065185547)
-							if (plr.Character.HumanoidRootPart.CFrame.Position == framelong1) then
-								_tp(framelong2)
-							end
-						end
-					elseif plr.PlayerGui.Main.Quest.Visible == true and string.find(plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "Kilo Admiral") then
-						local v = GetConnectionEnemies("Kilo Admiral")
-						if v then
-							repeat
-								task.wait()
-								Attack.Kill(v, _G.Auto_Rainbow_Haki)
-							until _G.Auto_Rainbow_Haki == false or v.Humanoid.Health <= 0 or not v.Parent or plr.PlayerGui.Main.Quest.Visible == false
-						else
-							_tp(CFrame.new(2877.61743, 423.558685, -7207.31006, -0.989591599, -0, -0.143904909, -0, 1.00000012, -0, 0.143904924, 0, -0.989591479))
-						end
-					elseif plr.PlayerGui.Main.Quest.Visible == true and string.find(plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "Captain Elephant") then
-						local v = GetConnectionEnemies("Captain Elephant")
-						if v then
-							repeat
-								task.wait()
-								Attack.Kill(v, _G.Auto_Rainbow_Haki)
-							until _G.Auto_Rainbow_Haki == false or v.Humanoid.Health <= 0 or not v.Parent or plr.PlayerGui.Main.Quest.Visible == false
-						else
-							local gamergayror1 = Vector3.new(-12471.169921875, 374.94024658203, -7551.677734375)
-							local gamergayror2 = CFrame.new(-13376.7578125, 433.28689575195, -8071.392578125)
-							if (plr.Character.HumanoidRootPart.CFrame.Position ~= gamergayror1) then
-								replicated.Remotes.CommF_:InvokeServer("requestEntrance", Vector3.new(-12471.169921875, 374.94024658203, -7551.677734375))
-							elseif (plr.Character.HumanoidRootPart.CFrame.Position == gamergayror1) then
-								_tp(gamergayror2)
-							end
-						end
-					elseif plr.PlayerGui.Main.Quest.Visible == true and string.find(plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "Beautiful Pirate") then
-						local v = GetConnectionEnemies("Captain Elephant")
-						if v then
-							repeat
-								task.wait()
-								Attack.Kill(v, _G.Auto_Rainbow_Haki)
-							until _G.Auto_Rainbow_Haki == false or v.Humanoid.Health <= 0 or not v.Parent or plr.PlayerGui.Main.Quest.Visible == false
-						else
-							replicated.Remotes.CommF_:InvokeServer("requestEntrance", Vector3.new(5314.54638671875, 22.562219619750977, -127.06755065917969))
-						end
-					end
-				end
-			end
-		end)
-	end)
-	local Q = Tabs.Main:AddToggle("Q", {
-		Title = "Accept Rainbow Quest Faster",
-		Description = "",
-		Default = false
-	})
-	Q:OnChanged(function(Value)
-		_G.GetQFast = Value
 	end)
 
 	Tabs.Main:AddSection("Instinct / Observation")
@@ -5241,8 +5063,8 @@ end)
 		_G.Seriality = Value
 	end)
 	local Bringmob = Tabs.Settings:AddToggle("Bringmob", {
-		Title = "Bring Mobs (Beta)",
-		Description = "Junta Os Mobs (Se Bugar Reative)",
+		Title = "Bring Mobs",
+		Description = "",
 		Default = true 
 	})
 	Bringmob:OnChanged(function(Value)
@@ -5436,108 +5258,6 @@ end)
 		end
 	end)      
 
-	Tabs.Settings:AddSection("Stats Upgrade")
-	local StatusSelect = Tabs.Settings:AddSlider("StatusSelect", {
-		Title = "Stats Value",
-		Description = "Adiciona Pontos No Item Selecinado",
-		Default = 10,
-		Min = 0,
-		Max = 1000,
-		Rounding = 1,
-		Callback = function(Value)
-			pSats = Value
-		end
-	})
-	StatusSelect:OnChanged(function(Value)
-		pSats = Value
-	end)
-
-	local StatsUpg = Tabs.Settings:AddToggle("StatsUpg", {
-		Title = "Melee",
-		Description = "",
-		Default = false
-	})
-	StatsUpg:OnChanged(function(Value)
-		_G.Auto_Melee = Value
-	end)
-	spawn(function()
-		while wait(Sec) do
-			pcall(function()
-				if _G.Auto_Melee then
-					statsSetings("Melee", pSats)
-				end
-			end)
-		end
-	end)
-
-	local StatsUpg = Tabs.Settings:AddToggle("StatsUpg", {
-		Title = "Sword",
-		Description = "",
-		Default = false
-	})
-	StatsUpg:OnChanged(function(Value)
-		_G.Auto_Sword = Value
-	end)
-	spawn(function()
-		while wait(Sec) do
-			pcall(function()
-				if _G.Auto_Sword then
-					statsSetings("Sword", pSats)
-				end
-			end)
-		end
-	end)
-	local StatsUpg = Tabs.Settings:AddToggle("StatsUpg", {
-		Title = "Gun",
-		Description = "",
-		Default = false
-	})
-	StatsUpg:OnChanged(function(Value)
-		_G.Auto_Gun = Value
-	end)
-	spawn(function()
-		while wait(Sec) do
-			pcall(function()
-				if _G.Auto_Gun then
-					statsSetings("Gun", pSats)
-				end
-			end)
-		end
-	end)
-	local StatsUpg = Tabs.Settings:AddToggle("StatsUpg", {
-		Title = "Blox Fruit",
-		Description = "",
-		Default = false
-	})
-	StatsUpg:OnChanged(function(Value)
-		_G.Auto_DevilFruit = Value
-	end)
-	spawn(function()
-		while wait(Sec) do
-			pcall(function()
-				if _G.Auto_DevilFruit then
-					statsSetings("Devil", pSats)
-				end
-			end)
-		end
-	end)
-	local StatsUpg = Tabs.Settings:AddToggle("StatsUpg", {
-		Title = "Defense",
-		Description = "",
-		Default = false
-	})
-	StatsUpg:OnChanged(function(Value)
-		_G.Auto_Defense = Value
-	end)
-	spawn(function()
-		while wait(Sec) do
-			pcall(function()
-				if _G.Auto_Defense then
-					statsSetings("Defense", pSats)
-				end
-			end)
-		end
-	end)
 	Tabs.Quests:AddSection("Tushita + Yama")
 	local Process = Tabs.Quests:AddParagraph({
 		Title = "Elites Process ",
@@ -5551,7 +5271,7 @@ end)
 		end
 	end)
 	local Q = Tabs.Quests:AddToggle("Q", {
-		Title = "Auto Elite Quest",
+		Title = "Auto Elite Hunter",
 		Description = "",
 		Default = false
 	})
@@ -5586,7 +5306,7 @@ end)
 		end
 	end)
 	local Q = Tabs.Quests:AddToggle("Q", {
-		Title = "Stop when got God's Chalice",
+		Title = "Parar Se Obter o God Cálice",
 		Description = "",
 		Default = true
 	})
@@ -5665,38 +5385,189 @@ end)
 			end)
 		end
 	end)
-	local Q = Tabs.Quests:AddToggle("Q", {
-		Title = "Auto Yama Sword",
-		Description = "",
-		Default = false
-	})
-	Q:OnChanged(function(Value)
-		_G.Auto_Yama = Value
-	end)
-	spawn(function()
-		while wait(Sec) do
-			pcall(function()
-				if _G.Auto_Yama then
-					if replicated.Remotes.CommF_:InvokeServer("EliteHunter", "Progress") < 30 then
-						_G.FarmEliteHunt = true
-					elseif replicated.Remotes.CommF_:InvokeServer("EliteHunter", "Progress") > 30 then
-						_G.FarmEliteHunt = false
-						if (workspace.Map.Waterfall.SealedKatana.Handle.Position - plr.Character.HumanoidRootPart.Position).Magnitude >= 20 then
-							_tp(workspace.Map.Waterfall.SealedKatana.Handle.CFrame)
-							local zx = GetConnectionEnemies("Ghost")
-							if zx then
-								repeat
-									wait()
-									Attack.Kill(zx, _G.Auto_Yama)
-								until zx.Humanoid.Health <= 0 or not zx.Parent or not _G.Auto_Yama
-								fireclickdetector(workspace.Map.Waterfall.SealedKatana.Handle.ClickDetector)
-							end
-						end
-					end
-				end
-			end)
-		end
-	end)
+	-- ===============================
+-- Auto Yama Sword (fora de Section)
+-- ===============================
+local Q = Tabs.Quests:AddToggle("Q", {
+    Title = "Auto Yama Sword",
+    Description = "",
+    Default = false
+})
+Q:OnChanged(function(Value)
+    _G.Auto_Yama = Value
+end)
+
+spawn(function()
+    while wait(Sec) do
+        pcall(function()
+            if _G.Auto_Yama then
+                if replicated.Remotes.CommF_:InvokeServer("EliteHunter", "Progress") < 30 then
+                    _G.FarmEliteHunt = true
+                elseif replicated.Remotes.CommF_:InvokeServer("EliteHunter", "Progress") > 30 then
+                    _G.FarmEliteHunt = false
+                    if (workspace.Map.Waterfall.SealedKatana.Handle.Position - plr.Character.HumanoidRootPart.Position).Magnitude >= 20 then
+                        _tp(workspace.Map.Waterfall.SealedKatana.Handle.CFrame)
+                        local zx = GetConnectionEnemies("Ghost")
+                        if zx then
+                            repeat
+                                wait()
+                                Attack.Kill(zx, _G.Auto_Yama)
+                            until zx.Humanoid.Health <= 0 or not zx.Parent or not _G.Auto_Yama
+                            fireclickdetector(workspace.Map.Waterfall.SealedKatana.Handle.ClickDetector)
+                        end
+                    end
+                end
+            end
+        end)
+    end
+end)
+
+-- ===============================================
+-- Buso/Aura Colours Section
+-- ===============================================
+Tabs.Main:AddSection("Buso/Aura Colours")
+
+-- Teleport Barista Cousin
+local Q = Tabs.Main:AddToggle("Q", {
+    Title = "Teleport Barista Cousin",
+    Description = "",
+    Default = false
+})
+Q:OnChanged(function(Value)
+    _G.Tp_MasterA = Value
+end)
+
+spawn(function()
+    while wait() do
+        if _G.Tp_MasterA then
+            pcall(function()
+                for _, v in pairs(replicated.NPCs:GetChildren()) do
+                    if v.Name == "Barista Cousin" then
+                        _tp(v.HumanoidRootPart.CFrame)
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+-- Comprar Cores de Haki
+Tabs.Main:AddButton({
+    Title = "Comprar Cores de haki",
+    Description = "",
+    Callback = function()
+        replicated.Remotes.CommF_:InvokeServer("ColorsDealer", "2")
+    end
+})
+
+-- Auto Rainbow Colors
+local Q = Tabs.Main:AddToggle("Q", {
+    Title = "Auto Rainbow Haki",
+    Description = "",
+    Default = false
+})
+Q:OnChanged(function(Value)
+    _G.Auto_Rainbow_Haki = Value
+end)
+
+spawn(function()
+    while wait(Sec) do
+        pcall(function()
+            if _G.Auto_Rainbow_Haki then
+                -- Toda a lógica de Rainbow Haki (quests, tp, ataques)
+                if plr.PlayerGui.Main.Quest.Visible == false then
+                    if _G.GetQFast then
+                        if plr.PlayerGui.Main.Quest.Visible == false then
+                            replicated.Remotes.CommF_:InvokeServer("HornedMan", "Bet")
+                        end
+                    else
+                        Rainbow1 = CFrame.new(-11892.0703125, 930.57672119141, -8760.1591796875)
+                        if (plr.Character.HumanoidRootPart.CFrame ~= Rainbow1) then
+                            _tp(Rainbow1)
+                        elseif (plr.Character.HumanoidRootPart.CFrame == Rainbow1) then
+                            wait(1)
+                            replicated.Remotes.CommF_:InvokeServer("HornedMan", "Bet")
+                        end
+                    end
+                elseif plr.PlayerGui.Main.Quest.Visible == true then
+                    local questText = plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text
+                    if string.find(questText, "Stone") then
+                        local v = GetConnectionEnemies("Stone")
+                        if v then
+                            repeat
+                                wait()
+                                Attack.Kill(v, _G.Auto_Rainbow_Haki)
+                            until not v.Parent or v.Humanoid.Health <= 0 or not _G.Auto_Rainbow_Haki or plr.PlayerGui.Main.Quest.Visible == false
+                        else
+                            _tp(CFrame.new(-1086.11621, 38.8425903, 6768.71436, 0.0231462717, -0.592676699, 0.805107772, 2.03251839e-05, 0.805323839, 0.592835128, -0.999732077, -0.0137055516, 0.0186523199))
+                        end
+                    elseif string.find(questText, "Hydra Leader") then
+                        local v = GetConnectionEnemies("Hydra Leader")
+                        if v then
+                            repeat
+                                task.wait()
+                                Attack.Kill(v, _G.Auto_Rainbow_Haki)
+                            until not v.Parent or v.Humanoid.Health <= 0 or not _G.Auto_Rainbow_Haki or plr.PlayerGui.Main.Quest.Visible == false
+                        else
+                            replicated.Remotes.CommF_:InvokeServer("requestEntrance", Vector3.new(5643.45263671875, 1013.0858154296875, -340.51025390625))
+                            local framelong1 = Vector3.new(5643.45263671875, 1013.0858154296875, -340.51025390625)
+                            local framelong2 = CFrame.new(5821.89794921875, 1019.0950927734375, -73.71923065185547)
+                            if (plr.Character.HumanoidRootPart.CFrame.Position == framelong1) then
+                                _tp(framelong2)
+                            end
+                        end
+                    elseif string.find(questText, "Kilo Admiral") then
+                        local v = GetConnectionEnemies("Kilo Admiral")
+                        if v then
+                            repeat
+                                task.wait()
+                                Attack.Kill(v, _G.Auto_Rainbow_Haki)
+                            until not v.Parent or v.Humanoid.Health <= 0 or not _G.Auto_Rainbow_Haki or plr.PlayerGui.Main.Quest.Visible == false
+                        else
+                            _tp(CFrame.new(2877.61743, 423.558685, -7207.31006, -0.989591599, -0, -0.143904909, -0, 1.00000012, -0, 0.143904924, 0, -0.989591479))
+                        end
+                    elseif string.find(questText, "Captain Elephant") then
+                        local v = GetConnectionEnemies("Captain Elephant")
+                        if v then
+                            repeat
+                                task.wait()
+                                Attack.Kill(v, _G.Auto_Rainbow_Haki)
+                            until not v.Parent or v.Humanoid.Health <= 0 or not _G.Auto_Rainbow_Haki or plr.PlayerGui.Main.Quest.Visible == false
+                        else
+                            local gamergayror1 = Vector3.new(-12471.169921875, 374.94024658203, -7551.677734375)
+                            local gamergayror2 = CFrame.new(-13376.7578125, 433.28689575195, -8071.392578125)
+                            if (plr.Character.HumanoidRootPart.CFrame.Position ~= gamergayror1) then
+                                replicated.Remotes.CommF_:InvokeServer("requestEntrance", gamergayror1)
+                            elseif (plr.Character.HumanoidRootPart.CFrame.Position == gamergayror1) then
+                                _tp(gamergayror2)
+                            end
+                        end
+                    elseif string.find(questText, "Beautiful Pirate") then
+                        local v = GetConnectionEnemies("Captain Elephant")
+                        if v then
+                            repeat
+                                task.wait()
+                                Attack.Kill(v, _G.Auto_Rainbow_Haki)
+                            until not v.Parent or v.Humanoid.Health <= 0 or not _G.Auto_Rainbow_Haki or plr.PlayerGui.Main.Quest.Visible == false
+                        else
+                            _tp(CFrame.new(5314.54638671875, 22.562219619750977, -127.06755065917969))
+                        end
+                    end
+                end
+            end
+        end)
+    end
+end)
+
+-- Accept Rainbow Quest Faster
+local Q = Tabs.Main:AddToggle("Q", {
+    Title = "Accept Quest Bypass",
+    Description = "",
+    Default = false
+})
+Q:OnChanged(function(Value)
+    _G.GetQFast = Value
+end)
 
 	Tabs.Quests:AddSection("Cursed Dual Katana")
 	local CheckCDK = Tabs.Quests:AddParagraph({
@@ -9846,115 +9717,6 @@ end)
 			end)
 		end
 	end)
-
-	Tabs.Combat:AddSection("LocalPlayer Settings / Misc")
-
-local RunService = game:GetService("RunService")
-local Players = game:GetService("Players")
-
-local plr = Players.LocalPlayer
-local humanoid = plr.Character and plr.Character:FindFirstChildOfClass("Humanoid") or nil
-
-plr.CharacterAdded:Connect(function(char)
-    humanoid = char:WaitForChild("Humanoid")
-end)
-
-local SpeedEnabled = false
-local JumpEnabled = false
-
-local desiredSpeed = 16
-local desiredJump = 50
-
--- IMPEDIR QUE O JOGO REDEFINA O WALKSPEED
-local function protectSpeed()
-    if humanoid then
-        humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
-            if SpeedEnabled and humanoid.WalkSpeed ~= desiredSpeed then
-                humanoid.WalkSpeed = desiredSpeed
-            end
-        end)
-    end
-end
-
-local function applyStats()
-    if humanoid then
-        if SpeedEnabled then
-            humanoid.WalkSpeed = desiredSpeed
-        end
-        if JumpEnabled then
-            humanoid.JumpPower = desiredJump
-        end
-    end
-end
-
-RunService.Heartbeat:Connect(function()
-    if humanoid then
-        if SpeedEnabled and humanoid.WalkSpeed ~= desiredSpeed then
-            humanoid.WalkSpeed = desiredSpeed
-        end
-        if JumpEnabled and humanoid.JumpPower ~= desiredJump then
-            humanoid.JumpPower = desiredJump
-        end
-    end
-end)
-
--- Toda vez que trocar de boneco, ativa o anti-reset
-plr.CharacterAdded:Connect(function(char)
-    humanoid = char:WaitForChild("Humanoid")
-    protectSpeed()
-end)
-
-protectSpeed()
-
--- TOGGLE SPEED
-local SetSpeed = Tabs.Combat:AddToggle("SetSpeed", {
-    Title = "Set Speed",
-    Description = "Enable custom WalkSpeed",
-    Default = false
-})
-
-SetSpeed:OnChanged(function(Value)
-    SpeedEnabled = Value
-    applyStats()
-end)
-
--- SLIDER SPEED
-local SpeedSlider = Tabs.Combat:AddSlider("SpeedSlider", {
-    Title = "Speed Value",
-    Description = "WalkSpeed Amount",
-    Min = 1,
-    Max = 500,
-    Default = desiredSpeed,
-    Rounding = 0
-})
-
-SpeedSlider:OnChanged(function(Value)
-    desiredSpeed = Value
-    applyStats()
-end)
-
--- TOGGLE JUMP
-local SetJump = Tabs.Combat:AddToggle("SetJump", {
-    Title = "Set JumpPower",
-    Description = "Enable custom JumpPower",
-    Default = false
-})
-
-SetJump:OnChanged(function(Value)
-    JumpEnabled = Value
-    applyStats()
-end)
-
--- SLIDER JUMP
-local JumpSlider = Tabs.Combat:AddSlider("JumpSlider", {
-    Title = "JumpPower Value",
-    Description = "JumpPower Amount",
-    Min = 10,
-    Max = 500,
-    Default = desiredJump,
-    Rounding = 0
-})
-
 JumpSlider:OnChanged(function(Value)
     desiredJump = Value
     applyStats()
