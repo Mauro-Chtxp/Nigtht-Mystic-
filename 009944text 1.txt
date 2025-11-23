@@ -9209,29 +9209,14 @@ Q:OnChanged(function(Value)
         end
     end)
 end)
--- NOVO TOGGLE PARA O KILL AURA
--- Note que o 'Tabs.Raids' deve ser definido em outro lugar do seu script
 Q = Tabs.Raids:AddToggle("Q", {
     Title = "Auto Complete Raid",
-    Description = "Completa automaticamente as ilhas de Raid.",
+    Description = "",
     Default = false
 })
 Q:OnChanged(function(Value)
     _G.Raiding = Value
 end)
-
--- DEFINIÇÃO DO NOVO TOGGLE PARA O KILL AURA
-local KillAuraToggle = Tabs.Raids:AddToggle("KillAura", {
-    Title = "Use Kill Aura (Ilha 5)",
-    Description = "Usa Kill Aura apenas na 'Island 5'.",
-    Default = false
-})
-KillAuraToggle:OnChanged(function(Value)
-    _G.UseKillAura = Value -- Variável global para controlar o Kill Aura
-end)
-
--- Certifique-se de que a variável global 'Sec' (tempo de espera) esteja definida.
--- E que 'plr' (seu Player) também esteja definido.
 
 spawn(function()
     pcall(function()
@@ -9248,62 +9233,52 @@ spawn(function()
 
                     local foundEnemies = false
 
-                    for _, island in ipairs(islands) do    
-                        local location = game:GetService("Workspace")["_WorldOrigin"].Locations:FindFirstChild(island)    
-                        if location then    
-                            
-                            -- *** LÓGICA DE ATAQUE REVISADA PARA KILL AURA NA ILHA 5 ***
-                            local useKillAuraOnThisIsland = island == "Island 5" and _G.UseKillAura
+                    for _, island in ipairs(islands) do
+                        local location = game:GetService("Workspace")["_WorldOrigin"].Locations:FindFirstChild(island)
+                        if location then
+                            -- procura o inimigo mais próximo da ilha atual
+                            local closestEnemy
+                            local shortestDistance = 9999
 
-                            local closestEnemy    
-                            local shortestDistance = 9999    
+                            for _, v in pairs(workspace.Enemies:GetChildren()) do
+                                if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") then
+                                    if v.Humanoid.Health > 0 then
+                                        local distance = (v.HumanoidRootPart.Position - location.Position).Magnitude
+                                        if distance < 500 and distance < shortestDistance then
+                                            shortestDistance = distance
+                                            closestEnemy = v
+                                        end
+                                    end
+                                end
+                            end
 
-                            for _, v in pairs(workspace.Enemies:GetChildren()) do    
-                                if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") then    
-                                    if v.Humanoid.Health > 0 then    
-                                        local distance = (v.HumanoidRootPart.Position - location.Position).Magnitude    
-                                        
-                                        -- O limite de distância é maior se o Kill Aura estiver ativo nesta ilha,
-                                        -- senão, mantém o limite de 500 (ou o que você preferir para o ataque normal)
-                                        local distanceLimit = useKillAuraOnThisIsland and 9999 or 500
-                                        
-                                        if distance < distanceLimit and distance < shortestDistance then    
-                                            shortestDistance = distance    
-                                            closestEnemy = v    
-                                        end    
-                                    end    
-                                end    
-                            end    
+                            -- se achou inimigo, foca nele até morrer
+                            if closestEnemy then
+                                foundEnemies = true
+                                repeat
+                                    task.wait()
+                                    Attack.Kill(closestEnemy, _G.Raiding)
+                                until not _G.Raiding or not closestEnemy.Parent or closestEnemy.Humanoid.Health <= 0
+                            end
 
-                            -- Se achou inimigo, foca nele até morrer    
-                            if closestEnemy then    
-                                foundEnemies = true    
-                                repeat    
-                                    task.wait()    
-                                    -- Usa a variável do toggle no Attack.Kill()
-                                    Attack.Kill(closestEnemy, _G.Raiding, useKillAuraOnThisIsland) 
-                                until not _G.Raiding or not closestEnemy.Parent or closestEnemy.Humanoid.Health <= 0    
-                            end    
+                            -- se achou e matou um inimigo, volta pro começo pra checar novamente
+                            if foundEnemies then
+                                break
+                            end
+                        end
+                    end
 
-                            -- se achou e matou um inimigo, volta pro começo pra checar novamente    
-                            if foundEnemies then    
-                                break    
-                            end    
-                        end    
-                    end    
-
-                    -- se não tem inimigo em nenhuma ilha → pode mover pra próxima    
-                    NextIs = not foundEnemies    
-                else    
-                    NextIs = false    
-                end    
-            else    
-                NextIs = false    
-            end    
+                    -- se não tem inimigo em nenhuma ilha → pode mover pra próxima
+                    NextIs = not foundEnemies
+                else
+                    NextIs = false
+                end
+            else
+                NextIs = false
+            end
         end
     end)
 end)
-
 	local Q = Tabs.Raids:AddToggle("Q", {
 		Title = "Auto Next Island",
 		Description = "",
