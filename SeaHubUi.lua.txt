@@ -540,52 +540,53 @@ function Library:CreateWindow(Setting)
 	TextLabelMain.Text = "<font color=\"rgb(" .. color .. ")\">@noguchi.hyuga</font> " .. getgenv().MainDesc or " - Blox Fruit"
 
 	MainContainer = Instance.new("ImageLabel")
-	MainContainer.Name = "MainContainer"
-	MainContainer.Parent = Main
-	MainContainer.BackgroundColor3 = getgenv().UIColor['Background Main Color']
-	MainContainer.Size = UDim2.new(1, 0, 1, 0)
-	MainContainer.BackgroundTransparency = 1
-	MainContainer.Image = "rbxassetid://8387197183"
-	MainContainer.ImageTransparency = 0.5
-	-- MainContainer
-	local uistr = Instance.new("UIStroke", MainContainer);
-	uistr["Thickness"] = 2;
-	uistr["Color"] = Color3.fromRGB(171, 171, 255);
-	getgenv().ReadyForGuiLoaded = true
-	
-	MainCorner.CornerRadius = UDim.new(0, 4)
-	MainCorner.Name = "MainCorner"
-	MainCorner.Parent = MainContainer
+MainContainer.Name = "MainContainer"
+MainContainer.Parent = Main
+MainContainer.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- PRETO
+MainContainer.Size = UDim2.new(1, 0, 1, 0)
+MainContainer.BackgroundTransparency = 0 -- Fundo totalmente preto
+MainContainer.Image = "" -- Sem imagem
+MainContainer.ImageTransparency = 1 -- Garantir que nada apareça
 
-	Concacontainer.Name = "Concacontainer"
-	Concacontainer.Parent = MainContainer
-	Concacontainer.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-	Concacontainer.BackgroundTransparency = 1.000
-	Concacontainer.ClipsDescendants = true
-	Concacontainer.Position = UDim2.new(0, 0, 0, 30)
-	Concacontainer.Size = UDim2.new(1, 0, 1, -30)
-	
-	Concacmain.Name = "Concacmain"
-	Concacmain.Parent = Concacontainer
-	Concacmain.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-	Concacmain.BackgroundTransparency = 1.000
-	Concacmain.Selectable = true
-	Concacmain.Size = UDim2.new(1, 0, 1, 0)
-	
-	TopMain.Name = "TopMain"
-	TopMain.Parent = MainContainer
-	TopMain.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-	TopMain.BackgroundTransparency = 1.000
-	TopMain.Size = UDim2.new(1, 0, 0, 25)
-	
-	Ruafimg.Name = "Ruafimg"
-	Ruafimg.Parent = TopMain
-	Ruafimg.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-	Ruafimg.BackgroundTransparency = 1.000
-	Ruafimg.Position = UDim2.new(0, 5, 0, getgenv().T1 and 5 or 0)
-	Ruafimg.Size = UDim2.new(0, getgenv().T1 and 30 or 25, 0, getgenv().T1 and 15 or 25)
-	Ruafimg.Image = getgenv().UIColor["Logo Image"]
+-- Borda preta
+local uistr = Instance.new("UIStroke", MainContainer)
+uistr.Thickness = 2
+uistr.Color = Color3.fromRGB(0, 0, 0)
 
+getgenv().ReadyForGuiLoaded = true
+
+MainCorner.CornerRadius = UDim.new(0, 4)
+MainCorner.Name = "MainCorner"
+MainCorner.Parent = MainContainer
+
+Concacontainer.Name = "Concacontainer"
+Concacontainer.Parent = MainContainer
+Concacontainer.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- PRETO
+Concacontainer.BackgroundTransparency = 0
+Concacontainer.ClipsDescendants = true
+Concacontainer.Position = UDim2.new(0, 0, 0, 30)
+Concacontainer.Size = UDim2.new(1, 0, 1, -30)
+
+Concacmain.Name = "Concacmain"
+Concacmain.Parent = Concacontainer
+Concacmain.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- PRETO
+Concacmain.BackgroundTransparency = 0
+Concacmain.Selectable = true
+Concacmain.Size = UDim2.new(1, 0, 1, 0)
+
+TopMain.Name = "TopMain"
+TopMain.Parent = MainContainer
+TopMain.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- PRETO
+TopMain.BackgroundTransparency = 0
+TopMain.Size = UDim2.new(1, 0, 0, 25)
+
+Ruafimg.Name = "Ruafimg"
+Ruafimg.Parent = TopMain
+Ruafimg.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- PRETO
+Ruafimg.BackgroundTransparency = 1 -- Para manter a logo visível
+Ruafimg.Position = UDim2.new(0, 5, 0, getgenv().T1 and 5 or 0)
+Ruafimg.Size = UDim2.new(0, getgenv().T1 and 30 or 25, 0, getgenv().T1 and 15 or 25)
+Ruafimg.Image = getgenv().UIColor["Logo Image"]
 	
 	TextLabelMain.Name = "TextLabelMain"
 	TextLabelMain.Parent = TopMain
@@ -1860,57 +1861,112 @@ function Library:CreateWindow(Setting)
 										end)
 									end
 								end
+
 										
 										-- Function to detect when dragging stops
-								local function onInputEnded(input)
-									if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-										dragging = false
-										holdStarted = 0 -- Reset the hold timer
-									end
-								end
+[EM VERMELHO] local function onInputEnded(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = false
+		holdStarted = 0 -- Reset the hold timer
+	end
+end
 
-										-- Detect input movement (for both mouse and touch)
-								local function onInputChanged(input)
-									if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-										dragInput = input
-									end
-								end
-										
-										-- Connect the events
-								SliderButton.InputBegan:Connect(onInputBegan)
-								SliderButton.InputEnded:Connect(onInputEnded)
-								SliderButton.InputChanged:Connect(onInputChanged)
-										
-										-- RenderStepped updates the position while dragging
-								RunService.RenderStepped:Connect(function()
-									if holdStarted > 0 and (tick() - holdStarted >= holdTime) and not dragging then
-										dragging = true
-									end
-									if dragging and dragInput then
-										local value = Precise and  tonumber(string.format("%.1f", (((tonumber(maxValue) - tonumber(minValue)) / SizeChia) * Bar.AbsoluteSize.X) + tonumber(minValue))) or math.floor((((tonumber(maxValue) - tonumber(minValue)) / SizeChia) * Bar.AbsoluteSize.X) + tonumber(minValue))
-										pcall(function()
-											callBackAndSetText(value)
-										end)
-										Bar.Size = UDim2.new(0, math.clamp(dragInput.Position.X - Bar.AbsolutePosition.X, 0, SizeChia), 0, 6)
-									end
-								end)
-							end
-							local function GetSliderValue(Value)
-								if tonumber(Value) <= minValue then
-									Bar.Size = UDim2.new(0, (0 * SizeChia), 0, 6)
-									callBackAndSetText(minValue)
-								elseif tonumber(Value) >= maxValue then
-									Bar.Size = UDim2.new(0, (maxValue  /  maxValue * SizeChia), 0, 6)
-									callBackAndSetText(maxValue)
-								else
-									Bar.Size = UDim2.new(1 - ((maxValue - Value) / (maxValue - minValue)), 0, 0, 6)
-									callBackAndSetText(Value)
-								end
-							end
-							Sliderbox_2.FocusLost:Connect(function()
-								GetSliderValue(Sliderbox_2.Text)
-							end)
-						end
+-- Detect input movement (for both mouse and touch)
+[EM VERMELHO] local function onInputChanged(input)
+	if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+		dragInput = input
+	end
+end
+
+-- Connect the events
+SliderButton.InputBegan:Connect(onInputBegan)
+SliderButton.InputEnded:Connect(onInputEnded)
+SliderButton.InputChanged:Connect(onInputChanged)
+
+-- RenderStepped updates the position while dragging
+[EM VERMELHO] RunService.RenderStepped:Connect(function()
+	if holdStarted > 0 and (tick() - holdStarted >= holdTime) and not dragging then
+		dragging = true
+	end
+	if dragging and dragInput then
+		local value = Precise and  tonumber(string.format("%.1f", (((tonumber(maxValue) - tonumber(minValue)) / SizeChia) * Bar.AbsoluteSize.X) + tonumber(minValue))) or math.floor((((tonumber(maxValue) - tonumber(minValue)) / SizeChia) * Bar.AbsoluteSize.X) + tonumber(minValue))
+		pcall(function()
+			callBackAndSetText(value)
+		end)
+		Bar.Size = UDim2.new(0, math.clamp(dragInput.Position.X - Bar.AbsolutePosition.X, 0, SizeChia), 0, 6)
+	end
+end)
+[EM VERMELHO] else
+	local dragging = false
+	local dragInput
+	local holdTime = 0 -- Time to hold before dragging is enabled
+	local holdStarted = 0
+
+	-- Function to detect the start of dragging (for both mouse and touch)
+	local function onInputBegan(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			holdStarted = tick() -- Record the time when holding starts
+			
+					-- Listen for release to stop dragging
+			input.Changed:Connect(function()
+				if input.UserInputState == Enum.UserInputState.End then
+					dragging = false
+					holdStarted = 0 -- Reset the hold timer
+				end
+			end)
+		end
+	end
+			
+			-- Function to detect when dragging stops
+	local function onInputEnded(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			dragging = false
+			holdStarted = 0 -- Reset the hold timer
+		end
+	end
+
+			-- Detect input movement (for both mouse and touch)
+	local function onInputChanged(input)
+		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+			dragInput = input
+		end
+	end
+			
+			-- Connect the events
+	SliderButton.InputBegan:Connect(onInputBegan)
+	SliderButton.InputEnded:Connect(onInputEnded)
+	SliderButton.InputChanged:Connect(onInputChanged)
+			
+			-- RenderStepped updates the position while dragging
+	RunService.RenderStepped:Connect(function()
+		if holdStarted > 0 and (tick() - holdStarted >= holdTime) and not dragging then
+			dragging = true
+		end
+		if dragging and dragInput then
+			local value = Precise and  tonumber(string.format("%.1f", (((tonumber(maxValue) - tonumber(minValue)) / SizeChia) * Bar.AbsoluteSize.X) + tonumber(minValue))) or math.floor((((tonumber(maxValue) - tonumber(minValue)) / SizeChia) * Bar.AbsoluteSize.X) + tonumber(minValue))
+			pcall(function()
+				callBackAndSetText(value)
+			end)
+			Bar.Size = UDim2.new(0, math.clamp(dragInput.Position.X - Bar.AbsolutePosition.X, 0, SizeChia), 0, 6)
+		end
+	end)
+end
+local function GetSliderValue(Value)
+	if tonumber(Value) <= minValue then
+		Bar.Size = UDim2.new(0, (0 * SizeChia), 0, 6)
+		callBackAndSetText(minValue)
+	elseif tonumber(Value) >= maxValue then
+		Bar.Size = UDim2.new(0, (maxValue  /  maxValue * SizeChia), 0, 6)
+		callBackAndSetText(maxValue)
+	else
+		Bar.Size = UDim2.new(1 - ((maxValue - Value) / (maxValue - minValue)), 0, 0, 6)
+		callBackAndSetText(Value)
+	end
+end
+Sliderbox_2.FocusLost:Connect(function()
+	GetSliderValue(Sliderbox_2.Text)
+end)
+end
 					else
 						for i, v in pairs (ListNew) do
 							if typeof(v) == "string" then
