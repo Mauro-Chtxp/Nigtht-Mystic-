@@ -9209,6 +9209,7 @@ Q:OnChanged(function(Value)
         end
     end)
 end)
+-- Toggle principal de completar raid
 Q = Tabs.Raids:AddToggle("Q", {
     Title = "Auto Complete Raid",
     Description = "",
@@ -9218,66 +9219,106 @@ Q:OnChanged(function(Value)
     _G.Raiding = Value
 end)
 
+-- Novo Toggle: USE KILL AURA
+KA = Tabs.Raids:AddToggle("KA", {
+    Title = "Use Kill Aura (apenas Ilha 5)",
+    Description = "",
+    Default = false
+})
+KA:OnChanged(function(Value)
+    _G.KillAura5 = Value
+end)
+
+-----------------------------------------------------------
+---------------------- SISTEMA -----------------------------
+-----------------------------------------------------------
+
 spawn(function()
-    pcall(function()
-        while wait(Sec) do
-            if _G.Raiding then
-                if plr.PlayerGui.Main.TopHUDList.RaidTimer.Visible == true then
-                    local islands = {
-                        "Island 5",
-                        "Island 4",
-                        "Island 3",
-                        "Island 2",
-                        "Island 1"
-                    }
+pcall(function()
+while wait(Sec) do
+    if _G.Raiding then
+        if plr.PlayerGui.Main.TopHUDList.RaidTimer.Visible == true then
 
-                    local foundEnemies = false
+            local islands = {
+                "Island 5",
+                "Island 4",
+                "Island 3",
+                "Island 2",
+                "Island 1"
+            }
 
-                    for _, island in ipairs(islands) do
-                        local location = game:GetService("Workspace")["_WorldOrigin"].Locations:FindFirstChild(island)
-                        if location then
-                            -- procura o inimigo mais próximo da ilha atual
-                            local closestEnemy
-                            local shortestDistance = 9999
+            local foundEnemies = false  
 
-                            for _, v in pairs(workspace.Enemies:GetChildren()) do
-                                if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") then
-                                    if v.Humanoid.Health > 0 then
-                                        local distance = (v.HumanoidRootPart.Position - location.Position).Magnitude
-                                        if distance < 500 and distance < shortestDistance then
-                                            shortestDistance = distance
-                                            closestEnemy = v
-                                        end
+            for _, island in ipairs(islands) do  
+                local location = game:GetService("Workspace")["_WorldOrigin"].Locations:FindFirstChild(island)  
+                if location then  
+
+                    local closestEnemy  
+                    local shortestDistance = 9999  
+
+                    for _, v in pairs(workspace.Enemies:GetChildren()) do  
+                        if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") then  
+                            if v.Humanoid.Health > 0 then  
+                                local distance = (v.HumanoidRootPart.Position - location.Position).Magnitude  
+
+                                if distance < 500 and distance < shortestDistance then  
+                                    shortestDistance = distance  
+                                    closestEnemy = v  
+                                end  
+                            end  
+                        end  
+                    end  
+
+                    -----------------------------
+                    -- SE ILHA 5 + KILL AURA ON
+                    -----------------------------
+                    if island == "Island 5" and _G.KillAura5 then
+                        for _, enemy in pairs(workspace.Enemies:GetChildren()) do
+                            if enemy:FindFirstChild("HumanoidRootPart") and enemy:FindFirstChild("Humanoid") then
+                                if enemy.Humanoid.Health > 0 then
+                                    local dist = (enemy.HumanoidRootPart.Position - location.Position).Magnitude
+                                    if dist < 500 then
+                                        foundEnemies = true
+                                        repeat
+                                            task.wait()
+                                            Attack.Kill(enemy, true)
+                                        until enemy.Humanoid.Health <= 0 or not enemy.Parent or not _G.Raiding
                                     end
                                 end
                             end
+                        end
 
-                            -- se achou inimigo, foca nele até morrer
-                            if closestEnemy then
-                                foundEnemies = true
-                                repeat
-                                    task.wait()
-                                    Attack.Kill(closestEnemy, _G.Raiding)
-                                until not _G.Raiding or not closestEnemy.Parent or closestEnemy.Humanoid.Health <= 0
-                            end
-
-                            -- se achou e matou um inimigo, volta pro começo pra checar novamente
-                            if foundEnemies then
-                                break
-                            end
+                        if foundEnemies then
+                            break
                         end
                     end
+                    -----------------------------
 
-                    -- se não tem inimigo em nenhuma ilha → pode mover pra próxima
-                    NextIs = not foundEnemies
-                else
-                    NextIs = false
-                end
-            else
-                NextIs = false
-            end
+                    -- Sistema normal (sem kill aura)
+                    if closestEnemy then  
+                        foundEnemies = true  
+                        repeat  
+                            task.wait()  
+                            Attack.Kill(closestEnemy, _G.Raiding)  
+                        until not _G.Raiding or not closestEnemy.Parent or closestEnemy.Humanoid.Health <= 0  
+                    end  
+
+                    if foundEnemies then  
+                        break  
+                    end
+                end  
+            end  
+
+            NextIs = not foundEnemies  
+
+        else  
+            NextIs = false  
         end
-    end)
+    else
+        NextIs = false
+    end
+end  
+end)
 end)
 	local Q = Tabs.Raids:AddToggle("Q", {
 		Title = "Auto Next Island",
@@ -10418,29 +10459,12 @@ end)
 		end
 	})
 	Tabs.Shop:AddButton({
-    Title = "Buy SanguineArt",
-    Description = "",
-    Callback = function()
-        local player = game.Players.LocalPlayer
-        local replicated = game:GetService("ReplicatedStorage")
-        local character = player.Character or player.CharacterAdded:Wait()
-        local hrp = character:WaitForChild("HumanoidRootPart")
-
-        -- Teleporte direto
-        local targetCFrame = CFrame.new(
-            1651.8906, 
-            23.082445, 
-            -197.833191, 
-            -0.994794369, 5.98604188e-08, -0.101902537,
-            6.31683648e-08, -2.92349487e-07, -0.101902537,
-            -3.5519791e-08, -0.994794369, 0
-        )
-        hrp.CFrame = targetCFrame
-
-        -- Ative o Remote
-        replicated.Remotes.CommF_:InvokeServer("BuySanguineArt")
-    end
-})
+		Title = "Buy SanguineArt",
+		Description = "",
+		Callback = function()
+			replicated.Remotes.CommF_:InvokeServer("BuySanguineArt")
+		end
+	})
 
 	Tabs.Shop:AddSection("Accessory")
 	Tabs.Shop:AddButton({
