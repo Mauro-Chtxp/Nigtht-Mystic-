@@ -13,37 +13,37 @@ getgenv().Crystal = true
 local DisableAnimation = game.Players.LocalPlayer.PlayerGui:FindFirstChild('TouchGui')
 
 local T1UIColor = {
-	["Border Color"] = Color3.fromRGB(255, 0, 0),
-	["Click Effect Color"] = Color3.fromRGB(200, 200, 200),
-	["Setting Icon Color"] = Color3.fromRGB(255, 255, 255),
-	["Logo Image"] = "",
+	["Border Color"] = Color3.fromRGB(212, 161, 255),
+	["Click Effect Color"] = Color3.fromRGB(230, 230, 230),
+	["Setting Icon Color"] = Color3.fromRGB(230, 230, 230),
+	["Logo Image"] = "rbxassetid://135300070242371",
 	["Search Icon Color"] = Color3.fromRGB(255, 255, 255),
-	["Search Icon Highlight Color"] = Color3.fromRGB(255, 0, 0),
+	["Search Icon Highlight Color"] = Color3.fromRGB(212, 161, 255),
 	["GUI Text Color"] = Color3.fromRGB(230, 230, 230),
 	["Text Color"] = Color3.fromRGB(230, 230, 230),
-	["Placeholder Text Color"] = Color3.fromRGB(150, 150, 150),
-	["Title Text Color"] = Color3.fromRGB(255, 0, 0),
-	["Background Main Color"] = Color3.fromRGB(20, 20, 20),
-	["Background 1 Color"] = Color3.fromRGB(10, 10, 10),
+	["Placeholder Text Color"] = Color3.fromRGB(178, 178, 178),
+	["Title Text Color"] = Color3.fromRGB(212, 161, 255),
+	["Background Main Color"] = Color3.fromRGB(43, 43, 43),
+	["Background 1 Color"] = Color3.fromRGB(30,30,30),
 	["Background 1 Transparency"] = 0.5,
-	["Background 2 Color"] = Color3.fromRGB(40, 40, 40),
-	["Background 3 Color"] = Color3.fromRGB(30, 30, 30),
+	["Background 2 Color"] = Color3.fromRGB(90, 90, 90),
+	["Background 3 Color"] = Color3.fromRGB(53, 53, 53),
 	["Background Image"] = "",
-	["Page Selected Color"] = Color3.fromRGB(255, 0, 0),
-	["Section Text Color"] = Color3.fromRGB(255, 0, 0),
-	["Section Underline Color"] = Color3.fromRGB(255, 0, 0),
-	["Toggle Border Color"] = Color3.fromRGB(255, 0, 0),
+	["Page Selected Color"] = Color3.fromRGB(212, 161, 255),
+	["Section Text Color"] = Color3.fromRGB(212, 161, 255),
+	["Section Underline Color"] = Color3.fromRGB(212, 161, 255),
+	["Toggle Border Color"] = Color3.fromRGB(212, 161, 255),
 	["Toggle Checked Color"] = Color3.fromRGB(230, 230, 230),
 	["Toggle Desc Color"] = Color3.fromRGB(185, 185, 185),
-	["Button Color"] = Color3.fromRGB(255, 0, 0),
-	["Label Color"] = Color3.fromRGB(255, 50, 50),
+	["Button Color"] = Color3.fromRGB(212, 161, 255),
+	["Label Color"] = Color3.fromRGB(255, 46, 46),
 	["Dropdown Icon Color"] = Color3.fromRGB(230, 230, 230),
-	["Dropdown Selected Color"] = Color3.fromRGB(255, 0, 0),
-	["Dropdown Selected Check Color"] = Color3.fromRGB(200, 40, 40),
-	["Textbox Highlight Color"] = Color3.fromRGB(255, 0, 0),
-	["Box Highlight Color"] = Color3.fromRGB(255, 0, 0),
-	["Slider Line Color"] = Color3.fromRGB(70, 0, 0),
-	["Slider Highlight Color"] = Color3.fromRGB(255, 0, 0),
+	["Dropdown Selected Color"] = Color3.fromRGB(212, 161, 255),
+	["Dropdown Selected Check Color"] = Color3.fromRGB(219, 64, 64),
+	["Textbox Highlight Color"] = Color3.fromRGB(212, 161, 255),
+	["Box Highlight Color"] = Color3.fromRGB(212, 161, 255),
+	["Slider Line Color"] = Color3.fromRGB(75, 75, 75),
+	["Slider Highlight Color"] = Color3.fromRGB(194, 25, 25),
 	["Tween Animation 1 Speed"] = DisableAnimation and 0 or 0.25,
 	["Tween Animation 2 Speed"] = DisableAnimation and 0 or 0.5,
 	["Tween Animation 3 Speed"] = DisableAnimation and 0 or 0.1,
@@ -53,42 +53,43 @@ local T1UIColor = {
 
 
 getgenv().UIColor = {
-	["Border Color"] = Color3.fromRGB(255, 0, 0),
-	["Click Effect Color"] = Color3.fromRGB(200, 200, 200),
-	["Setting Icon Color"] = Color3.fromRGB(255, 255, 255),
-	["Logo Image"] = "",
+	["Border Color"] = Color3.fromRGB(212, 161, 255),
+	["Click Effect Color"] = Color3.fromRGB(230, 230, 230),
+	["Setting Icon Color"] = Color3.fromRGB(230, 230, 230),
+	["Logo Image"] = "rbxassetid://135300070242371",
 	["Search Icon Color"] = Color3.fromRGB(255, 255, 255),
-	["Search Icon Highlight Color"] = Color3.fromRGB(255, 0, 0),
+	["Search Icon Highlight Color"] = Color3.fromRGB(212, 161, 255),
 	["GUI Text Color"] = Color3.fromRGB(230, 230, 230),
 	["Text Color"] = Color3.fromRGB(230, 230, 230),
-	["Placeholder Text Color"] = Color3.fromRGB(150, 150, 150),
-	["Title Text Color"] = Color3.fromRGB(255, 0, 0),
-	["Background Main Color"] = Color3.fromRGB(20, 20, 20),
-	["Background 1 Color"] = Color3.fromRGB(10, 10, 10),
+	["Placeholder Text Color"] = Color3.fromRGB(178, 178, 178),
+	["Title Text Color"] = Color3.fromRGB(212, 161, 255),
+	["Background Main Color"] = Color3.fromRGB(43, 43, 43),
+	["Background 1 Color"] = Color3.fromRGB(30,30,30),
 	["Background 1 Transparency"] = 0.5,
-	["Background 2 Color"] = Color3.fromRGB(40, 40, 40),
-	["Background 3 Color"] = Color3.fromRGB(30, 30, 30),
+	["Background 2 Color"] = Color3.fromRGB(90, 90, 90),
+	["Background 3 Color"] = Color3.fromRGB(53, 53, 53),
 	["Background Image"] = "",
-	["Page Selected Color"] = Color3.fromRGB(255, 0, 0),
-	["Section Text Color"] = Color3.fromRGB(255, 0, 0),
-	["Section Underline Color"] = Color3.fromRGB(255, 0, 0),
-	["Toggle Border Color"] = Color3.fromRGB(255, 0, 0),
+	["Page Selected Color"] = Color3.fromRGB(212, 161, 255),
+	["Section Text Color"] = Color3.fromRGB(212, 161, 255),
+	["Section Underline Color"] = Color3.fromRGB(212, 161, 255),
+	["Toggle Border Color"] = Color3.fromRGB(212, 161, 255),
 	["Toggle Checked Color"] = Color3.fromRGB(230, 230, 230),
 	["Toggle Desc Color"] = Color3.fromRGB(185, 185, 185),
-	["Button Color"] = Color3.fromRGB(255, 0, 0),
-	["Label Color"] = Color3.fromRGB(255, 50, 50),
+	["Button Color"] = Color3.fromRGB(212, 161, 255),
+	["Label Color"] = Color3.fromRGB(255, 46, 46),
 	["Dropdown Icon Color"] = Color3.fromRGB(230, 230, 230),
-	["Dropdown Selected Color"] = Color3.fromRGB(255, 0, 0),
-	["Dropdown Selected Check Color"] = Color3.fromRGB(200, 40, 40),
-	["Textbox Highlight Color"] = Color3.fromRGB(255, 0, 0),
-	["Box Highlight Color"] = Color3.fromRGB(255, 0, 0),
-	["Slider Line Color"] = Color3.fromRGB(70, 0, 0),
-	["Slider Highlight Color"] = Color3.fromRGB(255, 0, 0),
+	["Dropdown Selected Color"] = Color3.fromRGB(212, 161, 255),
+	["Dropdown Selected Check Color"] = Color3.fromRGB(219, 64, 64),
+	["Textbox Highlight Color"] = Color3.fromRGB(212, 161, 255),
+	["Box Highlight Color"] = Color3.fromRGB(212, 161, 255),
+	["Slider Line Color"] = Color3.fromRGB(75, 75, 75),
+	["Slider Highlight Color"] = Color3.fromRGB(194, 25, 25),
 	["Tween Animation 1 Speed"] = DisableAnimation and 0 or 0.25,
 	["Tween Animation 2 Speed"] = DisableAnimation and 0 or 0.5,
 	["Tween Animation 3 Speed"] = DisableAnimation and 0 or 0.1,
 	["Text Stroke Transparency"] = .5
 }
+
 
 getgenv().UIToggled = false
 
@@ -376,7 +377,7 @@ local libCreateNoti = function(Setting)
 	local colorG = tostring(Library_Function.Getcolor(getgenv().UIColor['Title Text Color'])[2])
 	local colorB = tostring(Library_Function.Getcolor(getgenv().UIColor['Title Text Color'])[3])
 	local color = colorR .. ',' .. colorG .. ',' .. colorB
-	TextLabelNoti.Text = "<font color=\"rgb(" .. color .. ")\">Night Mystic</font> " .. getgenv().TitleNameNoti
+	TextLabelNoti.Text = "<font color=\"rgb(" .. color .. ")\">Nawy Hub</font> " .. getgenv().TitleNameNoti
 	
 	TextLabelNoti.Name = "TextLabelNoti"
 	TextLabelNoti.Parent = Topnoti
@@ -540,53 +541,52 @@ function Library:CreateWindow(Setting)
 	TextLabelMain.Text = "<font color=\"rgb(" .. color .. ")\">@noguchi.hyuga</font> " .. getgenv().MainDesc or " - Blox Fruit"
 
 	MainContainer = Instance.new("ImageLabel")
-MainContainer.Name = "MainContainer"
-MainContainer.Parent = Main
-MainContainer.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- PRETO
-MainContainer.Size = UDim2.new(1, 0, 1, 0)
-MainContainer.BackgroundTransparency = 0 -- Fundo totalmente preto
-MainContainer.Image = "" -- Sem imagem
-MainContainer.ImageTransparency = 1 -- Garantir que nada apareça
+	MainContainer.Name = "MainContainer"
+	MainContainer.Parent = Main
+	MainContainer.BackgroundColor3 = getgenv().UIColor['Background Main Color']
+	MainContainer.Size = UDim2.new(1, 0, 1, 0)
+	MainContainer.BackgroundTransparency = 1
+	MainContainer.Image = "rbxassetid://8387197183"
+	MainContainer.ImageTransparency = 0.5
+	-- MainContainer
+	local uistr = Instance.new("UIStroke", MainContainer);
+	uistr["Thickness"] = 2;
+	uistr["Color"] = Color3.fromRGB(171, 171, 255);
+	getgenv().ReadyForGuiLoaded = true
+	
+	MainCorner.CornerRadius = UDim.new(0, 4)
+	MainCorner.Name = "MainCorner"
+	MainCorner.Parent = MainContainer
 
--- Borda preta
-local uistr = Instance.new("UIStroke", MainContainer)
-uistr.Thickness = 2
-uistr.Color = Color3.fromRGB(0, 0, 0)
+	Concacontainer.Name = "Concacontainer"
+	Concacontainer.Parent = MainContainer
+	Concacontainer.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	Concacontainer.BackgroundTransparency = 1.000
+	Concacontainer.ClipsDescendants = true
+	Concacontainer.Position = UDim2.new(0, 0, 0, 30)
+	Concacontainer.Size = UDim2.new(1, 0, 1, -30)
+	
+	Concacmain.Name = "Concacmain"
+	Concacmain.Parent = Concacontainer
+	Concacmain.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	Concacmain.BackgroundTransparency = 1.000
+	Concacmain.Selectable = true
+	Concacmain.Size = UDim2.new(1, 0, 1, 0)
+	
+	TopMain.Name = "TopMain"
+	TopMain.Parent = MainContainer
+	TopMain.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	TopMain.BackgroundTransparency = 1.000
+	TopMain.Size = UDim2.new(1, 0, 0, 25)
+	
+	Ruafimg.Name = "Ruafimg"
+	Ruafimg.Parent = TopMain
+	Ruafimg.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	Ruafimg.BackgroundTransparency = 1.000
+	Ruafimg.Position = UDim2.new(0, 5, 0, getgenv().T1 and 5 or 0)
+	Ruafimg.Size = UDim2.new(0, getgenv().T1 and 30 or 25, 0, getgenv().T1 and 15 or 25)
+	Ruafimg.Image = getgenv().UIColor["Logo Image"]
 
-getgenv().ReadyForGuiLoaded = true
-
-MainCorner.CornerRadius = UDim.new(0, 4)
-MainCorner.Name = "MainCorner"
-MainCorner.Parent = MainContainer
-
-Concacontainer.Name = "Concacontainer"
-Concacontainer.Parent = MainContainer
-Concacontainer.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- PRETO
-Concacontainer.BackgroundTransparency = 0
-Concacontainer.ClipsDescendants = true
-Concacontainer.Position = UDim2.new(0, 0, 0, 30)
-Concacontainer.Size = UDim2.new(1, 0, 1, -30)
-
-Concacmain.Name = "Concacmain"
-Concacmain.Parent = Concacontainer
-Concacmain.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- PRETO
-Concacmain.BackgroundTransparency = 0
-Concacmain.Selectable = true
-Concacmain.Size = UDim2.new(1, 0, 1, 0)
-
-TopMain.Name = "TopMain"
-TopMain.Parent = MainContainer
-TopMain.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- PRETO
-TopMain.BackgroundTransparency = 0
-TopMain.Size = UDim2.new(1, 0, 0, 25)
-
-Ruafimg.Name = "Ruafimg"
-Ruafimg.Parent = TopMain
-Ruafimg.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- PRETO
-Ruafimg.BackgroundTransparency = 1 -- Para manter a logo visível
-Ruafimg.Position = UDim2.new(0, 5, 0, getgenv().T1 and 5 or 0)
-Ruafimg.Size = UDim2.new(0, getgenv().T1 and 30 or 25, 0, getgenv().T1 and 15 or 25)
-Ruafimg.Image = getgenv().UIColor["Logo Image"]
 	
 	TextLabelMain.Name = "TextLabelMain"
 	TextLabelMain.Parent = TopMain
@@ -605,7 +605,7 @@ Ruafimg.Image = getgenv().UIColor["Logo Image"]
 	local colorG = tostring(Library_Function.Getcolor(getgenv().UIColor['Title Text Color'])[2])
 	local colorB = tostring(Library_Function.Getcolor(getgenv().UIColor['Title Text Color'])[3])
 	local color = colorR .. ',' .. colorG .. ',' .. colorB
-	TextLabelMain.Text = "<font color=\"rgb(" .. color .. ")\">Night Mystic</font> " .. getgenv().MainDesc
+	TextLabelMain.Text = "<font color=\"rgb(" .. color .. ")\">Nawy Hub</font> " .. getgenv().MainDesc
 
 	PageControl.Name = "Background1"
 	PageControl.Parent = Concacmain
@@ -1861,112 +1861,57 @@ Ruafimg.Image = getgenv().UIColor["Logo Image"]
 										end)
 									end
 								end
-
 										
 										-- Function to detect when dragging stops
-[EM VERMELHO] local function onInputEnded(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-		dragging = false
-		holdStarted = 0 -- Reset the hold timer
-	end
-end
+								local function onInputEnded(input)
+									if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+										dragging = false
+										holdStarted = 0 -- Reset the hold timer
+									end
+								end
 
--- Detect input movement (for both mouse and touch)
-[EM VERMELHO] local function onInputChanged(input)
-	if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-		dragInput = input
-	end
-end
-
--- Connect the events
-SliderButton.InputBegan:Connect(onInputBegan)
-SliderButton.InputEnded:Connect(onInputEnded)
-SliderButton.InputChanged:Connect(onInputChanged)
-
--- RenderStepped updates the position while dragging
-[EM VERMELHO] RunService.RenderStepped:Connect(function()
-	if holdStarted > 0 and (tick() - holdStarted >= holdTime) and not dragging then
-		dragging = true
-	end
-	if dragging and dragInput then
-		local value = Precise and  tonumber(string.format("%.1f", (((tonumber(maxValue) - tonumber(minValue)) / SizeChia) * Bar.AbsoluteSize.X) + tonumber(minValue))) or math.floor((((tonumber(maxValue) - tonumber(minValue)) / SizeChia) * Bar.AbsoluteSize.X) + tonumber(minValue))
-		pcall(function()
-			callBackAndSetText(value)
-		end)
-		Bar.Size = UDim2.new(0, math.clamp(dragInput.Position.X - Bar.AbsolutePosition.X, 0, SizeChia), 0, 6)
-	end
-end)
-[EM VERMELHO] else
-	local dragging = false
-	local dragInput
-	local holdTime = 0 -- Time to hold before dragging is enabled
-	local holdStarted = 0
-
-	-- Function to detect the start of dragging (for both mouse and touch)
-	local function onInputBegan(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-			holdStarted = tick() -- Record the time when holding starts
-			
-					-- Listen for release to stop dragging
-			input.Changed:Connect(function()
-				if input.UserInputState == Enum.UserInputState.End then
-					dragging = false
-					holdStarted = 0 -- Reset the hold timer
-				end
-			end)
-		end
-	end
-			
-			-- Function to detect when dragging stops
-	local function onInputEnded(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-			dragging = false
-			holdStarted = 0 -- Reset the hold timer
-		end
-	end
-
-			-- Detect input movement (for both mouse and touch)
-	local function onInputChanged(input)
-		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-			dragInput = input
-		end
-	end
-			
-			-- Connect the events
-	SliderButton.InputBegan:Connect(onInputBegan)
-	SliderButton.InputEnded:Connect(onInputEnded)
-	SliderButton.InputChanged:Connect(onInputChanged)
-			
-			-- RenderStepped updates the position while dragging
-	RunService.RenderStepped:Connect(function()
-		if holdStarted > 0 and (tick() - holdStarted >= holdTime) and not dragging then
-			dragging = true
-		end
-		if dragging and dragInput then
-			local value = Precise and  tonumber(string.format("%.1f", (((tonumber(maxValue) - tonumber(minValue)) / SizeChia) * Bar.AbsoluteSize.X) + tonumber(minValue))) or math.floor((((tonumber(maxValue) - tonumber(minValue)) / SizeChia) * Bar.AbsoluteSize.X) + tonumber(minValue))
-			pcall(function()
-				callBackAndSetText(value)
-			end)
-			Bar.Size = UDim2.new(0, math.clamp(dragInput.Position.X - Bar.AbsolutePosition.X, 0, SizeChia), 0, 6)
-		end
-	end)
-end
-local function GetSliderValue(Value)
-	if tonumber(Value) <= minValue then
-		Bar.Size = UDim2.new(0, (0 * SizeChia), 0, 6)
-		callBackAndSetText(minValue)
-	elseif tonumber(Value) >= maxValue then
-		Bar.Size = UDim2.new(0, (maxValue  /  maxValue * SizeChia), 0, 6)
-		callBackAndSetText(maxValue)
-	else
-		Bar.Size = UDim2.new(1 - ((maxValue - Value) / (maxValue - minValue)), 0, 0, 6)
-		callBackAndSetText(Value)
-	end
-end
-Sliderbox_2.FocusLost:Connect(function()
-	GetSliderValue(Sliderbox_2.Text)
-end)
-end
+										-- Detect input movement (for both mouse and touch)
+								local function onInputChanged(input)
+									if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+										dragInput = input
+									end
+								end
+										
+										-- Connect the events
+								SliderButton.InputBegan:Connect(onInputBegan)
+								SliderButton.InputEnded:Connect(onInputEnded)
+								SliderButton.InputChanged:Connect(onInputChanged)
+										
+										-- RenderStepped updates the position while dragging
+								RunService.RenderStepped:Connect(function()
+									if holdStarted > 0 and (tick() - holdStarted >= holdTime) and not dragging then
+										dragging = true
+									end
+									if dragging and dragInput then
+										local value = Precise and  tonumber(string.format("%.1f", (((tonumber(maxValue) - tonumber(minValue)) / SizeChia) * Bar.AbsoluteSize.X) + tonumber(minValue))) or math.floor((((tonumber(maxValue) - tonumber(minValue)) / SizeChia) * Bar.AbsoluteSize.X) + tonumber(minValue))
+										pcall(function()
+											callBackAndSetText(value)
+										end)
+										Bar.Size = UDim2.new(0, math.clamp(dragInput.Position.X - Bar.AbsolutePosition.X, 0, SizeChia), 0, 6)
+									end
+								end)
+							end
+							local function GetSliderValue(Value)
+								if tonumber(Value) <= minValue then
+									Bar.Size = UDim2.new(0, (0 * SizeChia), 0, 6)
+									callBackAndSetText(minValue)
+								elseif tonumber(Value) >= maxValue then
+									Bar.Size = UDim2.new(0, (maxValue  /  maxValue * SizeChia), 0, 6)
+									callBackAndSetText(maxValue)
+								else
+									Bar.Size = UDim2.new(1 - ((maxValue - Value) / (maxValue - minValue)), 0, 0, 6)
+									callBackAndSetText(Value)
+								end
+							end
+							Sliderbox_2.FocusLost:Connect(function()
+								GetSliderValue(Sliderbox_2.Text)
+							end)
+						end
 					else
 						for i, v in pairs (ListNew) do
 							if typeof(v) == "string" then
