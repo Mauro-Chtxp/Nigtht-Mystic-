@@ -27,46 +27,55 @@ local p=o:GetMouse()
 
 local q=(gethui or function()return g.CoreGui end)()
 
+
 local r = {
     Darker = {
         Colors = {
             Background = ColorSequence.new{
-                ColorSequenceKeypoint.new(0.00, Color3.fromRGB(0, 0, 0)),      -- Preto
-                ColorSequenceKeypoint.new(0.50, Color3.fromRGB(10, 10, 10)),  -- Preto levemente mais claro
+                ColorSequenceKeypoint.new(0.00, Color3.fromRGB(0, 0, 0)),
+                ColorSequenceKeypoint.new(0.50, Color3.fromRGB(10, 10, 10)),
                 ColorSequenceKeypoint.new(1.00, Color3.fromRGB(0, 0, 0))
             },
 
-            Primary = Color3.fromRGB(200, 0, 0),        -- Vermelho destaque
-            OnPrimary = Color3.fromRGB(150, 0, 0),
+            -- Cores principais do print
+            Primary = Color3.fromRGB(0, 120, 255),      -- Azul do botão
+            OnPrimary = Color3.fromRGB(180, 220, 255),  -- Azul claro do toggle
+
             ScrollBar = Color3.fromRGB(30, 30, 30),
-            Stroke = Color3.fromRGB(80, 0, 0),          -- Vermelho escuro para bordas
+            Stroke = Color3.fromRGB(45, 45, 45),        -- Borda cinza escura
+            
+            Error = Color3.fromRGB(255, 80, 80),        -- Vermelho padrão de erro
+            Icons = Color3.fromRGB(230, 230, 230),      -- Branco suave
 
-            Error = Color3.fromRGB(255, 60, 60),        -- Vermelho claro para avisos
-            Icons = Color3.fromRGB(255, 0, 0),          -- Vermelho nos ícones
+            JoinButton = Color3.fromRGB(20, 20, 20),
 
-            JoinButton = Color3.fromRGB(25, 0, 0),
-            Link = Color3.fromRGB(255, 70, 70),
+            Link = Color3.fromRGB(0, 140, 255),         -- Azul de link
 
             Dialog = {
                 Background = Color3.fromRGB(15, 15, 15)
             },
+
             Buttons = {
-                Holding = Color3.fromRGB(40, 0, 0),
-                Default = Color3.fromRGB(30, 0, 0)
+                Holding = Color3.fromRGB(35, 35, 35),
+                Default = Color3.fromRGB(25, 25, 25)
             },
+
             Border = {
-                Holding = Color3.fromRGB(120, 0, 0),
-                Default = Color3.fromRGB(90, 0, 0),
+                Holding = Color3.fromRGB(60, 60, 60),
+                Default = Color3.fromRGB(50, 50, 50),
             },
+
             Text = {
                 Default = Color3.fromRGB(255, 255, 255),
                 Dark = Color3.fromRGB(220, 220, 220),
-                Darker = Color3.fromRGB(200, 200, 200),
+                Darker = Color3.fromRGB(180, 180, 180),
             },
+
             Slider = {
-                SliderBar = Color3.fromRGB(150, 0, 0),
-                SliderNumber = Color3.fromRGB(255, 80, 80),
+                SliderBar = Color3.fromRGB(0, 120, 255),
+                SliderNumber = Color3.fromRGB(200, 200, 200),
             },
+
             Dropdown = {
                 Holder = Color3.fromRGB(10, 10, 10),
             }
@@ -93,10 +102,9 @@ local r = {
             SliderValue = Enum.Font.FredokaOne
         },
 
-        BackgroundTransparency = 0.03
+        BackgroundTransparency = 0.08 -- igual ao estilo do print
     }
 }
-
 for s,t in r do
 t.Name=s
 table.freeze(t)
