@@ -1771,7 +1771,7 @@ gg.__namecall = newcclosure(function(...)
     end
     return old(...)
 end)
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/viplam087-png/Hjj/main/LibraryRedz.lua"))()
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/Mauro-Chtxp/Nigtht-Mystic-/refs/heads/main/09%20(1).txt"))()
 local Window = Library:MakeWindow({
   Title = "Hiru Hub : Blox Fruits",
   SubTitle = "by Kiddo",
