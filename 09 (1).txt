@@ -32,38 +32,38 @@ local r = {
     Darker = {
         Colors = {
             Background = ColorSequence.new{
-                ColorSequenceKeypoint.new(0.00, Color3.fromRGB(20, 20, 20)),   -- Mais escuro
-                ColorSequenceKeypoint.new(0.50, Color3.fromRGB(25, 25, 25)),
-                ColorSequenceKeypoint.new(1.00, Color3.fromRGB(20, 20, 20))
+                ColorSequenceKeypoint.new(0.00, Color3.fromRGB(10, 10, 10)),   -- Mais preto
+                ColorSequenceKeypoint.new(0.50, Color3.fromRGB(15, 15, 15)),
+                ColorSequenceKeypoint.new(1.00, Color3.fromRGB(10, 10, 10))
             },
 
             -- Toggle ON
             Primary = Color3.fromRGB(150, 0, 255),          -- Roxo forte
-            OnPrimary = Color3.fromRGB(200, 140, 255),       -- Roxo claro
+            OnPrimary = Color3.fromRGB(200, 140, 255),     -- Roxo claro
 
-            -- Toggle OFF agora também roxo
-            ScrollBar = Color3.fromRGB(80, 0, 150),          -- Roxo escuro
-            Stroke = Color3.fromRGB(90, 0, 160),             -- Borda roxa discreta
+            -- Toggle OFF
+            ScrollBar = Color3.fromRGB(50, 0, 50),         -- Roxo mais escuro
+            Stroke = Color3.fromRGB(60, 0, 60),           -- Borda roxa discreta
 
             Error = Color3.fromRGB(255, 80, 80),
             Icons = Color3.fromRGB(240, 240, 240),
 
-            JoinButton = Color3.fromRGB(40, 40, 40),
+            JoinButton = Color3.fromRGB(20, 20, 20),      -- Preto fosco
 
-            Link = Color3.fromRGB(180, 0, 255),              -- Roxo vivo
+            Link = Color3.fromRGB(180, 0, 255),           -- Roxo vivo
 
             Dialog = {
-                Background = Color3.fromRGB(30, 30, 30)      -- Fundo mais escuro
+                Background = Color3.fromRGB(10, 10, 10)   -- Fundo bem preto
             },
 
             Buttons = {
-                Holding = Color3.fromRGB(45, 0, 70),         -- Roxo escuro ao clicar
-                Default = Color3.fromRGB(35, 0, 55)          -- Botão parado
+                Holding = Color3.fromRGB(70, 0, 90),      -- Roxo escuro ao clicar
+                Default = Color3.fromRGB(15, 15, 15)      -- Preto fosco parado
             },
 
             Border = {
-                Holding = Color3.fromRGB(100, 0, 160),
-                Default = Color3.fromRGB(70, 0, 120),
+                Holding = Color3.fromRGB(120, 0, 160),
+                Default = Color3.fromRGB(50, 0, 50),
             },
 
             Text = {
@@ -78,7 +78,7 @@ local r = {
             },
 
             Dropdown = {
-                Holder = Color3.fromRGB(25, 25, 25),
+                Holder = Color3.fromRGB(10, 10, 10),      -- Fundo preto
             }
         },
 
@@ -103,7 +103,7 @@ local r = {
             SliderValue = Enum.Font.FredokaOne
         },
 
-        BackgroundTransparency = 0.17  -- menos transparente, fundo mais escuro
+        BackgroundTransparency = 0.1  -- menos transparente, fundo ainda mais escuro
     }
 }
 for s,t in r do
