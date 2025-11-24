@@ -1972,11 +1972,11 @@ QuestNeta = function()
     }
 end
 
-local Library = loadstring(game:HttpGet("https://pastefy.app/28c5ZUsm/raw"))()
+local redzlib = loadstring(game:HttpGet("https://raw.githubusercontent.com/tbao143/Library-ui/refs/heads/main/Redzhubui"))()
 
 local Window = Library:MakeWindow({
-  Title = "TrongNguyen : Blox Fruits",
-  SubTitle = "by NguyenHoangTrong",
+  Title = "Night Slayer",
+  SubTitle = "By Araújo7xp & MauroZzx",
   ScriptFolder = "RedzLibraryBF"
 })
 
@@ -1985,7 +1985,7 @@ local Minimizer = Window:NewMinimizer({
 })
 
 local MobileButton = Minimizer:CreateMobileMinimizer({
-    Image = "rbxassetid://120213707198275",
+    Image = "rbxassetid://13499862878",
     BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 })
 
