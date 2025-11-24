@@ -2003,18 +2003,18 @@ BringEnemy = function()
 	local Fluent = loadstring(game:HttpGet("https://files.catbox.moe/pj2qb9.lua", true))()
 
 local Window = Fluent:CreateWindow({
-    Title = "Night Mystic",
-    SubTitle = "By MauroZzx | Blox Fruits",
+    Title = "Night Slayer",
+    SubTitle = "By Araújo7xp  & MauroZzx | Blox Fruits",
 
     -- ADICIONADOS DA OUTRA WINDOW:
     TitleIcon = "",
-    Image = "rbxassetid://9513555247",
+    Image = "rbxassetid://129385265407109",
     Search = false,
-    Icon = "rbxassetid://9513555247",
+    Icon = "rbxassetid://129385265407109",
     TabWidth = 170, -- você já tinha, deixei igual
-    Theme = "Darker",
-    Acrylic = false,
-    Size = UDim2.fromOffset(425, 365),
+    Theme = "Vynixu",
+    Acrylic = true,
+    Size = UDim2.fromOffset(425, 375),
     MinimizeKey = Enum.KeyCode.End,
 
     UserInfo = true,
