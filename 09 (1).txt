@@ -31,31 +31,32 @@ local r = {
     Darker = {
         Colors = {
             Background = ColorSequence.new{
-                ColorSequenceKeypoint.new(0.00, Color3.fromRGB(35, 35, 35)),
-                ColorSequenceKeypoint.new(0.50, Color3.fromRGB(50, 50, 50)),
-                ColorSequenceKeypoint.new(1.00, Color3.fromRGB(35, 35, 35))
+                ColorSequenceKeypoint.new(0.00, Color3.fromRGB(0, 0, 0)),      -- Preto
+                ColorSequenceKeypoint.new(0.50, Color3.fromRGB(10, 10, 10)),  -- Preto levemente mais claro
+                ColorSequenceKeypoint.new(1.00, Color3.fromRGB(0, 0, 0))
             },
-            Primary = Color3.fromRGB(150, 150, 150), -- Cinza de destaque
-            OnPrimary = Color3.fromRGB(120, 120, 120),
-            ScrollBar = Color3.fromRGB(90, 90, 90),
-            Stroke = Color3.fromRGB(60, 60, 60),
 
-            Error = Color3.fromRGB(200, 200, 200), -- Mantido branco/cinza claro para ícones
-            Icons = Color3.fromRGB(232, 233, 235),
+            Primary = Color3.fromRGB(200, 0, 0),        -- Vermelho destaque
+            OnPrimary = Color3.fromRGB(150, 0, 0),
+            ScrollBar = Color3.fromRGB(30, 30, 30),
+            Stroke = Color3.fromRGB(80, 0, 0),          -- Vermelho escuro para bordas
 
-            JoinButton = Color3.fromRGB(60, 60, 60),
-            Link = Color3.fromRGB(180, 180, 180),
+            Error = Color3.fromRGB(255, 60, 60),        -- Vermelho claro para avisos
+            Icons = Color3.fromRGB(255, 0, 0),          -- Vermelho nos ícones
+
+            JoinButton = Color3.fromRGB(25, 0, 0),
+            Link = Color3.fromRGB(255, 70, 70),
 
             Dialog = {
-                Background = Color3.fromRGB(50, 50, 50)
+                Background = Color3.fromRGB(15, 15, 15)
             },
             Buttons = {
-                Holding = Color3.fromRGB(55, 55, 55),
-                Default = Color3.fromRGB(45, 45, 45)
+                Holding = Color3.fromRGB(40, 0, 0),
+                Default = Color3.fromRGB(30, 0, 0)
             },
             Border = {
-                Holding = Color3.fromRGB(80, 80, 80),
-                Default = Color3.fromRGB(70, 70, 70),
+                Holding = Color3.fromRGB(120, 0, 0),
+                Default = Color3.fromRGB(90, 0, 0),
             },
             Text = {
                 Default = Color3.fromRGB(255, 255, 255),
@@ -63,13 +64,14 @@ local r = {
                 Darker = Color3.fromRGB(200, 200, 200),
             },
             Slider = {
-                SliderBar = Color3.fromRGB(120, 120, 120),
-                SliderNumber = Color3.fromRGB(200, 200, 200),
+                SliderBar = Color3.fromRGB(150, 0, 0),
+                SliderNumber = Color3.fromRGB(255, 80, 80),
             },
             Dropdown = {
-                Holder = Color3.fromRGB(40, 40, 40),
+                Holder = Color3.fromRGB(10, 10, 10),
             }
         },
+
         Icons = {
             Error = "rbxassetid://10709752996",
             Button = "rbxassetid://10709791437",
@@ -82,6 +84,7 @@ local r = {
                 Close = "rbxassetid://10709790948"
             }
         },
+
         Font = {
             Normal = Enum.Font.BuilderSans,
             Medium = Enum.Font.BuilderSansMedium,
@@ -89,10 +92,10 @@ local r = {
             ExtraBold = Enum.Font.BuilderSansExtraBold,
             SliderValue = Enum.Font.FredokaOne
         },
+
         BackgroundTransparency = 0.03
     }
 }
-
 
 for s,t in r do
 t.Name=s
@@ -105,7 +108,7 @@ Version="v2.0.1",
 GitHubOwner="tlredz"
 },
 Default={
-Theme="Dark",
+Theme="Darker",
 UISize=UDim2.fromOffset(550,380),
 TabSize=160
 },
