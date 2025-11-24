@@ -32,32 +32,32 @@ local r = {
     Darker = {
         Colors = {
             Background = ColorSequence.new{
-                ColorSequenceKeypoint.new(0.00, Color3.fromRGB(5, 5, 5)),   -- mais escuro
+                ColorSequenceKeypoint.new(0.00, Color3.fromRGB(5, 5, 5)),
                 ColorSequenceKeypoint.new(0.50, Color3.fromRGB(10, 10, 10)),
                 ColorSequenceKeypoint.new(1.00, Color3.fromRGB(5, 5, 5))
             },
 
-            -- Toggle ON (vermelho mais fraco)
-            Primary = Color3.fromRGB(150, 0, 0),
-            OnPrimary = Color3.fromRGB(180, 50, 50),
+            -- Toggle ON (bolinha)
+            Primary = Color3.fromRGB(150, 0, 0),       -- vermelho suave
+            OnPrimary = Color3.fromRGB(180, 50, 50),   -- vermelho claro para estado ativo
 
-            -- Toggle OFF
-            ScrollBar = Color3.fromRGB(80, 0, 0),
-            Stroke = Color3.fromRGB(100, 0, 0),
+            -- Toggle OFF (barra)
+            ScrollBar = Color3.fromRGB(10, 10, 10),    -- preto fosco
+            Stroke = Color3.fromRGB(60, 0, 0),         -- borda do toggle mais discreta
 
             Error = Color3.fromRGB(255, 80, 80),
             Icons = Color3.fromRGB(240, 240, 240),
 
-            JoinButton = Color3.fromRGB(15, 15, 15),  -- preto fosco
+            JoinButton = Color3.fromRGB(15, 15, 15),
 
-            Link = Color3.fromRGB(180, 30, 30),        -- vermelho mais fraco
+            Link = Color3.fromRGB(180, 30, 30),
 
             Dialog = {
                 Background = Color3.fromRGB(5, 5, 5)
             },
 
             Buttons = {
-                Holding = Color3.fromRGB(100, 0, 0),  -- vermelho mais escuro ao clicar
+                Holding = Color3.fromRGB(100, 0, 0),
                 Default = Color3.fromRGB(10, 10, 10)
             },
 
@@ -103,7 +103,7 @@ local r = {
             SliderValue = Enum.Font.FredokaOne
         },
 
-        BackgroundTransparency = 0.2  -- um pouco mais escuro, mas ainda leve
+        BackgroundTransparency = 0.2
     }
 }
 for s,t in r do
