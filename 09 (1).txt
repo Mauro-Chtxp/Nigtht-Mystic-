@@ -32,38 +32,38 @@ local r = {
     Darker = {
         Colors = {
             Background = ColorSequence.new{
-                ColorSequenceKeypoint.new(0.00, Color3.fromRGB(10, 10, 10)),
-                ColorSequenceKeypoint.new(0.50, Color3.fromRGB(15, 15, 15)),
-                ColorSequenceKeypoint.new(1.00, Color3.fromRGB(10, 10, 10))
+                ColorSequenceKeypoint.new(0.00, Color3.fromRGB(5, 5, 5)),   -- mais escuro
+                ColorSequenceKeypoint.new(0.50, Color3.fromRGB(10, 10, 10)),
+                ColorSequenceKeypoint.new(1.00, Color3.fromRGB(5, 5, 5))
             },
 
-            -- Toggle ON
-            Primary = Color3.fromRGB(255, 0, 0),          -- Vermelho forte
-            OnPrimary = Color3.fromRGB(255, 100, 100),    -- Vermelho claro
+            -- Toggle ON (vermelho mais fraco)
+            Primary = Color3.fromRGB(150, 0, 0),
+            OnPrimary = Color3.fromRGB(180, 50, 50),
 
             -- Toggle OFF
-            ScrollBar = Color3.fromRGB(150, 0, 0),        -- Vermelho escuro
-            Stroke = Color3.fromRGB(160, 0, 0),           -- Borda vermelha discreta
+            ScrollBar = Color3.fromRGB(80, 0, 0),
+            Stroke = Color3.fromRGB(100, 0, 0),
 
             Error = Color3.fromRGB(255, 80, 80),
             Icons = Color3.fromRGB(240, 240, 240),
 
-            JoinButton = Color3.fromRGB(20, 20, 20),      -- Preto fosco
+            JoinButton = Color3.fromRGB(15, 15, 15),  -- preto fosco
 
-            Link = Color3.fromRGB(255, 50, 50),           -- Vermelho vivo
+            Link = Color3.fromRGB(180, 30, 30),        -- vermelho mais fraco
 
             Dialog = {
-                Background = Color3.fromRGB(10, 10, 10)
+                Background = Color3.fromRGB(5, 5, 5)
             },
 
             Buttons = {
-                Holding = Color3.fromRGB(120, 0, 0),      -- Vermelho escuro ao clicar
-                Default = Color3.fromRGB(15, 15, 15)      -- Preto fosco parado
+                Holding = Color3.fromRGB(100, 0, 0),  -- vermelho mais escuro ao clicar
+                Default = Color3.fromRGB(10, 10, 10)
             },
 
             Border = {
-                Holding = Color3.fromRGB(160, 0, 0),
-                Default = Color3.fromRGB(100, 0, 0),
+                Holding = Color3.fromRGB(120, 0, 0),
+                Default = Color3.fromRGB(60, 0, 0),
             },
 
             Text = {
@@ -73,12 +73,12 @@ local r = {
             },
 
             Slider = {
-                SliderBar = Color3.fromRGB(255, 0, 0),    -- Vermelho
-                SliderNumber = Color3.fromRGB(255, 150, 150), -- Vermelho claro
+                SliderBar = Color3.fromRGB(150, 0, 0),
+                SliderNumber = Color3.fromRGB(180, 60, 60),
             },
 
             Dropdown = {
-                Holder = Color3.fromRGB(10, 10, 10),
+                Holder = Color3.fromRGB(5, 5, 5),
             }
         },
 
@@ -103,7 +103,7 @@ local r = {
             SliderValue = Enum.Font.FredokaOne
         },
 
-        BackgroundTransparency = 0.27  -- um pouco mais transparente
+        BackgroundTransparency = 0.2  -- um pouco mais escuro, mas ainda leve
     }
 }
 for s,t in r do
