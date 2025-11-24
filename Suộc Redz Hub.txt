@@ -1972,11 +1972,11 @@ QuestNeta = function()
     }
 end
 
-local redzlib = loadstring(game:HttpGet("https://raw.githubusercontent.com/tbao143/Library-ui/refs/heads/main/Redzhubui"))()
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/Mauro-Chtxp/Nigtht-Mystic-/refs/heads/main/09%20(1).txt"))()
 
 local Window = Library:MakeWindow({
-  Title = "Night Slayer",
-  SubTitle = "By Araújo7xp & MauroZzx",
+  Title = "Night Mystic",
+  SubTitle = "By Araújo7xp & MauroZzx | Blox Fruits",
   ScriptFolder = "RedzLibraryBF"
 })
 
@@ -1985,7 +1985,7 @@ local Minimizer = Window:NewMinimizer({
 })
 
 local MobileButton = Minimizer:CreateMobileMinimizer({
-    Image = "rbxassetid://13499862878",
+    Image = "rbxassetid://120213707198275",
     BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 })
 
