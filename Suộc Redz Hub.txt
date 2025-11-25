@@ -911,12 +911,8 @@ spawn(function()
                     Noclip.MaxForce = Vector3.new(100000, 100000, 100000)
                     Noclip.Velocity = Vector3.new(0, 0, 0)
                 end
-                if not plr.Character:FindFirstChild('highlight') then
-                    local Test = Instance.new('Highlight')
-                    Test.Name = "highlight"
-                    Test.Enabled = true
-                    Test.FillColor = Color3.fromRGB(2, 197, 60)
-                    Test.OutlineColor = Color3.fromRGB(255, 255, 255)
+                
+
                     Test.FillTransparency = 0.5
                     Test.OutlineTransparency = 0.2
                     Test.Parent = plr.Character
