@@ -901,16 +901,6 @@ spawn(function()
 					I.MaxForce = Vector3.new(100000, 100000, 100000);
 					I.Velocity = Vector3.new(0, 0, 0);
 				end;
-				if not plr.Character:FindFirstChild("highlight") then
-					local I = Instance.new("Highlight");
-					I.Name = "highlight";
-					I.Enabled = true;
-					I.FillColor = Color3.fromRGB(2, 197, 60);
-					I.OutlineColor = Color3.fromRGB(255, 255, 255);
-					I.FillTransparency = .5;
-					I.OutlineTransparency = .2;
-					I.Parent = plr.Character;
-				end;
 				for I, e in pairs(plr.Character:GetDescendants()) do
 					if e:IsA("BasePart") then
 						e.CanCollide = false;
