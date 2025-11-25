@@ -1972,11 +1972,11 @@ QuestNeta = function()
     }
 end
 
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/Mauro-Chtxp/Nigtht-Mystic-/refs/heads/main/09%20(1).txt"))()
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/tlredz/Library/refs/heads/main/V5/Source.lua"))()
 
 local Window = Library:MakeWindow({
-  Title = "Night Mystic",
-  SubTitle = "By Araújo7xp & MauroZzx | Blox Fruits",
+  Title = "Night Mystic | Blox Fruits",
+  SubTitle = "By Araújo7xp & MauroZzx",
   ScriptFolder = "RedzLibraryBF"
 })
 
