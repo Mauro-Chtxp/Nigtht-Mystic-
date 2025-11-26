@@ -2012,9 +2012,9 @@ local Window = Fluent:CreateWindow({
     Search = false,
     Icon = "rbxassetid://9513555247",
     TabWidth = 170, -- você já tinha, deixei igual
-    Theme = "Dark",
+    Theme = "PurpleBlack",
     Acrylic = false,
-    Size = UDim2.fromOffset(400, 375),
+    Size = UDim2.fromOffset(400, 400),
     MinimizeKey = Enum.KeyCode.End,
 
     UserInfo = true,
