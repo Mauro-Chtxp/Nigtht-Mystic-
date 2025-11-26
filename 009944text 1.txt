@@ -2152,7 +2152,7 @@ end)
 
     Server = Window:AddTab({
         Title = "Page Server",
-        Icon = "server"
+        Icon = "wifi"
     }),
 
     Main = Window:AddTab({
@@ -2192,7 +2192,7 @@ end)
 
     Raids = Window:AddTab({
         Title = "Page Raids",
-        Icon = "axe"
+        Icon = "bow-arrow"
     }),
 
     SeaEvent = Window:AddTab({
