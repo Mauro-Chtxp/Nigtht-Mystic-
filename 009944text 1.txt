@@ -2009,16 +2009,16 @@ local Window = Fluent:CreateWindow({
     -- ADICIONADOS DA OUTRA WINDOW:
     TitleIcon = "",
     Image = "rbxassetid://9513555247",
-    Search = true,
+    Search = false,
     Icon = "rbxassetid://9513555247",
     TabWidth = 170, -- você já tinha, deixei igual
-    Theme = "VSC Dark High Contrast",
+    Theme = "Dark",
     Acrylic = false,
-    Size = UDim2.fromOffset(400, 365),
+    Size = UDim2.fromOffset(400, 375),
     MinimizeKey = Enum.KeyCode.End,
 
     UserInfo = true,
-    UserInfoTop = true,
+    UserInfoTop = false,
     UserInfoTitle = game.Players.LocalPlayer.DisplayName,
     UserInfoSubtitle = "Player",
     UserInfoSubtitleColor = Color3.fromRGB(71, 123, 255)
@@ -2090,87 +2090,87 @@ end)
 	end)
 	local Tabs = {
     Discord = Window:AddTab({
-        Title = "Home",
+        Title = "Page Home",
         Icon = "message-circle"
     }),
 
     Shop = Window:AddTab({
-        Title = "Shop",
+        Title = "Page Shop",
         Icon = "shopping-cart"
     }),
 
     Server = Window:AddTab({
-        Title = "Server",
+        Title = "Page Server",
         Icon = "server"
     }),
 
     Main = Window:AddTab({
-        Title = "Main",
+        Title = "Page Main",
         Icon = "home"
     }),
 
-    Fruit = Window:AddTab({
-        Title = "Fruit",
-        Icon = "apple"
-    }),
-
     Quests = Window:AddTab({
-        Title = "Farm Outros",
+        Title = "Page Farming Other",
         Icon = "scroll"
     }),
 
     MiscFarm = Window:AddTab({
-        Title = "Misc Farm",
+        Title = "Page Misc Farming",
         Icon = "anchor"
     }),
 
-    SeaEvent = Window:AddTab({
-        Title = "Sea Events",
-        Icon = "waves"
-    }),
-
-    Mirage = Window:AddTab({
-        Title = "Race V4",
-        Icon = "moon"
+    Fruit = Window:AddTab({
+        Title = "Page Fruit",
+        Icon = "apple"
     }),
 
     Drago = Window:AddTab({
-        Title = "Dragon Dojo",
+        Title = "Page Dragon Dojo",
         Icon = "flame"
     }),
 
     Prehistoric = Window:AddTab({
-        Title = "Prehistoric",
+        Title = "Page Prehistoric",
         Icon = "skull"
     }),
 
+    Mirage = Window:AddTab({
+        Title = "Page Race V4",
+        Icon = "moon"
+    }),
+
     Raids = Window:AddTab({
-        Title = "Raids",
+        Title = "Page Raids",
         Icon = "axe"
     }),
 
+    SeaEvent = Window:AddTab({
+        Title = "Page Sea Events",
+        Icon = "waves"
+    }),
+
     LocalPlayer = Window:AddTab({
-        Title = "Local Player",
+        Title = "Page Local Player",
         Icon = "user"
     }),
 
     Combat = Window:AddTab({
-        Title = "Pvp",
+        Title = "Page Pvp",
         Icon = "crosshair"
     }),
 
     Travel = Window:AddTab({
-        Title = "Travel",
+        Title = "Page Travel",
         Icon = "map-pin"
     }),
 
     Misc = Window:AddTab({
-        Title = "Misc",
+        Title = "Page Misc",
         Icon = "package"
     }),
 
     Settings = Window:AddTab({
-        Title = "Settings",
+        Title = "Page Settings",
         Icon = "settings"
     })
 }
