@@ -47,7 +47,7 @@ Marines = function()
 Pirates = function()
 		replicated.Remotes.CommF_:InvokeServer("SetTeam", "Pirates");
 	end;
-local I = (loadstring(game:HttpGet("https://pastefy.app/EguGhIMh/raw")))();
+local I = (loadstring(game:HttpGet("https://pastefy.app/ihzBeYbw/raw")))();
 if World1 then
 	Boss = {
 			"The Gorilla King",
@@ -2059,18 +2059,38 @@ MF:AddToggle({
 
 local I1 = i:AddSection("Info");
 
-I1:AddButton({
-    Title = "Copiar Discord",
-    Description = "",
-    Callback = function()
-        setclipboard("https://discord.gg/B4wybEfn3")
-    end,
-});
+I1:AddParagraph({
+    Title = "Sobre o Night Mystic V2",
+    Content = "O Night Mystic V2 foi criado devido os problemas
+    com a hospedagem do script original."
+})
 
-local Araujo = I1:AddParagraph({
-    Title = "Mensagem do araujo7xp",
-    Content = ""
-});
+I1:AddParagraph({
+    Title = "Por que outra versão?",
+    Content = "O GitHub — serviço usado para hospedar
+   o Night Mystic original — deixou de funcionar corretamente,
+  então criamos uma nova versão."
+})
+
+I1:AddParagraph({
+    Title = "Observação",
+    Content = "O Night Mystic V2 não possui as mesmas funcionalidades 
+   da versão original."
+})
+
+I1:AddButton({
+    Title = "Discord",
+    Description = "Copiar link do nosso servidor",
+    Callback = function()
+        setclipboard("https://discord.gg/sCMzRYSHVJ")
+        I:Notification({
+            Title = "Discord",
+            Description = "Link copiado!",
+            Duration = 5
+        })
+    end
+})
+
 b:AddToggle({
 	Title = "Auto Farm Level",
 	Description = "",
