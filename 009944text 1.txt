@@ -1848,6 +1848,15 @@ end
 				PosQ = CFrame.new(-16759.5898, 71.2837, 1595.3399)
 				PosM = CFrame.new(-16759.5898, 71.2837, 1595.3399)
 
+-- FUNÇÃO DE TELEPORTE (OBRIGATÓRIA)
+local function _tp(cf)
+	local plr = game.Players.LocalPlayer
+	if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+		plr.Character.HumanoidRootPart.CFrame = cf
+	end
+end
+
+
 -- SUBMARINE AREA (đúng mốc 2600 / 2625 / 2650 / 2675)
 elseif a >= 2600 and a <= 2624 then
 	Mon = "Reef Bandit"
