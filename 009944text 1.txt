@@ -2000,25 +2000,25 @@ BringEnemy = function()
 		}
 	end
 
-	local Fluent = loadstring(game:HttpGet("https://files.catbox.moe/pj2qb9.lua", true))()
+	local Fluent = loadstring(game:HttpGet("https://files.catbox.moe/rgm2p1.txt"))()
 
 local Window = Fluent:CreateWindow({
-    Title = "Night Slayer",
+    Title = "Night Mystic",
     SubTitle = "By Araújo7xp  & MauroZzx | Blox Fruits",
 
     -- ADICIONADOS DA OUTRA WINDOW:
     TitleIcon = "",
     Image = "rbxassetid://9513555247",
-    Search = false,
+    Search = true,
     Icon = "rbxassetid://9513555247",
     TabWidth = 170, -- você já tinha, deixei igual
-    Theme = "Viow Mars",
+    Theme = "VSC Dark High Contrast",
     Acrylic = false,
-    Size = UDim2.fromOffset(425, 365),
+    Size = UDim2.fromOffset(400, 365),
     MinimizeKey = Enum.KeyCode.End,
 
     UserInfo = true,
-    UserInfoTop = false,
+    UserInfoTop = true,
     UserInfoTitle = game.Players.LocalPlayer.DisplayName,
     UserInfoSubtitle = "Player",
     UserInfoSubtitleColor = Color3.fromRGB(71, 123, 255)
@@ -3792,85 +3792,83 @@ end)
 
 spawn(function()
     while wait() do
-        if getgenv().Auto_Cake_Prince and World3 then
+        if _G.Auto_Cake_Prince then
             pcall(function()
                 local player = game.Players.LocalPlayer
-                local char = player.Character
-                local root = char and char:FindFirstChild("HumanoidRootPart")
-                local questUI = player:WaitForChild("PlayerGui"):WaitForChild("Main"):WaitForChild("Quest")
-                local enemies = workspace:WaitForChild("Enemies")
-                local bigMirror = workspace.Map.CakeLoaf:WaitForChild("BigMirror")
+                local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+                local questUI = player.PlayerGui.Main.Quest
+                local enemies = workspace.Enemies
+                local bigMirror = workspace.Map.CakeLoaf.BigMirror
                 if not root then return end
 
-                -- Função para pegar inimigos por nome
-                local function GetConnectionEnemies(names)
+                -- Função para pegar o inimigo mais próximo de uma lista
+                local function GetNearestEnemy(names)
                     local nearest, minDist
-                    for _, v in ipairs(enemies:GetChildren()) do
-                        if (typeof(names) == "table" and table.find(names, v.Name)) or (typeof(names) == "string" and v.Name == names) then
-                            if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
-                                local dist = (v.HumanoidRootPart.Position - root.Position).Magnitude
-                                if not minDist or dist < minDist then
-                                    minDist = dist
-                                    nearest = v
-                                end
+                    for _, v in ipairs(workspace.Enemies:GetChildren()) do
+                        if table.find(names, v.Name)
+                            and v:FindFirstChild("HumanoidRootPart")
+                            and v:FindFirstChild("Humanoid")
+                            and v.Humanoid.Health > 0
+                        then
+                            local dist = (v.HumanoidRootPart.Position - root.Position).Magnitude
+                            if not minDist or dist < minDist then
+                                minDist = dist
+                                nearest = v
                             end
                         end
                     end
                     return nearest
                 end
 
-                if not bigMirror:FindFirstChild("Other") then
-                    topos(CFrame.new(-2077, 252, -12373))
-                    return
-                end
+                -- Lista de mobs do Cake Prince
+                local CakePrinceMobs = {
+                    "Cookie Crafter",
+                    "Cake Guard",
+                    "Baking Staff",
+                    "Head Baker",
+                    "Cake Prince"
+                }
 
-                -- Prioridade para o Cake Prince
-                if bigMirror.Other.Transparency == 0 or enemies:FindFirstChild("Cake Prince") then
-                    local target = GetConnectionEnemies("Cake Prince")
-                    if target and target:FindFirstChild("HumanoidRootPart") then
-                        repeat
-                            task.wait()
-                            Attack.Kill2(target, getgenv().Auto_Cake_Prince)
-                        until not getgenv().Auto_Cake_Prince or not target.Parent or target.Humanoid.Health <= 0
-                    else
-                        if bigMirror.Other.Transparency == 0 
-                            and (CFrame.new(-1990.67, 4533, -14973.67).Position - root.Position).Magnitude >= 2000 then
-                            topos(CFrame.new(-2151.82, 149.32, -12404.91))
-                        end
-                    end
-                else
-                    local target = GetConnectionEnemies({"Cookie Crafter", "Cake Guard", "Baking Staff", "Head Baker"})
-                    if target and target:FindFirstChild("HumanoidRootPart") then
-                        if getgenv().AcceptQuest and not questUI.Visible then
-                            local questPos = CFrame.new(-1927.92, 37.8, -12842.54)
-                            topos(questPos)
-                            while (questPos.Position - root.Position).Magnitude > 50 do
-                                task.wait(0.2)
+                -- Verifica se existem mobs no workspace
+                local target = GetNearestEnemy(CakePrinceMobs)
+
+                if target then
+                    -- Vai direto no mob, independente da distância
+                    repeat
+                        wait()
+                        if target.Name == "Cake Prince" then
+                            Attack.Kill2(target, _G.Auto_Cake_Prince)
+                        else
+                            if _G.AcceptQuestC and not questUI.Visible then
+                                -- Pega a quest antes de atacar se necessário
+                                local questPos = CFrame.new(-1927.92, 37.8, -12842.54)
+                                _tp(questPos)
+                                while (questPos.Position - root.Position).Magnitude > 50 do
+                                    wait(0.2)
+                                end
+                                local questData = {
+                                    { "StartQuest", "CakeQuest2", 2 },
+                                    { "StartQuest", "CakeQuest2", 1 },
+                                    { "StartQuest", "CakeQuest1", 1 },
+                                    { "StartQuest", "CakeQuest1", 2 }
+                                }
+                                pcall(function()
+                                    game.ReplicatedStorage.Remotes.CommF_:InvokeServer(unpack(questData[math.random(1,4)]))
+                                end)
                             end
-                            task.wait(2)
-                            local questData = {
-                                {"StartQuest", "CakeQuest2", 2},
-                                {"StartQuest", "CakeQuest2", 1},
-                                {"StartQuest", "CakeQuest1", 1},
-                                {"StartQuest", "CakeQuest1", 2}
-                            }
-                            local randomQuest = math.random(1, #questData)
-                            pcall(function()
-                                game.ReplicatedStorage.Remotes.CommF_:InvokeServer(unpack(questData[randomQuest]))
-                            end)
+                            Attack.Kill(target, _G.Auto_Cake_Prince)
                         end
-                        repeat
-                            task.wait()
-                            Attack.Kill(target, getgenv().Auto_Cake_Prince)
-                        until not getgenv().Auto_Cake_Prince or target.Humanoid.Health <= 0 
-                              or bigMirror.Other.Transparency == 0 
-                              or (getgenv().AcceptQuest and not questUI.Visible)
-                    end
+                    until not _G.Auto_Cake_Prince or not target.Parent or target.Humanoid.Health <= 0
+                else
+                    -- Se não houver mobs, teleporta pro Cake Island
+                    local cakeIslandPos = Vector3.new(-2077, 252, -12373)
+                    _tp(CFrame.new(cakeIslandPos))
                 end
             end)
         end
     end
 end)
+
 local Mirror = SectionCake:AddToggle("Mirror", {
     Title = "Auto Kill Dough",
     Default = false
