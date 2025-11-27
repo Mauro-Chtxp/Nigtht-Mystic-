@@ -3021,227 +3021,107 @@ end)
 
 -- Intervalo do loop
 local Sec = 1
-
--- Variável global do alvo atual
 _G.CurrentTarget = nil
 
-----------------------------------------------------------------
--- AUTO FARM COMPLETO
-----------------------------------------------------------------
 spawn(function()
     while wait(Sec) do
         if _G.Level then
             pcall(function()
 
-                -------------------------------------------------------------------------
-                -- SISTEMA EXTRA (SUBMERGED ISLAND) - ATIVA AUTOMATICAMENTE NIVEL 2600+
-                -------------------------------------------------------------------------
-                if plr.Data.Level.Value >= 2600 then
+                -- Garante que o personagem existe
+                local Character = plr.Character or plr.CharacterAdded:Wait()
+                local Humanoid = Character:FindFirstChild("Humanoid")
+                local Root = Character:FindFirstChild("HumanoidRootPart")
+                if not Character or not Humanoid or Humanoid.Health <= 0 or not Root then return end
 
-                    -- Se o quest point estiver MUITO longe → ativa sistema do submarino
-                    if (QuestNeta()[6].Position - plr.Character.HumanoidRootPart.Position).Magnitude > 10000 then
-                        
-                        -- TELEPORTA ATÉ O SUBMARINO
+                -- Guarda dados da quest uma vez
+                local QuestData = QuestNeta()
+                local QuestGui = plr.PlayerGui.Main.Quest
+                local QuestTitle = QuestGui.Container.QuestTitle.Title.Text
+
+                -- -----------------------------
+                -- TELEPORT SUBMERGED 2600+
+                -- -----------------------------
+                if plr.Data.Level.Value >= 2600 then
+                    if (QuestData[6].Position - Root.Position).Magnitude > 10000 then
                         topos(CFrame.new(
                             -16269.7041, 25.2288494, 1373.65955,
                             0.997390985, 1.47309942e-09, -0.0721890926,
                             -4.00651912e-09, 0.99999994, -2.51183763e-09,
                             0.0721890852, 5.75363091e-10, 0.997390926
                         ))
-
                         task.wait(2)
-
-                        -- CHAMA O SISTEMA DO SUBMARINO (TP PARA SUBMERGED)
                         local args = {"TravelToSubmergedIsland"}
                         game:GetService("ReplicatedStorage").Modules.Net
                             :FindFirstChild("RF/SubmarineWorkerSpeak")
                             :InvokeServer(unpack(args))
                     end
                 end
-                -------------------------------------------------------------------------
-                -- FIM DO SISTEMA DE TELEPORT PARA SUBMERGED (2600+)
-                -------------------------------------------------------------------------
 
+                -- -----------------------------
+                -- FARM LEVEL NORMAL
+                -- -----------------------------
+                if not string.find(QuestTitle, QuestData[5]) then
+                    replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
+                end
 
+                if QuestGui.Visible == false then
+                    _tp(QuestData[6])
+                    if (Root.Position - QuestData[6].Position).Magnitude <= 5 then
+                        replicated.Remotes.CommF_:InvokeServer("StartQuest", QuestData[3], QuestData[2])
+                    end
+                else
+                    local TargetName = QuestData[1]
 
+                    local function HasEnemies()
+                        for _, Enemy in pairs(workspace.Enemies:GetChildren()) do
+                            if Enemy.Name == TargetName and Attack.Alive(Enemy) then
+                                return true
+                            end
+                        end
+                        return false
+                    end
 
-                -------------------------------------------------------------------------
-                -- SISTEMA DE FARM ORIGINAL
-                -------------------------------------------------------------------------
+                    local function GetNearest()
+                        local closest = nil
+                        local closestDist = math.huge
+                        for _, Enemy in pairs(workspace.Enemies:GetChildren()) do
+                            if Enemy.Name == TargetName
+                               and Attack.Alive(Enemy)
+                               and Enemy:FindFirstChild("HumanoidRootPart") then
+                                local dist = (Enemy.HumanoidRootPart.Position - Root.Position).Magnitude
+                                if dist < closestDist then
+                                    closestDist = dist
+                                    closest = Enemy
+                                end
+                            end
+                        end
+                        return closest
+                    end
 
-                local Character = plr.Character  
-                if not Character or not Character:FindFirstChild("Humanoid") or Character.Humanoid.Health <= 0 then  
-                    Character = plr.CharacterAdded:Wait()  
-                end  
+                    if not _G.CurrentTarget or not Attack.Alive(_G.CurrentTarget) then
+                        _G.CurrentTarget = GetNearest()
+                    end
 
-                local Root = Character:FindFirstChild("HumanoidRootPart")  
-                if not Root then return end  
+                    local Enemy = _G.CurrentTarget
+                    if Enemy and Attack.Alive(Enemy) then
+                        _tp(Enemy.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
+                        repeat
+                            wait()
+                            Attack.Kill(Enemy, _G.Level)
+                        until not _G.Level or not Enemy.Parent or Enemy.Humanoid.Health <= 0
+                    end
 
-                local QuestGui = plr.PlayerGui.Main.Quest  
-                local QuestTitle = QuestGui.Container.QuestTitle.Title.Text  
+                    if not HasEnemies() then
+                        _tp(QuestData[4])
+                    end
+                end
 
-                -- Quest errada → abandona  
-                if not string.find(QuestTitle, QuestNeta()[5]) then  
-                    replicated.Remotes.CommF_:InvokeServer("AbandonQuest")  
-                end  
-
-                -- Pegar quest  
-                if QuestGui.Visible == false then  
-                    _tp(QuestNeta()[6])  
-                    if (Root.Position - QuestNeta()[6].Position).Magnitude <= 5 then  
-                        replicated.Remotes.CommF_:InvokeServer("StartQuest", QuestNeta()[3], QuestNeta()[2])  
-                    end  
-
-                -- FARMAR  
-                elseif QuestGui.Visible == true then  
-
-                    local TargetName = QuestNeta()[1]  
-
-                    ---------------------------------------------------------------------  
-                    -- Checa se ainda existe algum mob vivo  
-                    ---------------------------------------------------------------------  
-                    local function HasEnemies()  
-                        for _, Enemy in pairs(workspace.Enemies:GetChildren()) do  
-                            if Enemy.Name == TargetName and Attack.Alive(Enemy) then  
-                                return true  
-                            end  
-                        end  
-                        return false  
-                    end  
-
-                    ---------------------------------------------------------------------  
-                    -- Pegar o mob mais próximo  
-                    ---------------------------------------------------------------------  
-                    local function GetNearest()  
-                        local closest = nil  
-                        local closestDist = math.huge  
-
-                        for _, Enemy in pairs(workspace.Enemies:GetChildren()) do  
-                            if Enemy.Name == TargetName   
-                                and Attack.Alive(Enemy)   
-                                and Enemy:FindFirstChild("HumanoidRootPart") then  
-
-                                local dist = (Enemy.HumanoidRootPart.Position - Root.Position).Magnitude  
-                                if dist < closestDist then  
-                                    closestDist = dist  
-                                    closest = Enemy  
-                                end  
-                            end  
-                        end  
-
-                        return closest  
-                    end  
-
-                    -- Atualiza alvo se morreu  
-                    if not _G.CurrentTarget or not Attack.Alive(_G.CurrentTarget) then  
-                        _G.CurrentTarget = GetNearest()  
-                    end  
-
-                    local Enemy = _G.CurrentTarget  
-
-                    -- Ataca se tiver alvo  
-                    if Enemy and Attack.Alive(Enemy) then  
-                        _tp(Enemy.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))  
-
-                        repeat  
-                            wait()  
-                            Attack.Kill(Enemy, _G.Level)  
-                        until   
-                            not _G.Level   
-                            or not Enemy.Parent   
-                            or Enemy.Humanoid.Health <= 0  
-                    end  
-
-                    ---------------------------------------------------------------------  
-                    -- Se não tem mais mobs → volta pro ponto de espera  
-                    ---------------------------------------------------------------------  
-                    if not HasEnemies() then  
-                        _tp(QuestNeta()[4])  
-                    end  
-                end  
-            end)  
-        end  
+            end)
+        end
     end
 end)
--- Button Teleport Submerged Island (SEM MEXER)
-FarmingSection:AddButton({
-    Title = "Teleport Submerged Island",
-    Description = "Vai até o NPC e Teleporta se for Level 2650+",
-    Callback = function()
-        local Players = game:GetService("Players")
-        local LocalPlayer = Players.LocalPlayer
-        local ReplicatedStorage = game:GetService("ReplicatedStorage")
-        local task = task
-        local MaxSpeed = 350
-        local npcPosition = CFrame.new(-16269.1016, 29.5177539, 1372.3204)
-        local finalPosition = CFrame.new(
-            11092.0186, -2087.72827, 9814.1748,
-            0.123509243, -7.78840175e-08, 5.95723648e-08,
-            1, -7.10704384e-08, 0.992343426,
-            -5.03383895e-08, 0.123509243, 0
-        )
 
-        local function getCharacter()  
-            if not LocalPlayer.Character then  
-                LocalPlayer.CharacterAdded:Wait()  
-            end  
-            LocalPlayer.Character:WaitForChild("HumanoidRootPart")  
-            return LocalPlayer.Character  
-        end  
-
-        local function toggleNoclip(Toggle)  
-            local char = getCharacter()  
-            for _,v in pairs(char:GetChildren()) do  
-                if v:IsA("BasePart") then  
-                    v.CanCollide = not Toggle  
-                end  
-            end  
-        end  
-
-        local function Teleport(GoalCFrame, Speed)  
-            Speed = Speed or MaxSpeed  
-            local char = getCharacter()  
-            local hrp = char:WaitForChild("HumanoidRootPart")  
-            toggleNoclip(true)  
-            local magnitude = (hrp.Position - GoalCFrame.Position).Magnitude  
-            while magnitude > 1 do  
-                local direction = (GoalCFrame.Position - hrp.Position).Unit  
-                hrp.CFrame = hrp.CFrame + direction * (Speed * task.wait())  
-                magnitude = (hrp.Position - GoalCFrame.Position).Magnitude  
-            end  
-            toggleNoclip(false)  
-        end  
-
-        local function GoToNPC()  
-            local level = LocalPlayer.Data.Level.Value  
-            if level >= 2650 then  
-                -- Teleporta até o NPC  
-                Teleport(npcPosition, MaxSpeed)  
-                task.wait(3)  
-                -- Chama os remotes
-                local SubmarineWorker = ReplicatedStorage.Modules.Net:FindFirstChild("RF/SubmarineWorkerSpeak")  
-                local CommF = ReplicatedStorage.Modules.Net:FindFirstChild("CommF_")  
-                if SubmarineWorker then  
-                    pcall(function()  
-                        SubmarineWorker:InvokeServer("TravelToSubmergedIsland")  
-                    end)  
-                end  
-                if CommF then  
-                    pcall(function()  
-                        CommF:InvokeServer("SetLastSpawnPoint", "SubmergedIsland")  
-                    end)  
-                end
-                -- Vai pra coordenada final
-                task.wait(1)
-                Teleport(finalPosition, MaxSpeed)
-            else  
-                warn("Level insuficiente (precisa ser 2650).")  
-            end  
-        end  
-
-        GoToNPC()  
-    end
-})
 	-- Definição da seção principal (Outros)
 Tabs.Main:AddSection("Quests/Outros")
 
