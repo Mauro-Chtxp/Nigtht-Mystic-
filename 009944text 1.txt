@@ -1848,18 +1848,18 @@ end
 				PosQ = CFrame.new(-16759.5898, 71.2837, 1595.3399)
 				PosM = CFrame.new(-16759.5898, 71.2837, 1595.3399)
 
-	-- SUBMARINE AREA (2600 / 2625 / 2650 / 2675)
+	-- SUBMARINE AREA (đúng mốc 2600 / 2625 / 2650 / 2675)
 elseif a >= 2600 and a <= 2624 then
 
     -- TELEPORT PARA SUBMERGED ISLAND
-    topos(CFrame.new(-16269.7041, 25.2288494, 1373.65955))
-    task.wait(2)
-    local rf = game:GetService("ReplicatedStorage").Modules.Net:FindFirstChild("RF/SubmarineWorkerSpeak")
-    if rf then
-        rf:InvokeServer("TravelToSubmergedIsland")
-    end
+    pcall(function()
+        local hrp = game.Players.LocalPlayer.Character.HumanoidRootPart
+        hrp.CFrame = CFrame.new(-16269.7041, 25.2288494, 1373.65955)
+        task.wait(1.5)
+        local Remote = game:GetService("ReplicatedStorage").Modules.Net["RF/SubmarineWorkerSpeak"]
+        Remote:InvokeServer("TravelToSubmergedIsland")
+    end)
 
-    -- MONSTRO / QUEST
     Mon = "Reef Bandit"
     Qdata = 1
     Qname = "SubmergedQuest1"
@@ -1869,15 +1869,14 @@ elseif a >= 2600 and a <= 2624 then
 
 elseif a >= 2625 and a <= 2649 then
 
-    -- TELEPORT
-    topos(CFrame.new(-16269.7041, 25.2288494, 1373.65955))
-    task.wait(2)
-    local rf = game:GetService("ReplicatedStorage").Modules.Net:FindFirstChild("RF/SubmarineWorkerSpeak")
-    if rf then
-        rf:InvokeServer("TravelToSubmergedIsland")
-    end
+    pcall(function()
+        local hrp = game.Players.LocalPlayer.Character.HumanoidRootPart
+        hrp.CFrame = CFrame.new(-16269.7041, 25.2288494, 1373.65955)
+        task.wait(1.5)
+        local Remote = game:GetService("ReplicatedStorage").Modules.Net["RF/SubmarineWorkerSpeak"]
+        Remote:InvokeServer("TravelToSubmergedIsland")
+    end)
 
-    -- MONSTRO / QUEST
     Mon = "Coral Pirate"
     Qdata = 2
     Qname = "SubmergedQuest1"
@@ -1887,15 +1886,14 @@ elseif a >= 2625 and a <= 2649 then
 
 elseif a >= 2650 and a <= 2674 then
 
-    -- TELEPORT
-    topos(CFrame.new(-16269.7041, 25.2288494, 1373.65955))
-    task.wait(2)
-    local rf = game:GetService("ReplicatedStorage").Modules.Net:FindFirstChild("RF/SubmarineWorkerSpeak")
-    if rf then
-        rf:InvokeServer("TravelToSubmergedIsland")
-    end
+    pcall(function()
+        local hrp = game.Players.LocalPlayer.Character.HumanoidRootPart
+        hrp.CFrame = CFrame.new(-16269.7041, 25.2288494, 1373.65955)
+        task.wait(1.5)
+        local Remote = game:GetService("ReplicatedStorage").Modules.Net["RF/SubmarineWorkerSpeak"]
+        Remote:InvokeServer("TravelToSubmergedIsland")
+    end)
 
-    -- MONSTRO / QUEST
     Mon = "Sea Chanter"
     Qdata = 1
     Qname = "SubmergedQuest2"
@@ -1905,15 +1903,14 @@ elseif a >= 2650 and a <= 2674 then
 
 elseif a >= 2675 and a <= 2699 then
 
-    -- TELEPORT
-    topos(CFrame.new(-16269.7041, 25.2288494, 1373.65955))
-    task.wait(2)
-    local rf = game:GetService("ReplicatedStorage").Modules.Net:FindFirstChild("RF/SubmarineWorkerSpeak")
-    if rf then
-        rf:InvokeServer("TravelToSubmergedIsland")
-    end
+    pcall(function()
+        local hrp = game.Players.LocalPlayer.Character.HumanoidRootPart
+        hrp.CFrame = CFrame.new(-16269.7041, 25.2288494, 1373.65955)
+        task.wait(1.5)
+        local Remote = game:GetService("ReplicatedStorage").Modules.Net["RF/SubmarineWorkerSpeak"]
+        Remote:InvokeServer("TravelToSubmergedIsland")
+    end)
 
-    -- MONSTRO / QUEST
     Mon = "Ocean Prophet"
     Qdata = 2
     Qname = "SubmergedQuest2"
@@ -1923,15 +1920,14 @@ elseif a >= 2675 and a <= 2699 then
 
 elseif a >= 2700 and a <= 2724 then
 
-    -- TELEPORT
-    topos(CFrame.new(-16269.7041, 25.2288494, 1373.65955))
-    task.wait(2)
-    local rf = game:GetService("ReplicatedStorage").Modules.Net:FindFirstChild("RF/SubmarineWorkerSpeak")
-    if rf then
-        rf:InvokeServer("TravelToSubmergedIsland")
-    end
+    pcall(function()
+        local hrp = game.Players.LocalPlayer.Character.HumanoidRootPart
+        hrp.CFrame = CFrame.new(-16269.7041, 25.2288494, 1373.65955)
+        task.wait(1.5)
+        local Remote = game:GetService("ReplicatedStorage").Modules.Net["RF/SubmarineWorkerSpeak"]
+        Remote:InvokeServer("TravelToSubmergedIsland")
+    end)
 
-    -- MONSTRO / QUEST
     Mon = "High Disciple"
     Qdata = 1
     Qname = "SubmergedQuest3"
@@ -1941,22 +1937,20 @@ elseif a >= 2700 and a <= 2724 then
 
 elseif a >= 2725 and a <= 2800 then
 
-    -- TELEPORT
-    topos(CFrame.new(-16269.7041, 25.2288494, 1373.65955))
-    task.wait(2)
-    local rf = game:GetService("ReplicatedStorage").Modules.Net:FindFirstChild("RF/SubmarineWorkerSpeak")
-    if rf then
-        rf:InvokeServer("TravelToSubmergedIsland")
-    end
+    pcall(function()
+        local hrp = game.Players.LocalPlayer.Character.HumanoidRootPart
+        hrp.CFrame = CFrame.new(-16269.7041, 25.2288494, 1373.65955)
+        task.wait(1.5)
+        local Remote = game:GetService("ReplicatedStorage").Modules.Net["RF/SubmarineWorkerSpeak"]
+        Remote:InvokeServer("TravelToSubmergedIsland")
+    end)
 
-    -- MONSTRO / QUEST
     Mon = "Grand Devotee"
     Qdata = 2
     Qname = "SubmergedQuest3"
     NameMon = "Grand Devotee"
     PosQ = CFrame.new(9636.52441, -1992.19507, 9609.52832)
     PosM = CFrame.new(9557.5849609375, -1928.0404052734375, 9859.1826171875)
-
 end
 	MaterialMon = function()
 		local a = game.Players.LocalPlayer;
