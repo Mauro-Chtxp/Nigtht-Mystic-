@@ -1859,12 +1859,11 @@ elseif a >= 2600 and a <= 2624 then
 	PosQ = CFrame.new(10882.264, -2086.322, 10034.226)
 	PosM = CFrame.new(10736.6191, -2087.8439, 9338.4882)
 
-	-- TELEPORT SE ESTIVER LONGE
+	-- TELEPORT SUBMARINE
 	if _G.Level and (PosQ.Position - plr.Character.HumanoidRootPart.Position).Magnitude > 10000 then
-		_tp(CFrame.new(-16269.7041, 25.2288494, 1373.65955))
+		plr.Character:WaitForChild("HumanoidRootPart").CFrame = CFrame.new(-16269.7041, 25.2288494, 1373.65955)
 		task.wait(2)
-		local args = {"TravelToSubmergedIsland"}
-		game:GetService("ReplicatedStorage").Modules.Net["RF/SubmarineWorkerSpeak"]:InvokeServer(unpack(args))
+		game:GetService("ReplicatedStorage").Modules.Net["RF/SubmarineWorkerSpeak"]:InvokeServer("TravelToSubmergedIsland")
 	end
 
 elseif a >= 2625 and a <= 2649 then
@@ -1878,10 +1877,9 @@ elseif a >= 2625 and a <= 2649 then
 	PosM = CFrame.new(10965.1025, -2158.8842, 9177.2597)
 
 	if _G.Level and (PosQ.Position - plr.Character.HumanoidRootPart.Position).Magnitude > 10000 then
-		_tp(CFrame.new(-16269.7041, 25.2288494, 1373.65955))
+		plr.Character:WaitForChild("HumanoidRootPart").CFrame = CFrame.new(-16269.7041, 25.2288494, 1373.65955)
 		task.wait(2)
-		local args = {"TravelToSubmergedIsland"}
-		game:GetService("ReplicatedStorage").Modules.Net["RF/SubmarineWorkerSpeak"]:InvokeServer(unpack(args))
+		game:GetService("ReplicatedStorage").Modules.Net["RF/SubmarineWorkerSpeak"]:InvokeServer("TravelToSubmergedIsland")
 	end
 
 elseif a >= 2650 and a <= 2674 then
@@ -1895,10 +1893,9 @@ elseif a >= 2650 and a <= 2674 then
 	PosM = CFrame.new(10621.0342, -2087.8440, 10102.0332)
 
 	if _G.Level and (PosQ.Position - plr.Character.HumanoidRootPart.Position).Magnitude > 10000 then
-		_tp(CFrame.new(-16269.7041, 25.2288494, 1373.65955))
+		plr.Character:WaitForChild("HumanoidRootPart").CFrame = CFrame.new(-16269.7041, 25.2288494, 1373.65955)
 		task.wait(2)
-		local args = {"TravelToSubmergedIsland"}
-		game:GetService("ReplicatedStorage").Modules.Net["RF/SubmarineWorkerSpeak"]:InvokeServer(unpack(args))
+		game:GetService("ReplicatedStorage").Modules.Net["RF/SubmarineWorkerSpeak"]:InvokeServer("TravelToSubmergedIsland")
 	end
 
 elseif a >= 2675 and a <= 2699 then
@@ -1912,10 +1909,9 @@ elseif a >= 2675 and a <= 2699 then
 	PosM = CFrame.new(11056.1445, -2001.6717, 10117.4493)
 
 	if _G.Level and (PosQ.Position - plr.Character.HumanoidRootPart.Position).Magnitude > 10000 then
-		_tp(CFrame.new(-16269.7041, 25.2288494, 1373.65955))
+		plr.Character:WaitForChild("HumanoidRootPart").CFrame = CFrame.new(-16269.7041, 25.2288494, 1373.65955)
 		task.wait(2)
-		local args = {"TravelToSubmergedIsland"}
-		game:GetService("ReplicatedStorage").Modules.Net["RF/SubmarineWorkerSpeak"]:InvokeServer(unpack(args))
+		game:GetService("ReplicatedStorage").Modules.Net["RF/SubmarineWorkerSpeak"]:InvokeServer("TravelToSubmergedIsland")
 	end
 
 elseif a >= 2700 and a <= 2724 then
@@ -1929,10 +1925,9 @@ elseif a >= 2700 and a <= 2724 then
 	PosM = CFrame.new(9828.087890625, -1940.908935546875, 9693.0634765625)
 
 	if _G.Level and (PosQ.Position - plr.Character.HumanoidRootPart.Position).Magnitude > 10000 then
-		_tp(CFrame.new(-16269.7041, 25.2288494, 1373.65955))
+		plr.Character:WaitForChild("HumanoidRootPart").CFrame = CFrame.new(-16269.7041, 25.2288494, 1373.65955)
 		task.wait(2)
-		local args = {"TravelToSubmergedIsland"}
-		game:GetService("ReplicatedStorage").Modules.Net["RF/SubmarineWorkerSpeak"]:InvokeServer(unpack(args))
+		game:GetService("ReplicatedStorage").Modules.Net["RF/SubmarineWorkerSpeak"]:InvokeServer("TravelToSubmergedIsland")
 	end
 
 elseif a >= 2725 and a <= 2800 then
@@ -1946,10 +1941,9 @@ elseif a >= 2725 and a <= 2800 then
 	PosM = CFrame.new(9557.5849609375, -1928.0404052734375, 9859.1826171875)
 
 	if _G.Level and (PosQ.Position - plr.Character.HumanoidRootPart.Position).Magnitude > 10000 then
-		_tp(CFrame.new(-16269.7041, 25.2288494, 1373.65955))
+		plr.Character:WaitForChild("HumanoidRootPart").CFrame = CFrame.new(-16269.7041, 25.2288494, 1373.65955)
 		task.wait(2)
-		local args = {"TravelToSubmergedIsland"}
-		game:GetService("ReplicatedStorage").Modules.Net["RF/SubmarineWorkerSpeak"]:InvokeServer(unpack(args))
+		game:GetService("ReplicatedStorage").Modules.Net["RF/SubmarineWorkerSpeak"]:InvokeServer("TravelToSubmergedIsland")
 	end
 
 end
@@ -3185,7 +3179,85 @@ spawn(function()
         end
     end
 end)
+-- Button Teleport Submerged Island (SEM MEXER)
+FarmingSection:AddButton({
+    Title = "Teleport Submerged Island",
+    Description = "Vai até o NPC e Teleporta se for Level 2650+",
+    Callback = function()
+        local Players = game:GetService("Players")
+        local LocalPlayer = Players.LocalPlayer
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local task = task
+        local MaxSpeed = 350
+        local npcPosition = CFrame.new(-16269.1016, 29.5177539, 1372.3204)
+        local finalPosition = CFrame.new(
+            11092.0186, -2087.72827, 9814.1748,
+            0.123509243, -7.78840175e-08, 5.95723648e-08,
+            1, -7.10704384e-08, 0.992343426,
+            -5.03383895e-08, 0.123509243, 0
+        )
 
+        local function getCharacter()  
+            if not LocalPlayer.Character then  
+                LocalPlayer.CharacterAdded:Wait()  
+            end  
+            LocalPlayer.Character:WaitForChild("HumanoidRootPart")  
+            return LocalPlayer.Character  
+        end  
+
+        local function toggleNoclip(Toggle)  
+            local char = getCharacter()  
+            for _,v in pairs(char:GetChildren()) do  
+                if v:IsA("BasePart") then  
+                    v.CanCollide = not Toggle  
+                end  
+            end  
+        end  
+
+        local function Teleport(GoalCFrame, Speed)  
+            Speed = Speed or MaxSpeed  
+            local char = getCharacter()  
+            local hrp = char:WaitForChild("HumanoidRootPart")  
+            toggleNoclip(true)  
+            local magnitude = (hrp.Position - GoalCFrame.Position).Magnitude  
+            while magnitude > 1 do  
+                local direction = (GoalCFrame.Position - hrp.Position).Unit  
+                hrp.CFrame = hrp.CFrame + direction * (Speed * task.wait())  
+                magnitude = (hrp.Position - GoalCFrame.Position).Magnitude  
+            end  
+            toggleNoclip(false)  
+        end  
+
+        local function GoToNPC()  
+            local level = LocalPlayer.Data.Level.Value  
+            if level >= 2650 then  
+                -- Teleporta até o NPC  
+                Teleport(npcPosition, MaxSpeed)  
+                task.wait(3)  
+                -- Chama os remotes
+                local SubmarineWorker = ReplicatedStorage.Modules.Net:FindFirstChild("RF/SubmarineWorkerSpeak")  
+                local CommF = ReplicatedStorage.Modules.Net:FindFirstChild("CommF_")  
+                if SubmarineWorker then  
+                    pcall(function()  
+                        SubmarineWorker:InvokeServer("TravelToSubmergedIsland")  
+                    end)  
+                end  
+                if CommF then  
+                    pcall(function()  
+                        CommF:InvokeServer("SetLastSpawnPoint", "SubmergedIsland")  
+                    end)  
+                end
+                -- Vai pra coordenada final
+                task.wait(1)
+                Teleport(finalPosition, MaxSpeed)
+            else  
+                warn("Level insuficiente (precisa ser 2650).")  
+            end  
+        end  
+
+        GoToNPC()  
+    end
+})
 	-- Definição da seção principal (Outros)
 Tabs.Main:AddSection("Quests/Outros")
 
