@@ -7129,135 +7129,130 @@ spawn(function()
 end);
 -- Toggle Auto Event Prehistoric Island
 f:AddToggle({
-	Title = "Auto Event Prehistoric Island",
-	Description = "turn on for auto patch volcano + kill aura lava golems + auto remove lava",
-	Default = false,
-	Callback = function(I)
-		_G.Prehis_Skills = I
-	end,
+    Title = "Auto Event Prehistoric Island",
+    Description = "turn on for auto patch volcano + kill aura lava golems + auto remove lava",
+    Default = false,
+    Callback = function(I)
+        _G.Prehis_Skills = I
+    end
 })
 
 -- Auto Patch Lava, Kill Aura e Remove Lava
 spawn(function()
-	while wait() do
-		if _G.Prehis_Skills then
-			local I = game.Workspace.Map:FindFirstChild("PrehistoricIsland")
-			if I then
-				for _, e in pairs(I:GetDescendants()) do
-					if (e:IsA("Part") or e:IsA("MeshPart")) and e.Name:lower():find("lava") then
-						e:Destroy()
-					end
-				end
+    while wait() do
+        if _G.Prehis_Skills then
+            local I = game.Workspace.Map:FindFirstChild("PrehistoricIsland")
+            if I then
+                for _, e in pairs(I:GetDescendants()) do
+                    if (e:IsA("Part") or e:IsA("MeshPart")) and e.Name:lower():find("lava") then
+                        e:Destroy()
+                    end
+                end
 
-				local lavaModel = I.Core:FindFirstChild("InteriorLava")
-				if lavaModel and lavaModel:IsA("Model") then
-					lavaModel:Destroy()
-				end
+                local lavaModel = I.Core:FindFirstChild("InteriorLava")
+                if lavaModel and lavaModel:IsA("Model") then
+                    lavaModel:Destroy()
+                end
 
-				local trialTeleport = I:FindFirstChild("TrialTeleport")
-				for _, v in pairs(I:GetDescendants()) do
-					if v.Name == "TouchInterest" and not (trialTeleport and v:IsDescendantOf(trialTeleport)) then
-						v.Parent:Destroy()
-					end
-				end
-			end
-		end
-	end
+                local trialTeleport = I:FindFirstChild("TrialTeleport")
+                for _, v in pairs(I:GetDescendants()) do
+                    if v.Name == "TouchInterest" and not (trialTeleport and v:IsDescendantOf(trialTeleport)) then
+                        v.Parent:Destroy()
+                    end
+                end
+            end
+        end
+    end
 end)
 
 -- Kill Aura Lava Golem e quebrar rochas do vulcão
 spawn(function()
-	while wait() do
-		pcall(function()
-			if _G.Prehis_Skills then
+    while wait() do
+        pcall(function()
+            if _G.Prehis_Skills then
+                if workspace.Enemies:FindFirstChild("Lava Golem") then
+                    local mob = GetConnectionEnemies("Lava Golem")
+                    if mob then
+                        repeat
+                            wait()
+                            G.Kill(mob, _G.Prehis_Skills)
+                            mob.Humanoid:ChangeState(15)
+                        until not _G.Prehis_Skills or not mob.Parent or mob.Humanoid.Health <= 0
+                    end
+                end
 
-				-- Kill Lava Golem
-				if workspace.Enemies:FindFirstChild("Lava Golem") then
-					local mob = GetConnectionEnemies("Lava Golem")
-					if mob then
-						repeat
-							wait()
-							G.Kill(mob, _G.Prehis_Skills)
-							mob.Humanoid:ChangeState(15)
-						until not _G.Prehis_Skills or not mob.Parent or mob.Humanoid.Health <= 0
-					end
-				end
+                for _, rock in pairs(game.Workspace.Map.PrehistoricIsland.Core.VolcanoRocks:GetChildren()) do
+                    if rock:FindFirstChild("VFXLayer") and rock.VFXLayer.At0.Glow.Enabled == true then
+                        repeat
+                            wait()
+                            _tp(rock.VFXLayer.CFrame)
 
-				-- Quebrar rochas do vulcão
-				for _, rock in pairs(game.Workspace.Map.PrehistoricIsland.Core.VolcanoRocks:GetChildren()) do
-					if rock:FindFirstChild("VFXLayer") and rock.VFXLayer.At0.Glow.Enabled == true then
-						repeat
-							wait()
-							_tp(rock.VFXLayer.CFrame)
+                            if plr:DistanceFromCharacter(rock.VFXLayer.CFrame.Position) <= 150 then
+                                MousePos = rock.VFXLayer.CFrame.Position
 
-							if plr:DistanceFromCharacter(rock.VFXLayer.CFrame.Position) <= 150 then
-								MousePos = rock.VFXLayer.CFrame.Position
+                                -- Melee
+                                Useskills("Melee", "Z")
+                                wait(.5)
+                                Useskills("Melee", "X")
+                                wait(.5)
+                                Useskills("Melee", "C")
+                                wait(.5)
 
-								-- Melee
-								Useskills("Melee", "Z")
-								wait(.5)
-								Useskills("Melee", "X")
-								wait(.5)
-								Useskills("Melee", "C")
-								wait(.5)
-
-								-- Blox Fruit
-								Useskills("Blox Fruit", "Z")
-								wait(.5)
-								Useskills("Blox Fruit", "X")
-								wait(.5)
-								Useskills("Blox Fruit", "C")
-							end
-						until not _G.Prehis_Skills or rock.VFXLayer.At0.Glow.Enabled == false
-					end
-				end
-
-			end
-		end)
-	end
+                                -- Blox Fruit
+                                Useskills("Blox Fruit", "Z")
+                                wait(.5)
+                                Useskills("Blox Fruit", "X")
+                                wait(.5)
+                                Useskills("Blox Fruit", "C")
+                            end
+                        until not _G.Prehis_Skills or rock.VFXLayer.At0.Glow.Enabled == false
+                    end
+                end
+            end
+        end)
+    end
 end)
 
 -- Button para remover lava manualmente
-A:AddButton({
-	Title = "Remover Lava",
-	Description = "Remove toda a lava e partes perigosas imediatamente",
-	Callback = function()
+f:AddButton({
+    Title = "Remover Lava",
+    Description = "Remove toda a lava e partes perigosas imediatamente",
+    Callback = function()
 
-		-- Workspace
-		for _, v in pairs(game.Workspace:GetDescendants()) do
-			if v.Name:lower():find("lava") then
-				v:Destroy()
-			end
-		end
+        -- Workspace
+        for _, v in pairs(game.Workspace:GetDescendants()) do
+            if v.Name:lower():find("lava") then
+                v:Destroy()
+            end
+        end
 
-		-- ReplicatedStorage
-		for _, v in pairs(game.ReplicatedStorage:GetDescendants()) do
-			if v.Name:lower():find("lava") then
-				v:Destroy()
-			end
-		end
+        -- ReplicatedStorage
+        for _, v in pairs(game.ReplicatedStorage:GetDescendants()) do
+            if v.Name:lower():find("lava") then
+                v:Destroy()
+            end
+        end
 
-		-- Prehistoric Island
-		local prehistoricIsland = game.Workspace.Map:FindFirstChild("PrehistoricIsland")
-		if prehistoricIsland then
+        -- Prehistoric Island
+        local prehistoricIsland = game.Workspace.Map:FindFirstChild("PrehistoricIsland")
+        if prehistoricIsland then
+            for _, obj in pairs(prehistoricIsland:GetDescendants()) do
+                if (obj:IsA("Part") or obj:IsA("MeshPart")) and obj.Name:lower():find("lava") then
+                    obj:Destroy()
+                end
+            end
 
-			for _, obj in pairs(prehistoricIsland:GetDescendants()) do
-				if (obj:IsA("Part") or obj:IsA("MeshPart")) and obj.Name:lower():find("lava") then
-					obj:Destroy()
-				end
-			end
+            local lavaModel = prehistoricIsland.Core:FindFirstChild("InteriorLava")
+            if lavaModel then lavaModel:Destroy() end
 
-			local lavaModel = prehistoricIsland.Core:FindFirstChild("InteriorLava")
-			if lavaModel then lavaModel:Destroy() end
-
-			local trialTeleport = prehistoricIsland:FindFirstChild("TrialTeleport")
-			for _, v in pairs(prehistoricIsland:GetDescendants()) do
-				if v.Name == "TouchInterest" and not (trialTeleport and v:IsDescendantOf(trialTeleport)) then
-					v.Parent:Destroy()
-				end
-			end
-		end
-	end
+            local trialTeleport = prehistoricIsland:FindFirstChild("TrialTeleport")
+            for _, v in pairs(prehistoricIsland:GetDescendants()) do
+                if v.Name == "TouchInterest" and not (trialTeleport and v:IsDescendantOf(trialTeleport)) then
+                    v.Parent:Destroy()
+                end
+            end
+        end
+    end
 })
 f:AddToggle({
 	Title = "Auto Collect Dino Bones",
