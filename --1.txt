@@ -23,7 +23,135 @@ end
 repeat
     wait()
 until game.Players.LocalPlayer.Character
-loadstring(game:HttpGet("https://pastefy.app/W9A0Bqc8/raw"))()
+[[
+    Fast Attack + Bring Mobs
+    Arquivo gerado conforme solicitado
+]]
+
+-- FAST ATTACK SIMPLES (Primeiro sistema)
+loadstring(game:HttpGet("https://raw.githubusercontent.com/AnhDzaiScript/Setting/refs/heads/main/FastMax.lua"))()
+
+-- Função para detectar inimigos próximos
+local function GetBladeHits()
+    local targets = {}
+    local function GetDistance(v)
+        return (v.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+    end
+    
+    for _, part in pairs({game.Workspace.Enemies, game.Workspace.Characters}) do
+        for _, v in pairs(part:GetChildren()) do
+            if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Head") and v:FindFirstChild("Humanoid") then
+                if GetDistance(v.HumanoidRootPart) < 60 then
+                    table.insert(targets, v)
+                end
+            end
+        end
+    end
+
+    return targets
+end
+
+-- Fast Attack básico usando RegisterAttack e RegisterHit
+local function AttackAll()
+    local player = game.Players.LocalPlayer
+    local character = player.Character
+    if not character then return end
+
+    local equippedWeapon = character:FindFirstChild("EquippedWeapon")
+    if not equippedWeapon then return end
+
+    local enemies = GetBladeHits()
+    if #enemies > 0 then
+        local netModule = game:GetService("ReplicatedStorage"):WaitForChild("Modules"):WaitForChild("Net")
+        netModule:WaitForChild("RE/RegisterAttack"):FireServer(-math.huge)
+        
+        local args = {nil, {}}
+        for i, v in pairs(enemies) do
+            if not args[1] then
+                args[1] = v.Head
+            end
+            args[2][i] = {v, v.HumanoidRootPart}
+        end
+        
+        netModule:WaitForChild("RE/RegisterHit"):FireServer(unpack(args))
+    end
+end
+
+spawn(function()
+    while task.wait() do AttackAll() end
+end)
+
+
+-- BRING MOBS COMPLETO ----------------------------------------------------
+local plr = game.Players.LocalPlayer
+local TweenService = game:GetService("TweenService")
+
+local function TweenObject(Object, Pos, Speed)
+    Speed = Speed or 350
+    if not Object or not Pos then return end
+    local Distance = (Pos.Position - Object.Position).Magnitude
+    local info = TweenInfo.new(Distance / Speed, Enum.EasingStyle.Linear)
+    local tween = TweenService:Create(Object, info, {CFrame = Pos})
+    tween:Play()
+end
+
+local function GetMobPosition(EnemiesName)
+    local pos = Vector3.zero
+    local count = 0
+    for _, v in pairs(workspace.Enemies:GetChildren()) do
+        if v.Name == EnemiesName and v:FindFirstChild("HumanoidRootPart") then
+            pos += v.HumanoidRootPart.Position
+            count += 1
+        end
+    end
+    if count == 0 then return nil end
+    return pos / count
+end
+
+local function BringMob(enable)
+    if not enable then return end
+    local enemies = workspace.Enemies:GetChildren()
+    if #enemies == 0 then return end
+
+    local totalpos = {}
+    for _, v in pairs(enemies) do
+        if not totalpos[v.Name] then
+            totalpos[v.Name] = GetMobPosition(v.Name)
+        end
+    end
+
+    for _, v in pairs(workspace.Enemies:GetChildren()) do
+        if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") then
+            local hrp = v.HumanoidRootPart
+            local humanoid = v.Humanoid
+            if humanoid.Health > 0 and (hrp.Position - plr.Character.HumanoidRootPart.Position).Magnitude <= 350 then
+                local mobPos = totalpos[v.Name]
+                if mobPos then
+                    local TargetCFrame = CFrame.new(mobPos.X, mobPos.Y, mobPos.Z)
+                    local Distance = (hrp.Position - TargetCFrame.Position).Magnitude
+                    if Distance > 3 and Distance <= 280 then
+                        TweenObject(hrp, TargetCFrame, 300)
+                        hrp.CanCollide = false
+                        if humanoid:FindFirstChild("Animator") then
+                            humanoid.Animator:Destroy()
+                        end
+                        pcall(function()
+                            sethiddenproperty(plr, "SimulationRadius", math.huge)
+                        end)
+                    end
+                end
+            end
+        end
+    end
+end
+
+-- ativar bring automaticamente
+task.spawn(function()
+    while task.wait() do
+        BringMob(true)
+    end
+end)
+
 function CheckQuest() 
     MyLevel = game:GetService("Players").LocalPlayer.Data.Level.Value
     if World1 then
