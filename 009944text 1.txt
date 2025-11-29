@@ -1754,24 +1754,106 @@ QuestCheck = function()
 				Qname = "TikiQuest2";
 				NameMon = "Isle Champion";
 				PosQ = CFrame.new(-16541.0215, 57.3082275, 1051.46118, .0410757065, 0, -0.999156058, 0, 1, 0, .999156058, 0, .0410757065);
-				PosM = CFrame.new(-16602.1015625, 130.38734436035, 1087.2456054688);
-			elseif I == 2551 or I <= 2574 then
-				Mon = "Serpent Hunter";
-				Qdata = 1;
-				Qname = "TikiQuest3";
-				NameMon = "Serpent Hunter";
-				PosQ = CFrame.new(-16679.478515625, 176.74737548828, 1474.3995361328);
-				PosM = CFrame.new(-16679.478515625, 176.74737548828, 1474.3995361328);
-			elseif I >= 2575 then
-				Mon = "Skull Slayer";
-				Qdata = 2;
-				Qname = "TikiQuest3";
-				NameMon = "Skull Slayer";
-				PosQ = CFrame.new(-16759.58984375, 71.283767700195, 1595.3399658203);
-				PosM = CFrame.new(-16759.58984375, 71.283767700195, 1595.3399658203);
-			end;
-		end;
-	end;
+				-- Mobs iniciais
+PosM = CFrame.new(-16602.1015625, 130.38734436035, 1087.2456054688);
+elseif I == 2551 or I <= 2574 then
+    Mon = "Serpent Hunter";
+    Qdata = 1;
+    Qname = "TikiQuest3";
+    NameMon = "Serpent Hunter";
+    PosQ = CFrame.new(-16679.478515625, 176.74737548828, 1474.3995361328);
+    PosM = CFrame.new(-16679.478515625, 176.74737548828, 1474.3995361328);
+elseif I >= 2575 then
+    Mon = "Skull Slayer";
+    Qdata = 2;
+    Qname = "TikiQuest3";
+    NameMon = "Skull Slayer";
+    PosQ = CFrame.new(-16759.58984375, 71.283767700195, 1595.3399658203);
+    PosM = CFrame.new(-16759.58984375, 71.283767700195, 1595.3399658203);
+end;
+end;
+end;
+
+-- Submerged mobs
+elseif MyLevel >= 2600 and MyLevel <= 2624 then
+    Mon = "Reef Bandit"
+    LevelQuest = 1
+    NameQuest = "SubmergedQuest1"
+    NameMon = "Reef Bandits"
+    CFrameQuest = CFrame.new(10778.875, -2087.72437, 9265.18359)
+    CFrameMon = CFrame.new(11019.1318, -2146.06812, 9342.3916)
+    if getgenv().AutoFarm and (CFrameQuest.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude > 10000 then
+        topos(CFrame.new(-16269.7041, 25.2288494, 1373.65955))
+        task.wait(2)
+        local args = {"TravelToSubmergedIsland"} 
+        game:GetService("ReplicatedStorage").Modules.Net:FindFirstChild("RF/SubmarineWorkerSpeak"):InvokeServer(unpack(args))
+    end
+elseif MyLevel >= 2625 and MyLevel <= 2649 then
+    Mon = "Coral Pirate"
+    LevelQuest = 2
+    NameQuest = "SubmergedQuest1"
+    NameMon = "Coral Pirates"
+    CFrameQuest = CFrame.new(10778.875, -2087.72437, 9265.18359)
+    CFrameMon = CFrame.new(10808.6006, -2030.36145, 9364.2334)
+    if getgenv().AutoFarm and (CFrameQuest.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude > 10000 then
+        topos(CFrame.new(-16269.7041, 25.2288494, 1373.65955))
+        task.wait(2)
+        local args = {"TravelToSubmergedIsland"} 
+        game:GetService("ReplicatedStorage").Modules.Net:FindFirstChild("RF/SubmarineWorkerSpeak"):InvokeServer(unpack(args))
+    end
+elseif MyLevel >= 2650 and MyLevel <= 2674 then
+    Mon = "Sea Chanter"
+    LevelQuest = 1
+    NameQuest = "SubmergedQuest2"
+    NameMon = "Sea Chanters"
+    CFrameQuest = CFrame.new(10880.6855, -2086.20044, 10032.624)
+    CFrameMon = CFrame.new(10671.2715, -2057.59155, 10047.2588)
+    if getgenv().AutoFarm and (CFrameQuest.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude > 10000 then
+        topos(CFrame.new(-16269.7041, 25.2288494, 1373.65955))
+        task.wait(2)
+        local args = {"TravelToSubmergedIsland"} 
+        game:GetService("ReplicatedStorage").Modules.Net:FindFirstChild("RF/SubmarineWorkerSpeak"):InvokeServer(unpack(args))
+    end
+elseif MyLevel >= 2675 and MyLevel <= 2699 then
+    Mon = "Ocean Prophet"
+    LevelQuest = 2
+    NameQuest = "SubmergedQuest2"
+    NameMon = "Ocean Prophets"
+    CFrameQuest = CFrame.new(10880.6855, -2086.20044, 10032.624)
+    CFrameMon = CFrame.new(11008.5195, -2007.72839, 10223.0791)
+    if getgenv().AutoFarm and (CFrameQuest.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude > 10000 then
+        topos(CFrame.new(-16269.7041, 25.2288494, 1373.65955))
+        task.wait(2)
+        local args = {"TravelToSubmergedIsland"} 
+        game:GetService("ReplicatedStorage").Modules.Net:FindFirstChild("RF/SubmarineWorkerSpeak"):InvokeServer(unpack(args))
+    end
+elseif MyLevel >= 2700 and MyLevel <= 2724 then
+    Mon = "High Disciple"
+    LevelQuest = 1
+    NameQuest = "SubmergedQuest3"
+    NameMon = "High Disciple"
+    CFrameQuest = CFrame.new(9640.08789, -1992.44507, 9613.65234)
+    CFrameMon = CFrame.new(9750.41602, -1966.93884, 9753.36035)
+    if getgenv().AutoFarm and (CFrameQuest.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude > 10000 then
+        topos(CFrame.new(-16269.7041, 25.2288494, 1373.65955))
+        task.wait(2)
+        local args = {"TravelToSubmergedIsland"} 
+        game:GetService("ReplicatedStorage").Modules.Net:FindFirstChild("RF/SubmarineWorkerSpeak"):InvokeServer(unpack(args))
+    end
+elseif MyLevel >= 2725 then
+    Mon = "Grand Devotee"
+    LevelQuest = 2
+    NameQuest = "SubmergedQuest3"
+    NameMon = "Grand Devotee"
+    CFrameQuest = CFrame.new(9640.08789, -1992.44507, 9613.65234)
+    CFrameMon = CFrame.new(9611.70508, -1993.47119, 9882.68848)
+    if getgenv().AutoFarm and (CFrameQuest.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude > 10000 then
+        topos(CFrame.new(-16269.7041, 25.2288494, 1373.65955))
+        task.wait(2)
+        local args = {"TravelToSubmergedIsland"} 
+        game:GetService("ReplicatedStorage").Modules.Net:FindFirstChild("RF/SubmarineWorkerSpeak"):InvokeServer(unpack(args))
+    end
+end
 MaterialMon = function()
 		local I = game.Players.LocalPlayer;
 		local e = I.Character and I.Character:FindFirstChild("HumanoidRootPart");
