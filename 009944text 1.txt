@@ -2085,21 +2085,53 @@ if plr.Character then
     Root = plr.Character:WaitForChild("HumanoidRootPart")
 end
 
+-- DROPDOWN PARA SELECIONAR ARMA (agora junto com o toggle na mesma aba 'b')
+b:AddDropdown({
+    Title = "Select Weapon",
+    Description = "",
+    Values = {
+        "Melee",
+        "Sword",
+        "Blox Fruit",
+        "Gun",
+    },
+    Default = "Melee",
+    Multi = false,
+    Callback = function(I)
+        _G.ChooseWP = I
+    end,
+})
+
+-- LOOP PARA SELECIONAR ARMA AUTOMATICAMENTE
+spawn(function()
+    while wait(Sec) do
+        pcall(function()
+            for _, e in pairs(plr.Backpack:GetChildren()) do
+                if e.ToolTip == _G.ChooseWP then
+                    if plr.Backpack:FindFirstChild(e.Name) then
+                        _G.SelectWeapon = e.Name
+                    end
+                end
+            end
+        end)
+    end
+end)
+
+-- TOGGLE PARA AUTO FARM LEVEL
 b:AddToggle({
     Title = "Auto Farm Level",
     Description = "",
     Default = false,
     Callback = function(I)
-        _G.Level = I;
+        _G.Level = I
     end,
 })
 
+-- LOOP DE AUTO FARM
 spawn(function()
     while wait(Sec) do
         if _G.Level then
             pcall(function()
-
-                -- Se morreu, espera respawn antes de continuar
                 if not plr.Character or not Root then
                     plr.CharacterAdded:Wait()
                     task.wait(0.5)
@@ -2110,30 +2142,20 @@ spawn(function()
                 local QuestTitle = plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text
                 local Q = QuestNeta()
 
-                -- Se a quest atual for diferente da quest da sua faixa, abandona
                 if not string.find(QuestTitle, Q[5]) then
                     replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
                 end
 
-                -- SE NÃO TEM QUEST
                 if plr.PlayerGui.Main.Quest.Visible == false then
                     _tp(Q[6])
-
-                    -- segurança pro Root nil
                     if Root and (Root.Position - Q[6].Position).Magnitude <= 6 then
                         replicated.Remotes.CommF_:InvokeServer("StartQuest", Q[3], Q[2])
                     end
-
                 else
-                    -- TEM QUEST, AGORA FARMAR
                     if workspace.Enemies:FindFirstChild(Q[1]) then
-
                         for _, Mob in pairs(workspace.Enemies:GetChildren()) do
-
                             if G.Alive(Mob) and Mob.Name == Q[1] then
-
                                 if string.find(QuestTitle, Q[5]) then
-
                                     repeat
                                         wait()
                                         G.Kill(Mob, _G.Level)
@@ -2141,18 +2163,13 @@ spawn(function()
                                         or not Mob.Parent 
                                         or Mob.Humanoid.Health <= 0
                                         or plr.PlayerGui.Main.Quest.Visible == false
-
                                 else
                                     replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
                                 end
                             end
                         end
-
                     else
-                        -- Telepara pro spawn do mob
                         _tp(Q[4])
-
-                        -- Se houver algum mob no replicated
                         local RepMob = replicated:FindFirstChild(Q[1])
                         if RepMob and RepMob:FindFirstChild("HumanoidRootPart") then
                             _tp(RepMob.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
@@ -3779,60 +3796,6 @@ spawn(function()
 	end;
 end);
 T:AddSeperator("Settings / Configure");
-T:AddDropdown({
-	Title = "Select Weapon",
-	Description = "",
-	Values = {
-		"Melee",
-		"Sword",
-		"Blox Fruit",
-		"Gun",
-	},
-	Default = "Melee",
-	Multi = false,
-	Callback = function(I)
-		_G.ChooseWP = I;
-	end,
-});
-spawn(function()
-	while wait(Sec) do
-		pcall(function()
-			if _G.ChooseWP == "Melee" then
-				for I, e in pairs(plr.Backpack:GetChildren()) do
-					if e.ToolTip == "Melee" then
-						if plr.Backpack:FindFirstChild(tostring(e.Name)) then
-							_G.SelectWeapon = e.Name;
-						end;
-					end;
-				end;
-			elseif _G.ChooseWP == "Sword" then
-				for I, e in pairs(plr.Backpack:GetChildren()) do
-					if e.ToolTip == "Sword" then
-						if plr.Backpack:FindFirstChild(tostring(e.Name)) then
-							_G.SelectWeapon = e.Name;
-						end;
-					end;
-				end;
-			elseif _G.ChooseWP == "Gun" then
-				for I, e in pairs(plr.Backpack:GetChildren()) do
-					if e.ToolTip == "Gun" then
-						if plr.Backpack:FindFirstChild(tostring(e.Name)) then
-							_G.SelectWeapon = e.Name;
-						end;
-					end;
-				end;
-			elseif _G.ChooseWP == "Blox Fruit" then
-				for I, e in pairs(plr.Backpack:GetChildren()) do
-					if e.ToolTip == "Blox Fruit" then
-						if plr.Backpack:FindFirstChild(tostring(e.Name)) then
-							_G.SelectWeapon = e.Name;
-						end;
-					end;
-				end;
-			end;
-		end);
-	end;
-end);
 T:AddToggle({
 	Title = "Auto Attack",
 	Description = "",
@@ -3911,7 +3874,7 @@ spawn(function()
 	end;
 end);
 T:AddToggle({
-	Title = "Auto Turn on Spin Position",
+	Title = "Spin In Farming",
 	Description = "",
 	Default = false,
 	Callback = function(I)
