@@ -5569,8 +5569,15 @@ spawn(function()
     end;
 end);
 
-h:AddSeperator("Miragem");
-
+h:AddSeperator("Trials Quests / Misc V4");
+local K5 = h:AddParagraph({ Title = " Tiers V4 Status ", Content = "" });
+spawn(function()
+	pcall(function()
+		while wait(.2) do
+			K5:SetDesc(" Tiers - V4  :" .. (" " .. plr.Data.Race.C.Value));
+		end;
+	end);
+end);
 h:AddToggle({
 	Title = "Auto Look At Moon",
 	Description = "",
@@ -5592,15 +5599,6 @@ task.spawn(function()
 			replicated.Remotes.CommE:FireServer("ActivateAbility");
 		end;
 	end;
-end);
-h:AddSeperator("Trials Quests / Misc V4");
-local K5 = h:AddParagraph({ Title = " Tiers V4 Status ", Content = "" });
-spawn(function()
-	pcall(function()
-		while wait(.2) do
-			K5:SetDesc(" Tiers - V4  :" .. (" " .. plr.Data.Race.C.Value));
-		end;
-	end);
 end);
 h:AddToggle({
 	Title = "Auto Pull Lever",
