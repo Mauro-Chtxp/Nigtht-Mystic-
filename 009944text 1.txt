@@ -2033,34 +2033,36 @@ QuestNeta = function()
 			[6] = PosQ,
 		};
 	end;
-local V = I:NewWindow();
-local i = V:T("Info")
-local y = V:T("Main");
-local c = V:T("Settings");
-local x = V:T("Farming Other");
-local mf = V:T("Misc Farming");
-local t = V:T("Sea Events");
-local m = V:T("Race");
-local v = V:T("Drago Dojo");
-local S = V:T("Prehistoric");
-local q = V:T("Pvp");
-local l = V:T("Teleport");
-local B = V:T("Raid/Fruit");
-local g = V:T("Shop");
-local u = V:T("Misc");
-local b = y:AddSection("Farming");
-local T = c:AddSection("Setting");
-local j = x:AddSection("Other Farming");
-local MF = mf:AddSection("Fishing");
-local A = t:AddSection("Sea Events");
-local h = m:AddSection("Race");
-local W = v:AddSection("Drago Dojo");
-local f = S:AddSection("Prehistoric");
-local E = q:AddSection("Combat");
-local Y = l:AddSection("Teleport");
-local p = B:AddSection("Fruits");
-local D = g:AddSection("Shop");
-local Z = u:AddSection("Misc");
+local V=I:NewWindow();
+local i=V:T("Info")
+local y=V:T("Main");
+local c=V:T("Settings");
+local x=V:T("Farming Other");
+local mf=V:T("Misc Farming");
+local t=V:T("Sea Events");
+local m=V:T("Race");
+local v=V:T("Drago Dojo");
+local S=V:T("Prehistoric");
+local esp=V:T("Esp");
+local q=V:T("Pvp");
+local l=V:T("Teleport");
+local B=V:T("Raid/Fruit");
+local g=V:T("Shop");
+local u=V:T("Misc");
+local b=y:AddSection("Farming");
+local T=c:AddSection("Setting");
+local j=x:AddSection("Other Farming");
+local MF=mf:AddSection("Fishing");
+local A=t:AddSection("Sea Events");
+local h=m:AddSection("Race");
+local W=v:AddSection("Drago Dojo");
+local f=S:AddSection("Prehistoric");
+local ESP=esp:AddSection("Esp");
+local E=q:AddSection("Combat");
+local Y=l:AddSection("Teleport");
+local p=B:AddSection("Fruits");
+local D=g:AddSection("Shop");
+local Z=u:AddSection("Misc");
 
 local plr = game.Players.LocalPlayer
 local rep = game:GetService("ReplicatedStorage")
@@ -8177,7 +8179,7 @@ spawn(function()
 		end;
 	end;
 end);
-E:AddSeperator("Esp Items / Entity / Island");
+esp:AddSeperator("Esp Items / Entity / Island");
 function isnil(I)
 	return I == nil;
 end;
@@ -8657,7 +8659,7 @@ berriesEsp = function()
 			end;
 		end;
 	end;
-E:AddToggle({
+esp:AddToggle({
 	Title = "Esp Berries",
 	Description = "",
 	Default = false,
@@ -8671,7 +8673,7 @@ E:AddToggle({
 		end);
 	end,
 });
-E:AddToggle({
+esp:AddToggle({
 	Title = "Esp Players",
 	Description = "",
 	Default = false,
@@ -8685,7 +8687,7 @@ E:AddToggle({
 		end);
 	end,
 });
-E:AddToggle({
+esp:AddToggle({
 	Title = "Esp Chests",
 	Description = "",
 	Default = false,
@@ -8699,7 +8701,7 @@ E:AddToggle({
 		end);
 	end,
 });
-E:AddToggle({
+esp:AddToggle({
 	Title = "Esp Fruits",
 	Description = "",
 	Default = false,
@@ -8713,7 +8715,7 @@ E:AddToggle({
 		end);
 	end,
 });
-E:AddToggle({
+esp:AddToggle({
 	Title = "Esp Island Location",
 	Description = "",
 	Default = false,
@@ -8728,7 +8730,7 @@ E:AddToggle({
 	end,
 });
 if World2 then
-	E:AddToggle({
+	esp:AddToggle({
 		Title = "Esp Flower",
 		Description = "",
 		Default = false,
@@ -8742,7 +8744,7 @@ if World2 then
 			end);
 		end,
 	});
-	E:AddToggle({
+	esp:AddToggle({
 		Title = "Esp Legendary Sword",
 		Description = "",
 		Default = false,
@@ -8758,7 +8760,7 @@ if World2 then
 	});
 end;
 if World2 or World3 then
-	E:AddToggle({
+	esp:AddToggle({
 		Title = "Esp Aura Colour Dealers",
 		Description = "",
 		Default = false,
@@ -8774,7 +8776,7 @@ if World2 or World3 then
 	});
 end;
 if World3 then
-	E:AddToggle({
+	esp:AddToggle({
 		Title = "Esp Gears",
 		Description = "",
 		Default = false,
@@ -8788,7 +8790,7 @@ if World3 then
 			end);
 		end,
 	});
-	E:AddToggle({
+	esp:AddToggle({
 		Title = "Esp SeaEvent Island",
 		Description = "",
 		Default = false,
@@ -8802,7 +8804,7 @@ if World3 then
 			end);
 		end,
 	});
-	E:AddToggle({
+	esp:AddToggle({
 		Title = "Esp Advanced Fruits Dealer",
 		Description = "",
 		Default = false,
@@ -8818,13 +8820,13 @@ if World3 then
 	});
 end;
 Y:AddSeperator("Travel - Worlds");
-Y:AddButton({ Title = "Travel East Blue (World 1)", Description = "", Callback = function()
+Y:AddButton({ Title = "Teleport Sea 1", Description = "", Callback = function()
 		replicated.Remotes.CommF_:InvokeServer("TravelMain");
 	end });
-Y:AddButton({ Title = "Travel Dressrosa (World 2)", Description = "", Callback = function()
+Y:AddButton({ Title = "Teleport Sea 2", Description = "", Callback = function()
 		replicated.Remotes.CommF_:InvokeServer("TravelDressrosa");
 	end });
-Y:AddButton({ Title = "Travel Zou (World 3)", Description = "", Callback = function()
+Y:AddButton({ Title = "Teleport Sea 3", Description = "", Callback = function()
 		replicated.Remotes.CommF_:InvokeServer("TravelZou");
 	end });
 Y:AddSeperator("Travel - Island");
@@ -8833,7 +8835,7 @@ for I, e in pairs(workspace._WorldOrigin.Locations:GetChildren()) do
 	table.insert(Location, e.Name);
 end;
 Y:AddDropdown({
-	Title = "Select Travelling",
+	Title = "Select Island",
 	Description = "",
 	Values = Location,
 	Default = false,
@@ -8843,7 +8845,7 @@ Y:AddDropdown({
 	end,
 });
 Y:AddToggle({
-	Title = "Auto Travel",
+	Title = "Teleport",
 	Description = "Automatic teleport to pos island",
 	Default = false,
 	Callback = function(I)
@@ -8912,7 +8914,7 @@ for I, e in pairs(replicated.NPCs:GetChildren()) do
 	table.insert(NPCList, e.Name);
 end;
 Y:AddDropdown({
-	Title = "Select NPCs",
+	Title = "Select Npcs",
 	Description = "",
 	Values = NPCList,
 	Default = false,
