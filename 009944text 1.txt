@@ -2950,214 +2950,6 @@ spawn(function()
 		end;
 	end;
 end);
-b:AddSeperator("Upgrade Races V3");
-b:AddToggle({
-	Title = "Auto Mink V2/V3",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.Auto_Mink = I;
-	end,
-});
-spawn(function()
-	while wait(Sec) do
-		pcall(function()
-			if _G.Auto_Mink then
-				if replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") ~= 2 then
-					if replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") == 0 then
-						replicated.Remotes.CommF_:InvokeServer("Alchemist", "2");
-					elseif replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") == 1 then
-						if not plr.Backpack:FindFirstChild("Flower 1") and not plr.Character:FindFirstChild("Flower 1") then
-							_tp(workspace.Flower1.CFrame);
-						elseif not plr.Backpack:FindFirstChild("Flower 2") and not plr.Character:FindFirstChild("Flower 2") then
-							_tp(workspace.Flower2.CFrame);
-						elseif not plr.Backpack:FindFirstChild("Flower 3") and not plr.Character:FindFirstChild("Flower 3") then
-							local I = GetConnectionEnemies("Swan Pirate");
-							if I then
-								repeat
-									wait();
-									G.Kill(I, _G.Auto_Mink);
-								until GetBP("Flower 3") or not I.Parent or I.Humanoid.Health <= 0 or _G.Auto_Mink == false;
-							else
-								_tp(CFrame.new(980.09851074219, 121.33129882812, 1287.2093505859));
-							end;
-						end;
-					elseif replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") == 2 then
-						replicated.Remotes.CommF_:InvokeServer("Alchemist", "3");
-					end;
-				elseif replicated.Remotes.CommF_:InvokeServer("Wenlocktoad", "1") == 0 then
-					replicated.Remotes.CommF_:InvokeServer("Wenlocktoad", "2");
-				elseif replicated.Remotes.CommF_:InvokeServer("Wenlocktoad", "1") == 1 then
-					_G.AutoFarmChest = true;
-				else
-					_G.AutoFarmChest = false;
-				end;
-			end;
-		end);
-	end;
-end);
-b:AddToggle({
-	Title = "Auto Human V2/V3",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.Auto_Human = I;
-	end,
-});
-spawn(function()
-	while wait(Sec) do
-		pcall(function()
-			if _G.Auto_Human then
-				if replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") ~= -2 then
-					if replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") == 0 then
-						replicated.Remotes.CommF_:InvokeServer("Alchemist", "2");
-					elseif replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") == 1 then
-						if not plr.Backpack:FindFirstChild("Flower 1") and not plr.Character:FindFirstChild("Flower 1") then
-							_tp(workspace.Flower1.CFrame);
-						elseif not plr.Backpack:FindFirstChild("Flower 2") and not plr.Character:FindFirstChild("Flower 2") then
-							_tp(workspace.Flower2.CFrame);
-						elseif not plr.Backpack:FindFirstChild("Flower 3") and not plr.Character:FindFirstChild("Flower 3") then
-							local I = GetConnectionEnemies("Swan Pirate");
-							if I then
-								repeat
-									wait();
-									G.Kill(I, _G.Auto_Human);
-								until plr.Backpack:FindFirstChild("Flower 3") or not I.Parent or I.Humanoid.Health <= 0 or _G.Auto_Human == false;
-							else
-								_tp(CFrame.new(980.09851074219, 121.33129882812, 1287.2093505859));
-							end;
-						end;
-					elseif replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") == 2 then
-						replicated.Remotes.CommF_:InvokeServer("Alchemist", "3");
-					end;
-				elseif replicated.Remotes.CommF_:InvokeServer("Wenlocktoad", "1") == 0 then
-					replicated.Remotes.CommF_:InvokeServer("Wenlocktoad", "2");
-				elseif replicated.Remotes.CommF_:InvokeServer("Wenlocktoad", "1") == 1 then
-					local I = GetConnectionEnemies(F[1]);
-					if I then
-						repeat
-							wait();
-							G.Kill(I, _G.Auto_Human);
-						until I.Humanoid.Health <= 0 or not I.Parent or not _G.Auto_Human;
-					else
-						_tp(CFrame.new(-2172.7399902344, 103.32216644287, -4015.025390625));
-					end;
-					local e = GetConnectionEnemies(F[2]);
-					if e then
-						repeat
-							wait();
-							G.Kill(e, _G.Auto_Human);
-						until e.Humanoid.Health <= 0 or not e.Parent or not _G.Auto_Human;
-					else
-						_tp(CFrame.new(2006.9261474609, 448.95666503906, 853.98284912109));
-					end;
-					local K = GetConnectionEnemies(F[3]);
-					if K then
-						repeat
-							wait();
-							G.Kill(K, _G.Auto_Human);
-						until K.Humanoid.Health <= 0 or not K.Parent or not _G.Auto_Human;
-					else
-						_tp(CFrame.new(-1576.7166748047, 198.59265136719, 13.724286079407));
-					end;
-				end;
-			end;
-		end);
-	end;
-end);
-b:AddToggle({
-	Title = "Auto Angel V2/V3",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.Auto_Skypiea = I;
-	end,
-});
-spawn(function()
-	while wait(Sec) do
-		pcall(function()
-			if _G.Auto_Skypiea then
-				if replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") ~= -2 then
-					if replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") == 0 then
-						replicated.Remotes.CommF_:InvokeServer("Alchemist", "2");
-					elseif replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") == 1 then
-						if not plr.Backpack:FindFirstChild("Flower 1") and not plr.Character:FindFirstChild("Flower 1") then
-							_tp(workspace.Flower1.CFrame);
-						elseif not plr.Backpack:FindFirstChild("Flower 2") and not plr.Character:FindFirstChild("Flower 2") then
-							_tp(workspace.Flower2.CFrame);
-						elseif not plr.Backpack:FindFirstChild("Flower 3") and not plr.Character:FindFirstChild("Flower 3") then
-							local I = GetConnectionEnemies("Swan Pirate");
-							if I then
-								repeat
-									wait();
-									G.Kill(I, _G.Auto_Skypiea);
-								until plr.Backpack:FindFirstChild("Flower 3") or not I.Parent or I.Humanoid.Health <= 0 or _G.Auto_Skypiea == false;
-							else
-								_tp(CFrame.new(980.09851074219, 121.33129882812, 1287.2093505859));
-							end;
-						end;
-					elseif replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") == 2 then
-						replicated.Remotes.CommF_:InvokeServer("Alchemist", "3");
-					end;
-				elseif replicated.Remotes.CommF_:InvokeServer("Wenlocktoad", "1") == 0 then
-					replicated.Remotes.CommF_:InvokeServer("Wenlocktoad", "2");
-				elseif replicated.Remotes.CommF_:InvokeServer("Wenlocktoad", "1") == 1 then
-					for I, e in pairs(game.Players:GetChildren()) do
-						if e.Name ~= plr.Name and tostring(e.Data.Race.Value) == "Skypiea" then
-							repeat
-								task.wait();
-								_tp((e.HumanoidRootPart.CFrame * CFrame.new(0, 8, 0)) * CFrame.Angles(math.rad(-45), 0, 0));
-							until e.Humanoid.Health <= 0 or _G.Auto_Skypiea == false;
-						end;
-					end;
-				end;
-			end;
-		end);
-	end;
-end);
-b:AddToggle({
-	Title = "Auto Shark V2/V3",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.Auto_Fish = I;
-	end,
-});
-spawn(function()
-	while wait(Sec) do
-		pcall(function()
-			if _G.Auto_Fish then
-				if replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") ~= -2 then
-					if replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") == 0 then
-						replicated.Remotes.CommF_:InvokeServer("Alchemist", "2");
-					elseif replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") == 1 then
-						if not plr.Backpack:FindFirstChild("Flower 1") and not plr.Character:FindFirstChild("Flower 1") then
-							_tp(workspace.Flower1.CFrame);
-						elseif not plr.Backpack:FindFirstChild("Flower 2") and not plr.Character:FindFirstChild("Flower 2") then
-							_tp(workspace.Flower2.CFrame);
-						elseif not plr.Backpack:FindFirstChild("Flower 3") and not plr.Character:FindFirstChild("Flower 3") then
-							local I = GetConnectionEnemies("Swan Pirate");
-							if I then
-								repeat
-									wait();
-									G.Kill(I, _G.Auto_Fish);
-								until plr.Backpack:FindFirstChild("Flower 3") or not I.Parent or I.Humanoid.Health <= 0 or _G.Auto_Fish == false;
-							else
-								_tp(CFrame.new(980.09851074219, 121.33129882812, 1287.2093505859));
-							end;
-						end;
-					elseif replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") == 2 then
-						replicated.Remotes.CommF_:InvokeServer("Alchemist", "3");
-					end;
-				elseif replicated.Remotes.CommF_:InvokeServer("Wenlocktoad", "1") == 0 then
-					replicated.Remotes.CommF_:InvokeServer("Wenlocktoad", "2");
-				elseif replicated.Remotes.CommF_:InvokeServer("Wenlocktoad", "1") == 1 then
-					warn("Sea Beast Soon");
-				end;
-			end;
-		end);
-	end;
-end);
 b:AddSeperator("Dark Dragger + Valkyrie");
 b:AddToggle({
 	Title = "Auto Kill Rip Indra",
@@ -5570,6 +5362,215 @@ h:AddButton({ Title = "Talk With Stone", Description = "", Callback = function()
 		((replicated:WaitForChild("Remotes")):WaitForChild("CommF_")):InvokeServer("RaceV4Progress", "Teleport");
 		((replicated:WaitForChild("Remotes")):WaitForChild("CommF_")):InvokeServer("RaceV4Progress", "Continue");
 	end });
+h:AddSeperator("Upgrade Races V3");
+
+h:AddToggle({
+    Title = "Auto Mink V2/V3",
+    Description = "",
+    Default = false,
+    Callback = function(I)
+        G.Auto_Mink = I;
+    end,
+});
+spawn(function()
+    while wait(Sec) do
+        pcall(function()
+            if G.Auto_Mink then
+                if replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") ~= 2 then
+                    if replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") == 0 then
+                        replicated.Remotes.CommF_:InvokeServer("Alchemist", "2");
+                    elseif replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") == 1 then
+                        if not plr.Backpack:FindFirstChild("Flower 1") and not plr.Character:FindFirstChild("Flower 1") then
+                            tp(workspace.Flower1.CFrame);
+                        elseif not plr.Backpack:FindFirstChild("Flower 2") and not plr.Character:FindFirstChild("Flower 2") then
+                            tp(workspace.Flower2.CFrame);
+                        elseif not plr.Backpack:FindFirstChild("Flower 3") and not plr.Character:FindFirstChild("Flower 3") then
+                            local I = GetConnectionEnemies("Swan Pirate");
+                            if I then
+                                repeat wait();
+                                    G.Kill(I, G.Auto_Mink);
+                                until GetBP("Flower 3") or not I.Parent or I.Humanoid.Health <= 0 or G.Auto_Mink == false;
+                            else
+                                tp(CFrame.new(980,121,1287));
+                            end;
+                        end;
+                    elseif replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") == 2 then
+                        replicated.Remotes.CommF_:InvokeServer("Alchemist", "3");
+                    end;
+                elseif replicated.Remotes.CommF_:InvokeServer("Wenlocktoad", "1") == 0 then
+                    replicated.Remotes.CommF_:InvokeServer("Wenlocktoad", "2");
+                elseif replicated.Remotes.CommF_:InvokeServer("Wenlocktoad", "1") == 1 then
+                    G.AutoFarmChest = true;
+                else
+                    G.AutoFarmChest = false;
+                end;
+            end;
+        end);
+    end;
+end);
+
+h:AddToggle({
+    Title = "Auto Human V2/V3",
+    Description = "",
+    Default = false,
+    Callback = function(I)
+        G.Auto_Human = I;
+    end,
+});
+spawn(function()
+    while wait(Sec) do
+        pcall(function()
+            if G.Auto_Human then
+                if replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") ~= -2 then
+                    if replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") == 0 then
+                        replicated.Remotes.CommF_:InvokeServer("Alchemist", "2");
+                    elseif replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") == 1 then
+                        if not plr.Backpack:FindFirstChild("Flower 1") and not plr.Character:FindFirstChild("Flower 1") then
+                            tp(workspace.Flower1.CFrame);
+                        elseif not plr.Backpack:FindFirstChild("Flower 2") and not plr.Character:FindFirstChild("Flower 2") then
+                            tp(workspace.Flower2.CFrame);
+                        elseif not plr.Backpack:FindFirstChild("Flower 3") and not plr.Character:FindFirstChild("Flower 3") then
+                            local I = GetConnectionEnemies("Swan Pirate");
+                            if I then
+                                repeat wait();
+                                    G.Kill(I, G.Auto_Human);
+                                until plr.Backpack:FindFirstChild("Flower 3") or not I.Parent or I.Humanoid.Health <= 0 or G.Auto_Human == false;
+                            else
+                                tp(CFrame.new(980,121,1287));
+                            end;
+                        end;
+                    elseif replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") == 2 then
+                        replicated.Remotes.CommF_:InvokeServer("Alchemist", "3");
+                    end;
+                elseif replicated.Remotes.CommF_:InvokeServer("Wenlocktoad", "1") == 0 then
+                    replicated.Remotes.CommF_:InvokeServer("Wenlocktoad", "2");
+                elseif replicated.Remotes.CommF_:InvokeServer("Wenlocktoad", "1") == 1 then
+                    local I = GetConnectionEnemies(F[1]);
+                    if I then
+                        repeat wait();
+                            G.Kill(I, _G.Auto_Human);
+                        until I.Humanoid.Health <= 0 or not I.Parent or not _G.Auto_Human;
+                    else
+                        _tp(CFrame.new(-2172,103,-4015));
+                    end;
+
+                    local e = GetConnectionEnemies(F[2]);
+                    if e then
+                        repeat wait();
+                            G.Kill(e, _G.Auto_Human);
+                        until e.Humanoid.Health <= 0 or not e.Parent or not _G.Auto_Human;
+                    else
+                        _tp(CFrame.new(2006,448,853));
+                    end;
+
+                    local K = GetConnectionEnemies(F[3]);
+                    if K then
+                        repeat wait();
+                            G.Kill(K, _G.Auto_Human);
+                        until K.Humanoid.Health <= 0 or not K.Parent or not G.Auto_Human;
+                    else
+                        tp(CFrame.new(-1576,198,13));
+                    end;
+                end;
+            end;
+        end);
+    end;
+end);
+
+h:AddToggle({
+    Title = "Auto Angel V2/V3",
+    Description = "",
+    Default = false,
+    Callback = function(I)
+        G.Auto_Skypiea = I;
+    end,
+});
+spawn(function()
+    while wait(Sec) do
+        pcall(function()
+            if G.Auto_Skypiea then
+                if replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") ~= -2 then
+                    if replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") == 0 then
+                        replicated.Remotes.CommF_:InvokeServer("Alchemist", "2");
+                    elseif replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") == 1 then
+                        if not plr.Backpack:FindFirstChild("Flower 1") and not plr.Character:FindFirstChild("Flower 1") then
+                            tp(workspace.Flower1.CFrame);
+                        elseif not plr.Backpack:FindFirstChild("Flower 2") and not plr.Character:FindFirstChild("Flower 2") then
+                            tp(workspace.Flower2.CFrame);
+                        elseif not plr.Backpack:FindFirstChild("Flower 3") and not plr.Character:FindFirstChild("Flower 3") then
+                            local I = GetConnectionEnemies("Swan Pirate");
+                            if I then
+                                repeat task.wait();
+                                    G.Kill(I, G.Auto_Skypiea);
+                                until plr.Backpack:FindFirstChild("Flower 3") or not I.Parent or I.Humanoid.Health <= 0 or G.Auto_Skypiea == false;
+                            else
+                                tp(CFrame.new(980,121,1287));
+                            end;
+                        end;
+                    elseif replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") == 2 then
+                        replicated.Remotes.CommF_:InvokeServer("Alchemist", "3");
+                    end;
+                elseif replicated.Remotes.CommF_:InvokeServer("Wenlocktoad", "1") == 0 then
+                    replicated.Remotes.CommF_:InvokeServer("Wenlocktoad", "2");
+                elseif replicated.Remotes.CommF_:InvokeServer("Wenlocktoad", "1") == 1 then
+                    for I, e in pairs(game.Players:GetChildren()) do
+                        if e.Name ~= plr.Name and tostring(e.Data.Race.Value) == "Skypiea" then
+                            repeat task.wait();
+                                tp((e.HumanoidRootPart.CFrame * CFrame.new(0, 8, 0)) * CFrame.Angles(math.rad(-45), 0, 0));
+                            until e.Humanoid.Health <= 0 or G.Auto_Skypiea == false;
+                        end;
+                    end;
+                end;
+            end;
+        end);
+    end;
+end);
+
+h:AddToggle({
+    Title = "Auto Shark V2/V3",
+    Description = "",
+    Default = false,
+    Callback = function(I)
+        G.Auto_Fish = I;
+    end,
+});
+spawn(function()
+    while wait(Sec) do
+        pcall(function()
+            if G.Auto_Fish then
+                if replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") ~= -2 then
+                    if replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") == 0 then
+                        replicated.Remotes.CommF_:InvokeServer("Alchemist", "2");
+                    elseif replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") == 1 then
+                        if not plr.Backpack:FindFirstChild("Flower 1") and not plr.Character:FindFirstChild("Flower 1") then
+                            tp(workspace.Flower1.CFrame);
+                        elseif not plr.Backpack:FindFirstChild("Flower 2") and not plr.Character:FindFirstChild("Flower 2") then
+                            tp(workspace.Flower2.CFrame);
+                        elseif not plr.Backpack:FindFirstChild("Flower 3") and not plr.Character:FindFirstChild("Flower 3") then
+                            local I = GetConnectionEnemies("Swan Pirate");
+                            if I then
+                                repeat wait();
+                                    G.Kill(I, G.Auto_Fish);
+                                until plr.Backpack:FindFirstChild("Flower 3") or not I.Parent or I.Humanoid.Health <= 0 or G.Auto_Fish == false;
+                            else
+                                tp(CFrame.new(980,121,1287));
+                            end;
+                        end;
+                    elseif replicated.Remotes.CommF_:InvokeServer("Alchemist", "1") == 2 then
+                        replicated.Remotes.CommF_:InvokeServer("Alchemist", "3");
+                    end;
+                elseif replicated.Remotes.CommF_:InvokeServer("Wenlocktoad", "1") == 0 then
+                    replicated.Remotes.CommF_:InvokeServer("Wenlocktoad", "2");
+                elseif replicated.Remotes.CommF_:InvokeServer("Wenlocktoad", "1") == 1 then
+                    warn("Sea Beast Soon");
+                end;
+            end;
+        end);
+    end;
+end);
+
+h:AddSeperator("Miragem");
+
 h:AddToggle({
 	Title = "Auto Look At Moon",
 	Description = "",
@@ -5578,6 +5579,7 @@ h:AddToggle({
 		LookM = I;
 	end,
 });
+
 function MoveCamtoMoon()
 	workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, Lighting:GetMoonDirection() + workspace.CurrentCamera.CFrame.Position);
 	plr.Character.HumanoidRootPart.CFrame = CFrame.new(plr.Character.HumanoidRootPart.Position, Lighting:GetMoonDirection() + plr.Character.HumanoidRootPart.CFrame.Position);
