@@ -2700,24 +2700,35 @@ spawn(function()
         end
     end
 end)
--- SECTION: BOSS
+---------------------------------------------------------------------
+-- SECTION BOSS
+---------------------------------------------------------------------
 b:AddSeperator("Boss")
 
--- DROPDOWN PARA SELECIONAR BOSS
+---------------------------------------------------------------------
+-- DROPDOWN (corrigido — retorna índice igual ao Fluent)
+---------------------------------------------------------------------
 b:AddDropdown({
-    Title = "Select Boss",
+    Title = "Selecione o Boss",
     Description = "Selecione o Boss Para Farm",
     Values = Boss,
     Default = nil,
     Multi = false,
     Callback = function(value)
-        _G.FindBoss = value
+        -- Conversão do nome do boss para índice
+        for i, v in pairs(Boss) do
+            if v == value then
+                _G.FindBoss = i
+            end
+        end
     end,
 })
 
--- TOGGLE: AUTO FARM BOSS
+---------------------------------------------------------------------
+-- TOGGLE AUTO FARM BOSS
+---------------------------------------------------------------------
 b:AddToggle({
-    Title = "Kill Boss",
+    Title = "Auto Farm Boss",
     Description = "Farma o Boss Selecionado",
     Default = false,
     Callback = function(v)
@@ -2725,28 +2736,41 @@ b:AddToggle({
     end,
 })
 
--- SISTEMA AUTO FARM
+---------------------------------------------------------------------
+-- SISTEMA AUTO FARM BOSS
+---------------------------------------------------------------------
 spawn(function()
     while wait(Sec) do
         pcall(function()
             if _G.FarmBoss and _G.FindBoss ~= nil then
 
+                -- Carrega dados do boss
                 local HasQuest = QuestBeta()[2] ~= nil and QuestBeta()[3] ~= nil
 
+                -------------------------------------------------------------------------------------------------
+                -- BOSS TEM QUEST
+                -------------------------------------------------------------------------------------------------
                 if HasQuest then
                     local QuestTitle = plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text
-
+                    
+                    -- Título errado → abandona quest
                     if not string.find(QuestTitle, QuestBeta()[0]) then
                         replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
                     end
 
+                    -- Não tem quest → teleport + pegar quest
                     if not plr.PlayerGui.Main.Quest.Visible then
                         _tp(QuestBeta()[5])
 
                         if (Root.Position - QuestBeta()[5].Position).Magnitude <= 5 then
-                            replicated.Remotes.CommF_:InvokeServer("StartQuest", QuestBeta()[3], QuestBeta()[2])
+                            replicated.Remotes.CommF_:InvokeServer(
+                                "StartQuest",
+                                QuestBeta()[3],
+                                QuestBeta()[2]
+                            )
                         end
 
+                    -- Já tem quest ativa → farmar boss
                     else
                         if workspace.Enemies:FindFirstChild(QuestBeta()[1]) then
                             for _, v in pairs(workspace.Enemies:GetChildren()) do
@@ -2754,38 +2778,57 @@ spawn(function()
 
                                     if string.find(QuestTitle, QuestBeta()[0]) then
                                         repeat
-                                            wait()
+                                            task.wait()
                                             Attack.Kill(v, _G.FarmBoss)
-                                        until not _G.FarmBoss or v.Humanoid.Health <= 0 or not v.Parent or not plr.PlayerGui.Main.Quest.Visible
+                                        until
+                                            not _G.FarmBoss or
+                                            v.Humanoid.Health <= 0 or
+                                            not v.Parent or
+                                            not plr.PlayerGui.Main.Quest.Visible
                                     else
                                         replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
                                     end
                                 end
                             end
+
                         else
+                            -- Boss não carregou → teleport para spawn dele
                             _tp(QuestBeta()[4])
+
                             if replicated:FindFirstChild(QuestBeta()[1]) then
-                                _tp(replicated:FindFirstChild(QuestBeta()[1]).HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
+                                _tp(
+                                    replicated:FindFirstChild(QuestBeta()[1]).HumanoidRootPart.CFrame
+                                    * CFrame.new(0, 30, 0)
+                                )
                             end
                         end
                     end
 
+                -------------------------------------------------------------------------------------------------
+                -- BOSS SEM QUEST
+                -------------------------------------------------------------------------------------------------
                 else
-                    -- BOSS SEM QUEST
                     if workspace.Enemies:FindFirstChild(QuestBeta()[1]) then
                         for _, v in pairs(workspace.Enemies:GetChildren()) do
                             if Attack.Alive(v) and v.Name == QuestBeta()[1] then
                                 repeat
-                                    wait()
+                                    task.wait()
                                     Attack.Kill(v, _G.FarmBoss)
-                                until not _G.FarmBoss or v.Humanoid.Health <= 0 or not v.Parent
+                                until
+                                    not _G.FarmBoss or
+                                    v.Humanoid.Health <= 0 or
+                                    not v.Parent
                             end
                         end
-
                     else
+                        -- Teleport para spawn
                         _tp(QuestBeta()[4])
+
                         if replicated:FindFirstChild(QuestBeta()[1]) then
-                            _tp(replicated:FindFirstChild(QuestBeta()[1]).HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
+                            _tp(
+                                replicated:FindFirstChild(QuestBeta()[1]).HumanoidRootPart.CFrame
+                                * CFrame.new(0, 30, 0)
+                            )
                         end
                     end
                 end
@@ -2793,7 +2836,6 @@ spawn(function()
         end)
     end
 end)
-
 -- SEÇÃO BONE
 b:AddSeperator("Bones System")
 
