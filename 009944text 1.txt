@@ -1898,9 +1898,10 @@ local t = V:T("Sea Events");
 local m = V:T("Race");
 local v = V:T("Drago Dojo");
 local S = V:T("Prehistoric");
+local L = V:T("Raid");
 local q = V:T("Pvp");
 local l = V:T("Teleport");
-local B = V:T("Fruits/Raids");
+local B = V:T("Fruits");
 local g = V:T("Shop");
 local u = V:T("Misc");
 local b = y:AddSection("Farming");
@@ -1911,11 +1912,13 @@ local A = t:AddSection("Sea Events");
 local h = m:AddSection("Race");
 local W = v:AddSection("Drago Dojo");
 local f = S:AddSection("Prehistoric");
+local s = L:AddSection("Raid");
 local E = q:AddSection("Combat");
 local Y = l:AddSection("Teleport");
 local p = B:AddSection("Fruits");
 local D = g:AddSection("Shop");
 local Z = u:AddSection("Misc");
+
 local plr = game.Players.LocalPlayer
 local rep = game:GetService("ReplicatedStorage")
 local Modules = rep:WaitForChild("Modules")
@@ -7489,7 +7492,277 @@ A:AddButton({ Title = "Trade Items Azure", Description = "", Callback = function
 A:AddButton({ Title = "Talk with kitsune statue", Description = "", Callback = function()
 		(replicated.Modules.Net:FindFirstChild("RE/TouchKitsuneStatue")):FireServer();
 	end });
-
+s:AddSeperator("Dungeon Event / Raiding");
+local P5 = s:AddParagraph({ Title = " Raiding Status ", Content = "" });
+spawn(function()
+	while wait(.2) do
+		pcall(function()
+			if plr.PlayerGui.Main.Timer.Visible == true then
+				P5:SetDesc(" Raiding Statud : True");
+			else
+				P5:SetDesc(" Raiding Statud : False");
+			end;
+		end);
+	end;
+end);
+e = {
+		"Flame",
+		"Ice",
+		"Quake",
+		"Light",
+		"Dark",
+		"String",
+		"Rumble",
+		"Magma",
+		"Human: Buddha",
+		"Sand",
+		"Bird: Phoenix",
+		"Dough",
+	};
+s:AddDropdown({
+	Title = "Select Chip",
+	Description = "",
+	Values = e,
+	Default = "Flame",
+	Multi = false,
+	Callback = function(I)
+		_G.SelectChip = I;
+	end,
+});
+s:AddToggle({
+	Title = "Auto Select Dungeon Chip",
+	Description = "",
+	Default = false,
+	Callback = function(I)
+		_G.AutoSelectDungeon = I;
+	end,
+});
+spawn(function()
+	while wait(Sec) do
+		if _G.AutoSelectDungeon then
+			pcall(function()
+				if GetBP("Flame-Flame") then
+					_G.SelectChip = "Flame";
+				elseif GetBP("Ice-Ice") then
+					_G.SelectChip = "Ice";
+				elseif GetBP("Quake-Quake") then
+					_G.SelectChip = "Quake";
+				elseif GetBP("Light-Light") then
+					_G.SelectChip = "Light";
+				elseif GetBP("Dark-Dark") then
+					_G.SelectChip = "Dark";
+				elseif GetBP("String-String") then
+					_G.SelectChip = "String";
+				elseif GetBP("Rumble-Rumble") then
+					_G.SelectChip = "Rumble";
+				elseif GetBP("Magma-Magma") then
+					_G.SelectChip = "Magma";
+				elseif GetBP("Human-Human: Buddha Fruit") then
+					_G.SelectChip = "Human: Buddha";
+				elseif GetBP("Dough-Dough") then
+					_G.SelectChip = "Dough";
+				elseif GetBP("Sand-Sand") then
+					_G.SelectChip = "Sand";
+				elseif GetBP("Bird-Bird: Phoenix") then
+					_G.SelectChip = "Bird: Phoenix";
+				else
+					_G.SelectChip = "Ice";
+				end;
+			end);
+		end;
+	end;
+end);
+s:AddButton({ Title = "Buy Dungeon Chips [Beli]", Description = "", Callback = function()
+		if not GetBP("Special Microchip") then
+			replicated.Remotes.CommF_:InvokeServer("RaidsNpc", "Select", _G.SelectChip);
+		end;
+	end });
+s:AddButton({ Title = "Buy Dungeon Chips [Devil Fruit]", Description = "Use your lowest fruit in your bag", Callback = function()
+		if GetBP("Special Microchip") then
+			return;
+		end;
+		local I = {};
+		local K = {};
+		for e, K in next, (replicated:WaitForChild("Remotes")).CommF_:InvokeServer("GetFruits") do
+			if K.Price <= 490000 then
+				table.insert(I, K.Name);
+			end;
+		end;
+		for I, K in pairs(I) do
+			for I, e in pairs(e) do
+				if not GetBP("Special Microchip") then
+					replicated.Remotes.CommF_:InvokeServer("LoadFruit", tostring(K));
+					replicated.Remotes.CommF_:InvokeServer("RaidsNpc", "Select", _G.SelectChip);
+				end;
+			end;
+		end;
+	end });
+s:AddSeperator("Raiding Menu");
+s:AddToggle({
+	Title = "Auto Start Raid",
+	Description = "",
+	Default = false,
+	Callback = function(I)
+		_G.Auto_StartRaid = I;
+	end,
+});
+spawn(function()
+	while wait(Sec) do
+		pcall(function()
+			if _G.Auto_StartRaid then
+				if plr.PlayerGui.Main.TopHUDList.RaidTimer.Visible == false then
+					if GetBP("Special Microchip") then
+						if World2 then
+							_tp(CFrame.new(-6438.73535, 250.645355, -4501.50684));
+							fireclickdetector(workspace.Map.CircleIsland.RaidSummon2.Button.Main.ClickDetector);
+						elseif World3 then
+							replicated.Remotes.CommF_:InvokeServer("requestEntrance", Vector3.new(-5097.93164, 316.447021, -3142.66602, -0.405007899, -4.31682743e-08, .914313197, -1.90943332e-08, 1, 3.8755779e-08, -0.914313197, -1.76180437e-09, -0.405007899));
+							fireclickdetector(workspace.Map["Boat Castle"].RaidSummon2.Button.Main.ClickDetector);
+						end;
+					end;
+				end;
+			end;
+		end);
+	end;
+end);
+s:AddToggle({
+	Title = "Teleport To Lab",
+	Description = "",
+	Default = false,
+	Callback = function(I)
+		_G.TpLab = I;
+		spawn(function()
+			while _G.TpLab do
+				wait(Sec);
+				if _G.TpLab then
+					if World2 then
+						_tp(CFrame.new(-6438.73535, 250.645355, -4501.50684));
+					elseif World3 then
+						_tp(CFrame.new(-5017.40869, 314.844055, -2823.0127, -0.925743818, 4.48217499e-08, -0.378151238, 4.55503146e-09, 1, 1.07377559e-07, .378151238, 9.7681621e-08, -0.925743818));
+					end;
+				end;
+			end;
+		end);
+	end,
+});
+s:AddToggle({
+	Title = "Auto Complete Raid [Safety]",
+	Description = "",
+	Default = false,
+	Callback = function(I)
+		_G.Raiding = I;
+	end,
+});
+spawn(function()
+	pcall(function()
+		while wait(Sec) do
+			if _G.Raiding then
+				if plr.PlayerGui.Main.TopHUDList.RaidTimer.Visible == true then
+					local I = {
+							"Island5",
+							"Island 4",
+							"Island 3",
+							"Island 2",
+							"Island 1",
+						};
+					for I, e in ipairs(I) do
+						local K = (game:GetService("Workspace"))._WorldOrigin.Locations:FindFirstChild(e);
+						if K then
+							for I, e in pairs(workspace.Enemies:GetChildren()) do
+								if e:FindFirstChild("Humanoid") or e:FindFirstChild("HumanoidRootPart") then
+									if e.Humanoid.Health > 0 then
+										repeat
+											wait();
+											G.Kill(e, _G.Raiding);
+											NextIs = false;
+										until not _G.Raiding or not e.Parent or e.Humanoid.Health <= 0;
+										NextIs = true;
+									end;
+								end;
+							end;
+						end;
+					end;
+				else
+					NextIs = false;
+				end;
+			else
+				NextIs = false;
+			end;
+		end;
+	end);
+end);
+s:AddToggle({
+	Title = "Kill Aura",
+	Description = "",
+	Default = false,
+	Callback = function(I)
+		_G.KillH = I;
+	end,
+});
+spawn(function()
+	while wait(Sec) do
+		if _G.KillH then
+			for I, e in pairs(workspace.Enemies:GetChildren()) do
+				if G.Alive(e) then
+					pcall(function()
+						repeat
+							wait(Sec);
+							sethiddenproperty(plr, "SimulationRadius", math.huge);
+							e:BreakJoints();
+							e.Humanoid.Health = 0;
+							e.HumanoidRootPart.CanCollide = false;
+						until not _G.KillH or not e.Parent or e.Humanoid.Health <= 0;
+					end);
+				end;
+			end;
+		end;
+	end;
+end);
+s:AddToggle({
+	Title = "Auto Next Island",
+	Description = "",
+	Default = false,
+	Callback = function(I)
+		NextIs = I;
+	end,
+});
+spawn(function()
+	while wait(Sec) do
+		if NextIs then
+			if plr.PlayerGui.Main.TopHUDList.RaidTimer.Visible == true then
+				if workspace._WorldOrigin.Locations:FindFirstChild("Island 5") then
+					_tp((workspace._WorldOrigin.Locations:FindFirstChild("Island 5")).CFrame * CFrame.new(0, 50, 100));
+				elseif workspace._WorldOrigin.Locations:FindFirstChild("Island 4") then
+					_tp((workspace._WorldOrigin.Locations:FindFirstChild("Island 4")).CFrame * CFrame.new(0, 50, 100));
+				elseif workspace._WorldOrigin.Locations:FindFirstChild("Island 3") then
+					_tp((workspace._WorldOrigin.Locations:FindFirstChild("Island 3")).CFrame * CFrame.new(0, 50, 100));
+				elseif workspace._WorldOrigin.Locations:FindFirstChild("Island 2") then
+					_tp((workspace._WorldOrigin.Locations:FindFirstChild("Island 2")).CFrame * CFrame.new(0, 50, 100));
+				elseif workspace._WorldOrigin.Locations:FindFirstChild("Island 1") then
+					_tp((workspace._WorldOrigin.Locations:FindFirstChild("Island 1")).CFrame * CFrame.new(0, 50, 100));
+				end;
+			end;
+		end;
+	end;
+end);
+s:AddToggle({
+	Title = "Auto Awakening",
+	Description = "",
+	Default = false,
+	Callback = function(I)
+		_G.Auto_Awakener = I;
+	end,
+});
+spawn(function()
+	while wait(Sec) do
+		pcall(function()
+			if _G.Auto_Awakener then
+				replicated.Remotes.CommF_:InvokeServer("Awakener", "Check");
+				replicated.Remotes.CommF_:InvokeServer("Awakener", "Awaken");
+			end;
+		end);
+	end;
+end);
 E:AddSeperator("Combat / Aimbot");
 __indexPlayer = E:AddParagraph({ Title = "All Players On Server :", Content = "" });
 spawn(function()
@@ -8665,277 +8938,6 @@ spawn(function()
 				collectFruits(_G.InstanceF);
 			end);
 		end;
-	end;
-end);
-p:AddSeperator("Dungeon Event / Raiding");
-local P5 = s:AddParagraph({ Title = " Raiding Status ", Content = "" });
-spawn(function()
-	while wait(.2) do
-		pcall(function()
-			if plr.PlayerGui.Main.Timer.Visible == true then
-				P5:SetDesc(" Raiding Statud : True");
-			else
-				P5:SetDesc(" Raiding Statud : False");
-			end;
-		end);
-	end;
-end);
-e = {
-		"Flame",
-		"Ice",
-		"Quake",
-		"Light",
-		"Dark",
-		"String",
-		"Rumble",
-		"Magma",
-		"Human: Buddha",
-		"Sand",
-		"Bird: Phoenix",
-		"Dough",
-	};
-s:AddDropdown({
-	Title = "Select Chip",
-	Description = "",
-	Values = e,
-	Default = "Flame",
-	Multi = false,
-	Callback = function(I)
-		_G.SelectChip = I;
-	end,
-});
-p:AddToggle({
-	Title = "Auto Select Dungeon Chip",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.AutoSelectDungeon = I;
-	end,
-});
-spawn(function()
-	while wait(Sec) do
-		if _G.AutoSelectDungeon then
-			pcall(function()
-				if GetBP("Flame-Flame") then
-					_G.SelectChip = "Flame";
-				elseif GetBP("Ice-Ice") then
-					_G.SelectChip = "Ice";
-				elseif GetBP("Quake-Quake") then
-					_G.SelectChip = "Quake";
-				elseif GetBP("Light-Light") then
-					_G.SelectChip = "Light";
-				elseif GetBP("Dark-Dark") then
-					_G.SelectChip = "Dark";
-				elseif GetBP("String-String") then
-					_G.SelectChip = "String";
-				elseif GetBP("Rumble-Rumble") then
-					_G.SelectChip = "Rumble";
-				elseif GetBP("Magma-Magma") then
-					_G.SelectChip = "Magma";
-				elseif GetBP("Human-Human: Buddha Fruit") then
-					_G.SelectChip = "Human: Buddha";
-				elseif GetBP("Dough-Dough") then
-					_G.SelectChip = "Dough";
-				elseif GetBP("Sand-Sand") then
-					_G.SelectChip = "Sand";
-				elseif GetBP("Bird-Bird: Phoenix") then
-					_G.SelectChip = "Bird: Phoenix";
-				else
-					_G.SelectChip = "Ice";
-				end;
-			end);
-		end;
-	end;
-end);
-s:AddButton({ Title = "Buy Dungeon Chips [Beli]", Description = "", Callback = function()
-		if not GetBP("Special Microchip") then
-			replicated.Remotes.CommF_:InvokeServer("RaidsNpc", "Select", _G.SelectChip);
-		end;
-	end });
-s:AddButton({ Title = "Buy Dungeon Chips [Devil Fruit]", Description = "Use your lowest fruit in your bag", Callback = function()
-		if GetBP("Special Microchip") then
-			return;
-		end;
-		local I = {};
-		local K = {};
-		for e, K in next, (replicated:WaitForChild("Remotes")).CommF_:InvokeServer("GetFruits") do
-			if K.Price <= 490000 then
-				table.insert(I, K.Name);
-			end;
-		end;
-		for I, K in pairs(I) do
-			for I, e in pairs(e) do
-				if not GetBP("Special Microchip") then
-					replicated.Remotes.CommF_:InvokeServer("LoadFruit", tostring(K));
-					replicated.Remotes.CommF_:InvokeServer("RaidsNpc", "Select", _G.SelectChip);
-				end;
-			end;
-		end;
-	end });
-p:AddSeperator("Raiding Menu");
-p:AddToggle({
-	Title = "Auto Start Raid",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.Auto_StartRaid = I;
-	end,
-});
-spawn(function()
-	while wait(Sec) do
-		pcall(function()
-			if _G.Auto_StartRaid then
-				if plr.PlayerGui.Main.TopHUDList.RaidTimer.Visible == false then
-					if GetBP("Special Microchip") then
-						if World2 then
-							_tp(CFrame.new(-6438.73535, 250.645355, -4501.50684));
-							fireclickdetector(workspace.Map.CircleIsland.RaidSummon2.Button.Main.ClickDetector);
-						elseif World3 then
-							replicated.Remotes.CommF_:InvokeServer("requestEntrance", Vector3.new(-5097.93164, 316.447021, -3142.66602, -0.405007899, -4.31682743e-08, .914313197, -1.90943332e-08, 1, 3.8755779e-08, -0.914313197, -1.76180437e-09, -0.405007899));
-							fireclickdetector(workspace.Map["Boat Castle"].RaidSummon2.Button.Main.ClickDetector);
-						end;
-					end;
-				end;
-			end;
-		end);
-	end;
-end);
-p:AddToggle({
-	Title = "Teleport To Lab",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.TpLab = I;
-		spawn(function()
-			while _G.TpLab do
-				wait(Sec);
-				if _G.TpLab then
-					if World2 then
-						_tp(CFrame.new(-6438.73535, 250.645355, -4501.50684));
-					elseif World3 then
-						_tp(CFrame.new(-5017.40869, 314.844055, -2823.0127, -0.925743818, 4.48217499e-08, -0.378151238, 4.55503146e-09, 1, 1.07377559e-07, .378151238, 9.7681621e-08, -0.925743818));
-					end;
-				end;
-			end;
-		end);
-	end,
-});
-p:AddToggle({
-	Title = "Auto Complete Raid [Safety]",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.Raiding = I;
-	end,
-});
-spawn(function()
-	pcall(function()
-		while wait(Sec) do
-			if _G.Raiding then
-				if plr.PlayerGui.Main.TopHUDList.RaidTimer.Visible == true then
-					local I = {
-							"Island5",
-							"Island 4",
-							"Island 3",
-							"Island 2",
-							"Island 1",
-						};
-					for I, e in ipairs(I) do
-						local K = (game:GetService("Workspace"))._WorldOrigin.Locations:FindFirstChild(e);
-						if K then
-							for I, e in pairs(workspace.Enemies:GetChildren()) do
-								if e:FindFirstChild("Humanoid") or e:FindFirstChild("HumanoidRootPart") then
-									if e.Humanoid.Health > 0 then
-										repeat
-											wait();
-											G.Kill(e, _G.Raiding);
-											NextIs = false;
-										until not _G.Raiding or not e.Parent or e.Humanoid.Health <= 0;
-										NextIs = true;
-									end;
-								end;
-							end;
-						end;
-					end;
-				else
-					NextIs = false;
-				end;
-			else
-				NextIs = false;
-			end;
-		end;
-	end);
-end);
-p:AddToggle({
-	Title = "Kill Aura",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.KillH = I;
-	end,
-});
-spawn(function()
-	while wait(Sec) do
-		if _G.KillH then
-			for I, e in pairs(workspace.Enemies:GetChildren()) do
-				if G.Alive(e) then
-					pcall(function()
-						repeat
-							wait(Sec);
-							sethiddenproperty(plr, "SimulationRadius", math.huge);
-							e:BreakJoints();
-							e.Humanoid.Health = 0;
-							e.HumanoidRootPart.CanCollide = false;
-						until not _G.KillH or not e.Parent or e.Humanoid.Health <= 0;
-					end);
-				end;
-			end;
-		end;
-	end;
-end);
-p:AddToggle({
-	Title = "Auto Next Island",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		NextIs = I;
-	end,
-});
-spawn(function()
-	while wait(Sec) do
-		if NextIs then
-			if plr.PlayerGui.Main.TopHUDList.RaidTimer.Visible == true then
-				if workspace._WorldOrigin.Locations:FindFirstChild("Island 5") then
-					_tp((workspace._WorldOrigin.Locations:FindFirstChild("Island 5")).CFrame * CFrame.new(0, 50, 100));
-				elseif workspace._WorldOrigin.Locations:FindFirstChild("Island 4") then
-					_tp((workspace._WorldOrigin.Locations:FindFirstChild("Island 4")).CFrame * CFrame.new(0, 50, 100));
-				elseif workspace._WorldOrigin.Locations:FindFirstChild("Island 3") then
-					_tp((workspace._WorldOrigin.Locations:FindFirstChild("Island 3")).CFrame * CFrame.new(0, 50, 100));
-				elseif workspace._WorldOrigin.Locations:FindFirstChild("Island 2") then
-					_tp((workspace._WorldOrigin.Locations:FindFirstChild("Island 2")).CFrame * CFrame.new(0, 50, 100));
-				elseif workspace._WorldOrigin.Locations:FindFirstChild("Island 1") then
-					_tp((workspace._WorldOrigin.Locations:FindFirstChild("Island 1")).CFrame * CFrame.new(0, 50, 100));
-				end;
-			end;
-		end;
-	end;
-end);
-p:AddToggle({
-	Title = "Auto Awakening",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.Auto_Awakener = I;
-	end,
-});
-spawn(function()
-	while wait(Sec) do
-		pcall(function()
-			if _G.Auto_Awakener then
-				replicated.Remotes.CommF_:InvokeServer("Awakener", "Check");
-				replicated.Remotes.CommF_:InvokeServer("Awakener", "Awaken");
-			end;
-		end);
 	end;
 end);
 D:AddSeperator("Shop Options");
