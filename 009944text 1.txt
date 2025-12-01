@@ -838,39 +838,58 @@ task.spawn(function()
 		end);
 	end;
 end);
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local task = task
+
+local MaxSpeed = 350 -- Velocidade fixa
+
+local function getCharacter()
+    if not LocalPlayer.Character then
+        LocalPlayer.CharacterAdded:Wait()
+    end
+    LocalPlayer.Character:WaitForChild("HumanoidRootPart")
+    return LocalPlayer.Character
+end
+
+local function toggleNoclip(Toggle)
+    local char = getCharacter()
+    for _,v in pairs(char:GetChildren()) do
+        if v:IsA("BasePart") then
+            v.CanCollide = not Toggle
+        end
+    end
+end
+
+local function Teleport_NoTween(GoalCFrame, Speed)
+    Speed = Speed or MaxSpeed
+    local char = getCharacter()
+    local hrp = char:WaitForChild("HumanoidRootPart")
+
+    toggleNoclip(true)
+
+    local magnitude = (hrp.Position - GoalCFrame.Position).Magnitude
+    while magnitude > 1 and shouldTween ~= false do
+        local direction = (GoalCFrame.Position - hrp.Position).Unit
+        hrp.CFrame = hrp.CFrame + direction * (Speed * task.wait())
+        magnitude = (hrp.Position - GoalCFrame.Position).Magnitude
+    end
+
+    toggleNoclip(false)
+end
+
+-- Mantendo compatibilidade com seu script:
 _tp = function(I)
-		local e = plr.Character;
-		if not e or not e:FindFirstChild("HumanoidRootPart") then
-			return;
-		end;
-		local K = e.HumanoidRootPart;
-		local n = (I.Position - K.Position).Magnitude;
-		local d = TweenInfo.new(n / 300, Enum.EasingStyle.Linear);
-		local z = (game:GetService("TweenService")):Create(C, d, { CFrame = I });
-		if plr.Character.Humanoid.Sit == true then
-			C.CFrame = CFrame.new(C.Position.X, I.Y, C.Position.Z);
-		end;
-		z:Play();
-		task.spawn(function()
-			while z.PlaybackState == Enum.PlaybackState.Playing do
-				if not shouldTween then
-					z:Cancel();
-					break;
-				end;
-				task.wait(.1);
-			end;
-		end);
-	end;
+    Teleport_NoTween(I)
+end
+
 TeleportToTarget = function(I)
-		if (I.Position - plr.Character.HumanoidRootPart.Position).Magnitude > 1000 then
-			_tp(I);
-		else
-			_tp(I);
-		end;
-	end;
+    Teleport_NoTween(I)
+end
+
 notween = function(I)
-		plr.Character.HumanoidRootPart.CFrame = I;
-	end;
+    LocalPlayer.Character.HumanoidRootPart.CFrame = I
+end
 function BTP(I)
 	local e = game.Players.LocalPlayer;
 	local K = e.Character.HumanoidRootPart;
