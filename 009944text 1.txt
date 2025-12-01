@@ -1190,6 +1190,16 @@ QuestBeta = function()
 			[4] = PosB,
 		};
 	end;
+local SUBMERGED_ISLAND_TRAVEL_CFRAME = CFrame.new(-16269.7041, 25.2288494, 1373.65955, 0.997390985, 1.47309942e-09, -0.0721890926, -4.00651912e-09, 0.99999994, -2.51183763e-09, 0.0721890852, 5.75363091e-10, 0.997390926)
+
+-- Esta função precisa ser definida fora de CheckQuest para ser acessível, ou você precisará implementá-la.
+-- Estou usando um placeholder TeleportToTarget que você deve substituir pela sua implementação real de teleporte (Tween ou outra).
+local function TeleportToTarget(cframe)
+    -- Placeholder: Substitua por sua lógica real de teleporte (ex: usando TweenService ou setando a CFrame do HumanoidRootPart)
+    print("Teleportando para: " .. tostring(cframe.p))
+    -- Exemplo: game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = cframe
+end
+
 QuestCheck = function()
 		local I = game.Players.LocalPlayer.Data.Level.Value;
 		if World1 then
@@ -1390,7 +1400,7 @@ QuestCheck = function()
 				NameMon = "Galley Pirate";
 				PosQ = CFrame.new(5259.81982, 37.3500175, 4050.0293, .087131381, 0, .996196866, 0, 1, 0, -0.996196866, 0, .087131381);
 				PosM = CFrame.new(5551.0219726562, 78.901351928711, 3930.4128417969);
-			elseif I >= 650 then
+			elseif I >= 650 and I <= 699 then -- Adicionei o limite superior para organização.
 				Mon = "Galley Captain";
 				Qdata = 2;
 				Qname = "FountainQuest";
@@ -1561,7 +1571,7 @@ QuestCheck = function()
 				NameMon = "Sea Soldier";
 				PosQ = CFrame.new(-3054.44458, 235.544281, -10142.8193, .990270376, 0, -0.13915664, 0, 1, 0, .13915664, 0, .990270376);
 				PosM = CFrame.new(-3028.2236328125, 64.674514770508, -9775.4267578125);
-			elseif I >= 1450 then
+			elseif I >= 1450 and I <= 1499 then -- Adicionei o limite superior para organização.
 				Mon = "Water Fighter";
 				Qdata = 2;
 				Qname = "ForgottenQuest";
@@ -1822,14 +1832,13 @@ QuestCheck = function()
 				NameMon = "Serpent Hunter";
 				PosQ = CFrame.new(-16679.478515625, 176.74737548828, 1474.3995361328);
 				PosM = CFrame.new(-16679.478515625, 176.74737548828, 1474.3995361328);
-			elseif I >= 2575 and I <= 2599 then -- Modifiquei para definir o limite superior antes de adicionar as novas condições
+			elseif I >= 2575 and I <= 2599 then 
 				Mon = "Skull Slayer";
 				Qdata = 2;
 				Qname = "TikiQuest3";
 				NameMon = "Skull Slayer";
 				PosQ = CFrame.new(-16759.58984375, 71.283767700195, 1595.3399658203);
 				PosM = CFrame.new(-16759.58984375, 71.283767700195, 1595.3399658203);
-			-- NOVO CÓDIGO INSERIDO AQUI, USANDO 'I' EM VEZ DE 'a'
 			elseif I >= 2600 and I <= 2624 then
 				Mon = "Reef Bandit"
 				Qdata = 1;
@@ -1872,9 +1881,118 @@ QuestCheck = function()
 				NameMon = "Grand Devotee"
 				PosQ = CFrame.new(9636.52441, -1992.19507, 9609.52832)
 				PosM = CFrame.new(9557.5849609375, -1928.0404052734375, 9859.1826171875)
-			end -- Fim das novas condições
+			end 
 		end;
 	end;
+
+-- Adapte esta função 'CheckQuest' com a sua lógica de obtenção de nível (MyLevel)
+CheckQuest = function()
+    -- Certifique-se de que 'MyLevel' está definido corretamente no seu script
+    local MyLevel = game.Players.LocalPlayer.Data.Level.Value -- Exemplo de como obter o nível. Adapte se necessário.
+    
+    -- Inicialização padrão, se necessário
+    local Mon = nil
+    local LevelQuest = nil
+    local NameQuest = nil
+    local NameMon = nil
+    local CFrameQuest = nil
+    local CFrameMon = nil
+    
+    -- Obtenha a posição do jogador para o cálculo de distância.
+    local HumanoidRootPart = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    local PlayerPosition = HumanoidRootPart and HumanoidRootPart.Position
+
+    if MyLevel >= 2600 then -- Verifica o requisito mínimo para entrar na Submerged Island
+        if MyLevel >= 2600 and MyLevel <= 2624 then
+            Mon = "Reef Bandit"
+            LevelQuest = 1
+            NameQuest = "SubmergedQuest1"
+            NameMon = "Reef Bandits"
+            CFrameQuest = CFrame.new(10778.875, -2087.72437, 9265.18359, 0.934615612, -9.33109447e-08, -0.355659455, 9.17655143e-08, 1, -2.12154276e-08, 0.355659455, -1.28090019e-08, 0.934615612)
+            CFrameMon = CFrame.new(11019.1318, -2146.06812, 9342.3916, -0.719955266, -1.74275385e-08, 0.69402045, 5.76556367e-08, 1, 8.49211546e-08, -0.69402045, 1.01153624e-07, -0.719955266)
+            
+            -- Lógica de Teleporte:
+            if _G.Level and PlayerPosition and (CFrameQuest.Position - PlayerPosition).Magnitude > 10000 then
+                TeleportToTarget(SUBMERGED_ISLAND_TRAVEL_CFRAME) -- USA SEU TWEEN/TELEPORTE
+                task.wait(2)
+                local args = {"TravelToSubmergedIsland"} 
+                game:GetService("ReplicatedStorage").Modules.Net:FindFirstChild("RF/SubmarineWorkerSpeak"):InvokeServer(unpack(args))
+            end             
+        elseif MyLevel >= 2625 and MyLevel <= 2649 then
+            Mon = "Coral Pirate"
+            LevelQuest = 2
+            NameQuest = "SubmergedQuest1"
+            NameMon = "Coral Pirates"
+            CFrameQuest = CFrame.new(10778.875, -2087.72437, 9265.18359, 0.934615612, -9.33109447e-08, -0.355659455, 9.17655143e-08, 1, -2.12154276e-08, 0.355659455, -1.28090019e-08, 0.934615612)
+            CFrameMon = CFrame.new(10808.6006, -2030.36145, 9364.2334, -0.775185347, -0.0359364748, 0.6307109, 0.0615428537, 0.989336014, 0.132010356, -0.628728986, 0.141148239, -0.764707148)
+            
+            if _G.Level and PlayerPosition and (CFrameQuest.Position - PlayerPosition).Magnitude > 10000 then
+                TeleportToTarget(SUBMERGED_ISLAND_TRAVEL_CFRAME) -- USA SEU TWEEN/TELEPORTE
+                task.wait(2)
+                local args = {"TravelToSubmergedIsland"} 
+                game:GetService("ReplicatedStorage").Modules.Net:FindFirstChild("RF/SubmarineWorkerSpeak"):InvokeServer(unpack(args))
+            end
+        elseif MyLevel >= 2650 and MyLevel <= 2674 then
+            Mon = "Sea Chanter"
+            LevelQuest = 1
+            NameQuest = "SubmergedQuest2"
+            NameMon = "Sea Chanters"
+            CFrameQuest = CFrame.new(10880.6855, -2086.20044, 10032.624, -0.321384728, 9.87648434e-08, -0.946948707, 7.13271007e-08, 1, 8.00902953e-08, 0.946948707, -4.18033075e-08, -0.321384728)
+            CFrameMon = CFrame.new(10671.2715, -2057.59155, 10047.2588, -0.846484065, -3.11045447e-08, 0.532414079, -5.55383117e-08, 1, -2.98785316e-08, -0.532414079, -5.48610757e-08, -0.846484065)
+            
+            if _G.Level and PlayerPosition and (CFrameQuest.Position - PlayerPosition).Magnitude > 10000 then
+                TeleportToTarget(SUBMERGED_ISLAND_TRAVEL_CFRAME) -- USA SEU TWEEN/TELEPORTE
+                task.wait(2)
+                local args = {"TravelToSubmergedIsland"} 
+                game:GetService("ReplicatedStorage").Modules.Net:FindFirstChild("RF/SubmarineWorkerSpeak"):InvokeServer(unpack(args))
+            end
+        elseif MyLevel >= 2675 and MyLevel <= 2699 then             
+            Mon = "Ocean Prophet"
+            LevelQuest = 2
+            NameQuest = "SubmergedQuest2"
+            NameMon = "Ocean Prophets"
+            CFrameQuest = CFrame.new(10880.6855, -2086.20044, 10032.624, -0.321384728, 9.87648434e-08, -0.946948707, 7.13271007e-08, 1, 8.00902953e-08, 0.946948707, -4.18033075e-08, -0.321384728)
+            CFrameMon = CFrame.new(11008.5195, -2007.72839, 10223.0791, -0.688615739, 2.33523378e-09, -0.725126445, 2.99292546e-09, 1, 3.78221315e-10, 0.725126445, -1.90980032e-09, -0.688615739)
+            
+            if _G.Level and PlayerPosition and (CFrameQuest.Position - PlayerPosition).Magnitude > 10000 then
+                TeleportToTarget(SUBMERGED_ISLAND_TRAVEL_CFRAME) -- USA SEU TWEEN/TELEPORTE
+                task.wait(2)
+                local args = {"TravelToSubmergedIsland"} 
+                game:GetService("ReplicatedStorage").Modules.Net:FindFirstChild("RF/SubmarineWorkerSpeak"):InvokeServer(unpack(args))
+            end
+        elseif MyLevel >= 2700 and MyLevel <= 2724 then             
+            Mon = "High Disciple"
+            LevelQuest = 1
+            NameQuest = "SubmergedQuest3"
+            NameMon = "High Disciple"
+            CFrameQuest = CFrame.new(9640.08789, -1992.44507, 9613.65234, -0.957327187, 4.11991223e-08, 0.289006323, 1.5775445e-08, 1, -9.02985846e-08, -0.289006323, -8.18860855e-08, -0.957327187)
+            CFrameMon = CFrame.new(9750.41602, -1966.93884, 9753.36035, -0.749824047, 5.57797613e-08, -0.661637306, 2.03500754e-08, 1, 6.1243199e-08, 0.661637306, 3.24572511e-08, -0.749824047)
+            
+            if _G.Level and PlayerPosition and (CFrameQuest.Position - PlayerPosition).Magnitude > 10000 then
+                TeleportToTarget(SUBMERGED_ISLAND_TRAVEL_CFRAME) -- USA SEU TWEEN/TELEPORTE
+                task.wait(2)
+                local args = {"TravelToSubmergedIsland"} 
+                game:GetService("ReplicatedStorage").Modules.Net:FindFirstChild("RF/SubmarineWorkerSpeak"):InvokeServer(unpack(args))
+            end      
+        elseif MyLevel >= 2725 then             
+            Mon = "Grand Devotee"
+            LevelQuest = 2
+            NameQuest = "SubmergedQuest3"
+            NameMon = "Grand Devotee"
+            CFrameQuest = CFrame.new(9640.08789, -1992.44507, 9613.65234, -0.957327187, 4.11991223e-08, 0.289006323, 1.5775445e-08, 1, -9.02985846e-08, -0.289006323, -8.18860855e-08, -0.957327187)
+            CFrameMon = CFrame.new(9611.70508, -1993.47119, 9882.68848, -0.591375351, 4.14332426e-08, -0.806396425, 4.73774868e-08, 1, 1.66361875e-08, 0.806396425, -2.83668058e-08, -0.591375351)
+            
+            if _G.Level and PlayerPosition and (CFrameQuest.Position - PlayerPosition).Magnitude > 10000 then
+                TeleportToTarget(SUBMERGED_ISLAND_TRAVEL_CFRAME) -- USA SEU TWEEN/TELEPORTE
+                task.wait(2)
+                local args = {"TravelToSubmergedIsland"} 
+                game:GetService("ReplicatedStorage").Modules.Net:FindFirstChild("RF/SubmarineWorkerSpeak"):InvokeServer(unpack(args))
+            end               
+        end
+    end
+    -- Se precisar adicionar outras ilhas/níveis após 2725 ou antes de 2600, adicione aqui.
+end
+
 
 MaterialMon = function()
 		local I = game.Players.LocalPlayer;
