@@ -2085,16 +2085,12 @@ if plr.Character then
     Root = plr.Character:WaitForChild("HumanoidRootPart")
 end
 
--- DROPDOWN PARA SELECIONAR ARMA (agora junto com o toggle na mesma aba 'b')
+b:AddSeperator("Farming")
+
 b:AddDropdown({
     Title = "Select Weapon",
     Description = "",
-    Values = {
-        "Melee",
-        "Sword",
-        "Blox Fruit",
-        "Gun",
-    },
+    Values = {"Melee","Sword","Blox Fruit","Gun"},
     Default = "Melee",
     Multi = false,
     Callback = function(I)
@@ -2102,7 +2098,6 @@ b:AddDropdown({
     end,
 })
 
--- LOOP PARA SELECIONAR ARMA AUTOMATICAMENTE
 spawn(function()
     while wait(Sec) do
         pcall(function()
@@ -2117,7 +2112,6 @@ spawn(function()
     end
 end)
 
--- TOGGLE PARA AUTO FARM LEVEL
 b:AddToggle({
     Title = "Auto Farm Level",
     Description = "",
@@ -2127,7 +2121,6 @@ b:AddToggle({
     end,
 })
 
--- LOOP DE AUTO FARM
 spawn(function()
     while wait(Sec) do
         if _G.Level then
@@ -2159,10 +2152,7 @@ spawn(function()
                                     repeat
                                         wait()
                                         G.Kill(Mob, _G.Level)
-                                    until not _G.Level 
-                                        or not Mob.Parent 
-                                        or Mob.Humanoid.Health <= 0
-                                        or plr.PlayerGui.Main.Quest.Visible == false
+                                    until not _G.Level or not Mob.Parent or Mob.Humanoid.Health <= 0 or plr.PlayerGui.Main.Quest.Visible == false
                                 else
                                     replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
                                 end
@@ -2180,418 +2170,168 @@ spawn(function()
         end
     end
 end)
-b:AddSeperator("Other");
+
+b:AddSeperator("Other")
+
 b:AddToggle({
-	Title = "Kill Mobs Nearest",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.AutoFarmNear = I;
-	end,
-});
+    Title = "Kill Mobs Nearest",
+    Description = "",
+    Default = false,
+    Callback = function(I)
+        _G.AutoFarmNear = I
+    end,
+})
+
 spawn(function()
-	while wait() do
-		pcall(function()
-			if _G.AutoFarmNear then
-				for I, e in pairs(workspace.Enemies:GetChildren()) do
-					if e:FindFirstChild("Humanoid") or e:FindFirstChild("HumanoidRootPart") then
-						if e.Humanoid.Health > 0 then
-							repeat
-								wait();
-								G.Kill(e, _G.AutoFarmNear);
-							until not _G.AutoFarmNear or not e.Parent or e.Humanoid.Health <= 0;
-						end;
-					end;
-				end;
-			end;
-		end);
-	end;
-end);
+    while wait() do
+        pcall(function()
+            if _G.AutoFarmNear then
+                for _, e in pairs(workspace.Enemies:GetChildren()) do
+                    if e:FindFirstChild("Humanoid") and e:FindFirstChild("HumanoidRootPart") then
+                        if e.Humanoid.Health > 0 then
+                            repeat
+                                wait()
+                                G.Kill(e, _G.AutoFarmNear)
+                            until not _G.AutoFarmNear or not e.Parent or e.Humanoid.Health <= 0
+                        end
+                    end
+                end
+            end
+        end)
+    end
+end)
+
 b:AddToggle({
-	Title = "Auto Factory Raid",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.FactoryRaids = I;
-	end,
-});
+    Title = "Auto Factory Raid",
+    Description = "",
+    Default = false,
+    Callback = function(I)
+        _G.FactoryRaids = I
+    end,
+})
+
 spawn(function()
-	while wait(Sec) do
-		pcall(function()
-			if _G.AutoFactory then
-				local I = GetConnectionEnemies("Core");
-				if I then
-					repeat
-						wait();
-						EquipWeapon(_G.SelectWeapon);
-						_tp(CFrame.new(448.46756, 199.356781, -441.389252));
-					until I.Humanoid.Health <= 0 or _G.AutoFactory == false;
-				else
-					_tp(CFrame.new(448.46756, 199.356781, -441.389252));
-				end;
-			end;
-		end);
-	end;
-end);
+    while wait(Sec) do
+        pcall(function()
+            if _G.AutoFactory then
+                local I = GetConnectionEnemies("Core")
+                if I then
+                    repeat
+                        wait()
+                        EquipWeapon(_G.SelectWeapon)
+                        _tp(CFrame.new(448.46756, 199.356781, -441.389252))
+                    until I.Humanoid.Health <= 0 or _G.AutoFactory == false
+                else
+                    _tp(CFrame.new(448.46756, 199.356781, -441.389252))
+                end
+            end
+        end)
+    end
+end)
+
 b:AddToggle({
-	Title = "Auto Pirate Raid",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.AutoRaidCastle = I;
-	end,
-});
+    Title = "Auto Pirate Raid",
+    Description = "",
+    Default = false,
+    Callback = function(I)
+        _G.AutoRaidCastle = I
+    end,
+})
+
 spawn(function()
-	while wait(Sec) do
-		if _G.AutoRaidCastle then
-			pcall(function()
-				local I = CFrame.new(-5496.17432, 313.768921, -2841.53027, .924894512, 7.37058015e-09, .380223751, 3.5881019e-08, 1, -1.06665446e-07, -0.380223751, 1.12297109e-07, .924894512);
-				if ((CFrame.new(-5539.3115234375, 313.80053710938, -2972.3723144531)).Position - Root.Position).Magnitude <= 500 then
-					for I, e in pairs(workspace.Enemies:GetChildren()) do
-						if e:FindFirstChild("HumanoidRootPart") and (e:FindFirstChild("Humanoid") and e.Humanoid.Health > 0) then
-							if e.Name then
-								if (e.HumanoidRootPart.Position - Root.Position).Magnitude <= 2000 then
-									repeat
-										wait();
-										G.Kill(e, _G.AutoRaidCastle);
-									until not _G.AutoRaidCastle or not e.Parent or e.Humanoid.Health <= 0 or not workspace.Enemies:FindFirstChild(e.Name);
-								end;
-							end;
-						end;
-					end;
-				else
-					local e = {
-							"Galley Pirate",
-							"Galley Captain",
-							"Raider",
-							"Mercenary",
-							"Vampire",
-							"Zombie",
-							"Snow Trooper",
-							"Winter Warrior",
-							"Lab Subordinate",
-							"Horned Warrior",
-							"Magma Ninja",
-							"Lava Pirate",
-							"Ship Deckhand",
-							"Ship Engineer",
-							"Ship Steward",
-							"Ship Officer",
-							"Arctic Warrior",
-							"Snow Lurker",
-							"Sea Soldier",
-							"Water Fighter",
-						};
-					for K = 1, #e, 1 do
-						if replicated:FindFirstChild(e[K]) then
-							for K, n in pairs(replicated:GetChildren()) do
-								if table.find(e, n.Name) then
-									_tp(I);
-								end;
-							end;
-						end;
-					end;
-				end;
-			end);
-		end;
-	end;
-end);
-b:AddDropdown({
-	Title = "Choose Material",
-	Description = "",
-	Values = MaterialList,
-	Default = nil,
-	Multi = false,
-	Callback = function(I)
-		(getgenv()).SelectMaterial = I;
-	end,
-});
+    while wait(Sec) do
+        if _G.AutoRaidCastle then
+            pcall(function()
+                local TargetCFrame = CFrame.new(-5496.17432, 313.768921, -2841.53027, .924894512, 7.37058015e-09, .380223751, 3.5881019e-08, 1, -1.06665446e-07, -0.380223751, 1.12297109e-07, .924894512)
+                local CheckCFrame = CFrame.new(-5539.3115234375, 313.80053710938, -2972.3723144531)
+
+                if (CheckCFrame.Position - Root.Position).Magnitude <= 500 then
+                    for _, e in pairs(workspace.Enemies:GetChildren()) do
+                        if e:FindFirstChild("HumanoidRootPart") and e:FindFirstChild("Humanoid") and e.Humanoid.Health > 0 then
+                            if (e.HumanoidRootPart.Position - Root.Position).Magnitude <= 2000 then
+                                repeat
+                                    wait()
+                                    G.Kill(e, _G.AutoRaidCastle)
+                                until not _G.AutoRaidCastle or not e.Parent or e.Humanoid.Health <= 0 or not workspace.Enemies:FindFirstChild(e.Name)
+                            end
+                        end
+                    end
+                else
+                    local EnemyList = {
+                        "Galley Pirate",
+                        "Galley Captain",
+                        "Raider",
+                        "Mercenary",
+                        "Vampire",
+                        "Zombie",
+                        "Snow Trooper",
+                        "Winter Warrior",
+                        "Lab Subordinate",
+                        "Horned Warrior",
+                        "Magma Ninja",
+                        "Lava Pirate",
+                        "Ship Deckhand",
+                        "Ship Engineer",
+                        "Ship Steward",
+                        "Ship Officer",
+                        "Arctic Warrior",
+                        "Snow Lurker",
+                        "Sea Soldier",
+                        "Water Fighter",
+                    }
+
+                    for _, enemyName in pairs(EnemyList) do
+                        if replicated:FindFirstChild(enemyName) then
+                            for _, n in pairs(replicated:GetChildren()) do
+                                if table.find(EnemyList, n.Name) then
+                                    _tp(TargetCFrame)
+                                end
+                            end
+                        end
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+b:AddSeperator("Collect")
+
 b:AddToggle({
-	Title = "Auto Materials",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		(getgenv()).AutoMaterial = I;
-	end,
-});
+    Title = "Auto Collect Chest",
+    Description = "",
+    Default = false,
+    Callback = function(I)
+        _G.AutoFarmChest = I
+    end,
+})
+
 spawn(function()
-	local function I(I, e)
-		if I:FindFirstChild("Humanoid") and (I:FindFirstChild("HumanoidRootPart") and I.Humanoid.Health > 0) then
-			if I.Name == e then
-				repeat
-					wait();
-					G.Kill(I, (getgenv()).AutoMaterial);
-				until not (getgenv()).AutoMaterial or not I.Parent or I.Humanoid.Health <= 0;
-			end;
-		end;
-	end;
-	local function e()
-		for I, e in pairs((game:GetService("Workspace"))._WorldOrigin.EnemySpawns:GetChildren()) do
-			for I, K in ipairs(MMon) do
-				if string.find(e.Name, K) then
-					if (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - e.Position).Magnitude >= 10 then
-						_tp(e.CFrame * Pos);
-					end;
-				end;
-			end;
-		end;
-	end;
-	while wait() do
-		if (getgenv()).AutoMaterial then
-			pcall(function()
-				if (getgenv()).SelectMaterial then
-					MaterialMon((getgenv()).SelectMaterial);
-					_tp(MPos);
-				end;
-				for e, K in ipairs(MMon) do
-					for e, n in pairs(workspace.Enemies:GetChildren()) do
-						I(n, K);
-					end;
-				end;
-				e();
-			end);
-		end;
-	end;
-end);
-b:AddToggle({
-	Title = "Auto Bartilo Quest",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.Bartilo_Quest = I;
-	end,
-});
-spawn(function()
-	while wait(.1) do
-		pcall(function()
-			if _G.Bartilo_Quest and Lv >= 850 then
-				local I = plr.PlayerGui.Main.Quest;
-				if replicated.Remotes.CommF_:InvokeServer("BartiloQuestProgress", "Bartilo") == 0 then
-					_G.Level = false;
-					if I.Visible == true then
-						local e = GetConnectionEnemies("Swan Pirate");
-						if e then
-							local e = GetConnectionEnemies(z);
-							if e then
-								repeat
-									task.wait();
-									if not string.find(plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "Swan Pirate") then
-										replicated.Remotes.CommF_:InvokeServer("AbandonQuest");
-									else
-										G.Kill(e, _G.Bartilo_Quest);
-									end;
-								until _G.Bartilo_Quest == false or not e.Parent or e.Humanoid.Health <= 0 or I.Visible == false or not e:FindFirstChild("HumanoidRootPart");
-							end;
-						else
-							_tp(CFrame.nee(970.369446, 142.653198, 1217.3667, .162079468, -4.85452638e-08, -0.986777723, 1.03357589e-08, 1, -4.74980872e-08, .986777723, -2.50063148e-09, .162079468));
-						end;
-					else
-						repeat
-							wait();
-							_tp(CFrame.new(-461.533203, 72.3478546, 300.311096, .050853312, 0, -0.998706102, 0, 1, 0, .998706102, 0, .050853312));
-						until ((CFrame.new(-461.533203, 72.3478546, 300.311096, .050853312, 0, -0.998706102, 0, 1, 0, .998706102, 0, .050853312)).Position - plr.Character.HumanoidRootPart.Position).Magnitude <= 20 or _G.Bartilo_Quest == false;
-						if ((CFrame.new(-461.533203, 72.3478546, 300.311096, .050853312, 0, -0.998706102, 0, 1, 0, .998706102, 0, .050853312)).Position - plr.Character.HumanoidRootPart.Position).Magnitude <= 1 then
-							replicated.Remotes.CommF_:InvokeServer("StartQuest", "BartiloQuest", 1);
-						end;
-					end;
-				elseif replicated.Remotes.CommF_:InvokeServer("BartiloQuestProgress", "Bartilo") == 1 then
-					_G.Level = false;
-					local e = GetConnectionEnemies("Jeremy");
-					if e then
-						repeat
-							task.wait();
-							G.Kill(e, _G.Bartilo_Quest);
-						until _G.Bartilo_Quest == false or not e.Parent or e.Humanoid.Health <= 0 or I.Visible == false or not e:FindFirstChild("HumanoidRootPart");
-					else
-						_tp(CFrame.new(2158.97412, 449.056244, 705.411682, -0.754199564, -4.17389057e-09, -0.656645238, -4.47752875e-08, 1, 4.50709301e-08, .656645238, 6.3393955e-08, -0.754199564));
-					end;
-				elseif replicated.Remotes.CommF_:InvokeServer("BartiloQuestProgress", "Bartilo") == 2 then
-					repeat
-						wait();
-						_tp(CFrame.new(-1830.83972, 10.5578213, 1680.60229, .979988456, -2.02152783e-08, -0.199054286, 2.20792113e-08, 1, 7.1442483e-09, .199054286, -1.13962431e-08, .979988456));
-					until ((CFrame.new(-1830.83972, 10.5578213, 1680.60229, .979988456, -2.02152783e-08, -0.199054286, 2.20792113e-08, 1, 7.1442483e-09, .199054286, -1.13962431e-08, .979988456)).Position - plr.Character.HumanoidRootPart.Position).Magnitude <= 1 or _G.Bartilo_Quest == false;
-					wait(.5);
-					plr.Character.HumanoidRootPart.CFrame = workspace.Map.Dressrosa.BartiloPlates.Plate1.CFrame;
-					wait(.5);
-					plr.Character.HumanoidRootPart.CFrame = workspace.Map.Dressrosa.BartiloPlates.Plate2.CFrame;
-					wait(.5);
-					plr.Character.HumanoidRootPart.CFrame = workspace.Map.Dressrosa.BartiloPlates.Plate3.CFrame;
-					wait(.5);
-					plr.Character.HumanoidRootPart.CFrame = workspace.Map.Dressrosa.BartiloPlates.Plate4.CFrame;
-					wait(.5);
-					plr.Character.HumanoidRootPart.CFrame = workspace.Map.Dressrosa.BartiloPlates.Plate5.CFrame;
-					wait(.5);
-					plr.Character.HumanoidRootPart.CFrame = workspace.Map.Dressrosa.BartiloPlates.Plate6.CFrame;
-					wait(.5);
-					plr.Character.HumanoidRootPart.CFrame = workspace.Map.Dressrosa.BartiloPlates.Plate7.CFrame;
-					wait(.5);
-					plr.Character.HumanoidRootPart.CFrame = workspace.Map.Dressrosa.BartiloPlates.Plate8.CFrame;
-					wait(2.5);
-				end;
-			end;
-		end);
-	end;
-end);
-b:AddToggle({
-	Title = "Auto Citizen Quest",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.CitizenQuest = I;
-	end,
-});
-spawn(function()
-	while wait(Sec) do
-		pcall(function()
-			if _G.CitizenQuest then
-				if Lv >= 1800 and (replicated.Remotes.CommF_:InvokeServer("CitizenQuestProgress")).KilledBandits == false then
-					if string.find(plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "Forest Pirate") and (string.find(plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "50") and plr.PlayerGui.Main.Quest.Visible == true) then
-						local I = GetConnectionEnemies("Forest Pirate");
-						if I then
-							repeat
-								task.wait();
-								G.Kill(I, _G.CitizenQuest);
-							until _G.CitizenQuest == false or not I.Parent or I.Humanoid.Health <= 0 or plr.PlayerGui.Main.Quest.Visible == false;
-						else
-							_tp(CFrame.new(-13206.452148438, 425.89199829102, -7964.5537109375));
-						end;
-					else
-						_tp(CFrame.new(-12443.8671875, 332.40396118164, -7675.4892578125));
-						if (Vector3.new(-12443.8671875, 332.40396118164, -7675.4892578125) - plr.Character.HumanoidRootPart.Position).Magnitude <= 30 then
-							wait(1.5);
-							replicated.Remotes.CommF_:InvokeServer("StartQuest", "CitizenQuest", 1);
-						end;
-					end;
-				elseif Lv >= 1800 and (replicated.Remotes.CommF_:InvokeServer("CitizenQuestProgress")).KilledBoss == false then
-					local I = GetConnectionEnemies("Captain Elephant");
-					if plr.PlayerGui.Main.Quest.Visible and (string.find(plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "Captain Elephant") and plr.PlayerGui.Main.Quest.Visible == true) then
-						if I then
-							repeat
-								task.wait();
-								G.Kill(I, _G.CitizenQuest);
-							until _G.CitizenQuest == false or I.Humanoid.Health <= 0 or not I.Parent or plr.PlayerGui.Main.Quest.Visible == false;
-						else
-							_tp(CFrame.new(-13374.889648438, 421.27752685547, -8225.208984375));
-						end;
-					else
-						_tp(CFrame.new(-12443.8671875, 332.40396118164, -7675.4892578125));
-						if ((CFrame.new(-12443.8671875, 332.40396118164, -7675.4892578125)).Position - plr.Character.HumanoidRootPart.Position).Magnitude <= 4 then
-							wait(1.5);
-							replicated.Remotes.CommF_:InvokeServer("CitizenQuestProgress", "Citizen");
-						end;
-					end;
-				elseif Lv >= 1800 and replicated.Remotes.CommF_:InvokeServer("CitizenQuestProgress", "Citizen") == 2 then
-					_tp(CFrame.new(-12512.138671875, 340.39279174805, -9872.8203125));
-				end;
-			end;
-		end);
-	end;
-end);
-b:AddToggle({
-	Title = "Auto Training Dummy",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.DummyMan = I;
-	end,
-});
-spawn(function()
-	while wait(Sec) do
-		if _G.DummyMan then
-			pcall(function()
-				if plr.PlayerGui.Main.Quest.Visible == false then
-					local I = { [1] = "ArenaTrainer" };
-					((replicated:WaitForChild("Remotes")):WaitForChild("CommF_")):InvokeServer(unpack(I));
-				else
-					local I = GetConnectionEnemies("Training Dummy");
-					if I then
-						repeat
-							wait();
-							G.Kill(I, _G.DummyMan);
-						until not _G.DummyMan or not I.Parent or I.Humanoid.Health <= 0;
-					else
-						_tp(CFrame.new(3688.0051269531, 12.746943473816, 170.20953369141));
-					end;
-				end;
-			end);
-		end;
-	end;
-end);
-b:AddToggle({
-	Title = "Auto Collect Berry",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.AutoBerry = I;
-	end,
-});
-spawn(function()
-	while wait(Sec) do
-		if _G.AutoBerry then
-			local I = game:GetService("CollectionService");
-			local e = game:GetService("Players");
-			local K = e.LocalPlayer;
-			local n = I:GetTagged("BerryBush");
-			local d, z = math.huge;
-			for I = 1, #n, 1 do
-				local e = n[I];
-				for I, K in pairs(e:GetAttributes()) do
-					if not BerryArray or table.find(BerryArray, K) then
-						_tp(e.Parent:GetPivot());
-						for I = 1, #n, 1 do
-							local e = n[I];
-							for I, e in pairs(e:GetChildren()) do
-								if not BerryArray or table.find(BerryArray, e) then
-									_tp(e.WorldPivot);
-									fireproximityprompt(e.ProximityPrompt, math.huge);
-								end;
-							end;
-						end;
-					end;
-				end;
-			end;
-		end;
-	end;
-end);
-b:AddToggle({
-	Title = "Auto Collect Chest",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.AutoFarmChest = I;
-	end,
-});
-spawn(function()
-	while wait(Sec) do
-		if _G.AutoFarmChest then
-			pcall(function()
-				local I = game:GetService("CollectionService");
-				local e = game:GetService("Players");
-				local K = e.LocalPlayer;
-				local n = K.Character or K.CharacterAdded:Wait();
-				if not n then
-					return;
-				end;
-				local d = (n:GetPivot()).Position;
-				local z = I:GetTagged("_ChestTagged");
-				local H, F = math.huge, nil;
-				for I = 1, #z, 1 do
-					local e = z[I];
-					local K = ((e:GetPivot()).Position - d).Magnitude;
-					if not SelectedIsland or e:IsDescendantOf(SelectedIsland) then
-						if not e:GetAttribute("IsDisabled") and K < H then
-							H = K;
-							F = e;
-						end;
-					end;
-				end;
-				if F then
-					_tp(F:GetPivot());
-				end;
-			end);
-		end;
-	end;
-end);
+    while wait(Sec) do
+        if _G.AutoFarmChest then
+            pcall(function()
+                local CollectionService = game:GetService("CollectionService")
+                local Players = game:GetService("Players")
+                local plrChar = Players.LocalPlayer.Character or Players.LocalPlayer.CharacterAdded:Wait()
+                local d = plrChar:GetPivot().Position
+                local Chests = CollectionService:GetTagged("_ChestTagged")
+                local minDist, nearestChest = math.huge, nil
+                for _, chest in pairs(Chests) do
+                    local dist = (chest:GetPivot().Position - d).Magnitude
+                    if not SelectedIsland or chest:IsDescendantOf(SelectedIsland) then
+                        if not chest:GetAttribute("IsDisabled") and dist < minDist then
+                            minDist = dist
+                            nearestChest = chest
+                        end
+                    end
+                end
+                if nearestChest then
+                    _tp(nearestChest:GetPivot())
+                end
+            end)
+        end
+    end
+end)
 b:AddSeperator("Miscellanea / Mastery");
 local o = { "Cake", "Bone" };
 b:AddDropdown({
