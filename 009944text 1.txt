@@ -3688,9 +3688,9 @@ spawn(function()
 end);
 
 -- SECTION BUSO/AURA COLOURS
-b:AddSeperator("Buso/Aura Colours");
+j:AddSeperator("Buso/Aura Colours");
 
-b:AddToggle({
+j:AddToggle({
     Title = "Teleport Barista Haki",
     Description = "",
     Default = false,
@@ -3712,7 +3712,7 @@ spawn(function()
     end;
 end);
 
-b:AddButton({
+j:AddButton({
     Title = "Buy Buso Colors",
     Description = "",
     Callback = function()
@@ -3720,7 +3720,7 @@ b:AddButton({
     end
 });
 
-b:AddToggle({
+j:AddToggle({
     Title = "Auto Rainbow Haki",
     Description = "",
     Default = false,
@@ -3813,7 +3813,7 @@ spawn(function()
     end);
 end);
 
-b:AddToggle({
+j:AddToggle({
     Title = "Accept Quest Bypass [Risk]",
     Description = "",
     Default = false,
