@@ -7552,8 +7552,8 @@ A:AddButton({ Title = "Trade Items Azure", Description = "", Callback = function
 A:AddButton({ Title = "Talk with kitsune statue", Description = "", Callback = function()
 		(replicated.Modules.Net:FindFirstChild("RE/TouchKitsuneStatue")):FireServer();
 	end });
-s:AddSeperator("Dungeon Event / Raiding");
-local P5 = s:AddParagraph({ Title = " Raiding Status ", Content = "" });
+p:AddSeperator("Dungeon Event / Raiding");
+local P5 = p:AddParagraph({ Title = " Raiding Status ", Content = "" });
 spawn(function()
 	while wait(.2) do
 		pcall(function()
@@ -7579,7 +7579,7 @@ e = {
 		"Bird: Phoenix",
 		"Dough",
 	};
-s:AddDropdown({
+p:AddDropdown({
 	Title = "Select Chip",
 	Description = "",
 	Values = e,
@@ -7589,7 +7589,7 @@ s:AddDropdown({
 		_G.SelectChip = I;
 	end,
 });
-s:AddToggle({
+p:AddToggle({
 	Title = "Auto Select Dungeon Chip",
 	Description = "",
 	Default = false,
@@ -7632,12 +7632,12 @@ spawn(function()
 		end;
 	end;
 end);
-s:AddButton({ Title = "Buy Dungeon Chips [Beli]", Description = "", Callback = function()
+p:AddButton({ Title = "Buy Dungeon Chips [Beli]", Description = "", Callback = function()
 		if not GetBP("Special Microchip") then
 			replicated.Remotes.CommF_:InvokeServer("RaidsNpc", "Select", _G.SelectChip);
 		end;
 	end });
-s:AddButton({ Title = "Buy Dungeon Chips [Devil Fruit]", Description = "Use your lowest fruit in your bag", Callback = function()
+p:AddButton({ Title = "Buy Dungeon Chips [Devil Fruit]", Description = "Use your lowest fruit in your bag", Callback = function()
 		if GetBP("Special Microchip") then
 			return;
 		end;
@@ -7657,8 +7657,8 @@ s:AddButton({ Title = "Buy Dungeon Chips [Devil Fruit]", Description = "Use your
 			end;
 		end;
 	end });
-s:AddSeperator("Raiding Menu");
-s:AddToggle({
+p:AddSeperator("Raiding Menu");
+p:AddToggle({
 	Title = "Auto Start Raid",
 	Description = "",
 	Default = false,
@@ -7685,7 +7685,7 @@ spawn(function()
 		end);
 	end;
 end);
-s:AddToggle({
+p:AddToggle({
 	Title = "Teleport To Lab",
 	Description = "",
 	Default = false,
@@ -7705,7 +7705,7 @@ s:AddToggle({
 		end);
 	end,
 });
-s:AddToggle({
+p:AddToggle({
 	Title = "Auto Complete Raid [Safety]",
 	Description = "",
 	Default = false,
@@ -7751,7 +7751,7 @@ spawn(function()
 		end;
 	end);
 end);
-s:AddToggle({
+p:AddToggle({
 	Title = "Kill Aura",
 	Description = "",
 	Default = false,
@@ -7778,7 +7778,7 @@ spawn(function()
 		end;
 	end;
 end);
-s:AddToggle({
+p:AddToggle({
 	Title = "Auto Next Island",
 	Description = "",
 	Default = false,
@@ -7805,7 +7805,7 @@ spawn(function()
 		end;
 	end;
 end);
-s:AddToggle({
+p:AddToggle({
 	Title = "Auto Awakening",
 	Description = "",
 	Default = false,
