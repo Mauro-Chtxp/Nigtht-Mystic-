@@ -2332,243 +2332,6 @@ spawn(function()
         end
     end
 end)
-b:AddSeperator("Miscellanea / Mastery");
-local o = { "Cake", "Bone" };
-b:AddDropdown({
-	Title = "Choose Island",
-	Description = "",
-	Values = o,
-	Default = "Cake",
-	Callback = function(I)
-		SelectIsland = I;
-	end,
-});
-b:AddToggle({
-	Title = "Auto Mastery Fruits",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.FarmMastery_Dev = I;
-	end,
-});
-spawn(function()
-	RunSer.RenderStepped:Connect(function()
-		pcall(function()
-			if _G.FarmMastery_Dev or _G.FarmMastery_G or _G.FarmMastery_S then
-				for I, e in pairs(plr.PlayerGui.Notifications:GetChildren()) do
-					if e.Name == "NotificationTemplate" then
-						if string.find(e.Text, "Skill locked!") then
-							e:Destroy();
-						end;
-					end;
-				end;
-			end;
-		end);
-	end);
-end);
-spawn(function()
-	while wait(Sec) do
-		if _G.FarmMastery_Dev then
-			pcall(function()
-				if SelectIsland == "Cake" then
-					local I = GetConnectionEnemies(X);
-					if I then
-						HealthM = (I.Humanoid.MaxHealth * 70) / 100;
-						repeat
-							wait();
-							MousePos = I.HumanoidRootPart.Position;
-							G.Mas(I, _G.FarmMastery_Dev);
-						until _G.FarmMastery_Dev == false or I.Humanoid.Health <= 0 or not I.Parent;
-					else
-						_tp(CFrame.new(-1943.6765136719, 251.50956726074, -12337.880859375));
-					end;
-				elseif SelectIsland == "Bone" then
-					local I = GetConnectionEnemies(P);
-					if I then
-						HealthM = (I.Humanoid.MaxHealth * 70) / 100;
-						repeat
-							wait();
-							MousePos = I.HumanoidRootPart.Position;
-							G.Mas(I, _G.FarmMastery_Dev);
-						until _G.FarmMastery_Dev == false or I.Humanoid.Health <= 0 or not I.Parent;
-					else
-						_tp(CFrame.new(-9495.6806640625, 453.58624267578, 5977.3486328125));
-					end;
-				end;
-			end);
-		end;
-	end;
-end);
-b:AddToggle({
-	Title = "Auto Mastery Gun",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.FarmMastery_G = I;
-	end,
-});
-spawn(function()
-	while wait(Sec) do
-		if _G.FarmMastery_G then
-			pcall(function()
-				if SelectIsland == "Cake" then
-					local I = GetConnectionEnemies(X);
-					if I then
-						HealthM = (I.Humanoid.MaxHealth * 70) / 100;
-						repeat
-							wait();
-							MousePos = I.HumanoidRootPart.Position;
-							G.Masgun(I, _G.FarmMastery_G);
-							local e = replicated:FindFirstChild("Modules");
-							local K = e:FindFirstChild("Net");
-							local n = K:FindFirstChild("RE/ShootGunEvent");
-							if (plr.Character:FindFirstChildOfClass("Tool")).ToolTip ~= "Gun" then
-								return;
-							end;
-							if plr.Character:FindFirstChildOfClass("Tool") and (plr.Character:FindFirstChildOfClass("Tool")).Name == "Skull Guitar" then
-								SoulGuitar = true;
-								(plr.Character:FindFirstChildOfClass("Tool")).RemoteEvent:FireServer("TAP", MousePos);
-								if _G.FarmMastery_G then
-									vim1:SendMouseButtonEvent(0, 0, 0, true, game, 1);
-									wait(.05);
-									vim1:SendMouseButtonEvent(0, 0, 0, false, game, 1);
-									wait(.05);
-								end;
-							elseif plr.Character:FindFirstChildOfClass("Tool") and (plr.Character:FindFirstChildOfClass("Tool")).Name ~= "Skull Guitar" then
-								SoulGuitar = false;
-								n:FireServer(MousePos, { I.HumanoidRootPart });
-								if _G.FarmMastery_G then
-									vim1:SendMouseButtonEvent(0, 0, 0, true, game, 1);
-									wait(.05);
-									vim1:SendMouseButtonEvent(0, 0, 0, false, game, 1);
-									wait(.05);
-								end;
-							end;
-						until _G.FarmMastery_G == false or I.Humanoid.Health <= 0 or not I.Parent;
-						SoulGuitar = false;
-					else
-						_tp(CFrame.new(-1943.6765136719, 251.50956726074, -12337.880859375));
-					end;
-				elseif SelectIsland == "Bone" then
-					local I = GetConnectionEnemies(P);
-					if I then
-						HealthM = (I.Humanoid.MaxHealth * 70) / 100;
-						repeat
-							wait();
-							MousePos = I.HumanoidRootPart.Position;
-							G.Masgun(I, _G.FarmMastery_G);
-							local e = replicated:FindFirstChild("Modules");
-							local K = e:FindFirstChild("Net");
-							local n = K:FindFirstChild("RE/ShootGunEvent");
-							if (plr.Character:FindFirstChildOfClass("Tool")).ToolTip ~= "Gun" then
-								return;
-							end;
-							if plr.Character:FindFirstChildOfClass("Tool") and (plr.Character:FindFirstChildOfClass("Tool")).Name == "Skull Guitar" then
-								SoulGuitar = true;
-								(plr.Character:FindFirstChildOfClass("Tool")).RemoteEvent:FireServer("TAP", MousePos);
-								if _G.FarmMastery_G then
-									vim1:SendMouseButtonEvent(0, 0, 0, true, game, 1);
-									wait(.05);
-									vim1:SendMouseButtonEvent(0, 0, 0, false, game, 1);
-									wait(.05);
-								end;
-							elseif plr.Character:FindFirstChildOfClass("Tool") and (plr.Character:FindFirstChildOfClass("Tool")).Name ~= "Skull Guitar" then
-								SoulGuitar = false;
-								n:FireServer(MousePos, { I.HumanoidRootPart });
-								if _G.FarmMastery_G then
-									vim1:SendMouseButtonEvent(0, 0, 0, true, game, 1);
-									wait(.05);
-									vim1:SendMouseButtonEvent(0, 0, 0, false, game, 1);
-									wait(.05);
-								end;
-							end;
-						until _G.FarmMastery_G == false or I.Humanoid.Health <= 0 or not I.Parent;
-						SoulGuitar = false;
-					else
-						_tp(CFrame.new(-9495.6806640625, 453.58624267578, 5977.3486328125));
-					end;
-				end;
-			end);
-		end;
-	end;
-end);
-b:AddToggle({
-	Title = "Auto Mastery All Sword",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.FarmMastery_S = I;
-	end,
-});
-spawn(function()
-	while wait(Sec) do
-		pcall(function()
-			if _G.FarmMastery_S then
-				if SelectIsland == "Cake" then
-					for I, e in next, replicated.Remotes.CommF_:InvokeServer("getInventory") do
-						if type(e) == "table" then
-							if e.Type == "Sword" then
-								SwordName = e.Name;
-								if tonumber(e.Mastery) >= 1 or tonumber(e.Mastery) <= 599 then
-									local I = GetConnectionEnemies(X);
-									if GetBP(SwordName) then
-										if I then
-											repeat
-												wait();
-												G.Sword(I, _G.FarmMastery_S);
-											until _G.FarmMastery_S == false or not I.Parent or I.Humanoid.Healh <= 0;
-										else
-											_tp(CFrame.new(-1943.6765136719, 251.50956726074, -12337.880859375));
-										end;
-									else
-										replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName);
-									end;
-								elseif tonumber(e.Mastery) >= 600 then
-									if GetBP(SwordName) then
-										return nil;
-									else
-										replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName);
-									end;
-								end;
-								break;
-							end;
-						end;
-					end;
-				elseif SelectIsland == "Bone" then
-					for I, e in next, replicated.Remotes.CommF_:InvokeServer("getInventory") do
-						if type(e) == "table" then
-							if e.Type == "Sword" then
-								SwordName = e.Name;
-								if tonumber(e.Mastery) >= 1 or tonumber(e.Mastery) <= 599 then
-									local I = GetConnectionEnemies(P);
-									if GetBP(SwordName) then
-										if I then
-											repeat
-												wait();
-												G.Sword(I, _G.FarmMastery_S);
-											until _G.FarmMastery_S == false or not I.Parent or I.Humanoid.Healh <= 0;
-										else
-											_tp(CFrame.new(-9495.6806640625, 453.58624267578, 5977.3486328125));
-										end;
-									else
-										replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName);
-									end;
-								elseif tonumber(e.Mastery) >= 600 then
-									if GetBP(SwordName) then
-										return nil;
-									else
-										replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName);
-									end;
-								end;
-								break;
-							end;
-						end;
-					end;
-				end;
-			end;
-		end);
-	end;
-end);
 b:AddSeperator("Generals Quests / Items");
 local R = b:AddParagraph({ Title = "Cake Princes :", Content = "" });
 local N = b:AddParagraph({ Title = " Bones :", Content = "" });
@@ -2826,25 +2589,204 @@ spawn(function()
 	end;
 end);
 b:AddToggle({
-	Title = "Auto Pray Gravestone",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.Praying = I;
-	end,
-});
+    Title = "Auto Pray Gravestone",
+    Description = "",
+    Default = false,
+    Callback = function(I)
+        _G.Praying = I
+    end,
+})
+
 spawn(function()
-	while wait(Sec) do
-		if _G.Praying then
-			local I = CFrame.new(-8761.3154296875, 164.85829162598, 6161.1567382813);
-			if plr.Character.HumanoidRootPart.CFrame ~= I then
-				_tp(CFrame.new(-8761.3154296875, 164.85829162598, 6161.1567382813));
-			elseif plr.Character.HumanoidRootPart.CFrame == I then
-				replicated.Remotes.CommF_:InvokeServer("gravestoneEvent", 2);
-			end;
-		end;
-	end;
-end);
+    while wait(Sec) do
+        if _G.Praying then
+            local TargetCFrame = CFrame.new(-8761.3154296875, 164.85829162598, 6161.1567382813)
+            if plr.Character.HumanoidRootPart.CFrame ~= TargetCFrame then
+                _tp(TargetCFrame)
+            elseif plr.Character.HumanoidRootPart.CFrame == TargetCFrame then
+                replicated.Remotes.CommF_:InvokeServer("gravestoneEvent", 2)
+            end
+        end
+    end
+end)
+
+b:AddSeperator("Miscellanea / Mastery")
+
+local islands = { "Cake", "Bone" }
+b:AddDropdown({
+    Title = "Choose Island",
+    Description = "",
+    Values = islands,
+    Default = "Cake",
+    Callback = function(I)
+        SelectIsland = I
+    end
+})
+
+b:AddToggle({
+    Title = "Auto Mastery Fruits",
+    Description = "",
+    Default = false,
+    Callback = function(I)
+        _G.FarmMastery_Dev = I
+    end
+})
+
+spawn(function()
+    RunSer.RenderStepped:Connect(function()
+        pcall(function()
+            if _G.FarmMastery_Dev or _G.FarmMastery_G or _G.FarmMastery_S then
+                for _, e in pairs(plr.PlayerGui.Notifications:GetChildren()) do
+                    if e.Name == "NotificationTemplate" then
+                        if string.find(e.Text, "Skill locked!") then
+                            e:Destroy()
+                        end
+                    end
+                end
+            end
+        end)
+    end)
+end)
+
+spawn(function()
+    while wait(Sec) do
+        if _G.FarmMastery_Dev then
+            pcall(function()
+                if SelectIsland == "Cake" then
+                    local I = GetConnectionEnemies(X)
+                    if I then
+                        HealthM = (I.Humanoid.MaxHealth * 70) / 100
+                        repeat
+                            wait()
+                            MousePos = I.HumanoidRootPart.Position
+                            G.Mas(I, _G.FarmMastery_Dev)
+                        until not _G.FarmMastery_Dev or I.Humanoid.Health <= 0 or not I.Parent
+                    else
+                        _tp(CFrame.new(-1943.6765136719, 251.50956726074, -12337.880859375))
+                    end
+                elseif SelectIsland == "Bone" then
+                    local I = GetConnectionEnemies(P)
+                    if I then
+                        HealthM = (I.Humanoid.MaxHealth * 70) / 100
+                        repeat
+                            wait()
+                            MousePos = I.HumanoidRootPart.Position
+                            G.Mas(I, _G.FarmMastery_Dev)
+                        until not _G.FarmMastery_Dev or I.Humanoid.Health <= 0 or not I.Parent
+                    else
+                        _tp(CFrame.new(-9495.6806640625, 453.58624267578, 5977.3486328125))
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+b:AddToggle({
+    Title = "Auto Mastery Gun",
+    Description = "",
+    Default = false,
+    Callback = function(I)
+        _G.FarmMastery_G = I
+    end
+})
+
+spawn(function()
+    while wait(Sec) do
+        if _G.FarmMastery_G then
+            pcall(function()
+                local function farmGun()
+                    local I
+                    if SelectIsland == "Cake" then
+                        I = GetConnectionEnemies(X)
+                    elseif SelectIsland == "Bone" then
+                        I = GetConnectionEnemies(P)
+                    end
+                    if I then
+                        HealthM = (I.Humanoid.MaxHealth * 70) / 100
+                        repeat
+                            wait()
+                            MousePos = I.HumanoidRootPart.Position
+                            G.Masgun(I, _G.FarmMastery_G)
+                            local e = replicated:FindFirstChild("Modules")
+                            local K = e:FindFirstChild("Net")
+                            local n = K:FindFirstChild("RE/ShootGunEvent")
+                            if plr.Character:FindFirstChildOfClass("Tool") and (plr.Character:FindFirstChildOfClass("Tool")).Name == "Skull Guitar" then
+                                SoulGuitar = true
+                                (plr.Character:FindFirstChildOfClass("Tool")).RemoteEvent:FireServer("TAP", MousePos)
+                            elseif plr.Character:FindFirstChildOfClass("Tool") and (plr.Character:FindFirstChildOfClass("Tool")).Name ~= "Skull Guitar" then
+                                SoulGuitar = false
+                                n:FireServer(MousePos, { I.HumanoidRootPart })
+                            end
+                        until not _G.FarmMastery_G or I.Humanoid.Health <= 0 or not I.Parent
+                        SoulGuitar = false
+                    else
+                        if SelectIsland == "Cake" then
+                            _tp(CFrame.new(-1943.6765136719, 251.50956726074, -12337.880859375))
+                        else
+                            _tp(CFrame.new(-9495.6806640625, 453.58624267578, 5977.3486328125))
+                        end
+                    end
+                end
+                farmGun()
+            end)
+        end
+    end
+end)
+
+b:AddToggle({
+    Title = "Auto Mastery All Sword",
+    Description = "",
+    Default = false,
+    Callback = function(I)
+        _G.FarmMastery_S = I
+    end
+})
+
+spawn(function()
+    while wait(Sec) do
+        pcall(function()
+            if _G.FarmMastery_S then
+                local SwordName
+                local inventory = replicated.Remotes.CommF_:InvokeServer("getInventory")
+                for _, e in next, inventory do
+                    if type(e) == "table" and e.Type == "Sword" then
+                        SwordName = e.Name
+                        local I
+                        if SelectIsland == "Cake" then
+                            I = GetConnectionEnemies(X)
+                        elseif SelectIsland == "Bone" then
+                            I = GetConnectionEnemies(P)
+                        end
+                        if tonumber(e.Mastery) >= 1 and tonumber(e.Mastery) <= 599 then
+                            if GetBP(SwordName) then
+                                if I then
+                                    repeat
+                                        wait()
+                                        G.Sword(I, _G.FarmMastery_S)
+                                    until not _G.FarmMastery_S or not I.Parent or I.Humanoid.Health <= 0
+                                else
+                                    if SelectIsland == "Cake" then
+                                        _tp(CFrame.new(-1943.6765136719, 251.50956726074, -12337.880859375))
+                                    else
+                                        _tp(CFrame.new(-9495.6806640625, 453.58624267578, 5977.3486328125))
+                                    end
+                                end
+                            else
+                                replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName)
+                            end
+                        elseif tonumber(e.Mastery) >= 600 then
+                            if not GetBP(SwordName) then
+                                replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName)
+                            end
+                        end
+                        break
+                    end
+                end
+            end
+        end)
+    end
+end)
 b:AddSeperator("Unlocked Dungeon");
 b:AddToggle({
 	Title = "Auto Desbloquear Raid Dough",
