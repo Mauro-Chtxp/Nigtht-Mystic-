@@ -2642,7 +2642,7 @@ spawn(function()
 end)
 
 -- SEÇÃO BONE
-b:AddSeperator("Bones System")
+b:AddSeperator("Bones")
 
 local P_Bones = b:AddParagraph({
     Title = "Bones :",
@@ -2669,7 +2669,7 @@ b:AddToggle({
 
 -- ACCEPT QUEST (BONES)
 b:AddToggle({
-    Title = "Accept Quest (Bones)",
+    Title = "Accept Quest",
     Default = false,
     Callback = function(v)
         _G.AcceptQuest_Bones = v
@@ -2680,7 +2680,6 @@ spawn(function()
     while wait(Sec) do
         if _G.AutoFarm_Bone then
             pcall(function()
-
                 local plr = game.Players.LocalPlayer
                 local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
                 local QuestUI = plr.PlayerGui.Main.Quest
@@ -2694,33 +2693,56 @@ spawn(function()
                     "Posessed Mummy",
                 }
 
-                local mob = GetConnectionEnemies(MOBS)
+                -- Accept quest if toggle ativo
+                if _G.AcceptQuest_Bones and not QuestUI.Visible then
+                    local npcPos = CFrame.new(-9516.99,172.01,6078.46)
+                    _tp(npcPos)
+                    while (npcPos.Position - hrp.Position).Magnitude > 50 do wait(.2) end
 
-                if mob then
-                    if _G.AcceptQuest_Bones and not QuestUI.Visible then
+                    local choose = math.random(1,4)
+                    local q = {
+                        { "StartQuest","HauntedQuest2",2 },
+                        { "StartQuest","HauntedQuest2",1 },
+                        { "StartQuest","HauntedQuest1",1 },
+                        { "StartQuest","HauntedQuest1",2 },
+                    }
 
-                        local npc = CFrame.new(-9516.99,172.01,6078.46)
-                        _tp(npc)
-                        while (npc.Position - hrp.Position).Magnitude > 50 do wait(.2) end
+                    pcall(function()
+                        replicated.Remotes.CommF_:InvokeServer(unpack(q[choose]))
+                    end)
+                end
 
-                        local choose = math.random(1,4)
-                        local q = {
-                            { "StartQuest","HauntedQuest2",2 },
-                            { "StartQuest","HauntedQuest2",1 },
-                            { "StartQuest","HauntedQuest1",1 },
-                            { "StartQuest","HauntedQuest1",2 },
-                        }
-
-                        pcall(function()
-                            replicated.Remotes.CommF_:InvokeServer(unpack(q[choose]))
-                        end)
+                -- Loop de farm
+                local function GetClosestMob()
+                    local closest
+                    local shortest = math.huge
+                    for _, mobName in pairs(MOBS) do
+                        for _, mob in pairs(workspace.Enemies:GetChildren()) do
+                            if mob.Name == mobName and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
+                                local dist = (mob.PrimaryPart.Position - hrp.Position).Magnitude
+                                if dist < shortest then
+                                    shortest = dist
+                                    closest = mob
+                                end
+                            end
+                        end
                     end
+                    return closest
+                end
 
+                local mob = GetClosestMob()
+                if mob then
+                    _tp(mob.PrimaryPart.CFrame)
                     repeat wait()
-                        G.Kill(mob, _G.AutoFarm_Bone)
-                    until not _G.AutoFarm_Bone or mob.Humanoid.Health <= 0 or not mob.Parent
+                        if mob.Parent and mob.Humanoid.Health > 0 then
+                            G.Kill(mob, _G.AutoFarm_Bone)
+                        else
+                            break
+                        end
+                    until not _G.AutoFarm_Bone
 
                 else
+                    -- Posição padrão se nenhum mob estiver disponível
                     _tp(CFrame.new(-9495.68,453.58,5977.34))
                 end
 
@@ -2728,7 +2750,6 @@ spawn(function()
         end
     end
 end)
-
 -- AUTO RANDOM BONES
 b:AddToggle({
     Title = "Auto Random Bone",
@@ -2792,10 +2813,10 @@ end)
 --        SECTION CAKE         --
 --=============================--
 
-b:AddSeperator("Cake Prince System")
+b:AddSeperator("Cake Prince")
 
 local P_Cake = b:AddParagraph({
-    Title = "Cake Prince :",
+    Title = "Mobs :",
     Content = ""
 })
 
@@ -2822,7 +2843,7 @@ b:AddToggle({
 
 -- ACCEPT QUEST (CAKE PRINCE)
 b:AddToggle({
-    Title = "Accept Quest (Cake Prince)",
+    Title = "Accept Quest",
     Default = false,
     Callback = function(v)
         _G.AcceptQuest_Cake = v
@@ -2901,7 +2922,7 @@ spawn(function()
     end
 end)
 
-b:AddSeperator("Miscellanea / Mastery")
+b:AddSeperator("Mastery")
 
 local islands = { "Cake", "Bone" }
 b:AddDropdown({
