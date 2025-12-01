@@ -2904,60 +2904,66 @@ spawn(function()
         end
     end
 end)
+b:AddSeperator("Material");
 
+b:AddDropdown({
+	Title = "Choose Material",
+	Description = "",
+	Values = MaterialList,
+	Default = nil,
+	Multi = false,
+	Callback = function(I)
+		(getgenv()).SelectMaterial = I;
+	end,
+});
 b:AddToggle({
-    Title = "Auto Mastery All Sword",
-    Description = "",
-    Default = false,
-    Callback = function(I)
-        _G.FarmMastery_S = I
-    end
-})
-
+	Title = "Auto Materials",
+	Description = "",
+	Default = false,
+	Callback = function(I)
+		(getgenv()).AutoMaterial = I;
+	end,
+});
 spawn(function()
-    while wait(Sec) do
-        pcall(function()
-            if _G.FarmMastery_S then
-                local SwordName
-                local inventory = replicated.Remotes.CommF_:InvokeServer("getInventory")
-                for _, e in next, inventory do
-                    if type(e) == "table" and e.Type == "Sword" then
-                        SwordName = e.Name
-                        local I
-                        if SelectIsland == "Cake" then
-                            I = GetConnectionEnemies(X)
-                        elseif SelectIsland == "Bone" then
-                            I = GetConnectionEnemies(P)
-                        end
-                        if tonumber(e.Mastery) >= 1 and tonumber(e.Mastery) <= 599 then
-                            if GetBP(SwordName) then
-                                if I then
-                                    repeat
-                                        wait()
-                                        G.Sword(I, _G.FarmMastery_S)
-                                    until not _G.FarmMastery_S or not I.Parent or I.Humanoid.Health <= 0
-                                else
-                                    if SelectIsland == "Cake" then
-                                        _tp(CFrame.new(-1943.6765136719, 251.50956726074, -12337.880859375))
-                                    else
-                                        _tp(CFrame.new(-9495.6806640625, 453.58624267578, 5977.3486328125))
-                                    end
-                                end
-                            else
-                                replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName)
-                            end
-                        elseif tonumber(e.Mastery) >= 600 then
-                            if not GetBP(SwordName) then
-                                replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName)
-                            end
-                        end
-                        break
-                    end
-                end
-            end
-        end)
-    end
-end)
+	local function I(I, e)
+		if I:FindFirstChild("Humanoid") and (I:FindFirstChild("HumanoidRootPart") and I.Humanoid.Health > 0) then
+			if I.Name == e then
+				repeat
+					wait();
+					G.Kill(I, (getgenv()).AutoMaterial);
+				until not (getgenv()).AutoMaterial or not I.Parent or I.Humanoid.Health <= 0;
+			end;
+		end;
+	end;
+	local function e()
+		for I, e in pairs((game:GetService("Workspace"))._WorldOrigin.EnemySpawns:GetChildren()) do
+			for I, K in ipairs(MMon) do
+				if string.find(e.Name, K) then
+					if (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - e.Position).Magnitude >= 10 then
+						_tp(e.CFrame * Pos);
+					end;
+				end;
+			end;
+		end;
+	end;
+	while wait() do
+		if (getgenv()).AutoMaterial then
+			pcall(function()
+				if (getgenv()).SelectMaterial then
+					MaterialMon((getgenv()).SelectMaterial);
+					_tp(MPos);
+				end;
+				for e, K in ipairs(MMon) do
+					for e, n in pairs(workspace.Enemies:GetChildren()) do
+						I(n, K);
+					end;
+				end;
+				e();
+			end);
+		end;
+	end;
+end);
+
 b:AddSeperator("Instinct / Observation");
 b:AddToggle({
 	Title = "Auto Farm Observation",
