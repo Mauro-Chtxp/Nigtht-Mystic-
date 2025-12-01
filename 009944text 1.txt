@@ -1893,7 +1893,7 @@ local i = V:T("Info")
 local y = V:T("Main");
 local c = V:T("Settings");
 local x = V:T("Farming Other");
-local mf = V:T("Fishing");
+local mf = V:T("Misc Farming");
 local t = V:T("Sea Events");
 local m = V:T("Race");
 local v = V:T("Drago Dojo");
@@ -2056,6 +2056,195 @@ MF:AddToggle({
         end
     end
 })
+MF:AddSeperator("Seas");
+
+MF:AddToggle({
+	Title = "Auto Sea 2",
+	Description = "",
+	Default = false,
+	Callback = function(I)
+		_G.TravelDres = I;
+	end,
+});
+spawn(function()
+	while wait(Sec) do
+		pcall(function()
+			if _G.TravelDres then
+				if plr.Data.Level.Value >= 700 then
+					if workspace.Map.Ice.Door.CanCollide == true and workspace.Map.Ice.Door.Transparency == 0 then
+						replicated.Remotes.CommF_:InvokeServer("DressrosaQuestProgress", "Detective");
+						EquipWeapon("Key");
+						repeat
+							wait();
+							_tp(CFrame.new(1347.7124, 37.3751602, -1325.6488));
+						until not _G.TravelDres or Root.Position == (CFrame.new(1347.7124, 37.3751602, -1325.6488)).Position;
+					elseif workspace.Map.Ice.Door.CanCollide == false and workspace.Map.Ice.Door.Transparency == 1 then
+						if Enemies:FindFirstChild("Ice Admiral") then
+							for I, e in pairs(Enemies:GetChildren()) do
+								if e.Name == "Ice Admiral" and G.Alive(e) then
+									repeat
+										task.wait();
+										G.Kill(e, _G.TravelDres);
+									until _G.TravelDres == false or e.Humanoid.Health <= 0;
+									replicated.Remotes.CommF_:InvokeServer("TravelDressrosa");
+								end;
+							end;
+						else
+							_tp(CFrame.new(1347.7124, 37.3751602, -1325.6488));
+						end;
+					else
+						replicated.Remotes.CommF_:InvokeServer("TravelDressrosa");
+					end;
+				end;
+			end;
+		end);
+	end;
+end);
+
+MF:AddToggle({
+	Title = "Auto Sea 3",
+	Description = "",
+	Default = false,
+	Callback = function(I)
+		_G.Zou = I;
+	end,
+});
+spawn(function()
+	while wait(Sec) do
+		pcall(function()
+			if _G.AutoZou then
+				if plr.Data.Level.Value >= 1500 then
+					if replicated.Remotes.CommF_:InvokeServer("BartiloQuestProgress", "Bartilo") == 3 then
+						if (replicated.Remotes.CommF_:InvokeServer("GetUnlockables")).FlamingoAccess ~= nil then
+							replicated.Remotes.CommF_:InvokeServer("F_", "TravelZou");
+							if replicated.Remotes.CommF_:InvokeServer("ZQuestProgress", "Check") == 0 then
+								local I = GetConnectionEnemies("rip_indra");
+								if I then
+									repeat
+										wait();
+										G.Kill(I, _G.AutoZou);
+									until not _G.AutoZou or not I.Parent or I.Humanoid.Health <= 0;
+									Check = 2;
+									repeat
+										wait();
+										replicated.Remotes.CommF_:InvokeServer("F_", "TravelZou");
+									until Check == 1;
+								else
+									replicated.Remotes.CommF_:InvokeServer("F_", "ZQuestProgress", "Check");
+									wait(.1);
+									replicated.Remotes.CommF_:InvokeServer("F_", "ZQuestProgress", "Begin");
+								end;
+							elseif replicated.Remotes.CommF_:InvokeServer("ZQuestProgress", "Check") == 1 then
+								replicated.Remotes.CommF_:InvokeServer("F_", "TravelZou");
+							else
+								local I = GetConnectionEnemies("Don Swan");
+								if I then
+									repeat
+										wait();
+										G.Kill(I, _G.AutoZou);
+									until not _G.AutoZou or not I.Parent or I.Humanoid.Health <= 0;
+								else
+									repeat
+										wait();
+										_tp(CFrame.new(2288.802, 15.1870775, 863.034607));
+									until not _G.AutoZou or Root.Position == (CFrame.new(2288.802, 15.1870775, 863.034607)).Position;
+									if Root.CFrame == CFrame.new(2288.802, 15.1870775, 863.034607) then
+										notween(CFrame.new(2288.802, 15.1870775, 863.034607));
+									end;
+								end;
+							end;
+						else
+							if (replicated.Remotes.CommF_:InvokeServer("GetUnlockables")).FlamingoAccess == nil then
+								TabelDevilFruitStore = {};
+								TabelDevilFruitOpen = {};
+								for I, e in pairs(replicated.Remotes.CommF_:InvokeServer("getInventoryFruits")) do
+									for I, e in pairs(e) do
+										if I == "Name" then
+											table.insert(TabelDevilFruitStore, e);
+										end;
+									end;
+								end;
+								for I, e in next, (game.ReplicatedStorage:WaitForChild("Remotes")).CommF_:InvokeServer("GetFruits") do
+									if e.Price >= 1000000 then
+										table.insert(TabelDevilFruitOpen, e.Name);
+									end;
+								end;
+								for I, e in pairs(TabelDevilFruitOpen) do
+									for I, K in pairs(TabelDevilFruitStore) do
+										if e == K and (replicated.Remotes.CommF_:InvokeServer("GetUnlockables")).FlamingoAccess == nil then
+											if not plr.Backpack:FindFirstChild(K) then
+												replicated.Remotes.CommF_:InvokeServer("F_", "LoadFruit", K);
+											else
+												replicated.Remotes.CommF_:InvokeServer("F_", "TalkTrevor", "1");
+												replicated.Remotes.CommF_:InvokeServer("F_", "TalkTrevor", "2");
+												replicated.Remotes.CommF_:InvokeServer("F_", "TalkTrevor", "3");
+											end;
+										end;
+									end;
+								end;
+								replicated.Remotes.CommF_:InvokeServer("F_", "TalkTrevor", "1");
+								replicated.Remotes.CommF_:InvokeServer("F_", "TalkTrevor", "2");
+								replicated.Remotes.CommF_:InvokeServer("F_", "TalkTrevor", "3");
+							end;
+						end;
+					else
+						if replicated.Remotes.CommF_:InvokeServer("BartiloQuestProgress", "Bartilo") == 0 then
+							if string.find(plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "Swan Pirates") and (string.find(plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "50") and plr.PlayerGui.Main.Quest.Visible == true) then
+								local I = GetConnectionEnemies("Swan Pirate");
+								if I then
+									pcall(function()
+										repeat
+											wait();
+											G.Kill(I, _G.AutoZou);
+										until not I.Parent or I.Humanoid.Health <= 0 or _G.AutoZou == false or plr.PlayerGui.Main.Quest.Visible == false;
+									end);
+								else
+									_tp(CFrame.new(1057.92761, 137.614319, 1242.08069));
+								end;
+							else
+								_tp(CFrame.new(-456.28952, 73.0200958, 299.895966));
+							end;
+						elseif replicated.Remotes.CommF_:InvokeServer("BartiloQuestProgress", "Bartilo") == 1 then
+							local I = GetConnectionEnemies("Jeremy");
+							if I then
+								repeat
+									wait();
+									G.Kill(I, _G.AutoZou);
+								until not I.Parent or I.Humanoid.Health <= 0 or _G.AutoZou == false;
+							else
+								_tp(CFrame.new(2099.88159, 448.931, 648.997375));
+							end;
+						elseif replicated.Remotes.CommF_:InvokeServer("BartiloQuestProgress", "Bartilo") == 2 then
+							repeat
+								wait();
+								_tp(CFrame.new(-1836, 11, 1714));
+							until not _G.AutoZou or Root.Position == (CFrame.new(-1836, 11, 1714)).Position;
+							if Root.CFrame == CFrame.new(-1836, 11, 1714) then
+								notween(CFrame.new(-1836, 11, 1714));
+							end;
+							notween(CFrame.new(-1850.49329, 13.1789551, 1750.89685));
+							wait(.1);
+							notween(CFrame.new(-1858.87305, 19.3777466, 1712.01807));
+							wait(.1);
+							notween(CFrame.new(-1803.94324, 16.5789185, 1750.89685));
+							wait(.1);
+							notween(CFrame.new(-1858.55835, 16.8604317, 1724.79541));
+							wait(.1);
+							notween(CFrame.new(-1869.54224, 15.987854, 1681.00659));
+							wait(.1);
+							notween(CFrame.new(-1800.0979, 16.4978027, 1684.52368));
+							wait(.1);
+							notween(CFrame.new(-1819.26343, 14.795166, 1717.90625));
+							wait(.1);
+							notween(CFrame.new(-1813.51843, 14.8604736, 1724.79541));
+						end;
+					end;
+				end;
+			end;
+		end);
+	end;
+end);
+
 
 local I1 = i:AddSection("Info");
 
