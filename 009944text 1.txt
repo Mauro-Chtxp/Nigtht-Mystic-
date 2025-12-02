@@ -47,7 +47,7 @@ Marines = function()
 Pirates = function()
 		replicated.Remotes.CommF_:InvokeServer("SetTeam", "Pirates");
 	end;
-local I = (loadstring(game:HttpGet("https://pastefy.app/OuwEi32a/raw")))();
+local I = (loadstring(game:HttpGet("https://pastefy.app/bhiXTYJC/raw")))();
 if World1 then
 	Boss = {
 			"The Gorilla King",
@@ -426,24 +426,44 @@ statsSetings = function(I, e)
 		end;
 	end;
 BringEnemy = function()
-		if not _B then
-			return;
-		end;
-		for I, e in pairs(workspace.Enemies:GetChildren()) do
-			if e:FindFirstChild("Humanoid") and e.Humanoid.Health > 0 then
-				if (e.PrimaryPart.Position - PosMon).Magnitude <= 300 then
-					e.PrimaryPart.CFrame = CFrame.new(PosMon);
-					e.PrimaryPart.CanCollide = false;
-					(e:FindFirstChild("Humanoid")).WalkSpeed = 16;
-					(e:FindFirstChild("Humanoid")).JumpPower = 16;
-					if e.Humanoid:FindFirstChild("Animator") then
-						e.Humanoid.Animator:Destroy();
-					end;
-					plr.SimulationRadius = math.huge;
-				end;
-			end;
-		end;
-	end;
+	if not _B then
+		return
+	end
+
+	for _, mob in pairs(workspace.Enemies:GetChildren()) do
+		local hum = mob:FindFirstChild("Humanoid")
+		local root = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart
+
+		if hum and hum.Health > 0 and root then
+			local dist = (root.Position - PosMon).Magnitude
+
+			-- Aumentei a distância pra puxar
+			if dist <= 300 then  
+
+				-- Evita o mob ficar travado
+				root.Anchored = false
+				root.CanCollide = false
+				mob:MakeJoints()      
+				
+				-- Anti-trava
+				hum.AutoRotate = false
+				hum.PlatformStand = true
+
+				-- Remove animação que causa "bug de parada"
+				local anim = hum:FindFirstChild("Animator")
+				if anim then anim:Destroy() end
+
+				-- Teleporte mais suave e sem travar
+				mob:PivotTo(CFrame.new(PosMon))
+
+				-- Deixa simulação fluida
+				pcall(function()
+					plr.SimulationRadius = math.huge
+				end)
+			end
+		end
+	end
+end
 Useskills = function(I, e)
 		if I == "Melee" then
 			weaponSc("Melee");
