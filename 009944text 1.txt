@@ -7764,52 +7764,115 @@ p:AddToggle({
 		end);
 	end,
 });
+-- // AUTO RAID SEGURO + FIXADO
 p:AddToggle({
-	Title = "Auto Complete Raid [Safety]",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.Raiding = I;
-	end,
-});
+    Title = "Auto Complete Raid [Safety]",
+    Default = false,
+    Callback = function(v)
+        _G.Raiding = v
+    end
+})
+
+local Players = game:GetService("Players")
+local plr = Players.LocalPlayer
+local rs = game:GetService("RunService")
+
+local RaidIslands = {
+    "Island1",
+    "Island 2",
+    "Island 3",
+    "Island 4",
+    "Island5"
+}
+
+function GetNearestMob()
+    local char = plr.Character
+    if not char or not char:FindFirstChild("HumanoidRootPart") then
+        return nil
+    end
+    local hrp = char.HumanoidRootPart
+
+    local nearest, dist = nil, math.huge
+
+    for _, mob in pairs(workspace.Enemies:GetChildren()) do
+        if mob:FindFirstChild("Humanoid") and mob:FindFirstChild("HumanoidRootPart") then
+            if mob.Humanoid.Health > 0 then
+                local d = (mob.HumanoidRootPart.Position - hrp.Position).Magnitude
+                if d < dist then
+                    dist = d
+                    nearest = mob
+                end
+            end
+        end
+    end
+
+    return nearest
+end
+
+function GoTo(pos)
+    pcall(function()
+        local char = plr.Character
+        if char and char:FindFirstChild("HumanoidRootPart") then
+            char.HumanoidRootPart.CFrame = CFrame.new(pos)
+        end
+    end)
+end
+
 spawn(function()
-	pcall(function()
-		while wait(Sec) do
-			if _G.Raiding then
-				if plr.PlayerGui.Main.TopHUDList.RaidTimer.Visible == true then
-					local I = {
-							"Island5",
-							"Island 4",
-							"Island 3",
-							"Island 2",
-							"Island 1",
-						};
-					for I, e in ipairs(I) do
-						local K = (game:GetService("Workspace"))._WorldOrigin.Locations:FindFirstChild(e);
-						if K then
-							for I, e in pairs(workspace.Enemies:GetChildren()) do
-								if e:FindFirstChild("Humanoid") or e:FindFirstChild("HumanoidRootPart") then
-									if e.Humanoid.Health > 0 then
-										repeat
-											wait();
-											G.Kill(e, _G.Raiding);
-											NextIs = false;
-										until not _G.Raiding or not e.Parent or e.Humanoid.Health <= 0;
-										NextIs = true;
-									end;
-								end;
-							end;
-						end;
-					end;
-				else
-					NextIs = false;
-				end;
-			else
-				NextIs = false;
-			end;
-		end;
-	end);
-end);
+    while rs.Heartbeat:Wait() do
+        if _G.Raiding then
+            -- SE A RAID NÃO ESTÁ ATIVA, ESPERA
+            if not plr.PlayerGui.Main.TopHUDList.RaidTimer.Visible then
+                continue
+            end
+
+            local char = plr.Character
+            if not char or not char:FindFirstChild("HumanoidRootPart") then
+                continue
+            end
+
+            -- PROCURA MOBS POR ILHA ORDENADA
+            local CurrentIsland = nil
+
+            for _, islandName in ipairs(RaidIslands) do
+                local island = workspace._WorldOrigin.Locations:FindFirstChild(islandName)
+                if island then
+                    -- VERIFICA SE TEM MOB NESSA ILHA
+                    for _, mob in pairs(workspace.Enemies:GetChildren()) do
+                        if mob:FindFirstChild("HumanoidRootPart") then
+                            if (mob.HumanoidRootPart.Position - island.Position).Magnitude <= 350 then
+                                CurrentIsland = island
+                                break
+                            end
+                        end
+                    end
+                end
+
+                if CurrentIsland then break end
+            end
+
+            -- SE NÃO ACHOU ILHA COM MOB, ESPERA
+            if not CurrentIsland then
+                continue
+            end
+
+            -- ACHOU ILHA → IR ATÉ LÁ
+            GoTo(CurrentIsland.Position + Vector3.new(0, 40, 0))
+
+            -- AGORA MATA OS MOBS
+            local target = GetNearestMob()
+            if target then
+                repeat
+                    task.wait()
+                    pcall(function()
+                        -- Kill function externa
+                        G.Kill(target, true)
+                    end)
+                until not _G.Raiding or not target.Parent or target.Humanoid.Health <= 0
+            end
+        end
+    end
+end)
 p:AddToggle({
 	Title = "Kill Aura",
 	Description = "",
