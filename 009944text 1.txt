@@ -803,10 +803,12 @@ C.Anchored = true;
 C.CanCollide = false;
 C.CanTouch = false;
 C.Transparency = 1;
+
 local M = workspace:FindFirstChild(C.Name);
 if M and M ~= C then
 	M:Destroy();
 end;
+
 task.spawn(function()
 	while task.wait() do
 		if C and C.Parent == workspace then
@@ -820,12 +822,13 @@ task.spawn(function()
 		end;
 	end;
 end);
+
 task.spawn(function()
 	local I = game.Players.LocalPlayer;
-	repeat
-		task.wait();
-	until I.Character and I.Character.PrimaryPart;
+	repeat task.wait() until I.Character and I.Character.PrimaryPart;
+
 	C.CFrame = I.Character.PrimaryPart.CFrame;
+
 	while task.wait() do
 		pcall(function()
 			if (getgenv()).OnFarm then
@@ -837,20 +840,22 @@ task.spawn(function()
 						C.CFrame = e.CFrame;
 					end;
 				end;
+
 				local e = I.Character;
 				if e then
-					for I, e in pairs(e:GetChildren()) do
-						if e:IsA("BasePart") then
-							e.CanCollide = false;
+					for _, v in pairs(e:GetChildren()) do
+						if v:IsA("BasePart") then
+							v.CanCollide = false;
 						end;
 					end;
 				end;
+
 			else
 				local e = I.Character;
 				if e then
-					for I, e in pairs(e:GetChildren()) do
-						if e:IsA("BasePart") then
-							e.CanCollide = true;
+					for _, v in pairs(e:GetChildren()) do
+						if v:IsA("BasePart") then
+							v.CanCollide = true;
 						end;
 					end;
 				end;
@@ -858,39 +863,65 @@ task.spawn(function()
 		end);
 	end;
 end);
+
+-- =======================
+-- TWEEN CORRIGIDO
+-- =======================
+
 _tp = function(I)
-		local e = plr.Character;
-		if not e or not e:FindFirstChild("HumanoidRootPart") then
-			return;
-		end;
-		local K = e.HumanoidRootPart;
-		local n = (I.Position - K.Position).Magnitude;
-		local d = TweenInfo.new(n / 300, Enum.EasingStyle.Linear);
-		local z = (game:GetService("TweenService")):Create(C, d, { CFrame = I });
-		if plr.Character.Humanoid.Sit == true then
-			C.CFrame = CFrame.new(C.Position.X, I.Y, C.Position.Z);
-		end;
-		z:Play();
-		task.spawn(function()
-			while z.PlaybackState == Enum.PlaybackState.Playing do
-				if not shouldTween then
-					z:Cancel();
-					break;
-				end;
-				task.wait(.1);
+	local e = plr.Character;
+	if not e or not e:FindFirstChild("HumanoidRootPart") then
+		return;
+	end;
+
+	local HRP = e.HumanoidRootPart;
+
+	-- 🔥 Impedir que o sistema "C" puxe o player durante o tween
+	shouldTween = true
+	getgenv().OnFarm = false
+
+	-- 🔥 Garantir que não esteja ancorado
+	if HRP.Anchored then
+		HRP.Anchored = false
+		task.wait()
+	end
+
+	local dist = (I.Position - HRP.Position).Magnitude;
+	local info = TweenInfo.new(dist / 300, Enum.EasingStyle.Linear);
+	local tween = game:GetService("TweenService"):Create(C, info, { CFrame = I });
+
+	if e.Humanoid.Sit == true then
+		C.CFrame = CFrame.new(C.Position.X, I.Y, C.Position.Z);
+	end;
+
+	tween:Play();
+
+	task.spawn(function()
+		while tween.PlaybackState == Enum.PlaybackState.Playing do
+			if not shouldTween then
+				tween:Cancel();
+				break;
 			end;
-		end);
-	end;
+			task.wait(.1);
+		end
+
+		-- 🔥 Reativar sistema após o tween
+		getgenv().OnFarm = true
+	end);
+end;
+
 TeleportToTarget = function(I)
-		if (I.Position - plr.Character.HumanoidRootPart.Position).Magnitude > 1000 then
-			_tp(I);
-		else
-			_tp(I);
-		end;
+	if (I.Position - plr.Character.HumanoidRootPart.Position).Magnitude > 1000 then
+		_tp(I);
+	else
+		_tp(I);
 	end;
+end;
+
 notween = function(I)
-		plr.Character.HumanoidRootPart.CFrame = I;
-	end;
+	plr.Character.HumanoidRootPart.CFrame = I;
+end;
+
 function BTP(I)
 	local e = game.Players.LocalPlayer;
 	local K = e.Character.HumanoidRootPart;
@@ -898,14 +929,17 @@ function BTP(I)
 	local d = e.PlayerGui.Main;
 	local z = I.Position;
 	local H = K.Position;
+
 	repeat
 		n.Health = 0;
 		K.CFrame = I;
 		d.Quest.Visible = false;
+
 		if (K.Position - H).Magnitude > 1 then
 			H = K.Position;
 			K.CFrame = I;
 		end;
+
 		task.wait(.5);
 	until (I.Position - K.Position).Magnitude <= 2000;
 end;
