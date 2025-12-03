@@ -2428,13 +2428,29 @@ b:AddToggle({
     end,
 })
 
+local CurrentMob = nil -- mob que está sendo morto no momento
+
+local function GetNearestMob(TargetName)
+    local Closest, Dist = nil, math.huge
+    for _, Mob in pairs(workspace.Enemies:GetChildren()) do
+        if G.Alive(Mob) and Mob.Name == TargetName and Mob:FindFirstChild("HumanoidRootPart") then
+            local d = (Mob.HumanoidRootPart.Position - Root.Position).Magnitude
+            if d < Dist then
+                Dist = d
+                Closest = Mob
+            end
+        end
+    end
+    return Closest
+end
+
 spawn(function()
     while wait(Sec) do
         if _G.Level then
             pcall(function()
+
                 if not plr.Character or not Root then
                     plr.CharacterAdded:Wait()
-                    task.wait(0.5)
                     Root = plr.Character:WaitForChild("HumanoidRootPart")
                     return
                 end
@@ -2442,42 +2458,61 @@ spawn(function()
                 local QuestTitle = plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text
                 local Q = QuestNeta()
 
+                -- garantir quest certa
                 if not string.find(QuestTitle, Q[5]) then
                     replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
                 end
 
+                -- pegar quest
                 if plr.PlayerGui.Main.Quest.Visible == false then
                     _tp(Q[6])
-                    if Root and (Root.Position - Q[6].Position).Magnitude <= 6 then
+                    if (Root.Position - Q[6].Position).Magnitude <= 6 then
                         replicated.Remotes.CommF_:InvokeServer("StartQuest", Q[3], Q[2])
                     end
-                else
-                    if workspace.Enemies:FindFirstChild(Q[1]) then
-                        for _, Mob in pairs(workspace.Enemies:GetChildren()) do
-                            if G.Alive(Mob) and Mob.Name == Q[1] then
-                                if string.find(QuestTitle, Q[5]) then
-                                    repeat
-                                        wait()
-                                        G.Kill(Mob, _G.Level)
-                                    until not _G.Level or not Mob.Parent or Mob.Humanoid.Health <= 0 or plr.PlayerGui.Main.Quest.Visible == false
-                                else
-                                    replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
-                                end
-                            end
-                        end
-                    else
-                        _tp(Q[4])
-                        local RepMob = replicated:FindFirstChild(Q[1])
-                        if RepMob and RepMob:FindFirstChild("HumanoidRootPart") then
-                            _tp(RepMob.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
-                        end
-                    end
+                    return
                 end
+
+                -- SE AQUI: já temos quest
+                -- tentar achar mob da quest
+                local Nearest = GetNearestMob(Q[1])
+
+                -- se temos mob atual em combate, ver se ainda existe e finalizar ele
+                if CurrentMob and G.Alive(CurrentMob) and CurrentMob.Parent then
+                    -- continuar matando até morrer
+                    G.Kill(CurrentMob, true)
+                    return
+                else
+                    -- mob morreu → limpar
+                    CurrentMob = nil
+                end
+
+                -- se não achou nenhum mob
+                if not Nearest then
+                    _tp(Q[4])
+                    local RepMob = replicated:FindFirstChild(Q[1])
+                    if RepMob and RepMob:FindFirstChild("HumanoidRootPart") then
+                        _tp(RepMob.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
+                    end
+                    return
+                end
+
+                -- se achou → setar como mob atual
+                CurrentMob = Nearest
+
+                -- ir até ele e matar
+                if CurrentMob and G.Alive(CurrentMob) then
+                    repeat
+                        wait()
+                        G.Kill(CurrentMob, true)
+                    until not _G.Level or not CurrentMob.Parent or CurrentMob.Humanoid.Health <= 0
+
+                    CurrentMob = nil
+                end
+
             end)
         end
     end
 end)
-
 b:AddSeperator("Other")
 
 b:AddToggle({
