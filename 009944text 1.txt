@@ -2902,6 +2902,9 @@ spawn(function()
     end
 end)
 
+-- COORDENADA PRINCIPAL DA IMAGEM
+local InitialPoint = CFrame.new(-2077,252,-12373)
+
 -- AUTO CAKE PRINCE
 b:AddToggle({
     Title = "Auto Cake Prince",
@@ -2921,49 +2924,73 @@ b:AddToggle({
 })
 
 spawn(function()
-    while wait() do
+    while task.wait() do
         if _G.Auto_Cake_Prince then
             pcall(function()
 
                 local plr = game.Players.LocalPlayer
-                local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+                local char = plr.Character
+                local hrp = char and char:FindFirstChild("HumanoidRootPart")
+                if not hrp then return end
+
                 local QuestUI = plr.PlayerGui.Main.Quest
                 local mirror = workspace.Map.CakeLoaf.BigMirror
                 local enemies = workspace.Enemies
 
-                if not hrp then return end
-
-                if not mirror:FindFirstChild("Other") then
-                    _tp(CFrame.new(-2077,252,-12373))
+                ------------------------------------------------------------------------
+                -- 1) SEMPRE IR PARA A COORDENADA PRINCIPAL PRIMEIRO (COM SEU TP)
+                ------------------------------------------------------------------------
+                if (hrp.Position - InitialPoint.Position).Magnitude > 50 then
+                    _tp(InitialPoint)
                 end
 
-                -- CAKE PRINCE ATIVO
+                ------------------------------------------------------------------------
+                -- 2) CAKE PRINCE ATIVO → MATAR
+                ------------------------------------------------------------------------
                 if mirror.Other.Transparency == 0 or enemies:FindFirstChild("Cake Prince") then
-
+                    
                     local mob = GetConnectionEnemies("Cake Prince")
                     if mob then
-                        repeat wait()
+                        repeat task.wait()
                             G.Kill2(mob,_G.Auto_Cake_Prince)
-                        until not _G.Auto_Cake_Prince or not mob.Parent or mob.Humanoid.Health <= 0
+                        until 
+                            not _G.Auto_Cake_Prince 
+                            or not mob.Parent 
+                            or mob.Humanoid.Health <= 0
+
                     else
+                        -- Teleport suave até o portal
                         if mirror.Other.Transparency == 0 then
                             _tp(CFrame.new(-2151.82,149.32,-12404.91))
                         end
                     end
 
                 else
-                    -- FARM PARA SPAWNAR
+
+                    --------------------------------------------------------------------
+                    -- 3) FARMAR MOBS PARA SPAWNAR
+                    --------------------------------------------------------------------
                     local LIST = {
-                        "Cookie Crafter","Cake Guard","Baking Staff","Head Baker"
+                        "Cookie Crafter",
+                        "Cake Guard",
+                        "Baking Staff",
+                        "Head Baker"
                     }
 
                     local mob = GetConnectionEnemies(LIST)
-                    if mob then
 
+                    if mob then
+                        --------------------------------------------------------------
+                        -- PEGAR QUEST SE NÃO TIVER
+                        --------------------------------------------------------------
                         if _G.AcceptQuest_Cake and not QuestUI.Visible then
+                            
                             local npc = CFrame.new(-1927.92,37.8,-12842.54)
                             _tp(npc)
-                            while (npc.Position - hrp.Position).Magnitude > 50 do wait(.2) end
+
+                            while (npc.Position - hrp.Position).Magnitude > 50 do 
+                                task.wait(.2) 
+                            end
 
                             local choose = math.random(1,4)
                             local q = {
@@ -2978,12 +3005,21 @@ spawn(function()
                             end)
                         end
 
-                        repeat wait()
+                        --------------------------------------------------------------
+                        -- MATAR O MOB
+                        --------------------------------------------------------------
+                        repeat task.wait()
                             G.Kill(mob,_G.Auto_Cake_Prince)
-                        until not _G.Auto_Cake_Prince or mob.Humanoid.Health <= 0 or mirror.Other.Transparency == 0
+                        until 
+                            not _G.Auto_Cake_Prince 
+                            or mob.Humanoid.Health <= 0 
+                            or mirror.Other.Transparency == 0
 
                     else
-                        _tp(CFrame.new(-2077,252,-12373))
+                        --------------------------------------------------------------
+                        -- 4) SE NÃO TEM MOB → VOLTAR E ESPERAR (COM O SEU TP)
+                        --------------------------------------------------------------
+                        _tp(InitialPoint)
                     end
                 end
 
