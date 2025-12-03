@@ -2000,9 +2000,9 @@ QuestNeta = function()
 		};
 	end;
 local V = I:NewWindow();
-local i = V:T("Info")
+local i = V:T("Info");
+local g = V:T("Shop");
 local y = V:T("Main");
-local c = V:T("Settings");
 local x = V:T("Farming Other");
 local mf = V:T("Misc Farming");
 local t = V:T("Sea Events");
@@ -2012,8 +2012,8 @@ local S = V:T("Prehistoric");
 local q = V:T("Pvp");
 local l = V:T("Teleport");
 local B = V:T("Raid/Fruit");
-local g = V:T("Shop");
 local u = V:T("Misc");
+local c = V:T("Settings");
 local b = y:AddSection("Farming");
 local T = c:AddSection("Setting");
 local j = x:AddSection("Other Farming");
@@ -9373,6 +9373,28 @@ Z:AddButton({ Title = "Open Title Selection", Description = "", Callback = funct
 		replicated.Remotes.CommF_:InvokeServer("getTitles", true);
 		plr.PlayerGui.Main.Titles.Visible = true;
 	end });
+Z:AddButton({
+	Title = "Redeem All Codes",
+	Description = "",
+	Callback = function()
+		local Codes = {
+			"KITT_RESET", "Sub2UncleKizaru", "SUB2GAMERROBOT_RESET1", "Sub2Fer999", "Enyu_is_Pro", "JCWK",
+			"StarcodeHEO", "MagicBus", "KittGaming", "Sub2CaptainMaui", "Sub2OfficalNoobie", "TheGreatAce",
+			"Sub2NoobMaster123", "Sub2Daigrock", "Axiore", "StrawHatMaine", "TantaiGaming", "Bluxxy",
+			"SUB2GAMERROBOT_EXP1", "Chandler", "NOMOREHACK", "BANEXPLOIT", "WildDares", "BossBuild",
+			"GetPranked", "EARN_FRUITS", "FIGHT4FRUIT", "NOEXPLOITER", "NOOB2ADMIN", "CODESLIDE", "ADMINHACKED",
+			"ADMINDARES", "fruitconcepts", "krazydares", "TRIPLEABUSE", "SEATROLLING", "24NOADMIN", "REWARDFUN",
+			"NEWTROLL", "fudd10_v2", "Fudd10", "Bignews", "SECRET_ADMIN"
+		};
+
+		for _, code in ipairs(Codes) do
+			pcall(function()
+				game:GetService("ReplicatedStorage").Remotes.Redeem:InvokeServer(code);
+			end);
+		end;
+	end,
+});
+
 Z:AddToggle({
 	Title = "Disable Chat GUI",
 	Description = "",
