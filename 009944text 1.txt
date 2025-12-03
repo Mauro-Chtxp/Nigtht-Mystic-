@@ -425,49 +425,38 @@ statsSetings = function(I, e)
 			end;
 		end;
 	end;
-local TweenService = game:GetService("TweenService")
-local tweenInfo = TweenInfo.new(0.35, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
-
 BringEnemy = function()
-	if not _B then return end
+	if not _B then
+		return
+	end
 
 	for _, mob in pairs(workspace.Enemies:GetChildren()) do
 		local hum = mob:FindFirstChild("Humanoid")
-        local root = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart
+		local root = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart
 
 		if hum and hum.Health > 0 and root then
 			local dist = (root.Position - PosMon).Magnitude
-			if dist <= 260 then
 
-				-- Garantir que o mob não reaja fisicamente
+			-- Aumentei a distância pra puxar
+			if dist <= 230 then  
+
+				-- Evita o mob ficar travado
 				root.Anchored = false
 				root.CanCollide = false
-				mob:MakeJoints()
+				mob:MakeJoints()      
+				
+				-- Anti-trava
 				hum.AutoRotate = false
 				hum.PlatformStand = true
 
-				-- Se estiver muito perto, usa teleporte pra impedir a "dança"
-				if dist < 10 then
-					-- Cancelar Tween antigo
-					if root:FindFirstChild("BringTween") then
-						root.BringTween:Cancel()
-						root.BringTween:Destroy()
-					end
+				-- Remove animação que causa "bug de parada"
+				local anim = hum:FindFirstChild("Animator")
+				if anim then anim:Destroy() end
 
-					root.CFrame = CFrame.new(PosMon)
-				else
-					-- Criar Tween se estiver longe
-					if root:FindFirstChild("BringTween") then
-						root.BringTween:Cancel()
-						root.BringTween:Destroy()
-					end
+				-- Teleporte mais suave e sem travar
+				mob:PivotTo(CFrame.new(PosMon))
 
-					local t = TweenService:Create(root, tweenInfo, { CFrame = CFrame.new(PosMon) })
-					t.Name = "BringTween"
-					t.Parent = root
-					t:Play()
-				end
-
+				-- Deixa simulação fluida
 				pcall(function()
 					plr.SimulationRadius = math.huge
 				end)
