@@ -443,7 +443,7 @@ BringEnemy = function()
 
 		if hum and hum.Health > 0 and root then
 			local dist = (root.Position - PosMon).Magnitude
-			if dist <= 500 then  -- distância aumentada
+			if dist <= 275 then  -- distância aumentada
 
 				-- Evita qualquer travamento
 				root.Anchored = false
