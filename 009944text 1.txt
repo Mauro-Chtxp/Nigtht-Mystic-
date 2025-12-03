@@ -426,51 +426,48 @@ statsSetings = function(I, e)
 		end;
 	end;
 local TweenService = game:GetService("TweenService")
-local tweenInfo = TweenInfo.new(
-    0.35,     -- tempo (velocidade média)
-    Enum.EasingStyle.Linear,
-    Enum.EasingDirection.InOut
-)
+local tweenInfo = TweenInfo.new(0.35, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
 
 BringEnemy = function()
-	if not _B then
-		return
-	end
+	if not _B then return end
 
 	for _, mob in pairs(workspace.Enemies:GetChildren()) do
 		local hum = mob:FindFirstChild("Humanoid")
-		local root = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart
+        local root = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart
 
 		if hum and hum.Health > 0 and root then
 			local dist = (root.Position - PosMon).Magnitude
-			if dist <= 275 then  -- distância aumentada
+			if dist <= 260 then
 
-				-- Evita qualquer travamento
+				-- Garantir que o mob não reaja fisicamente
 				root.Anchored = false
 				root.CanCollide = false
 				mob:MakeJoints()
-
 				hum.AutoRotate = false
 				hum.PlatformStand = true
 
-				-- Destroi tween anterior se existir
-				if root:FindFirstChild("BringTween") then
-					root.BringTween:Cancel()
-					root.BringTween:Destroy()
+				-- Se estiver muito perto, usa teleporte pra impedir a "dança"
+				if dist < 10 then
+					-- Cancelar Tween antigo
+					if root:FindFirstChild("BringTween") then
+						root.BringTween:Cancel()
+						root.BringTween:Destroy()
+					end
+
+					root.CFrame = CFrame.new(PosMon)
+				else
+					-- Criar Tween se estiver longe
+					if root:FindFirstChild("BringTween") then
+						root.BringTween:Cancel()
+						root.BringTween:Destroy()
+					end
+
+					local t = TweenService:Create(root, tweenInfo, { CFrame = CFrame.new(PosMon) })
+					t.Name = "BringTween"
+					t.Parent = root
+					t:Play()
 				end
 
-				-- Criar novo tween
-				local t = TweenService:Create(
-					root,
-					tweenInfo,
-					{ CFrame = CFrame.new(PosMon) }
-				)
-
-				t.Name = "BringTween"
-				t.Parent = root
-				t:Play()
-
-				-- Mantém a simulação fluida
 				pcall(function()
 					plr.SimulationRadius = math.huge
 				end)
