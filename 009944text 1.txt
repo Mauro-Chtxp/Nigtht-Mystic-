@@ -425,6 +425,13 @@ statsSetings = function(I, e)
 			end;
 		end;
 	end;
+local TweenService = game:GetService("TweenService")
+local tweenInfo = TweenInfo.new(
+    0.35,     -- tempo (velocidade média)
+    Enum.EasingStyle.Linear,
+    Enum.EasingDirection.InOut
+)
+
 BringEnemy = function()
 	if not _B then
 		return
@@ -436,27 +443,34 @@ BringEnemy = function()
 
 		if hum and hum.Health > 0 and root then
 			local dist = (root.Position - PosMon).Magnitude
+			if dist <= 500 then  -- distância aumentada
 
-			-- Aumentei a distância pra puxar
-			if dist <= 300 then  
-
-				-- Evita o mob ficar travado
+				-- Evita qualquer travamento
 				root.Anchored = false
 				root.CanCollide = false
-				mob:MakeJoints()      
-				
-				-- Anti-trava
+				mob:MakeJoints()
+
 				hum.AutoRotate = false
 				hum.PlatformStand = true
 
-				-- Remove animação que causa "bug de parada"
-				local anim = hum:FindFirstChild("Animator")
-				if anim then anim:Destroy() end
+				-- Destroi tween anterior se existir
+				if root:FindFirstChild("BringTween") then
+					root.BringTween:Cancel()
+					root.BringTween:Destroy()
+				end
 
-				-- Teleporte mais suave e sem travar
-				mob:PivotTo(CFrame.new(PosMon))
+				-- Criar novo tween
+				local t = TweenService:Create(
+					root,
+					tweenInfo,
+					{ CFrame = CFrame.new(PosMon) }
+				)
 
-				-- Deixa simulação fluida
+				t.Name = "BringTween"
+				t.Parent = root
+				t:Play()
+
+				-- Mantém a simulação fluida
 				pcall(function()
 					plr.SimulationRadius = math.huge
 				end)
