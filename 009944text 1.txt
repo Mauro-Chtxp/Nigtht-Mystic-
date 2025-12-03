@@ -2371,7 +2371,16 @@ I1:AddButton({
     Callback = function()
         setclipboard("https://discord.gg/sCMzRYSHVJ")
     end,
-});
+})
+
+-- Paragraph que mostra o PlaceId atual
+local PlaceInfo = I1:AddParagraph({
+    Title = "PlaceId",
+    Content = ""
+})
+
+-- Atualiza o conteúdo com o PlaceId real
+PlaceInfo:SetDesc("PlaceId Atual: " .. tostring(game.PlaceId))
 -- ROOT FIX: sempre atualizar o HRP quando o player respawnar
 local Root
 plr.CharacterAdded:Connect(function(char)
