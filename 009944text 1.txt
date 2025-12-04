@@ -2073,13 +2073,16 @@ local W=v:AddSection("Drago Dojo");
 local f=S:AddSection("Prehistoric");
 local E=q:AddSection("Combat");
 local Y=l:AddSection("Teleport");
-local RR=R:AddSection("Get and Upgrade Itens");
+local RR=R:AddSection("Get and Upgrade Itens"); -- Variável da nova seção
 local p=B:AddSection("Fruits");
 local D=g:AddSection("Shop");
 local Z=u:AddSection("Misc");
 local SS=s:AddSection("Stats");
+
+-- FUNÇÕES ADICIONADAS NA SEÇÃO 'Get and Upgrade Itens' (RR)
+
 -- AUTO RANDOM BONES
-R:AddToggle({
+RR:AddToggle({
     Title = "Auto Random Bone",
     Default = false,
     Callback = function(v)
@@ -2096,7 +2099,7 @@ spawn(function()
 end)
 
 -- AUTO SOUL REAPER
-R:AddToggle({
+RR:AddToggle({
     Title = "Auto Soul Reaper",
     Default = false,
     Callback = function(v)
@@ -2134,7 +2137,6 @@ spawn(function()
         end
     end
 end)
-
 
 
 -- Sistema Time Zone
