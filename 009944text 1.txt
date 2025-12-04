@@ -2045,220 +2045,38 @@ QuestNeta = function()
 			[6] = PosQ,
 		};
 	end;
-LocalV=I:NewWindow();
-locali=V:T("Info");
-locals=V:T("Stats");
-localg=V:T("Shop");
-localy=V:T("Main");
-localx=V:T("FarmingOther");
-localmf=V:T("MiscFarming");
-localt=V:T("SeaEvents");
-localm=V:T("Race");
-localv=V:T("DragoDojo");
-localS=V:T("Prehistoric");
-localq=V:T("Pvp");
-locall=V:T("Teleport");
-localB=V:T("Raid/Fruit");
-localu=V:T("Misc");
-localc=V:T("Settings");
-localb=y:AddSection("Farming");
-localT=c:AddSection("Setting");
-localj=x:AddSection("OtherFarming");
-localMF=mf:AddSection("Fishing");
-localA=t:AddSection("SeaEvents");
-localh=m:AddSection("Race");
-localW=v:AddSection("DragoDojo");
-localf=S:AddSection("Prehistoric");
-localE=q:AddSection("Combat");
-localY=l:AddSection("Teleport");
-localp=B:AddSection("Fruits");
-localSSection=s:AddSection("Stats");
-localD=g:AddSection("Shop");
-localZ=u:AddSection("Misc");
-local Time = s:AddParagraph({Title="Time Zone",Desc=""})
-function UpdateOS()
-date=os.date("*t")
-hour=date.hour%24
-ampm=hour<12 and"AM" or"PM"
-timezone=string.format("%02i:%02i:%02i %s",((hour-1)%12)+1,date.min,date.sec,ampm)
-datetime=string.format("%02d/%02d/%04d",date.day,date.month,date.year)
-LocalizationService=game:GetService("LocalizationService")
-Players=game:GetService("Players")
-player=Players.LocalPlayer
-result,code=pcall(function()
-return LocalizationService:GetCountryRegionForPlayerAsync(player)
-end)
-Time:SetDesc(datetime.." - "..timezone.." [ "..code.." ]")
-end
-spawn(function()
-while wait()do
-UpdateOS()
-game:GetService("RunService").RenderStepped:Wait()
-end
-end)
-local Timmessss=s:AddParagraph({Title="Time",Desc=""})
-function UpdateTime()
-GameTime=math.floor(workspace.DistributedGameTime+0.5)
-Hour=math.floor(GameTime/(60^2))%24
-Minute=math.floor(GameTime/60)%60
-Second=GameTime%60
-Timmessss:SetDesc(Hour.." Hour (h) "..Minute.." Minute (m) "..Second.." Second (s) ")
-end
-spawn(function()
-while wait()do
-UpdateTime()
-end
-end)
-local Miragecheck=s:AddParagraph({Title="Mirage Island",Desc="Status: "})
-spawn(function()
-while wait()do
-if game.Workspace.WorldOrigin.Locations:FindFirstChild('Mirage Island')then
-Miragecheck:SetDesc('✅️')
-else
-Miragecheck:SetDesc('❌️')
-end
-end
-end)
-local Kitsunecheck=s:AddParagraph({Title="Kitsune Island",Desc="Status: "})
-spawn(function()
-while wait()do
-if game:GetService("Workspace").Map:FindFirstChild("KitsuneIsland")then
-Kitsunecheck:SetDesc('✅️')
-else
-Kitsunecheck:SetDesc('❌️')
-end
-end
-end)
-local CPrehistoriccheck=s:AddParagraph({Title="Prehistoric Island",Desc="Status: "})
-spawn(function()
-while wait()do
-if game.Workspace.WorldOrigin.Locations:FindFirstChild('Prehistoric Island')then
-CPrehistoriccheck:SetDesc('✅️')
-else
-CPrehistoriccheck:SetDesc('❌️')
-end
-end
-end)
-local FrozenIsland=s:AddParagraph({Title="Frozen Dimension",Desc="Status: "})
-spawn(function()
-while wait()do
-if game.Workspace.WorldOrigin.Locations:FindFirstChild('Frozen Dimension')then
-FrozenIsland:SetDesc('✅️')
-else
-FrozenIsland:SetDesc('❌️')
-end
-end
-end)
-local MobCakePrince=s:AddParagraph({Title="Dimension Killed",Desc=""})
-spawn(function()
-while wait()do
-local response=game:GetService("ReplicatedStorage").Remotes.CommF:InvokeServer("CakePrinceSpawner")
-local len=string.len(response)
-if len==88 then
-MobCakePrince:SetDesc("Kill : "..string.sub(response,39,41))
-elseif len==87 then
-MobCakePrince:SetDesc("Kill : "..string.sub(response,39,40))
-elseif len==86 then
-MobCakePrince:SetDesc("Kill : "..string.sub(response,39,39))
-else
-MobCakePrince:SetDesc("Cake Prince : ✅️")
-end
-end
-end)
-local TyrantStatus=s:AddParagraph({Title="Tyrant of the Skies",Desc="Status: "})
-spawn(function()
-while wait()do
-if game:GetService("Workspace").Enemies:FindFirstChild("Tyrant of the Skies")then
-TyrantStatus:SetDesc("Status : ✅️")
-else
-TyrantStatus:SetDesc("Status : ❌️")
-end
-end
-end)
-local CheckRip=s:AddParagraph({Title="Rip_Indra",Desc="Status: "})
-spawn(function()
-while wait()do
-if game:GetService("ReplicatedStorage"):FindFirstChild("rip_indra True Form")or game:GetService("Workspace").Enemies:FindFirstChild("rip_indra")then
-CheckRip:SetDesc("Status : ✅️")
-else
-CheckRip:SetDesc("Status : ❌️")
-end
-end
-end)
-local CheckDoughKing=s:AddParagraph({Title="Dough King",Desc="Status: "})
-spawn(function()
-while wait()do
-if game:GetService("ReplicatedStorage"):FindFirstChild("Dough King")or game:GetService("Workspace").Enemies:FindFirstChild("Dough King")then
-CheckDoughKing:SetDesc("Status : ✅️")
-else
-CheckDoughKing:SetDesc("Status : ❌️")
-end
-end
-end)
-local EliteHunter=s:AddParagraph({Title="Elite Hunter",Desc="Status: "})
-spawn(function()
-while wait()do
-local rs=game:GetService("ReplicatedStorage")
-local ws=game:GetService("Workspace").Enemies
-local progress=rs.Remotes.CommF:InvokeServer("EliteHunter","Progress")
-if rs:FindFirstChild("Diablo")or rs:FindFirstChild("Deandre")or rs:FindFirstChild("Urban")or ws:FindFirstChild("Diablo")or ws:FindFirstChild("Deandre")or ws:FindFirstChild("Urban")then
-EliteHunter:SetDesc("Status : ✅️ | Killed: "..progress)
-else
-EliteHunter:SetDesc("Status : ❌️ | Killed: "..progress)
-end
-end
-end)
-local Pullever=s:AddParagraph({Title="Pull Lever",Desc="Status: "})
-spawn(function()
-while wait()do
-if game.ReplicatedStorage.Remotes.CommF:InvokeServer("CheckTempleDoor")then
-Pullever:SetDesc("✅")
-else
-Pullever:SetDesc("❌")
-end
-end
-end)
-local FM=s:AddParagraph({Title="Full Moon",Desc=""})
-spawn(function()
-while wait()do
-local moonId=game:GetService("Lighting").Sky.MoonTextureId
-if moonId=="http://www.roblox.com/asset/?id=9709149431"then
-FM:SetDesc("Moon: 5/5")
-elseif moonId=="http://www.roblox.com/asset/?id=9709149052"then
-FM:SetDesc("Moon: 4/5")
-elseif moonId=="http://www.roblox.com/asset/?id=9709143733"then
-FM:SetDesc("Moon: 3/5")
-elseif moonId=="http://www.roblox.com/asset/?id=9709150401"then
-FM:SetDesc("Moon: 2/5")
-elseif moonId=="http://www.roblox.com/asset/?id=9709149680"then
-FM:SetDesc("Moon: 1/5")
-else
-FM:SetDesc("Moon: 0/5")
-end
-end
-end)
-local LegendarySword=s:AddParagraph({Title="Legendary Sword",Desc="Status: "})
-spawn(function()
-while wait()do
-local rs=game:GetService("ReplicatedStorage").Remotes.CommF_
-if rs:InvokeServer("LegendarySwordDealer","1")then
-LegendarySword:SetDesc("Shisui")
-elseif rs:InvokeServer("LegendarySwordDealer","2")then
-LegendarySword:SetDesc("Wando")
-elseif rs:InvokeServer("LegendarySwordDealer","3")then
-LegendarySword:SetDesc("Saddi")
-else
-LegendarySword:SetDesc("Not Found Legend Swords")
-end
-end
-end)
-local Bone=s:AddParagraph({Title="Bone",Desc=""})
-spawn(function()
-while wait()do
-local bones=game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("Bones","Check")
-Bone:SetDesc("You Have : "..tostring(bones).." Bones")
-end
-end)
+
+local V=I:NewWindow();
+local i=V:T("Info");
+local s=V:T("Stats");
+local g=V:T("Shop");
+local y=V:T("Main");
+local x=V:T("Farming Other");
+local mf=V:T("Misc Farming");
+local t=V:T("Sea Events");
+local m=V:T("Race");
+local v=V:T("Drago Dojo");
+local S=V:T("Prehistoric");
+local q=V:T("Pvp");
+local l=V:T("Teleport");
+local B=V:T("Raid/Fruit");
+local u=V:T("Misc");
+local c=V:T("Settings");
+local b=y:AddSection("Farming");
+local T=c:AddSection("Setting");
+local j=x:AddSection("Other Farming");
+local MF=mf:AddSection("Fishing");
+local A=t:AddSection("Sea Events");
+local h=m:AddSection("Race");
+local W=v:AddSection("Drago Dojo");
+local f=S:AddSection("Prehistoric");
+local E=q:AddSection("Combat");
+local Y=l:AddSection("Teleport");
+local p=B:AddSection("Fruits");
+local D=g:AddSection("Shop");
+local Z=u:AddSection("Misc");
+local SS=s:AddSection("Stats");
+
 
 local plr = game.Players.LocalPlayer
 local rep = game:GetService("ReplicatedStorage")
