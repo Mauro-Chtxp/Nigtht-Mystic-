@@ -2526,7 +2526,6 @@ spawn(function()
                 if not hrp then return end
 
                 local QuestUI = plr.PlayerGui.Main.Quest    
-
                 local MOBS = { "Reborn Skeleton", "Living Zombie", "Demonic Soul", "Posessed Mummy" }    
 
                 -- Aceitar Quest Bone
@@ -2654,7 +2653,7 @@ end)
 
 
 ----------------------------------------------------------
--- 3. SISTEMA CAKE PRINCE FARM
+-- 3. SISTEMA CAKE PRINCE FARM (CORRIGIDO)
 ----------------------------------------------------------
 spawn(function()
     while task.wait() do
@@ -2663,6 +2662,15 @@ spawn(function()
                 local plr = game.Players.LocalPlayer
                 local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
                 if not hrp then return end
+
+                -- Ponto central da ilha Cake Land
+                local CakePos = CFrame.new(-2091.91, 70.00, -12142.83)
+                
+                -- [CORREÇÃO] Se estiver longe (> 3000 studs), teleporta para a ilha primeiro
+                if (hrp.Position - CakePos.Position).Magnitude > 3000 then
+                    _tp(CakePos)
+                    return -- Retorna para o script rodar de novo quando estiver mais perto
+                end
 
                 local enemies = workspace:WaitForChild("Enemies")
                 local bigMirror = workspace.Map.CakeLoaf:WaitForChild("BigMirror")
@@ -2683,7 +2691,7 @@ spawn(function()
                     else
                         -- Portal aberto mas sem boss renderizado: vai pro local seguro na dimensão
                         local safeSpot = CFrame.new(-2151.82, 149.32, -12404.91)
-                        if (safeSpot.Position - hrp.Position).Magnitude > 5 then
+                        if (safeSpot.Position - hrp.Position).Magnitude > 10 then
                             _tp(safeSpot)
                         end
                     end
@@ -2737,13 +2745,14 @@ spawn(function()
                         until not _G.StartFarm or not _G.AutoFarm_Cake
                     else
                         -- Espera no centro da ilha se não houver mobs
-                        _tp(CFrame.new(-2091.91, 70.00, -12142.83))
+                        _tp(CakePos)
                     end
                 end
             end)
         end
     end
 end)
+
 
 b:AddSeperator("Other")
 
