@@ -2466,13 +2466,18 @@ spawn(function()
 end)
 
 
-----------------------------------------------------------
+-- VARIAVEIS GLOBAIS
+_G.SelectedFarmMode = "Level"
+_G.StartFarm = false
+_G.Level = false
+_G.AutoFarm_Bone = false
+_G.AutoFarm_Cake = false
+_G.AcceptQuest = false
+
+-- Variável para guardar o mob de Level Farm
+local CurrentMobLevel = nil
+
 -- UI: DROPDOWN + TOGGLES
-----------------------------------------------------------
-
--- Variável para guardar o modo selecionado
-_G.SelectedFarmMode = "Level" 
-
 b:AddDropdown({
     Title = "Select Farm Mode",
     Values = {"Level", "Bone", "Cake Prince"},
@@ -2487,21 +2492,21 @@ b:AddToggle({
     Default = false,
     Callback = function(v)
         _G.StartFarm = v
-
-        -- Resetar todas as variaveis para evitar conflito
-        _G.Level = false
-        _G.AutoFarm_Bone = false
-        _G.AutoFarm_Cake = false
-
-        if v then
-            if _G.SelectedFarmMode == "Level" then
-                _G.Level = true
-            elseif _G.SelectedFarmMode == "Bone" then
-                _G.AutoFarm_Bone = true
-            elseif _G.SelectedFarmMode == "Cake Prince" then
-                _G.AutoFarm_Cake = true
-            end
-        end
+        
+        -- Resetar todas as variaveis para evitar conflito  
+        _G.Level = false  
+        _G.AutoFarm_Bone = false  
+        _G.AutoFarm_Cake = false  
+        
+        if v then  
+            if _G.SelectedFarmMode == "Level" then  
+                _G.Level = true  
+            elseif _G.SelectedFarmMode == "Bone" then  
+                _G.AutoFarm_Bone = true  
+            elseif _G.SelectedFarmMode == "Cake Prince" then  
+                _G.AutoFarm_Cake = true  
+            end  
+        end  
     end
 })
 
@@ -2513,148 +2518,152 @@ b:AddToggle({
     end
 })
 
+---
 
-----------------------------------------------------------
--- 1. SISTEMA BONE FARM
-----------------------------------------------------------
+-- 1. SISTEMA BONE FARM (Otimizado)
+
 spawn(function()
-    while task.wait() do
+    while task.wait(0.1) do -- Reduzido para 0.1s para reatividade
         if _G.AutoFarm_Bone and _G.StartFarm then
             pcall(function()
                 local plr = game.Players.LocalPlayer
                 local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
                 if not hrp then return end
-
-                local QuestUI = plr.PlayerGui.Main.Quest    
-                local MOBS = { "Reborn Skeleton", "Living Zombie", "Demonic Soul", "Posessed Mummy" }    
-
-                -- Aceitar Quest Bone
-                if _G.AcceptQuest and not QuestUI.Visible then    
-                    local npcPos = CFrame.new(-9516.99,172.01,6078.46)    
-                    _tp(npcPos)    
-
-                    if (npcPos.Position - hrp.Position).Magnitude > 50 then   
-                        task.wait(0.2)
-                        return   
-                    end    
-
-                    local choose = math.random(1,4)    
-                    local q = {    
-                        { "StartQuest","HauntedQuest2",2 },    
-                        { "StartQuest","HauntedQuest2",1 },    
-                        { "StartQuest","HauntedQuest1",1 },    
-                        { "StartQuest","HauntedQuest1",2 },    
-                    }    
-                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(q[choose]))    
-                end    
-
-                -- Buscar Mob Bone
-                local closest, shortest = nil, math.huge    
-                for _, mobName in pairs(MOBS) do    
-                    for _, mob in pairs(workspace.Enemies:GetChildren()) do    
-                        if mob.Name == mobName and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then    
-                            local dist = (mob.PrimaryPart.Position - hrp.Position).Magnitude    
-                            if dist < shortest then    
-                                shortest = dist
-                                closest = mob    
-                            end    
-                        end    
-                    end    
-                end    
-
-                if closest then    
-                    _tp(closest.PrimaryPart.CFrame)    
-                    repeat task.wait()    
-                        if closest.Parent and closest.Humanoid.Health > 0 then    
-                            G.Kill(closest, _G.AutoFarm_Bone)    
-                        else    
-                            break    
-                        end    
-                    until not _G.StartFarm or not _G.AutoFarm_Bone    
-                else    
-                    _tp(CFrame.new(-9495.68,453.58,5977.34))    
-                end    
-            end)
-        end
+                
+                local QuestUI = plr.PlayerGui.Main.Quest      
+                local MOBS = { "Reborn Skeleton", "Living Zombie", "Demonic Soul", "Posessed Mummy" }      
+                
+                -- Aceitar Quest Bone  
+                if _G.AcceptQuest and not QuestUI.Visible then      
+                    local npcPos = CFrame.new(-9516.99,172.01,6078.46)      
+                    _tp(npcPos)      
+                    
+                    if (npcPos.Position - hrp.Position).Magnitude > 50 then     
+                        task.wait(0.2)  
+                        return     
+                    end      
+                    
+                    local choose = math.random(1,4)      
+                    local q = {      
+                        { "StartQuest","HauntedQuest2",2 },      
+                        { "StartQuest","HauntedQuest2",1 },      
+                        { "StartQuest","HauntedQuest1",1 },      
+                        { "StartQuest","HauntedQuest1",2 },      
+                    }      
+                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(q[choose]))      
+                    return -- Retorna após aceitar quest para não tentar farmar no mesmo ciclo
+                end      
+                
+                -- Buscar Mob Bone  
+                local closest, shortest = nil, math.huge      
+                for _, mobName in pairs(MOBS) do      
+                    for _, mob in pairs(workspace.Enemies:GetChildren()) do      
+                        if mob.Name == mobName and G.Alive(mob) then -- Uso de G.Alive para checagem mais robusta
+                            local dist = (mob.PrimaryPart.Position - hrp.Position).Magnitude      
+                            if dist < shortest then      
+                                shortest = dist  
+                                closest = mob      
+                            end      
+                        end      
+                    end      
+                end      
+                
+                if closest then      
+                    _tp(closest.PrimaryPart.CFrame)      
+                    task.wait(0.1) -- Pequeno delay para dar tempo do teleporte
+                    
+                    -- Loop de kill mais simples e reativo
+                    if G.Alive(closest) then
+                        G.Kill(closest, _G.AutoFarm_Bone)
+                    end
+                else      
+                    -- Espera no centro da área de farm se não achar mob
+                    _tp(CFrame.new(-9495.68,453.58,5977.34))      
+                end      
+            end)  
+        end  
     end
 end)
 
 
-----------------------------------------------------------
--- 2. SISTEMA LEVEL FARM
-----------------------------------------------------------
-local CurrentMobLevel = nil
+---
+
+-- 2. SISTEMA LEVEL FARM (Otimizado)
 
 local function GetNearestMobLevel(TargetName)
     local plr = game.Players.LocalPlayer
     local Root = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
     if not Root then return nil end
-    local Closest, Dist = nil, math.huge  
-    for _, Mob in pairs(workspace.Enemies:GetChildren()) do  
-        if G.Alive(Mob) and Mob.Name == TargetName and Mob:FindFirstChild("HumanoidRootPart") then  
-            local d = (Mob.HumanoidRootPart.Position - Root.Position).Magnitude  
-            if d < Dist then Dist = d; Closest = Mob end  
-        end  
-    end  
+    local Closest, Dist = nil, math.huge
+    for _, Mob in pairs(workspace.Enemies:GetChildren()) do
+        if G.Alive(Mob) and Mob.Name == TargetName and Mob:FindFirstChild("HumanoidRootPart") then
+            local d = (Mob.HumanoidRootPart.Position - Root.Position).Magnitude
+            if d < Dist then Dist = d; Closest = Mob end
+        end
+    end
     return Closest
 end
 
 spawn(function()
-    while task.wait() do
+    while task.wait(0.1) do -- Reduzido para 0.1s para reatividade
         if _G.Level and _G.StartFarm then
             pcall(function()
                 local plr = game.Players.LocalPlayer
                 local Root = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
                 if not Root then return end
-
-                local QuestTitle = plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text    
-                local Q = QuestNeta() -- Assume que essa função existe no seu script
-
-                -- Abandonar quest errada
-                if not string.find(QuestTitle, Q[5]) then    
-                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AbandonQuest")    
-                end    
-
-                -- Aceitar quest
-                if not plr.PlayerGui.Main.Quest.Visible then    
-                    _tp(Q[6])    
-                    if (Root.Position - Q[6].Position).Magnitude <= 50 then    
-                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", Q[3], Q[2])    
-                    end    
-                    return    
-                end    
-
-                local Nearest = GetNearestMobLevel(Q[1])    
-
-                if CurrentMobLevel and G.Alive(CurrentMobLevel) and CurrentMobLevel.Parent then    
-                    G.Kill(CurrentMobLevel, true)    
-                    return    
-                else    
-                    CurrentMobLevel = nil    
-                end    
-
-                if not Nearest then    
-                    _tp(Q[4])    
-                    return    
-                end    
-
-                CurrentMobLevel = Nearest    
-
-                repeat    
-                    task.wait()    
-                    G.Kill(CurrentMobLevel, true)    
-                until not _G.StartFarm or not _G.Level or not CurrentMobLevel.Parent or CurrentMobLevel.Humanoid.Health <= 0    
-
-                CurrentMobLevel = nil    
-            end)
-        end
+                
+                local QuestTitle = plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text      
+                local Q = QuestNeta() -- Assume que essa função existe no seu script  
+                
+                -- Abandonar quest errada  
+                if not string.find(QuestTitle, Q[5]) then      
+                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AbandonQuest")      
+                end      
+                
+                -- Aceitar quest  
+                if not plr.PlayerGui.Main.Quest.Visible and _G.AcceptQuest then      
+                    _tp(Q[6])      
+                    if (Root.Position - Q[6].Position).Magnitude <= 50 then      
+                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", Q[3], Q[2])      
+                    end      
+                    return      
+                end      
+                
+                -- Prioriza matar o CurrentMobLevel se ele ainda for válido
+                if CurrentMobLevel and G.Alive(CurrentMobLevel) and CurrentMobLevel.Parent then      
+                    _tp(CurrentMobLevel.HumanoidRootPart.CFrame)
+                    task.wait(0.1) -- Delay
+                    G.Kill(CurrentMobLevel, true)      
+                    return      
+                else      
+                    CurrentMobLevel = nil      
+                end      
+                
+                local Nearest = GetNearestMobLevel(Q[1])      
+                
+                if not Nearest then      
+                    _tp(Q[4]) -- Volta para o ponto de espera/respawn dos mobs
+                    return      
+                end      
+                
+                -- Se achou um novo mob, define e mata
+                CurrentMobLevel = Nearest      
+                _tp(CurrentMobLevel.HumanoidRootPart.CFrame)
+                task.wait(0.1) -- Delay
+                
+                if G.Alive(CurrentMobLevel) then
+                    G.Kill(CurrentMobLevel, true)
+                end
+            end)  
+        end  
     end
 end)
 
 
-----------------------------------------------------------
--- 3. SISTEMA CAKE PRINCE FARM (CORRIGIDO)
-----------------------------------------------------------
+---
+
+-- 3. SISTEMA CAKE PRINCE FARM (CORRIGIDO COMPLETO)
+
 spawn(function()
     while task.wait() do
         if _G.AutoFarm_Cake and _G.StartFarm then
@@ -2663,95 +2672,111 @@ spawn(function()
                 local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
                 if not hrp then return end
 
-                -- Ponto central da ilha Cake Land
+                local enemies = workspace:FindFirstChild("Enemies")
+                if not enemies then return end
+
                 local CakePos = CFrame.new(-2091.91, 70.00, -12142.83)
-                
-                -- [CORREÇÃO] Se estiver longe (> 3000 studs), teleporta para a ilha primeiro
-                if (hrp.Position - CakePos.Position).Magnitude > 3000 then
+
+                -- Teleporta para a ilha se estiver muito longe
+                if (hrp.Position - CakePos.Position).Magnitude > 2000 then
                     _tp(CakePos)
-                    return -- Retorna para o script rodar de novo quando estiver mais perto
+                    return
                 end
 
-                local enemies = workspace:WaitForChild("Enemies")
-                local bigMirror = workspace.Map.CakeLoaf:WaitForChild("BigMirror")
-                local mirrorPart = bigMirror:FindFirstChild("Other")
+                local mirror = workspace.Map:FindFirstChild("CakeLoaf")
+                mirror = mirror and mirror:FindFirstChild("BigMirror")
+                local other = mirror and mirror:FindFirstChild("Other")
 
-                -- Lista de Mobs do Cake Land
-                local CAKE_MOBS = {"Cookie Crafter", "Cake Guard", "Baking Staff", "Head Baker"}
-
-                -- Verifica se o boss (Prince ou King) existe ou se o portal abriu
+                -- Detecta boss e portal
                 local boss = enemies:FindFirstChild("Cake Prince") or enemies:FindFirstChild("Dough King")
-                local portalOpen = (mirrorPart and mirrorPart.Transparency == 0)
+                local portalOpen = other and other.Transparency == 0
 
+                -----------------------------------------
+                -- === MODO BOSS ===
+                -----------------------------------------
                 if boss or portalOpen then
-                    -- === MODO BOSS ===
                     if boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then
-                        _tp(boss.PrimaryPart.CFrame * CFrame.new(0, 30, 0)) 
-                        G.Kill(boss, _G.AutoFarm_Cake)
-                    else
-                        -- Portal aberto mas sem boss renderizado: vai pro local seguro na dimensão
-                        local safeSpot = CFrame.new(-2151.82, 149.32, -12404.91)
-                        if (safeSpot.Position - hrp.Position).Magnitude > 10 then
-                            _tp(safeSpot)
-                        end
-                    end
-                else
-                    -- === MODO FARM MOBS ===
-                    local QuestUI = plr.PlayerGui.Main.Quest
-
-                    -- Aceitar Quest
-                    if _G.AcceptQuest and not QuestUI.Visible then
-                        local questPos = CFrame.new(-1927.92, 37.8, -12842.54)
-                        _tp(questPos)
-                        if (questPos.Position - hrp.Position).Magnitude <= 50 then
-                            local randomQuest = math.random(1, 4)
-                            local questData = {
-                                {"StartQuest", "CakeQuest2", 2},
-                                {"StartQuest", "CakeQuest2", 1},
-                                {"StartQuest", "CakeQuest1", 1},
-                                {"StartQuest", "CakeQuest1", 2}
-                            }
-                            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(questData[randomQuest]))
-                            task.wait(0.5)
-                        else
-                            return -- Espera chegar no NPC
-                        end
+                        -- Teleporta atrás do boss, não em cima
+                        _tp(boss.PrimaryPart.CFrame * CFrame.new(0, 0, 6))
+                        G.Kill(boss, true)
+                        return
                     end
 
-                    -- Achar mob
-                    local targetMob = nil
-                    local shortestDist = math.huge
-
-                    for _, mob in pairs(enemies:GetChildren()) do
-                        if table.find(CAKE_MOBS, mob.Name) and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
-                            local dist = (mob.PrimaryPart.Position - hrp.Position).Magnitude
-                            if dist < shortestDist then
-                                shortestDist = dist
-                                targetMob = mob
-                            end
-                        end
+                    -- Portal aberto mas boss ainda carregando
+                    local safeSpot = CFrame.new(-2151.82, 149.32, -12404.91)
+                    if (hrp.Position - safeSpot.Position).Magnitude > 10 then
+                        _tp(safeSpot)
                     end
+                    return
+                end
 
-                    if targetMob then
-                        _tp(targetMob.PrimaryPart.CFrame)
-                        repeat task.wait()
-                            if targetMob.Parent and targetMob.Humanoid.Health > 0 then
-                                G.Kill(targetMob, _G.AutoFarm_Cake)
-                            else
-                                break
-                            end
-                            -- Se o portal abrir durante o farm, para imediatamente
-                            if (bigMirror.Other.Transparency == 0) then break end
-                        until not _G.StartFarm or not _G.AutoFarm_Cake
-                    else
-                        -- Espera no centro da ilha se não houver mobs
-                        _tp(CakePos)
+                -----------------------------------------
+                -- === MODO FARM MOBS ===
+                -----------------------------------------
+                local CAKE_MOBS = {"Cookie Crafter","Cake Guard","Baking Staff","Head Baker"}
+
+                local QuestUI = plr.PlayerGui.Main.Quest
+                if _G.AcceptQuest and not QuestUI.Visible then
+                    local questPos = CFrame.new(-1927.92, 37.80, -12842.54)
+                    _tp(questPos)
+                    if (hrp.Position - questPos.Position).Magnitude <= 40 then
+                        local q = {
+                            {"StartQuest","CakeQuest2",2},
+                            {"StartQuest","CakeQuest2",1},
+                            {"StartQuest","CakeQuest1",1},
+                            {"StartQuest","CakeQuest1",2}
+                        }
+                        game.ReplicatedStorage.Remotes.CommF_:InvokeServer(unpack(q[math.random(1,4)]))
+                    end
+                    return
+                end
+
+                -- Detecta o mob MAIS PRÓXIMO (rápido)
+                local bestMob
+                local bestDist = math.huge
+
+                for _, mob in ipairs(enemies:GetChildren()) do
+                    if table.find(CAKE_MOBS, mob.Name) and mob:FindFirstChild("Humanoid") 
+                        and mob:FindFirstChild("HumanoidRootPart") and mob.Humanoid.Health > 0 then
+
+                        local dist = (mob.HumanoidRootPart.Position - hrp.Position).Magnitude
+                        if dist < bestDist then
+                            bestDist = dist
+                            bestMob = mob
+                        end
                     end
                 end
+
+                -- Se não tem mob → volta pro centro
+                if not bestMob then
+                    _tp(CakePos)
+                    return
+                end
+
+                ------------------------------------------------
+                -- Farmar mob sem cair
+                ------------------------------------------------
+                if bestMob and bestMob:FindFirstChild("HumanoidRootPart") then
+                    _tp(bestMob.HumanoidRootPart.CFrame * CFrame.new(0, 0, 6))
+                    repeat
+                        task.wait()
+
+                        if other and other.Transparency == 0 then break end -- portal abriu
+
+                        if bestMob.Parent and bestMob.Humanoid.Health > 0 then
+                            G.Kill(bestMob, true)
+                        else
+                            break
+                        end
+
+                    until not _G.StartFarm or not _G.AutoFarm_Cake
+                end
+
             end)
         end
     end
 end)
+
 
 
 b:AddSeperator("Other")
