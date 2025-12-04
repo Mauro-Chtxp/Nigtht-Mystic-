@@ -2662,7 +2662,7 @@ end)
 
 ---
 
--- 3. SISTEMA CAKE PRINCE FARM (CORRIGIDO COMPLETO)
+-- 3. SISTEMA CAKE PRINCE FARM (CORRIGIDO E ESTABILIZADO)
 
 spawn(function()
     while task.wait() do
@@ -2696,8 +2696,14 @@ spawn(function()
                 -----------------------------------------
                 if boss or portalOpen then
                     if boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then
-                        -- Teleporta atrás do boss, não em cima
-                        _tp(boss.PrimaryPart.CFrame * CFrame.new(0, 0, 6))
+                        -- Boss: Fica um pouco acima e afastado para evitar ataques de chão
+                        local bossPos = boss.PrimaryPart.CFrame * CFrame.new(0, 25, 0) * CFrame.Angles(math.rad(-90), 0, 0)
+                        _tp(bossPos)
+                        
+                        -- Trava física para não cair no Boss
+                        hrp.Velocity = Vector3.new(0,0,0)
+                        hrp.AssemblyLinearVelocity = Vector3.new(0,0,0)
+                        
                         G.Kill(boss, true)
                         return
                     end
@@ -2713,7 +2719,7 @@ spawn(function()
                 -----------------------------------------
                 -- === MODO FARM MOBS ===
                 -----------------------------------------
-                local CAKE_MOBS = {"Cookie Crafter","Cake Guard","Baking Staff","Head Baker"}
+                local CAKE_MOBS = {"Cookie Crafter", "Cake Guard", "Baking Staff", "Head Baker"}
 
                 local QuestUI = plr.PlayerGui.Main.Quest
                 if _G.AcceptQuest and not QuestUI.Visible then
@@ -2721,22 +2727,22 @@ spawn(function()
                     _tp(questPos)
                     if (hrp.Position - questPos.Position).Magnitude <= 40 then
                         local q = {
-                            {"StartQuest","CakeQuest2",2},
-                            {"StartQuest","CakeQuest2",1},
-                            {"StartQuest","CakeQuest1",1},
-                            {"StartQuest","CakeQuest1",2}
+                            {"StartQuest", "CakeQuest2", 2},
+                            {"StartQuest", "CakeQuest2", 1},
+                            {"StartQuest", "CakeQuest1", 1},
+                            {"StartQuest", "CakeQuest1", 2}
                         }
-                        game.ReplicatedStorage.Remotes.CommF_:InvokeServer(unpack(q[math.random(1,4)]))
+                        game.ReplicatedStorage.Remotes.CommF_:InvokeServer(unpack(q[math.random(1, 4)]))
                     end
                     return
                 end
 
-                -- Detecta o mob MAIS PRÓXIMO (rápido)
+                -- Detecta o mob MAIS PRÓXIMO
                 local bestMob
                 local bestDist = math.huge
 
                 for _, mob in ipairs(enemies:GetChildren()) do
-                    if table.find(CAKE_MOBS, mob.Name) and mob:FindFirstChild("Humanoid") 
+                    if table.find(CAKE_MOBS, mob.Name) and mob:FindFirstChild("Humanoid")
                         and mob:FindFirstChild("HumanoidRootPart") and mob.Humanoid.Health > 0 then
 
                         local dist = (mob.HumanoidRootPart.Position - hrp.Position).Magnitude
@@ -2754,22 +2760,35 @@ spawn(function()
                 end
 
                 ------------------------------------------------
-                -- Farmar mob sem cair
+                -- Farmar mob (CORREÇÃO DE POSIÇÃO)
                 ------------------------------------------------
                 if bestMob and bestMob:FindFirstChild("HumanoidRootPart") then
-                    _tp(bestMob.HumanoidRootPart.CFrame * CFrame.new(0, 0, 6))
+                    
+                    -- Loop de ataque corrigido
                     repeat
-                        task.wait()
+                        task.wait() -- Espera mínima para não crashar
 
                         if other and other.Transparency == 0 then break end -- portal abriu
 
-                        if bestMob.Parent and bestMob.Humanoid.Health > 0 then
+                        if bestMob.Parent and bestMob.Humanoid.Health > 0 and bestMob:FindFirstChild("HumanoidRootPart") then
+                            
+                            -- Posição Fixa: 25 Studs ACIMA do mob, olhando para baixo
+                            -- Isso é atualizado TODO frame para evitar cair
+                            local farmPos = bestMob.HumanoidRootPart.CFrame * CFrame.new(0, 25, 0) * CFrame.Angles(math.rad(-90), 0, 0)
+                            _tp(farmPos)
+
+                            -- Zera a velocidade para anular a gravidade imediatamente
+                            hrp.Velocity = Vector3.new(0, 0, 0)
+                            if hrp:FindFirstChild("AssemblyLinearVelocity") then
+                                hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                            end
+                            
                             G.Kill(bestMob, true)
                         else
                             break
                         end
 
-                    until not _G.StartFarm or not _G.AutoFarm_Cake
+                    until not _G.StartFarm or not _G.AutoFarm_Cake or not bestMob.Parent or bestMob.Humanoid.Health <= 0
                 end
 
             end)
