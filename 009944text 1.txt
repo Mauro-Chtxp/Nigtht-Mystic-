@@ -2453,7 +2453,17 @@ spawn(function()
     end
 end)
 
--- Dropdown para escolher o modo
+--========================================================--
+-- DROPDOWN + SISTEMAS
+--========================================================--
+
+_G.SelectedFarmMode = "Level"
+_G.StartFarm = false
+_G.AcceptQuest = false
+_G.Level = false
+_G.AutoFarm_Bone = false
+_G.Auto_Cake_Prince = false
+
 b:AddDropdown({
     Title = "Select Farm Mode",
     Values = {"Level", "Bone", "Cake Prince"},
@@ -2493,9 +2503,43 @@ b:AddToggle({
     end
 })
 
+--========================================================--
+-- FUNÇÃO PARA ACHAR MOBS NO WORKSPACE + REPLICATED
+--========================================================--
+
+local function FindMob(NameList)
+    local found = nil
+
+    -- workspace.Enemies
+    for _, mob in pairs(workspace.Enemies:GetChildren()) do
+        if (typeof(NameList) == "table" and table.find(NameList, mob.Name))
+        or (typeof(NameList) == "string" and mob.Name == NameList) then
+            if mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
+                return mob
+            end
+        end
+    end
+
+    -- ReplicatedStorage mobs (spawn location)
+    for _, mob in pairs(replicated:GetChildren()) do
+        if (typeof(NameList) == "table" and table.find(NameList, mob.Name))
+        or (typeof(NameList) == "string" and mob.Name == NameList) then
+            if mob:FindFirstChild("HumanoidRootPart") then
+                return mob
+            end
+        end
+    end
+
+    return nil
+end
+
+--========================================================--
+-- CAKE PRINCE
+--========================================================--
+
 spawn(function()
     while task.wait() do
-        if _G.Auto_Cake_Prince and _G.StartFarm then
+        if _G.StartFarm and _G.Auto_Cake_Prince then
             pcall(function()
 
                 local plr = game.Players.LocalPlayer
@@ -2504,8 +2548,6 @@ spawn(function()
 
                 local QuestUI = plr.PlayerGui.Main.Quest
                 local mirror = workspace.Map.CakeLoaf.BigMirror
-                local enemies = workspace.Enemies
-
                 local WaitPoint = CFrame.new(-2077, 252, -12373)
 
                 if (hrp.Position - WaitPoint.Position).Magnitude > 2000 then
@@ -2513,11 +2555,14 @@ spawn(function()
                     return
                 end
 
-                if mirror.Other.Transparency == 0 or enemies:FindFirstChild("Cake Prince") then
-                    local mob = GetConnectionEnemies("Cake Prince")
+                --===== SE O PRINCE JÁ SPAWNOU =====--
+                if mirror.Other.Transparency == 0 or FindMob("Cake Prince") then
+
+                    local mob = FindMob("Cake Prince")
+
                     if mob then
                         repeat task.wait()
-                            G.Kill2(mob, _G.Auto_Cake_Prince)
+                            G.Kill2(mob, true)
                         until not _G.StartFarm or not _G.Auto_Cake_Prince or not mob.Parent or mob.Humanoid.Health <= 0
                     else
                         if mirror.Other.Transparency == 0 then
@@ -2526,50 +2571,56 @@ spawn(function()
                     end
 
                 else
+                    --===== MATAR COOKIES PRA SPAWNAR =====--
+
                     local LIST = {
-                        "Cookie Crafter","Cake Guard","Baking Staff","Head Baker"
+                        "Cookie Crafter",
+                        "Cake Guard",
+                        "Baking Staff",
+                        "Head Baker"
                     }
 
-                    local mob = GetConnectionEnemies(LIST)
+                    local mob = FindMob(LIST)
 
                     if mob then
+
+                        -- QUESTS
                         if _G.AcceptQuest and not QuestUI.Visible then
                             local npcPos = CFrame.new(-1927.92, 37.8, -12842.54)
-                            
-                            if (hrp.Position - npcPos.Position).Magnitude < 300 then
-                                _tp(npcPos)
-                                if (npcPos.Position - hrp.Position).Magnitude < 10 then
-                                    local choose = math.random(1,4)
-                                    local q = {
-                                        { "StartQuest","CakeQuest2",2 },
-                                        { "StartQuest","CakeQuest2",1 },
-                                        { "StartQuest","CakeQuest1",1 },
-                                        { "StartQuest","CakeQuest1",2 },
-                                    }
-                                    pcall(function()
-                                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(q[choose]))
-                                    end)
-                                end
+                            _tp(npcPos)
+
+                            if (hrp.Position - npcPos.Position).Magnitude < 10 then
+                                local choose = math.random(1,4)
+                                local q = {
+                                    { "StartQuest","CakeQuest2",2 },
+                                    { "StartQuest","CakeQuest2",1 },
+                                    { "StartQuest","CakeQuest1",1 },
+                                    { "StartQuest","CakeQuest1",2 },
+                                }
+                                replicated.Remotes.CommF_:InvokeServer(unpack(q[choose]))
                             end
                         end
 
                         repeat task.wait()
-                            G.Kill(mob, _G.Auto_Cake_Prince)
+                            G.Kill(mob, true)
                         until not _G.StartFarm or not _G.Auto_Cake_Prince or mob.Humanoid.Health <= 0 or mirror.Other.Transparency == 0
 
                     else
                         _tp(WaitPoint)
                     end
                 end
-
             end)
         end
     end
 end)
 
+--========================================================--
+-- BONE FARM
+--========================================================--
+
 spawn(function()
-    while wait(Sec) do
-        if _G.AutoFarm_Bone and _G.StartFarm then
+    while task.wait() do
+        if _G.StartFarm and _G.AutoFarm_Bone then
             pcall(function()
 
                 local plr = game.Players.LocalPlayer
@@ -2599,39 +2650,20 @@ spawn(function()
                         { "StartQuest","HauntedQuest1",2 },
                     }
 
-                    pcall(function()
-                        replicated.Remotes.CommF_:InvokeServer(unpack(q[choose]))
-                    end)
+                    replicated.Remotes.CommF_:InvokeServer(unpack(q[choose]))
                 end
 
-                local function GetClosestMob()
-                    local closest
-                    local shortest = math.huge
-                    for _, mobName in pairs(MOBS) do
-                        for _, mob in pairs(workspace.Enemies:GetChildren()) do
-                            if mob.Name == mobName and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
-                                local dist = (mob.PrimaryPart.Position - hrp.Position).Magnitude
-                                if dist < shortest then
-                                    shortest = dist
-                                    closest = mob
-                                end
-                            end
-                        end
-                    end
-                    return closest
-                end
-
-                local mob = GetClosestMob()
+                local mob = FindMob(MOBS)
 
                 if mob then
-                    _tp(mob.PrimaryPart.CFrame)
-                    repeat wait()
-                        if mob.Parent and mob.Humanoid.Health > 0 then
-                            G.Kill(mob, _G.AutoFarm_Bone)
-                        else
-                            break
+                    _tp(mob.HumanoidRootPart.CFrame)
+
+                    repeat task.wait()
+                        if mob.Humanoid.Health > 0 then
+                            G.Kill(mob, true)
                         end
-                    until not _G.StartFarm or not _G.AutoFarm_Bone
+                    until not _G.StartFarm or not _G.AutoFarm_Bone or not mob.Parent or mob.Humanoid.Health <= 0
+
                 else
                     _tp(CFrame.new(-9495.68,453.58,5977.34))
                 end
@@ -2641,25 +2673,34 @@ spawn(function()
     end
 end)
 
+--========================================================--
+-- LEVEL FARM
+--========================================================--
+
 local CurrentMob = nil
 
 local function GetNearestMob(TargetName)
-    local Closest, Dist = nil, math.huge
-    for _, Mob in pairs(workspace.Enemies:GetChildren()) do
-        if G.Alive(Mob) and Mob.Name == TargetName and Mob:FindFirstChild("HumanoidRootPart") then
-            local d = (Mob.HumanoidRootPart.Position - Root.Position).Magnitude
-            if d < Dist then
-                Dist = d
-                Closest = Mob
+    local hrp = Root
+    if not hrp then return end
+
+    local closest, dist = nil, math.huge
+
+    for _, mob in pairs(workspace.Enemies:GetChildren()) do
+        if mob.Name == TargetName and G.Alive(mob) and mob:FindFirstChild("HumanoidRootPart") then
+            local d = (mob.HumanoidRootPart.Position - hrp.Position).Magnitude
+            if d < dist then
+                dist = d
+                closest = mob
             end
         end
     end
-    return Closest
+
+    return closest
 end
 
 spawn(function()
-    while wait(Sec) do
-        if _G.Level and _G.StartFarm then
+    while task.wait() do
+        if _G.StartFarm and _G.Level then
             pcall(function()
 
                 if not plr.Character or not Root then
@@ -2683,33 +2724,16 @@ spawn(function()
                     return
                 end
 
-                local Nearest = GetNearestMob(Q[1])
-
-                if CurrentMob and G.Alive(CurrentMob) and CurrentMob.Parent then
-                    G.Kill(CurrentMob, true)
-                    return
-                else
-                    CurrentMob = nil
-                end
-
-                if not Nearest then
+                local target = FindMob(Q[1])
+                if not target then
                     _tp(Q[4])
-                    local RepMob = replicated:FindFirstChild(Q[1])
-                    if RepMob and RepMob:FindFirstChild("HumanoidRootPart") then
-                        _tp(RepMob.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
-                    end
                     return
                 end
 
-                CurrentMob = Nearest
-
-                if CurrentMob and G.Alive(CurrentMob) then
-                    repeat
-                        wait()
-                        G.Kill(CurrentMob, true)
-                    until not _G.StartFarm or not _G.Level or not CurrentMob.Parent or CurrentMob.Humanoid.Health <= 0
-
-                    CurrentMob = nil
+                if target then
+                    repeat task.wait()
+                        G.Kill(target, true)
+                    until not _G.StartFarm or not _G.Level or not target.Parent or target.Humanoid.Health <= 0
                 end
 
             end)
