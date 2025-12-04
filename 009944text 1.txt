@@ -2465,10 +2465,6 @@ spawn(function()
     end
 end)
 
---------------------------------------------------------------------------------
--- 1. DROPDOWN E TOGGLES (INTERFACE)
---------------------------------------------------------------------------------
-
 -- Dropdown para escolher o modo
 b:AddDropdown({
 Title = "Select Farm Mode",
@@ -2516,7 +2512,7 @@ end
 
 
 -------------------------------------------------------------------
--- 2. LÓGICA DO CAKE PRINCE (CORRIGIDA + POSIÇÃO INICIAL)
+-- 2. LÓGICA DO CAKE PRINCE (CORRIGIDA + POSIÇÃO INICIAL INSTANTÂNEA E RESET)
 -------------------------------------------------------------------
 
 local FirstTP_CakePrince = CFrame.new(
@@ -2542,12 +2538,24 @@ local QuestUI = plr.PlayerGui.Main.Quest
             local WaitPoint = CFrame.new(-2077, 252, -12373)  
 
             -------------------------------------------------------------------  
-            -- 1) PRIMEIRO TELEPORTE OBRIGATÓRIO SEMPRE QUE ATIVAR O AUTO PRINCE  
+            -- 1) PRIMEIRO TELEPORTE OBRIGATÓRIO (INSTANTÂNEO + RESET)
             -------------------------------------------------------------------  
             if not _G.CakePrince_Entered then  
+                -- Teleporte Imediato
                 _tp(FirstTP_CakePrince)  
-                task.wait(1.2)  
+                task.wait(0.1) -- Pequeno wait para garantir a posição
+                
+                -- Reset Imediato
+                if _G.Reset then
+                    _G.Reset()
+                else
+                    -- Alternativa de reset se _G.Reset não existir
+                    local humanoid = plr.Character and plr.Character:FindFirstChild("Humanoid")
+                    if humanoid then humanoid.Health = 0 end
+                end
+
                 _G.CakePrince_Entered = true  
+                task.wait(2) -- Espera o personagem renascer após o reset
                 return  
             end  
 
@@ -2799,6 +2807,7 @@ if not plr.Character or not Root then
 end
 
 end)
+
 
 b:AddSeperator("Other")
 
