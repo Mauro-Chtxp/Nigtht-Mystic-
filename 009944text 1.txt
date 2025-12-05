@@ -47,7 +47,7 @@ Marines = function()
 Pirates = function()
 		replicated.Remotes.CommF_:InvokeServer("SetTeam", "Pirates");
 	end;
-local I = (loadstring(game:HttpGet("https://pastefy.app/66KzE7jF/raw")))();
+local I = (loadstring(game:HttpGet("https://pastefy.app/KBJxDUbp/raw")))();
 if World1 then
 	Boss = {
 			"The Gorilla King",
@@ -426,56 +426,70 @@ statsSetings = function(I, e)
 		end;
 	end;
 
-BringEnemy = function()
-	if not _B then
-		return
+local TweenService = game:GetService("TweenService")
+local tweenInfo = TweenInfo.new(0.35, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
+
+local function FixMob(mob, hum, root)
+	-- Se o mob bugou (sem animação, sem dano, travado)
+	if hum.Health > 0 then
+
+		-- Recria joints (impede bug de animação e hitbox)
+		if mob:FindFirstChild("HumanoidRootPart") then
+			mob:MakeJoints()
+		end
+
+		-- Garantir que o mob não esteja preso
+		root.Anchored = false
+		root.CanCollide = false
+
+		-- Repara Humanoid quebrado
+		hum.PlatformStand = false
+		hum.AutoRotate = false
+
+		-- Garante que o Animator existe (corrige mobs sem animação)
+		if not hum:FindFirstChild("Animator") then
+			Instance.new("Animator", hum)
+		end
+
+		-- Evita bug de network
+		pcall(function()
+			game.Players.LocalPlayer.SimulationRadius = math.huge
+		end)
 	end
+end
+
+
+BringEnemy = function()
+	if not _B then return end
 
 	for _, mob in pairs(workspace.Enemies:GetChildren()) do
-		
-		-- NÃO PUXAR BOSSES
-		if mob:FindFirstChild("Humanoid") and not string.find(mob.Name:lower(), "boss") then
+		local hum = mob:FindFirstChild("Humanoid")
+		local root = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart
 
-			local hum = mob:FindFirstChild("Humanoid")
-			local root = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart
+		if hum and hum.Health > 0 and root then
 
-			if hum and hum.Health > 0 and root then
-				local dist = (root.Position - PosMon).Magnitude
+			-- Primeiro: corrigir o mob caso esteja travado
+			FixMob(mob, hum, root)
 
-				if dist <= 210 then  
+			local dist = (root.Position - PosMon).Magnitude
 
-					--
-					-- 🟦 ANTI TRAVAMENTO REAL
-					--
+			if dist <= 500 then
 
-					-- 1. Recria joints caso estejam quebrados
-					pcall(function()
-						mob:MakeJoints()
-					end)
+				-- Cancela tween anterior se existir
+				if root:FindFirstChild("BringTween") then
+					root.BringTween:Cancel()
+					root.BringTween:Destroy()
+				end
 
-					-- 2. Reset básico de estados do Humanoid
-					pcall(function()
-						hum:ChangeState(Enum.HumanoidStateType.Physics)
-						task.wait()
-						hum:ChangeState(Enum.HumanoidStateType.Running)
-					end)
-
-					-- 3. Corrige rotação
-					hum.AutoRotate = false
-					hum.PlatformStand = false
-
-					-- 4. Corrige caso esteja bugado sem animações
-					if hum.Animator == nil then
-						Instance.new("Animator", hum)
-					end
-
-					-- 5. Teleporte suave
-					mob:PivotTo(CFrame.new(PosMon))
-
-					-- 6. Simulação do player
-					pcall(function()
-						game.Players.LocalPlayer.SimulationRadius = math.huge
-					end)
+				-- Teleport rápido se estiver perto demais
+				if dist < 10 then
+					root.CFrame = CFrame.new(PosMon)
+				else
+					-- Tween suave caso esteja longe
+					local t = TweenService:Create(root, tweenInfo, { CFrame = CFrame.new(PosMon) })
+					t.Name = "BringTween"
+					t.Parent = root
+					t:Play()
 				end
 			end
 		end
