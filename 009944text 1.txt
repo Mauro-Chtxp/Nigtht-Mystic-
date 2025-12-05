@@ -47,7 +47,7 @@ Marines = function()
 Pirates = function()
 		replicated.Remotes.CommF_:InvokeServer("SetTeam", "Pirates");
 	end;
-local I = (loadstring(game:HttpGet("https://pastefy.app/66KzE7jF/raw")))();
+local I = (loadstring(game:HttpGet("https://pastefy.app/bhiXTYJC/raw")))();
 if World1 then
 	Boss = {
 			"The Gorilla King",
@@ -429,72 +429,76 @@ statsSetings = function(I, e)
 local TweenService = game:GetService("TweenService")
 local tweenInfo = TweenInfo.new(0.35, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
 
-local function FixMob(mob, hum, root)
-	-- Se o mob bugou (sem animação, sem dano, travado)
-	if hum.Health > 0 then
-
-		-- Recria joints (impede bug de animação e hitbox)
-		if mob:FindFirstChild("HumanoidRootPart") then
-			mob:MakeJoints()
-		end
-
-		-- Garantir que o mob não esteja preso
-		root.Anchored = false
-		root.CanCollide = false
-
-		-- Repara Humanoid quebrado
-		hum.PlatformStand = false
-		hum.AutoRotate = false
-
-		-- Garante que o Animator existe (corrige mobs sem animação)
-		if not hum:FindFirstChild("Animator") then
-			Instance.new("Animator", hum)
-		end
-
-		-- Evita bug de network
-		pcall(function()
-			game.Players.LocalPlayer.SimulationRadius = math.huge
-		end)
-	end
-end
-
-
 BringEnemy = function()
-	if not _B then return end
+    if not _B then return end
 
-	for _, mob in pairs(workspace.Enemies:GetChildren()) do
-		local hum = mob:FindFirstChild("Humanoid")
-		local root = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart
+    -- Obter a posição do alvo (Player/Monstro, etc.)
+    -- Assumindo que PosMon é definido em outro lugar, por exemplo, como a posição de um jogador.
+    -- Se PosMon for global, o código vai funcionar, mas é bom ter em mente de onde ela vem.
+    
+    for _, mob in pairs(workspace.Enemies:GetChildren()) do
+        local hum = mob:FindFirstChild("Humanoid")
+        local root = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart
 
-		if hum and hum.Health > 0 and root then
+        if hum and hum.Health > 0 and root then
+            local dist = (root.Position - PosMon).Magnitude
+            
+            if dist <= 500 then
+                
+                -- Se o mob já tem um Tween em andamento, cancela e destrói
+                if root:FindFirstChild("BringTween") then      
+                    root.BringTween:Cancel()      
+                    root.BringTween:Destroy()      
+                end
 
-			-- Primeiro: corrigir o mob caso esteja travado
-			FixMob(mob, hum, root)
+                -- Configurações de Física/Comportamento
+                root.Anchored = false      
+                root.CanCollide = false      
+                mob:MakeJoints()      
+                hum.AutoRotate = false      
+                
+                -- GARANTE QUE O SERVIDOR CONTROLA A POSIÇÃO. ESSENCIAL!
+                root:SetNetworkOwner(nil) 
 
-			local dist = (root.Position - PosMon).Magnitude
+                if dist < 10 then      
+                    -- Teleporte imediato para distâncias curtas
+                    root.CFrame = CFrame.new(PosMon)      
+                    
+                    -- DESTRAVA o Humanoid imediatamente
+                    hum.PlatformStand = false 
+                else      
+                    -- Tween para distâncias longas
+                    
+                    -- TRAVA o Humanoid ANTES de começar o movimento
+                    hum.PlatformStand = true 
+                    
+                    local t = TweenService:Create(root, tweenInfo, { CFrame = CFrame.new(PosMon) })      
+                    t.Name = "BringTween"      
+                    t.Parent = root      
+                    
+                    -- DESTRAVA o Humanoid APÓS o Tween COMPLETOU
+                    t.Completed:Once(function()
+                        if hum and hum.Health > 0 then
+                            hum.PlatformStand = false
+                            -- hum.AutoRotate = true -- Reabilite se quiser que ele possa girar
+                        end
+                        -- Garante que o tween é removido
+                        if root:FindFirstChild("BringTween") then
+                            root.BringTween:Destroy()
+                        end
+                    end)
 
-			if dist <= 500 then
+                    t:Play()      
+                end      
 
-				-- Cancela tween anterior se existir
-				if root:FindFirstChild("BringTween") then
-					root.BringTween:Cancel()
-					root.BringTween:Destroy()
-				end
+                -- Removido: pcall(function() plr.SimulationRadius = math.huge end)
+                -- (Opcional, mas geralmente desnecessário se o NetworkOwner estiver correto)
 
-				-- Teleport rápido se estiver perto demais
-				if dist < 10 then
-					root.CFrame = CFrame.new(PosMon)
-				else
-					-- Tween suave caso esteja longe
-					local t = TweenService:Create(root, tweenInfo, { CFrame = CFrame.new(PosMon) })
-					t.Name = "BringTween"
-					t.Parent = root
-					t:Play()
-				end
-			end
-		end
-	end
+            end
+        end
+    end
 end
+
 Useskills = function(I, e)
 		if I == "Melee" then
 			weaponSc("Melee");
