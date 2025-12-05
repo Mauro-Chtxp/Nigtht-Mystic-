@@ -1199,7 +1199,7 @@ QuestBeta = function()
 QuestCheck = function()
 	local I = game.Players.LocalPlayer.Data.Level.Value
 	if World1 then
-		if I == 1 or I <= 9 then
+		if I >= 1 and I <= 9 then
 			if tostring(TeamSelf) == "Marines" then
 				Mon = "Trainee"
 				Qname = "MarineQuest"
@@ -1215,84 +1215,84 @@ QuestCheck = function()
 				PosM = CFrame.new(1045.9626464844, 27.002508163452, 1560.8203125)
 				PosQ = CFrame.new(1045.9626464844, 27.002508163452, 1560.8203125)
 			end
-		elseif I == 10 or I <= 14 then
+		elseif I >= 10 and I <= 14 then
 			Mon = "Monkey"
 			Qdata = 1
 			Qname = "JungleQuest"
 			NameMon = "Monkey"
 			PosQ = CFrame.new(-1598.08911, 35.5501175, 153.377838, 0, 0, 1, 0, 1, 0, -1, 0, 0)
 			PosM = CFrame.new(-1448.5180664062, 67.853012084961, 11.465796470642)
-		elseif I == 15 or I <= 29 then
+		elseif I >= 15 and I <= 29 then
 			Mon = "Gorilla"
 			Qdata = 2
 			Qname = "JungleQuest"
 			NameMon = "Gorilla"
 			PosQ = CFrame.new(-1598.08911, 35.5501175, 153.377838, 0, 0, 1, 0, 1, 0, -1, 0, 0)
 			PosM = CFrame.new(-1129.8836669922, 40.46354675293, -525.42370605469)
-		elseif I == 30 or I <= 39 then
+		elseif I >= 30 and I <= 39 then
 			Mon = "Pirate"
 			Qdata = 1
 			Qname = "BuggyQuest1"
 			NameMon = "Pirate"
 			PosQ = CFrame.new(-1141.07483, 4.10001802, 3831.5498, .965929627, 0, -0.258804798, 0, 1, 0, .258804798, 0, .965929627)
 			PosM = CFrame.new(-1103.5134277344, 13.752052307129, 3896.0910644531)
-		elseif I == 40 or I <= 59 then
+		elseif I >= 40 and I <= 59 then
 			Mon = "Brute"
 			Qdata = 2
 			Qname = "BuggyQuest1"
 			NameMon = "Brute"
 			PosQ = CFrame.new(-1141.07483, 4.10001802, 3831.5498, .965929627, 0, -0.258804798, 0, 1, 0, .258804798, 0, .965929627)
 			PosM = CFrame.new(-1140.0837402344, 14.809885025024, 4322.9213867188)
-		elseif I == 60 or I <= 74 then
+		elseif I >= 60 and I <= 74 then
 			Mon = "Desert Bandit"
 			Qdata = 1
 			Qname = "DesertQuest"
 			NameMon = "Desert Bandit"
 			PosQ = CFrame.new(894.488647, 5.14000702, 4392.43359, .819155693, 0, -0.573571265, 0, 1, 0, .573571265, 0, .819155693)
 			PosM = CFrame.new(924.7998046875, 6.4486746788025, 4481.5859375)
-		elseif I == 75 or I <= 89 then
+		elseif I >= 75 and I <= 89 then
 			Mon = "Desert Officer"
-			Qdata = 2;
+			Qdata = 2
 			Qname = "DesertQuest"
 			NameMon = "Desert Officer"
 			PosQ = CFrame.new(894.488647, 5.14000702, 4392.43359, .819155693, 0, -0.573571265, 0, 1, 0, .573571265, 0, .819155693)
 			PosM = CFrame.new(1608.2822265625, 8.6142244338989, 4371.0073242188)
-		elseif I == 90 or I <= 99 then
+		elseif I >= 90 and I <= 99 then
 			Mon = "Snow Bandit"
 			Qdata = 1
 			Qname = "SnowQuest"
 			NameMon = "Snow Bandit"
 			PosQ = CFrame.new(1389.74451, 88.1519318, -1298.90796, -0.342042685, 0, .939684391, 0, 1, 0, -0.939684391, 0, -0.342042685)
 			PosM = CFrame.new(1354.3479003906, 87.272773742676, -1393.9465332031)
-		elseif I == 100 or I <= 119 then
+		elseif I >= 100 and I <= 119 then
 			Mon = "Snowman"
 			Qdata = 2
 			Qname = "SnowQuest"
 			NameMon = "Snowman"
 			PosQ = CFrame.new(1389.74451, 88.1519318, -1298.90796, -0.342042685, 0, .939684391, 0, 1, 0, -0.939684391, 0, -0.342042685)
 			PosM = CFrame.new(6241.9951171875, 51.522083282471, -1243.9771728516)
-		elseif I == 120 or I <= 149 then
+		elseif I >= 120 and I <= 149 then
 			Mon = "Chief Petty Officer"
 			Qdata = 1
 			Qname = "MarineQuest2"
 			NameMon = "Chief Petty Officer"
 			PosQ = CFrame.new(-5039.58643, 27.3500385, 4324.68018, 0, 0, -1, 0, 1, 0, 1, 0, 0)
 			PosM = CFrame.new(-4881.2309570312, 22.652044296265, 4273.7524414062)
-		elseif I == 150 or I <= 174 then
+		elseif I >= 150 and I <= 174 then
 			Mon = "Sky Bandit"
 			Qdata = 1
 			Qname = "SkyQuest"
 			NameMon = "Sky Bandit"
 			PosQ = CFrame.new(-4839.53027, 716.368591, -2619.44165, .866007268, 0, .500031412, 0, 1, 0, -0.500031412, 0, .866007268)
 			PosM = CFrame.new(-4953.20703125, 295.74420166016, -2899.2290039062)
-		elseif I == 175 or I <= 189 then
+		elseif I >= 175 and I <= 189 then
 			Mon = "Dark Master"
 			Qdata = 2
 			Qname = "SkyQuest"
 			NameMon = "Dark Master"
 			PosQ = CFrame.new(-4839.53027, 716.368591, -2619.44165, .866007268, 0, .500031412, 0, 1, 0, -0.500031412, 0, .866007268)
 			PosM = CFrame.new(-5259.8447265625, 391.39767456055, -2229.0354003906)
-		elseif I == 190 or I <= 209 then
+		elseif I >= 190 and I <= 209 then
 			Mon = "Prisoner"
 			Qdata = 1
 			Qname = "PrisonerQuest"
