@@ -2891,66 +2891,39 @@ spawn(function()
     end
 end)
 
-local replicated = game:GetService("ReplicatedStorage")
-
-getgenv().AutoFarmMasteryAllSword = false
-local enemyList = {"Reborn Skeleton", "Living Zombie", "Demonic Soul", "Posessed Mummy"}
-local targetCFrame = CFrame.new(-9495.6807, 453.5862, 5977.3486)
-
 RR:AddToggle({
-    Title = "Auto Farm Mastery All Sword",
-    Description = "Farma maestria de 1 a 599 no local dos Bone, e equipa espadas de Mastery 600+.",
+    Title = "Auto Mastery All Sword",
+    Description = "Ative o Start Farm",
     Default = false,
-    Callback = function(Value)
-        getgenv().AutoFarmMasteryAllSword = Value
-    end
+    Callback = function(I)
+        _G.FarmMastery_S = I
+    end,
 })
 
 spawn(function()
-    while task.wait(0.5) do
+    while wait(Sec) do
         pcall(function()
-            if getgenv().AutoFarmMasteryAllSword then
-                
-                for _, v in next, replicated.Remotes.CommF_:InvokeServer("getInventory") do
-                    if type(v) == "table" and v.Type == "Sword" then
-                        local SwordName = v.Name
-                        local mastery = tonumber(v.Mastery)
+            if _G.FarmMastery_S then
+                local inventory = replicated.Remotes.CommF_:InvokeServer("getInventory")
 
-                        if mastery >= 1 and mastery <= 599 then
-                            
+                for _, item in next, inventory do
+                    if type(item) == "table" and item.Type == "Sword" then
+                        local SwordName = item.Name
+                        local Mastery = tonumber(item.Mastery)
+
+                        -- Troca de espada se Mastery >= 600
+                        if Mastery >= 600 then
                             if not GetBP(SwordName) then
                                 replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName)
-                                task.wait(0.2)
-                                return
-                            end
-                            
-                            local enemy = GetConnectionEnemies(enemyList)
-                            if enemy then
-                                repeat
-                                    task.wait()
-                                    Attack.Sword(enemy, getgenv().AutoFarmMasteryAllSword) 
-                                until not getgenv().AutoFarmMasteryAllSword or not enemy.Parent or enemy.Humanoid.Health <= 0
-                                return
-                            else
-                                _tp(targetCFrame)
-                                return
-                            end
-
-                        elseif mastery >= 600 then
-                            if not GetBP(SwordName) then
-                                replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName)
-                                task.wait(0.2)
-                                return
                             end
                         end
+                        break -- processa apenas uma espada por vez
                     end
                 end
-
             end
         end)
     end
 end)
-
 -- Sistema Time Zone
 local Time = SS:AddParagraph({Title = "Time Zone", Desc = ""})
 function UpdateOS()
