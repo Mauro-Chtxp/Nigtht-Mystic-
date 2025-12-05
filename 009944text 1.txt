@@ -2073,16 +2073,13 @@ local W=v:AddSection("Drago Dojo");
 local f=S:AddSection("Prehistoric");
 local E=q:AddSection("Combat");
 local Y=l:AddSection("Teleport");
-local RR=R:AddSection("Get and Upgrade Itens"); -- Variável da nova seção
+local RR=R:AddSection("Get and Upgrade Itens");
 local p=B:AddSection("Fruits");
 local D=g:AddSection("Shop");
 local Z=u:AddSection("Misc");
 local SS=s:AddSection("Stats");
-
--- FUNÇÕES ADICIONADAS NA SEÇÃO 'Get and Upgrade Itens' (RR)
-
 -- AUTO RANDOM BONES
-RR:AddToggle({
+R:AddToggle({
     Title = "Auto Random Bone",
     Default = false,
     Callback = function(v)
@@ -2099,7 +2096,7 @@ spawn(function()
 end)
 
 -- AUTO SOUL REAPER
-RR:AddToggle({
+R:AddToggle({
     Title = "Auto Soul Reaper",
     Default = false,
     Callback = function(v)
@@ -2137,6 +2134,7 @@ spawn(function()
         end
     end
 end)
+
 
 
 -- Sistema Time Zone
@@ -3270,6 +3268,103 @@ spawn(function()
     end
 end)
 
+-- SEÇÃO BONE
+b:AddSeperator("Bones")
+
+local P_Bones = b:AddParagraph({
+    Title = "Bones :",
+    Content = ""
+})
+
+-- Atualiza Bones
+spawn(function()
+    while wait(.2) do
+        pcall(function()
+            P_Bones:SetDesc(" Bones : " .. GetM("Bones"))
+        end)
+    end
+end)
+-- AUTO RANDOM BONES
+b:AddToggle({
+    Title = "Auto Random Bone",
+    Default = false,
+    Callback = function(v)
+        _G.Auto_Random_Bone = v
+    end,
+})
+
+spawn(function()
+    while wait(Sec) do
+        if _G.Auto_Random_Bone then
+            replicated.Remotes.CommF_:InvokeServer("Bones","Buy",1,1)
+        end
+    end
+end)
+
+-- AUTO SOUL REAPER
+b:AddToggle({
+    Title = "Auto Soul Reaper",
+    Default = false,
+    Callback = function(v)
+        _G.AutoHytHallow = v
+    end,
+})
+
+spawn(function()
+    while wait(Sec) do
+        if _G.AutoHytHallow then
+            pcall(function()
+
+                local mob = GetConnectionEnemies("Soul Reaper")
+
+                if mob then
+                    repeat task.wait()
+                        G.Kill(mob,_G.AutoHytHallow)
+                    until mob.Humanoid.Health <= 0 or not _G.AutoHytHallow
+
+                else
+                    if not GetBP("Hallow Essence") then
+                        repeat task.wait(.1)
+                            replicated.Remotes.CommF_:InvokeServer("Bones","Buy",1,1)
+                        until not _G.AutoHytHallow or GetBP("Hallow Essence")
+                    else
+                        local pos = CFrame.new(-8932.32,146.83,6062.55)
+                        repeat wait(.1)
+                            _tp(pos)
+                        until not _G.AutoHytHallow or plr.Character.HumanoidRootPart.CFrame == pos
+                        EquipWeapon("Hallow Essence")
+                    end
+                end
+
+            end)
+        end
+    end
+end)
+
+
+
+--=============================--
+--        SECTION CAKE         --
+--=============================--
+
+b:AddSeperator("Cake Prince")
+
+local P_Cake = b:AddParagraph({
+    Title = "Mobs :",
+    Content = ""
+})
+
+-- Atualiza faltando kills
+spawn(function()
+    while wait(.2) do
+        pcall(function()
+            local left = string.match(replicated.Remotes.CommF_:InvokeServer("CakePrinceSpawner"), "%d+")
+            if left then
+                P_Cake:SetDesc(" Killed : " .. (500 - left))
+            end
+        end)
+    end
+end)
 
 b:AddSeperator("Mastery")
 
