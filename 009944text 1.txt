@@ -3431,12 +3431,10 @@ local I1 = i:AddSection("Info");
 
 local Sobre = I1:AddParagraph({
     Title = "Sobre o Night Mystic v2",
-    Content = [[
-O Night Mystic V2 foi criado devido aos problemas 
-com a hospedagem do script original.
+Content = [[
+Join Discord for Finder Fruit free for a limited time!
 ]]
 });
-
 I1:AddButton({
     Title = "Copiar Discord",
     Description = "Entre para ficar por dentro das updates",
