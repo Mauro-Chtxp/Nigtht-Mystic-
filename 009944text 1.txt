@@ -2891,39 +2891,7 @@ spawn(function()
     end
 end)
 
-RR:AddToggle({
-    Title = "Auto Mastery All Sword",
-    Description = "Ative o Start Farm",
-    Default = false,
-    Callback = function(I)
-        _G.FarmMastery_S = I
-    end,
-})
 
-spawn(function()
-    while wait(Sec) do
-        pcall(function()
-            if _G.FarmMastery_S then
-                local inventory = replicated.Remotes.CommF_:InvokeServer("getInventory")
-
-                for _, item in next, inventory do
-                    if type(item) == "table" and item.Type == "Sword" then
-                        local SwordName = item.Name
-                        local Mastery = tonumber(item.Mastery)
-
-                        -- Troca de espada se Mastery >= 600
-                        if Mastery >= 600 then
-                            if not GetBP(SwordName) then
-                                replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName)
-                            end
-                        end
-                        break -- processa apenas uma espada por vez
-                    end
-                end
-            end
-        end)
-    end
-end)
 -- Sistema Time Zone
 local Time = SS:AddParagraph({Title = "Time Zone", Desc = ""})
 function UpdateOS()
