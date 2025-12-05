@@ -438,7 +438,7 @@ BringEnemy = function()
 
 		if hum and hum.Health > 0 and root then
 			local dist = (root.Position - PosMon).Magnitude
-			if dist <= 225 then
+			if dist <= 210 then
 
 				-- Garantir que o mob não reaja fisicamente
 				root.Anchored = false
@@ -3504,10 +3504,13 @@ _G.AcceptQuest = false
 -- Variável para guardar o mob de Level Farm
 local CurrentMobLevel = nil
 
--- UI: DROPDOWN + TOGGLES
+----------------------------------------------------------------------
+-- 1. UI: DROPDOWN + TOGGLES (ATUALIZADO COM TYRANT)
+----------------------------------------------------------------------
+
 b:AddDropdown({
     Title = "Select Farm Mode",
-    Values = {"Level", "Bone", "Cake Prince"},
+    Values = {"Level", "Bone", "Cake Prince", "Tyrant"}, -- Opção Tyrant adicionada
     Default = "Level",
     Callback = function(v)
         _G.SelectedFarmMode = v
@@ -3524,6 +3527,7 @@ b:AddToggle({
         _G.Level = false  
         _G.AutoFarm_Bone = false  
         _G.AutoFarm_Cake = false  
+        _G.AutoFarm_Tyrant = false -- Reset do Tyrant
         
         if v then  
             if _G.SelectedFarmMode == "Level" then  
@@ -3532,6 +3536,8 @@ b:AddToggle({
                 _G.AutoFarm_Bone = true  
             elseif _G.SelectedFarmMode == "Cake Prince" then  
                 _G.AutoFarm_Cake = true  
+            elseif _G.SelectedFarmMode == "Tyrant" then 
+                _G.AutoFarm_Tyrant = true -- Ativa Tyrant
             end  
         end  
     end
@@ -3545,12 +3551,12 @@ b:AddToggle({
     end
 })
 
----
-
--- 1. SISTEMA BONE FARM (Otimizado)
+----------------------------------------------------------------------
+-- 2. SISTEMA BONE FARM (Otimizado)
+----------------------------------------------------------------------
 
 spawn(function()
-    while task.wait(0.1) do -- Reduzido para 0.1s para reatividade
+    while task.wait(0.1) do 
         if _G.AutoFarm_Bone and _G.StartFarm then
             pcall(function()
                 local plr = game.Players.LocalPlayer
@@ -3578,14 +3584,14 @@ spawn(function()
                         { "StartQuest","HauntedQuest1",2 },      
                     }      
                     game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(q[choose]))      
-                    return -- Retorna após aceitar quest para não tentar farmar no mesmo ciclo
+                    return 
                 end      
                 
                 -- Buscar Mob Bone  
                 local closest, shortest = nil, math.huge      
                 for _, mobName in pairs(MOBS) do      
                     for _, mob in pairs(workspace.Enemies:GetChildren()) do      
-                        if mob.Name == mobName and G.Alive(mob) then -- Uso de G.Alive para checagem mais robusta
+                        if mob.Name == mobName and G.Alive(mob) then 
                             local dist = (mob.PrimaryPart.Position - hrp.Position).Magnitude      
                             if dist < shortest then      
                                 shortest = dist  
@@ -3597,14 +3603,12 @@ spawn(function()
                 
                 if closest then      
                     _tp(closest.PrimaryPart.CFrame)      
-                    task.wait(0.1) -- Pequeno delay para dar tempo do teleporte
+                    task.wait(0.1)
                     
-                    -- Loop de kill mais simples e reativo
                     if G.Alive(closest) then
                         G.Kill(closest, _G.AutoFarm_Bone)
                     end
                 else      
-                    -- Espera no centro da área de farm se não achar mob
                     _tp(CFrame.new(-9495.68,453.58,5977.34))      
                 end      
             end)  
@@ -3612,10 +3616,9 @@ spawn(function()
     end
 end)
 
-
----
-
--- 2. SISTEMA LEVEL FARM (Otimizado)
+----------------------------------------------------------------------
+-- 3. SISTEMA LEVEL FARM (Otimizado)
+----------------------------------------------------------------------
 
 local function GetNearestMobLevel(TargetName)
     local plr = game.Players.LocalPlayer
@@ -3632,7 +3635,7 @@ local function GetNearestMobLevel(TargetName)
 end
 
 spawn(function()
-    while task.wait(0.1) do -- Reduzido para 0.1s para reatividade
+    while task.wait(0.1) do 
         if _G.Level and _G.StartFarm then
             pcall(function()
                 local plr = game.Players.LocalPlayer
@@ -3642,12 +3645,10 @@ spawn(function()
                 local QuestTitle = plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text      
                 local Q = QuestNeta() -- Assume que essa função existe no seu script  
                 
-                -- Abandonar quest errada  
                 if not string.find(QuestTitle, Q[5]) then      
                     game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AbandonQuest")      
                 end      
                 
-                -- Aceitar quest  
                 if not plr.PlayerGui.Main.Quest.Visible and _G.AcceptQuest then      
                     _tp(Q[6])      
                     if (Root.Position - Q[6].Position).Magnitude <= 50 then      
@@ -3656,10 +3657,9 @@ spawn(function()
                     return      
                 end      
                 
-                -- Prioriza matar o CurrentMobLevel se ele ainda for válido
                 if CurrentMobLevel and G.Alive(CurrentMobLevel) and CurrentMobLevel.Parent then      
                     _tp(CurrentMobLevel.HumanoidRootPart.CFrame)
-                    task.wait(0.1) -- Delay
+                    task.wait(0.1)
                     G.Kill(CurrentMobLevel, true)      
                     return      
                 else      
@@ -3669,14 +3669,13 @@ spawn(function()
                 local Nearest = GetNearestMobLevel(Q[1])      
                 
                 if not Nearest then      
-                    _tp(Q[4]) -- Volta para o ponto de espera/respawn dos mobs
+                    _tp(Q[4]) 
                     return      
                 end      
                 
-                -- Se achou um novo mob, define e mata
                 CurrentMobLevel = Nearest      
                 _tp(CurrentMobLevel.HumanoidRootPart.CFrame)
-                task.wait(0.1) -- Delay
+                task.wait(0.1)
                 
                 if G.Alive(CurrentMobLevel) then
                     G.Kill(CurrentMobLevel, true)
@@ -3686,10 +3685,9 @@ spawn(function()
     end
 end)
 
-
----
-
--- 3. SISTEMA CAKE PRINCE FARM (CORRIGIDO E ESTABILIZADO)
+----------------------------------------------------------------------
+-- 4. SISTEMA CAKE PRINCE FARM
+----------------------------------------------------------------------
 
 spawn(function()
     while task.wait() do
@@ -3704,7 +3702,6 @@ spawn(function()
 
                 local CakePos = CFrame.new(-2091.91, 70.00, -12142.83)
 
-                -- Teleporta para a ilha se estiver muito longe
                 if (hrp.Position - CakePos.Position).Magnitude > 2000 then
                     _tp(CakePos)
                     return
@@ -3714,20 +3711,15 @@ spawn(function()
                 mirror = mirror and mirror:FindFirstChild("BigMirror")
                 local other = mirror and mirror:FindFirstChild("Other")
 
-                -- Detecta boss e portal
                 local boss = enemies:FindFirstChild("Cake Prince") or enemies:FindFirstChild("Dough King")
                 local portalOpen = other and other.Transparency == 0
 
-                -----------------------------------------
                 -- === MODO BOSS ===
-                -----------------------------------------
                 if boss or portalOpen then
                     if boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then
-                        -- Boss: Fica um pouco acima e afastado para evitar ataques de chão
                         local bossPos = boss.PrimaryPart.CFrame * CFrame.new(0, 25, 0) * CFrame.Angles(math.rad(-90), 0, 0)
                         _tp(bossPos)
                         
-                        -- Trava física para não cair no Boss
                         hrp.Velocity = Vector3.new(0,0,0)
                         hrp.AssemblyLinearVelocity = Vector3.new(0,0,0)
                         
@@ -3735,7 +3727,6 @@ spawn(function()
                         return
                     end
 
-                    -- Portal aberto mas boss ainda carregando
                     local safeSpot = CFrame.new(-2151.82, 149.32, -12404.91)
                     if (hrp.Position - safeSpot.Position).Magnitude > 10 then
                         _tp(safeSpot)
@@ -3743,9 +3734,7 @@ spawn(function()
                     return
                 end
 
-                -----------------------------------------
                 -- === MODO FARM MOBS ===
-                -----------------------------------------
                 local CAKE_MOBS = {"Cookie Crafter", "Cake Guard", "Baking Staff", "Head Baker"}
 
                 local QuestUI = plr.PlayerGui.Main.Quest
@@ -3764,10 +3753,7 @@ spawn(function()
                     return
                 end
 
-                -- Detecta o mob MAIS PRÓXIMO
-                local bestMob
-                local bestDist = math.huge
-
+                local bestMob, bestDist = nil, math.huge
                 for _, mob in ipairs(enemies:GetChildren()) do
                     if table.find(CAKE_MOBS, mob.Name) and mob:FindFirstChild("Humanoid")
                         and mob:FindFirstChild("HumanoidRootPart") and mob.Humanoid.Health > 0 then
@@ -3780,44 +3766,73 @@ spawn(function()
                     end
                 end
 
-                -- Se não tem mob → volta pro centro
                 if not bestMob then
                     _tp(CakePos)
                     return
                 end
 
-                ------------------------------------------------
-                -- Farmar mob (CORREÇÃO DE POSIÇÃO)
-                ------------------------------------------------
                 if bestMob and bestMob:FindFirstChild("HumanoidRootPart") then
-                    
-                    -- Loop de ataque corrigido
                     repeat
-                        task.wait() -- Espera mínima para não crashar
-
-                        if other and other.Transparency == 0 then break end -- portal abriu
+                        task.wait() 
+                        if other and other.Transparency == 0 then break end 
 
                         if bestMob.Parent and bestMob.Humanoid.Health > 0 and bestMob:FindFirstChild("HumanoidRootPart") then
-                            
-                            -- Posição Fixa: 25 Studs ACIMA do mob, olhando para baixo
-                            -- Isso é atualizado TODO frame para evitar cair
                             local farmPos = bestMob.HumanoidRootPart.CFrame * CFrame.new(0, 25, 0) * CFrame.Angles(math.rad(-90), 0, 0)
                             _tp(farmPos)
-
-                            -- Zera a velocidade para anular a gravidade imediatamente
                             hrp.Velocity = Vector3.new(0, 0, 0)
                             if hrp:FindFirstChild("AssemblyLinearVelocity") then
                                 hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
                             end
-                            
                             G.Kill(bestMob, true)
                         else
                             break
                         end
-
                     until not _G.StartFarm or not _G.AutoFarm_Cake or not bestMob.Parent or bestMob.Humanoid.Health <= 0
                 end
+            end)
+        end
+    end
+end)
 
+----------------------------------------------------------------------
+-- 5. SISTEMA TYRANT FARM (NOVO & ADAPTADO)
+----------------------------------------------------------------------
+
+spawn(function()
+    while task.wait(0.5) do
+        if _G.AutoFarm_Tyrant and _G.StartFarm then
+            pcall(function()
+                local enemies = workspace:FindFirstChild("Enemies")
+                local tyrant = enemies and enemies:FindFirstChild("Tyrant of the Skies")
+
+                -- 1. Se o Boss existir fisicamente, ATACA
+                if tyrant and tyrant:FindFirstChild("Humanoid") and tyrant:FindFirstChild("HumanoidRootPart") and tyrant.Humanoid.Health > 0 then
+                    
+                    local hrp = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                    if not hrp then return end
+
+                    -- Posição de Ataque: 30 studs acima (Segurança)
+                    local farmPos = tyrant.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0) * CFrame.Angles(math.rad(-90), 0, 0)
+                    
+                    _tp(farmPos)
+                    
+                    -- Trava de Velocidade
+                    hrp.Velocity = Vector3.new(0,0,0)
+                    if hrp:FindFirstChild("AssemblyLinearVelocity") then
+                        hrp.AssemblyLinearVelocity = Vector3.new(0,0,0)
+                    end
+
+                    -- Loop de ataque enquanto ele existir
+                    G.Kill(tyrant, true)
+                    
+                else
+                    -- 2. Se não estiver no Workspace, checa o ReplicatedStorage (Lógica original)
+                    -- Isso move o player para onde o boss "deveria" estar
+                    local repTyrant = game:GetService("ReplicatedStorage"):FindFirstChild("Tyrant of the Skies")
+                    if repTyrant and repTyrant:FindFirstChild("HumanoidRootPart") then
+                        _tp(repTyrant.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
+                    end
+                end
             end)
         end
     end
