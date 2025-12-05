@@ -432,29 +432,51 @@ BringEnemy = function()
 	end
 
 	for _, mob in pairs(workspace.Enemies:GetChildren()) do
-		local hum = mob:FindFirstChild("Humanoid")
-		local root = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart
+		
+		-- NÃO PUXAR BOSSES
+		if mob:FindFirstChild("Humanoid") and not string.find(mob.Name:lower(), "boss") then
 
-		if hum and hum.Health > 0 and root then
-			local dist = (root.Position - PosMon).Magnitude
+			local hum = mob:FindFirstChild("Humanoid")
+			local root = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart
 
-			-- Aumentei a distância pra puxar
-			if dist <= 210 then  
-				-- Apenas garante que o mob não fique travado no chão
-				-- sem alterar Anchored nem CanCollide
-				mob:MakeJoints()      
-				
-				-- Anti-trava de rotação
-				hum.AutoRotate = false
-				hum.PlatformStand = true
+			if hum and hum.Health > 0 and root then
+				local dist = (root.Position - PosMon).Magnitude
 
-				-- Teleporte suave
-				mob:PivotTo(CFrame.new(PosMon))
+				if dist <= 210 then  
 
-				-- Simulação do jogador
-				pcall(function()
-					plr.SimulationRadius = math.huge
-				end)
+					--
+					-- 🟦 ANTI TRAVAMENTO REAL
+					--
+
+					-- 1. Recria joints caso estejam quebrados
+					pcall(function()
+						mob:MakeJoints()
+					end)
+
+					-- 2. Reset básico de estados do Humanoid
+					pcall(function()
+						hum:ChangeState(Enum.HumanoidStateType.Physics)
+						task.wait()
+						hum:ChangeState(Enum.HumanoidStateType.Running)
+					end)
+
+					-- 3. Corrige rotação
+					hum.AutoRotate = false
+					hum.PlatformStand = false
+
+					-- 4. Corrige caso esteja bugado sem animações
+					if hum.Animator == nil then
+						Instance.new("Animator", hum)
+					end
+
+					-- 5. Teleporte suave
+					mob:PivotTo(CFrame.new(PosMon))
+
+					-- 6. Simulação do player
+					pcall(function()
+						game.Players.LocalPlayer.SimulationRadius = math.huge
+					end)
+				end
 			end
 		end
 	end
