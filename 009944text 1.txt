@@ -2045,34 +2045,308 @@ QuestNeta = function()
 			[6] = PosQ,
 		};
 	end;
-local V = I:NewWindow();
-local i = V:T("Info");
-local g = V:T("Shop");
-local y = V:T("Main");
-local x = V:T("Farming Other");
-local mf = V:T("Misc Farming");
-local t = V:T("Sea Events");
-local m = V:T("Race");
-local v = V:T("Drago Dojo");
-local S = V:T("Prehistoric");
-local q = V:T("Pvp");
-local l = V:T("Teleport");
-local B = V:T("Raid/Fruit");
-local u = V:T("Misc");
-local c = V:T("Settings");
-local b = y:AddSection("Farming");
-local T = c:AddSection("Setting");
-local j = x:AddSection("Other Farming");
-local MF = mf:AddSection("Fishing");
-local A = t:AddSection("Sea Events");
-local h = m:AddSection("Race");
-local W = v:AddSection("Drago Dojo");
-local f = S:AddSection("Prehistoric");
-local E = q:AddSection("Combat");
-local Y = l:AddSection("Teleport");
-local p = B:AddSection("Fruits");
-local D = g:AddSection("Shop");
-local Z = u:AddSection("Misc");
+
+local V=I:NewWindow();
+local i=V:T("Info");
+local s=V:T("Stats");
+local g=V:T("Shop");
+local y=V:T("Main");
+local x=V:T("Farming Other");
+local mf=V:T("Misc Farming");
+local t=V:T("Sea Events");
+local m=V:T("Race");
+local v=V:T("Drago Dojo");
+local S=V:T("Prehistoric");
+local q=V:T("Pvp");
+local l=V:T("Teleport");
+local R=V:T("Get and Upgrade Itens");
+local B=V:T("Raid/Fruit");
+local u=V:T("Misc");
+local c=V:T("Settings");
+local b=y:AddSection("Farming");
+local T=c:AddSection("Setting");
+local j=x:AddSection("Other Farming");
+local MF=mf:AddSection("Fishing");
+local A=t:AddSection("Sea Events");
+local h=m:AddSection("Race");
+local W=v:AddSection("Drago Dojo");
+local f=S:AddSection("Prehistoric");
+local E=q:AddSection("Combat");
+local Y=l:AddSection("Teleport");
+local RR=R:AddSection("Get and Upgrade Itens"); -- Variável da nova seção
+local p=B:AddSection("Fruits");
+local D=g:AddSection("Shop");
+local Z=u:AddSection("Misc");
+local SS=s:AddSection("Stats");
+
+-- FUNÇÕES ADICIONADAS NA SEÇÃO 'Get and Upgrade Itens' (RR)
+
+-- AUTO RANDOM BONES
+RR:AddToggle({
+    Title = "Auto Random Bone",
+    Default = false,
+    Callback = function(v)
+        _G.Auto_Random_Bone = v
+    end,
+})
+
+spawn(function()
+    while wait(Sec) do
+        if _G.Auto_Random_Bone then
+            replicated.Remotes.CommF_:InvokeServer("Bones","Buy",1,1)
+        end
+    end
+end)
+
+-- AUTO SOUL REAPER
+RR:AddToggle({
+    Title = "Auto Soul Reaper",
+    Default = false,
+    Callback = function(v)
+        _G.AutoHytHallow = v
+    end,
+})
+
+spawn(function()
+    while wait(Sec) do
+        if _G.AutoHytHallow then
+            pcall(function()
+
+                local mob = GetConnectionEnemies("Soul Reaper")
+
+                if mob then
+                    repeat task.wait()
+                        G.Kill(mob,_G.AutoHytHallow)
+                    until mob.Humanoid.Health <= 0 or not _G.AutoHytHallow
+
+                else
+                    if not GetBP("Hallow Essence") then
+                        repeat task.wait(.1)
+                            replicated.Remotes.CommF_:InvokeServer("Bones","Buy",1,1)
+                        until not _G.AutoHytHallow or GetBP("Hallow Essence")
+                    else
+                        local pos = CFrame.new(-8932.32,146.83,6062.55)
+                        repeat wait(.1)
+                            _tp(pos)
+                        until not _G.AutoHytHallow or plr.Character.HumanoidRootPart.CFrame == pos
+                        EquipWeapon("Hallow Essence")
+                    end
+                end
+
+            end)
+        end
+    end
+end)
+
+
+-- Sistema Time Zone
+local Time = SS:AddParagraph({Title = "Time Zone", Desc = ""})
+function UpdateOS()
+    local date = os.date("*t")
+    local hour = date.hour % 24
+    local ampm = hour < 12 and "AM" or "PM"
+    local timezone = string.format("%02i:%02i:%02i %s", ((hour - 1) % 12) + 1, date.min, date.sec, ampm)
+    local datetime = string.format("%02d/%02d/%04d", date.day, date.month, date.year)
+    local LocalizationService = game:GetService("LocalizationService")
+    local Players = game:GetService("Players")
+    local player = Players.LocalPlayer
+    local result, code = pcall(function()
+        return LocalizationService:GetCountryRegionForPlayerAsync(player)
+    end)
+    Time:SetDesc(datetime .. " - " .. timezone .. " [ " .. (code or "??") .. " ]")
+end
+spawn(function()
+    while wait() do
+        UpdateOS()
+        game:GetService("RunService").RenderStepped:Wait()
+    end
+end)
+
+-- Sistema Game Time
+local Timmessss = SS:AddParagraph({Title = "Time", Desc = ""})
+function UpdateTime()
+    local GameTime = math.floor(workspace.DistributedGameTime + 0.5)
+    local Hour = math.floor(GameTime / (60 ^ 2)) % 24
+    local Minute = math.floor(GameTime / 60) % 60
+    local Second = GameTime % 60
+    Timmessss:SetDesc(Hour .. " Hour (h) " .. Minute .. " Minute (m) " .. Second .. " Second (s)")
+end
+spawn(function()
+    while wait() do
+        UpdateTime()
+    end
+end)
+
+-- Sistema de Verificação de Ilhas
+local function CheckIsland(name, folder, childName)
+    local p = SS:AddParagraph({Title = name, Desc = "Status: "})
+    spawn(function()
+        pcall(function()
+            while wait() do
+                if folder:FindFirstChild(childName) then
+                    p:SetDesc('✅️')
+                else
+                    p:SetDesc('❌️')
+                end
+            end
+        end)
+    end)
+end
+
+CheckIsland("Mirage Island", game.Workspace._WorldOrigin.Locations, "Mirage Island")
+CheckIsland("Kitsune Island", game.Workspace.Map, "KitsuneIsland")
+CheckIsland("Prehistoric Island", game.Workspace._WorldOrigin.Locations, "Prehistoric Island")
+CheckIsland("Frozen Dimension", game.Workspace._WorldOrigin.Locations, "Frozen Dimension")
+
+-- Sistema Cake Prince Kill
+local MobCakePrince = SS:AddParagraph({Title = "Dimension Killed", Desc = ""})
+spawn(function()
+    while wait() do
+        pcall(function()
+            local response = game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("CakePrinceSpawner")
+            local len = string.len(response)
+            if len == 88 then
+                MobCakePrince:SetDesc("Kill : " .. string.sub(response, 39, 41))
+            elseif len == 87 then
+                MobCakePrince:SetDesc("Kill : " .. string.sub(response, 39, 40))
+            elseif len == 86 then
+                MobCakePrince:SetDesc("Kill : " .. string.sub(response, 39, 39) .. " ")
+            else
+                MobCakePrince:SetDesc("Cake Prince : ✅️")
+            end
+        end)
+    end
+end)
+
+-- Sistema Tyrant of the Skies
+local TyrantStatus = SS:AddParagraph({Title = "Tyrant of the Skies", Desc = "Status: "})
+spawn(function()
+    pcall(function()
+        while wait() do
+            if game:GetService("Workspace").Enemies:FindFirstChild("Tyrant of the Skies") then
+                TyrantStatus:SetDesc("Status : ✅️")
+            else
+                TyrantStatus:SetDesc("Status : ❌️")
+            end
+        end
+    end)
+end)
+
+-- Sistema Rip_Indra
+local CheckRip = SS:AddParagraph({Title = "Rip_Indra", Desc = "Status: "})
+spawn(function()
+    while wait() do
+        pcall(function()
+            if game:GetService("ReplicatedStorage"):FindFirstChild("rip_indra True Form") 
+            or game:GetService("Workspace").Enemies:FindFirstChild("rip_indra") then
+                CheckRip:SetDesc("Status : ✅️")
+            else
+                CheckRip:SetDesc("Status : ❌️")
+            end
+        end)
+    end
+end)
+
+-- Sistema Dough King
+local CheckDoughKing = SS:AddParagraph({Title = "Dough King", Desc = "Status: "})
+spawn(function()
+    while wait() do
+        pcall(function()
+            if game:GetService("ReplicatedStorage"):FindFirstChild("Dough King") 
+            or game:GetService("Workspace").Enemies:FindFirstChild("Dough King") then
+                CheckDoughKing:SetDesc("Status : ✅️")
+            else
+                CheckDoughKing:SetDesc("Status : ❌️")
+            end
+        end)
+    end
+end)
+
+-- Sistema Elite Hunter
+local EliteHunter = SS:AddParagraph({Title = "Elite Hunter", Desc = "Status: "})
+spawn(function()
+    while wait() do
+        pcall(function()
+            local rs = game:GetService("ReplicatedStorage")
+            local ws = game:GetService("Workspace").Enemies
+            local progress = rs.Remotes.CommF_:InvokeServer("EliteHunter", "Progress")
+            if rs:FindFirstChild("Diablo") or rs:FindFirstChild("Deandre") or rs:FindFirstChild("Urban")
+            or ws:FindFirstChild("Diablo") or ws:FindFirstChild("Deandre") or ws:FindFirstChild("Urban") then
+                EliteHunter:SetDesc("Status : ✅️ | Killed: " .. progress)
+            else
+                EliteHunter:SetDesc("Status : ❌️ | Killed: " .. progress)
+            end
+        end)
+    end
+end)
+
+-- Sistema Pull Lever
+local Pullever = SS:AddParagraph({Title = "Pull Lever", Desc = "Status: "})
+spawn(function()
+    while wait() do
+        pcall(function()
+            if game.ReplicatedStorage.Remotes.CommF_:InvokeServer("CheckTempleDoor") then
+                Pullever:SetDesc("✅")
+            else
+                Pullever:SetDesc("❌")
+            end
+        end)
+    end
+end)
+
+-- Sistema Full Moon
+local FM = SS:AddParagraph({Title = "Full Moon", Desc = ""})
+spawn(function()
+    while wait() do
+        pcall(function()
+            local moonId = game:GetService("Lighting").Sky.MoonTextureId
+            if moonId == "http://www.roblox.com/asset/?id=9709149431" then
+                FM:SetDesc("Moon: 5/5")
+            elseif moonId == "http://www.roblox.com/asset/?id=9709149052" then
+                FM:SetDesc("Moon: 4/5")
+            elseif moonId == "http://www.roblox.com/asset/?id=9709143733" then
+                FM:SetDesc("Moon: 3/5")
+            elseif moonId == "http://www.roblox.com/asset/?id=9709150401" then
+                FM:SetDesc("Moon: 2/5")
+            elseif moonId == "http://www.roblox.com/asset/?id=9709149680" then
+                FM:SetDesc("Moon: 1/5")
+            else
+                FM:SetDesc("Moon: 0/5")
+            end
+        end)
+    end
+end)
+
+-- Sistema Legendary Sword
+local LegendarySword = SS:AddParagraph({Title = "Legendary Sword", Desc = "Status: "})
+spawn(function()
+    pcall(function()
+        while wait() do
+            local rs = game:GetService("ReplicatedStorage").Remotes.CommF_
+            if rs:InvokeServer("LegendarySwordDealer", "1") then
+                LegendarySword:SetDesc("Shisui")
+            elseif rs:InvokeServer("LegendarySwordDealer", "2") then
+                LegendarySword:SetDesc("Wando")
+            elseif rs:InvokeServer("LegendarySwordDealer", "3") then
+                LegendarySword:SetDesc("Saddi")
+            else
+                LegendarySword:SetDesc("Not Found Legend Swords")
+            end
+        end
+    end)
+end)
+
+-- Sistema Bone
+local Bone = SS:AddParagraph({Title = "Bone", Desc = ""})
+spawn(function()
+    pcall(function()
+        while wait() do
+            local bones = game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("Bones", "Check")
+            Bone:SetDesc("You Have : " .. tostring(bones) .. " Bones")
+        end
+    end)
+end)
+
 
 local plr = game.Players.LocalPlayer
 local rep = game:GetService("ReplicatedStorage")
@@ -2472,19 +2746,15 @@ _G.StartFarm = false
 _G.Level = false
 _G.AutoFarm_Bone = false
 _G.AutoFarm_Cake = false
-_G.AutoFarm_Tyrant = false
 _G.AcceptQuest = false
 
 -- Variável para guardar o mob de Level Farm
 local CurrentMobLevel = nil
 
-----------------------------------------------------------------------
--- 1. UI: DROPDOWN + TOGGLES
-----------------------------------------------------------------------
-
+-- UI: DROPDOWN + TOGGLES
 b:AddDropdown({
     Title = "Select Farm Mode",
-    Values = {"Level", "Bone", "Cake Prince", "Tyrant"}, -- Opção Tyrant adicionada
+    Values = {"Level", "Bone", "Cake Prince"},
     Default = "Level",
     Callback = function(v)
         _G.SelectedFarmMode = v
@@ -2501,7 +2771,6 @@ b:AddToggle({
         _G.Level = false  
         _G.AutoFarm_Bone = false  
         _G.AutoFarm_Cake = false  
-        _G.AutoFarm_Tyrant = false
         
         if v then  
             if _G.SelectedFarmMode == "Level" then  
@@ -2510,8 +2779,6 @@ b:AddToggle({
                 _G.AutoFarm_Bone = true  
             elseif _G.SelectedFarmMode == "Cake Prince" then  
                 _G.AutoFarm_Cake = true  
-            elseif _G.SelectedFarmMode == "Tyrant" then 
-                _G.AutoFarm_Tyrant = true
             end  
         end  
     end
@@ -2525,12 +2792,12 @@ b:AddToggle({
     end
 })
 
-----------------------------------------------------------------------
--- 2. SISTEMA BONE FARM
-----------------------------------------------------------------------
+---
+
+-- 1. SISTEMA BONE FARM (Otimizado)
 
 spawn(function()
-    while task.wait(0.1) do 
+    while task.wait(0.1) do -- Reduzido para 0.1s para reatividade
         if _G.AutoFarm_Bone and _G.StartFarm then
             pcall(function()
                 local plr = game.Players.LocalPlayer
@@ -2558,14 +2825,14 @@ spawn(function()
                         { "StartQuest","HauntedQuest1",2 },      
                     }      
                     game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(q[choose]))      
-                    return 
+                    return -- Retorna após aceitar quest para não tentar farmar no mesmo ciclo
                 end      
                 
                 -- Buscar Mob Bone  
                 local closest, shortest = nil, math.huge      
                 for _, mobName in pairs(MOBS) do      
                     for _, mob in pairs(workspace.Enemies:GetChildren()) do      
-                        if mob.Name == mobName and G.Alive(mob) then 
+                        if mob.Name == mobName and G.Alive(mob) then -- Uso de G.Alive para checagem mais robusta
                             local dist = (mob.PrimaryPart.Position - hrp.Position).Magnitude      
                             if dist < shortest then      
                                 shortest = dist  
@@ -2577,12 +2844,14 @@ spawn(function()
                 
                 if closest then      
                     _tp(closest.PrimaryPart.CFrame)      
-                    task.wait(0.1)
+                    task.wait(0.1) -- Pequeno delay para dar tempo do teleporte
                     
+                    -- Loop de kill mais simples e reativo
                     if G.Alive(closest) then
-                        G.Kill(closest, true)
+                        G.Kill(closest, _G.AutoFarm_Bone)
                     end
                 else      
+                    -- Espera no centro da área de farm se não achar mob
                     _tp(CFrame.new(-9495.68,453.58,5977.34))      
                 end      
             end)  
@@ -2590,9 +2859,10 @@ spawn(function()
     end
 end)
 
-----------------------------------------------------------------------
--- 3. SISTEMA LEVEL FARM
-----------------------------------------------------------------------
+
+---
+
+-- 2. SISTEMA LEVEL FARM (Otimizado)
 
 local function GetNearestMobLevel(TargetName)
     local plr = game.Players.LocalPlayer
@@ -2609,7 +2879,7 @@ local function GetNearestMobLevel(TargetName)
 end
 
 spawn(function()
-    while task.wait(0.1) do 
+    while task.wait(0.1) do -- Reduzido para 0.1s para reatividade
         if _G.Level and _G.StartFarm then
             pcall(function()
                 local plr = game.Players.LocalPlayer
@@ -2617,12 +2887,14 @@ spawn(function()
                 if not Root then return end
                 
                 local QuestTitle = plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text      
-                local Q = QuestNeta()  
+                local Q = QuestNeta() -- Assume que essa função existe no seu script  
                 
+                -- Abandonar quest errada  
                 if not string.find(QuestTitle, Q[5]) then      
                     game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AbandonQuest")      
                 end      
                 
+                -- Aceitar quest  
                 if not plr.PlayerGui.Main.Quest.Visible and _G.AcceptQuest then      
                     _tp(Q[6])      
                     if (Root.Position - Q[6].Position).Magnitude <= 50 then      
@@ -2631,9 +2903,10 @@ spawn(function()
                     return      
                 end      
                 
+                -- Prioriza matar o CurrentMobLevel se ele ainda for válido
                 if CurrentMobLevel and G.Alive(CurrentMobLevel) and CurrentMobLevel.Parent then      
                     _tp(CurrentMobLevel.HumanoidRootPart.CFrame)
-                    task.wait(0.1)
+                    task.wait(0.1) -- Delay
                     G.Kill(CurrentMobLevel, true)      
                     return      
                 else      
@@ -2643,13 +2916,14 @@ spawn(function()
                 local Nearest = GetNearestMobLevel(Q[1])      
                 
                 if not Nearest then      
-                    _tp(Q[4]) 
+                    _tp(Q[4]) -- Volta para o ponto de espera/respawn dos mobs
                     return      
                 end      
                 
+                -- Se achou um novo mob, define e mata
                 CurrentMobLevel = Nearest      
                 _tp(CurrentMobLevel.HumanoidRootPart.CFrame)
-                task.wait(0.1)
+                task.wait(0.1) -- Delay
                 
                 if G.Alive(CurrentMobLevel) then
                     G.Kill(CurrentMobLevel, true)
@@ -2659,9 +2933,10 @@ spawn(function()
     end
 end)
 
-----------------------------------------------------------------------
--- 4. SISTEMA CAKE PRINCE FARM
-----------------------------------------------------------------------
+
+---
+
+-- 3. SISTEMA CAKE PRINCE FARM (CORRIGIDO E ESTABILIZADO)
 
 spawn(function()
     while task.wait() do
@@ -2676,6 +2951,7 @@ spawn(function()
 
                 local CakePos = CFrame.new(-2091.91, 70.00, -12142.83)
 
+                -- Teleporta para a ilha se estiver muito longe
                 if (hrp.Position - CakePos.Position).Magnitude > 2000 then
                     _tp(CakePos)
                     return
@@ -2685,19 +2961,28 @@ spawn(function()
                 mirror = mirror and mirror:FindFirstChild("BigMirror")
                 local other = mirror and mirror:FindFirstChild("Other")
 
+                -- Detecta boss e portal
                 local boss = enemies:FindFirstChild("Cake Prince") or enemies:FindFirstChild("Dough King")
                 local portalOpen = other and other.Transparency == 0
 
-                -- MODO BOSS
+                -----------------------------------------
+                -- === MODO BOSS ===
+                -----------------------------------------
                 if boss or portalOpen then
                     if boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then
+                        -- Boss: Fica um pouco acima e afastado para evitar ataques de chão
                         local bossPos = boss.PrimaryPart.CFrame * CFrame.new(0, 25, 0) * CFrame.Angles(math.rad(-90), 0, 0)
                         _tp(bossPos)
+                        
+                        -- Trava física para não cair no Boss
                         hrp.Velocity = Vector3.new(0,0,0)
                         hrp.AssemblyLinearVelocity = Vector3.new(0,0,0)
+                        
                         G.Kill(boss, true)
                         return
                     end
+
+                    -- Portal aberto mas boss ainda carregando
                     local safeSpot = CFrame.new(-2151.82, 149.32, -12404.91)
                     if (hrp.Position - safeSpot.Position).Magnitude > 10 then
                         _tp(safeSpot)
@@ -2705,8 +2990,11 @@ spawn(function()
                     return
                 end
 
-                -- MODO FARM MOBS
+                -----------------------------------------
+                -- === MODO FARM MOBS ===
+                -----------------------------------------
                 local CAKE_MOBS = {"Cookie Crafter", "Cake Guard", "Baking Staff", "Head Baker"}
+
                 local QuestUI = plr.PlayerGui.Main.Quest
                 if _G.AcceptQuest and not QuestUI.Visible then
                     local questPos = CFrame.new(-1927.92, 37.80, -12842.54)
@@ -2723,10 +3011,14 @@ spawn(function()
                     return
                 end
 
-                local bestMob, bestDist = nil, math.huge
+                -- Detecta o mob MAIS PRÓXIMO
+                local bestMob
+                local bestDist = math.huge
+
                 for _, mob in ipairs(enemies:GetChildren()) do
                     if table.find(CAKE_MOBS, mob.Name) and mob:FindFirstChild("Humanoid")
                         and mob:FindFirstChild("HumanoidRootPart") and mob.Humanoid.Health > 0 then
+
                         local dist = (mob.HumanoidRootPart.Position - hrp.Position).Magnitude
                         if dist < bestDist then
                             bestDist = dist
@@ -2735,64 +3027,49 @@ spawn(function()
                     end
                 end
 
+                -- Se não tem mob → volta pro centro
                 if not bestMob then
                     _tp(CakePos)
                     return
                 end
 
+                ------------------------------------------------
+                -- Farmar mob (CORREÇÃO DE POSIÇÃO)
+                ------------------------------------------------
                 if bestMob and bestMob:FindFirstChild("HumanoidRootPart") then
+                    
+                    -- Loop de ataque corrigido
                     repeat
-                        task.wait() 
-                        if other and other.Transparency == 0 then break end 
+                        task.wait() -- Espera mínima para não crashar
+
+                        if other and other.Transparency == 0 then break end -- portal abriu
+
                         if bestMob.Parent and bestMob.Humanoid.Health > 0 and bestMob:FindFirstChild("HumanoidRootPart") then
+                            
+                            -- Posição Fixa: 25 Studs ACIMA do mob, olhando para baixo
+                            -- Isso é atualizado TODO frame para evitar cair
                             local farmPos = bestMob.HumanoidRootPart.CFrame * CFrame.new(0, 25, 0) * CFrame.Angles(math.rad(-90), 0, 0)
                             _tp(farmPos)
+
+                            -- Zera a velocidade para anular a gravidade imediatamente
                             hrp.Velocity = Vector3.new(0, 0, 0)
-                            hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                            if hrp:FindFirstChild("AssemblyLinearVelocity") then
+                                hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                            end
+                            
                             G.Kill(bestMob, true)
                         else
                             break
                         end
+
                     until not _G.StartFarm or not _G.AutoFarm_Cake or not bestMob.Parent or bestMob.Humanoid.Health <= 0
                 end
+
             end)
         end
     end
 end)
 
-----------------------------------------------------------------------
--- 5. SISTEMA TYRANT FARM (CORRIGIDO)
-----------------------------------------------------------------------
-
-spawn(function()
-    while task.wait(0.1) do
-        if _G.AutoFarm_Tyrant and _G.StartFarm then
-            pcall(function()
-                local plr = game.Players.LocalPlayer
-                local char = plr.Character
-                if not char then return end
-                local hrp = char:FindFirstChild("HumanoidRootPart")
-                if not hrp then return end
-
-                local enemies = workspace:FindFirstChild("Enemies")
-                if not enemies then return end
-
-                local tyrant = enemies:FindFirstChild("Tyrant of the Skies")
-                if tyrant and tyrant:FindFirstChild("Humanoid") and tyrant.Humanoid.Health > 0 and tyrant:FindFirstChild("HumanoidRootPart") then
-                    local tyrantHRP = tyrant.HumanoidRootPart
-                    while tyrant and tyrant.Parent and tyrant.Humanoid.Health > 0 and _G.StartFarm and _G.AutoFarm_Tyrant do
-                        local targetCFrame = tyrantHRP.CFrame * CFrame.new(0, 30, 0) * CFrame.Angles(math.rad(-90), 0, 0)
-                        hrp.CFrame = targetCFrame
-                        hrp.Velocity = Vector3.new(0,0,0)
-                        hrp.AssemblyLinearVelocity = Vector3.new(0,0,0)
-                        G.Kill(tyrant, true)
-                        task.wait(0.05)
-                    end
-                end
-            end)
-        end
-    end
-end)
 
 
 b:AddSeperator("Other")
@@ -2993,103 +3270,6 @@ spawn(function()
     end
 end)
 
--- SEÇÃO BONE
-b:AddSeperator("Bones")
-
-local P_Bones = b:AddParagraph({
-    Title = "Bones :",
-    Content = ""
-})
-
--- Atualiza Bones
-spawn(function()
-    while wait(.2) do
-        pcall(function()
-            P_Bones:SetDesc(" Bones : " .. GetM("Bones"))
-        end)
-    end
-end)
--- AUTO RANDOM BONES
-b:AddToggle({
-    Title = "Auto Random Bone",
-    Default = false,
-    Callback = function(v)
-        _G.Auto_Random_Bone = v
-    end,
-})
-
-spawn(function()
-    while wait(Sec) do
-        if _G.Auto_Random_Bone then
-            replicated.Remotes.CommF_:InvokeServer("Bones","Buy",1,1)
-        end
-    end
-end)
-
--- AUTO SOUL REAPER
-b:AddToggle({
-    Title = "Auto Soul Reaper",
-    Default = false,
-    Callback = function(v)
-        _G.AutoHytHallow = v
-    end,
-})
-
-spawn(function()
-    while wait(Sec) do
-        if _G.AutoHytHallow then
-            pcall(function()
-
-                local mob = GetConnectionEnemies("Soul Reaper")
-
-                if mob then
-                    repeat task.wait()
-                        G.Kill(mob,_G.AutoHytHallow)
-                    until mob.Humanoid.Health <= 0 or not _G.AutoHytHallow
-
-                else
-                    if not GetBP("Hallow Essence") then
-                        repeat task.wait(.1)
-                            replicated.Remotes.CommF_:InvokeServer("Bones","Buy",1,1)
-                        until not _G.AutoHytHallow or GetBP("Hallow Essence")
-                    else
-                        local pos = CFrame.new(-8932.32,146.83,6062.55)
-                        repeat wait(.1)
-                            _tp(pos)
-                        until not _G.AutoHytHallow or plr.Character.HumanoidRootPart.CFrame == pos
-                        EquipWeapon("Hallow Essence")
-                    end
-                end
-
-            end)
-        end
-    end
-end)
-
-
-
---=============================--
---        SECTION CAKE         --
---=============================--
-
-b:AddSeperator("Cake Prince")
-
-local P_Cake = b:AddParagraph({
-    Title = "Mobs :",
-    Content = ""
-})
-
--- Atualiza faltando kills
-spawn(function()
-    while wait(.2) do
-        pcall(function()
-            local left = string.match(replicated.Remotes.CommF_:InvokeServer("CakePrinceSpawner"), "%d+")
-            if left then
-                P_Cake:SetDesc(" Killed : " .. (500 - left))
-            end
-        end)
-    end
-end)
 
 b:AddSeperator("Mastery")
 
