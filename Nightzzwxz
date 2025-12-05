@@ -33,7 +33,7 @@ Center.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 local Corner = Instance.new("UICorner", Center)
 Corner.CornerRadius = UDim.new(0, 8)
 
-local ServerLink = "https://discord.gg/B4wybEfn3"
+local ServerLink = "https://discord.gg/jWs7eEJVYp"
 local WarnMessage = "Night Mystic is currently under update — join our Discord for more information!"
 
 local Warn = Instance.new("TextLabel", Background)
