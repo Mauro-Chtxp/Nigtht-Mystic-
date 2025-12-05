@@ -2891,6 +2891,61 @@ spawn(function()
     end
 end)
 
+-- AUTO FARM MASTERY ALL SWORD
+RR:AddToggle({
+    Title = "Auto Farm Mastery All Sword",
+    Description = "",
+    Default = false,
+    Callback = function(Value)
+        getgenv().AutoFarmMasteryAllSword = Value
+        shouldTween = Value -- ativa/desativa o tween
+
+        spawn(function()
+            local replicated = game:GetService("ReplicatedStorage")
+            local enemyList = {"Reborn Skeleton", "Living Zombie", "Demonic Soul", "Posessed Mummy"}
+            local targetCFrame = CFrame.new(-9495.6807, 453.5862, 5977.3486)
+
+            while Value do
+                task.wait()
+                pcall(function()
+                    -- Loop pelo inventário
+                    for _, v in next, replicated.Remotes.CommF_:InvokeServer("getInventory") do
+                        if type(v) == "table" and v.Type == "Sword" then
+                            local SwordName = v.Name
+                            local mastery = tonumber(v.Mastery)
+
+                            -- Mastery entre 1 e 599
+                            if mastery >= 1 and mastery <= 599 then
+                                local enemy = GetConnectionEnemies(enemyList)
+
+                                if GetBP(SwordName) then
+                                    if enemy then
+                                        repeat
+                                            task.wait()
+                                            Attack.Sword(enemy, getgenv().AutoFarmMasteryAllSword)
+                                        until not getgenv().AutoFarmMasteryAllSword or not enemy.Parent or enemy.Humanoid.Health <= 0
+                                    else
+                                        -- Usa seu tween (_tp) para se mover
+                                        _tp(targetCFrame)
+                                    end
+                                else
+                                    replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName)
+                                end
+                            -- Mastery >= 600
+                            elseif mastery >= 600 then
+                                if not GetBP(SwordName) then
+                                    replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName)
+                                end
+                            end
+
+                            break -- sai do loop após encontrar uma espada
+                        end
+                    end
+                end)
+            end
+        end)
+    end,
+})
 
 -- Sistema Time Zone
 local Time = SS:AddParagraph({Title = "Time Zone", Desc = ""})
