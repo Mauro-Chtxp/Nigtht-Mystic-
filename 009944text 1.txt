@@ -438,7 +438,7 @@ BringEnemy = function()
 
 		if hum and hum.Health > 0 and root then
 			local dist = (root.Position - PosMon).Magnitude
-			if dist <= 250 then
+			if dist <= 225 then
 
 				-- Garantir que o mob não reaja fisicamente
 				root.Anchored = false
