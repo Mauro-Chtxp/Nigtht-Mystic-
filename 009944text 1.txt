@@ -426,79 +426,39 @@ statsSetings = function(I, e)
 		end;
 	end;
 
-local TweenService = game:GetService("TweenService")
-local tweenInfo = TweenInfo.new(0.35, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
-
 BringEnemy = function()
-    if not _B then return end
+	if not _B then
+		return
+	end
 
-    -- Obter a posição do alvo (Player/Monstro, etc.)
-    -- Assumindo que PosMon é definido em outro lugar, por exemplo, como a posição de um jogador.
-    -- Se PosMon for global, o código vai funcionar, mas é bom ter em mente de onde ela vem.
-    
-    for _, mob in pairs(workspace.Enemies:GetChildren()) do
-        local hum = mob:FindFirstChild("Humanoid")
-        local root = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart
+	for _, mob in pairs(workspace.Enemies:GetChildren()) do
+		local hum = mob:FindFirstChild("Humanoid")
+		local root = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart
 
-        if hum and hum.Health > 0 and root then
-            local dist = (root.Position - PosMon).Magnitude
-            
-            if dist <= 500 then
-                
-                -- Se o mob já tem um Tween em andamento, cancela e destrói
-                if root:FindFirstChild("BringTween") then      
-                    root.BringTween:Cancel()      
-                    root.BringTween:Destroy()      
-                end
+		if hum and hum.Health > 0 and root then
+			local dist = (root.Position - PosMon).Magnitude
 
-                -- Configurações de Física/Comportamento
-                root.Anchored = false      
-                root.CanCollide = false      
-                mob:MakeJoints()      
-                hum.AutoRotate = false      
-                
-                -- GARANTE QUE O SERVIDOR CONTROLA A POSIÇÃO. ESSENCIAL!
-                root:SetNetworkOwner(nil) 
+			-- Aumentei a distância pra puxar
+			if dist <= 210 then  
+				-- Apenas garante que o mob não fique travado no chão
+				-- sem alterar Anchored nem CanCollide
+				mob:MakeJoints()      
+				
+				-- Anti-trava de rotação
+				hum.AutoRotate = false
+				hum.PlatformStand = true
 
-                if dist < 10 then      
-                    -- Teleporte imediato para distâncias curtas
-                    root.CFrame = CFrame.new(PosMon)      
-                    
-                    -- DESTRAVA o Humanoid imediatamente
-                    hum.PlatformStand = false 
-                else      
-                    -- Tween para distâncias longas
-                    
-                    -- TRAVA o Humanoid ANTES de começar o movimento
-                    hum.PlatformStand = true 
-                    
-                    local t = TweenService:Create(root, tweenInfo, { CFrame = CFrame.new(PosMon) })      
-                    t.Name = "BringTween"      
-                    t.Parent = root      
-                    
-                    -- DESTRAVA o Humanoid APÓS o Tween COMPLETOU
-                    t.Completed:Once(function()
-                        if hum and hum.Health > 0 then
-                            hum.PlatformStand = false
-                            -- hum.AutoRotate = true -- Reabilite se quiser que ele possa girar
-                        end
-                        -- Garante que o tween é removido
-                        if root:FindFirstChild("BringTween") then
-                            root.BringTween:Destroy()
-                        end
-                    end)
+				-- Teleporte suave
+				mob:PivotTo(CFrame.new(PosMon))
 
-                    t:Play()      
-                end      
-
-                -- Removido: pcall(function() plr.SimulationRadius = math.huge end)
-                -- (Opcional, mas geralmente desnecessário se o NetworkOwner estiver correto)
-
-            end
-        end
-    end
+				-- Simulação do jogador
+				pcall(function()
+					plr.SimulationRadius = math.huge
+				end)
+			end
+		end
+	end
 end
-
 Useskills = function(I, e)
 		if I == "Melee" then
 			weaponSc("Melee");
