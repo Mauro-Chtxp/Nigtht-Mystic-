@@ -3557,9 +3557,6 @@ b:AddToggle({
     end
 })
 
--- Nota: Assumi que as funções globais (G.Kill, EquipWeapon, UnEquipWeapon, AutoHaki, _tp, QuestNeta) já estão definidas
--- em algum lugar do seu script global (_G).
-
 -- =======================
 -- SISTEMA TYRANT FARM
 -- =======================
@@ -3630,7 +3627,6 @@ function attackSkyBoss()
             repeat task.wait()
                 EquipWeapon(_G.SelectWeapon)
                 AutoHaki()
-                -- Substituído topos por _tp
                 _tp(v.HumanoidRootPart.CFrame * Pos) 
                 
                 v.HumanoidRootPart.Transparency = 1
@@ -3647,7 +3643,9 @@ spawn(function()
         -- Verifica se o modo Tyrant está ativo no Dropdown e se não tem 4 olhos
         if _G.FullyTyrant and _G.StartFarm and _G.EyesCount ~= 4 then 
             pcall(function()
-                local enemyFolder = workspace.Enemies
+                local hrp = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                if not hrp then return end
+
                 local targetList = {
                     ["Isle Champion"] = true,
                     ["Sun-kissed Warrior"] = true,
@@ -3655,43 +3653,58 @@ spawn(function()
                     ["Isle Outlaw"] = true
                 }
 
-                local foundEnemy = false
+                local closestMob = nil
+                local shortestDist = math.huge
 
-                for _, v in pairs(enemyFolder:GetChildren()) do
+                -- 1. Encontrar o Mob mais Próximo
+                for _, v in pairs(workspace.Enemies:GetChildren()) do
                     if targetList[v.Name] 
                     and v:FindFirstChild("Humanoid") 
                     and v:FindFirstChild("HumanoidRootPart") 
                     and v.Humanoid.Health > 0 then
-
-                        foundEnemy = true
-                        repeat task.wait()
-                            AutoHaki()
-                            EquipWeapon(_G.SelectWeapon)
-
-                            v.HumanoidRootPart.CanCollide = false
-                            v.Head.CanCollide = false
-                            v.Humanoid.WalkSpeed = 0
-
-                            -- Substituído topos por _tp
-                            _tp(v.HumanoidRootPart.CFrame * Pos)
-
-                        until not _G.FullyTyrant or not _G.StartFarm or _G.EyesCount == 4 or not v.Parent or v.Humanoid.Health <= 0
+                        
+                        local dist = (v.HumanoidRootPart.Position - hrp.Position).Magnitude
+                        if dist < shortestDist then
+                            shortestDist = dist
+                            closestMob = v
+                        end
                     end
                 end
 
-                if not foundEnemy then
+                -- 2. Atacar o Mob ou Teleportar para Posição de Farm
+                if closestMob then
+                    -- Lógica de ataque: Teleporta e usa G.Kill
+                    local mobRoot = closestMob:FindFirstChild("HumanoidRootPart")
+                    if mobRoot then
+                        
+                        -- Desabilita a colisão/movimento para melhor G.Kill (mantido da sua lógica)
+                        mobRoot.CanCollide = false
+                        closestMob.Head.CanCollide = false
+                        closestMob.Humanoid.WalkSpeed = 0
+                        
+                        -- Teleporta para o mob
+                        _tp(mobRoot.CFrame * Pos)
+                        
+                        -- Usa G.Kill para combate até a morte
+                        repeat task.wait()
+                            if not _G.FullyTyrant or not _G.StartFarm or _G.EyesCount == 4 then break end
+                            G.Kill(closestMob, true) -- Uso de G.Kill para combate
+                        until not closestMob.Parent or closestMob.Humanoid.Health <= 0 or not _G.FullyTyrant
+                    end
+                else
+                    -- 3. Teleporte entre pontos se não houver mobs (Lógica de patrulha)
                     local char = game.Players.LocalPlayer.Character
                     if char and char:FindFirstChild("HumanoidRootPart") then
                         if CurrentFarm == 1 then
                             if (char.HumanoidRootPart.Position - FarmTiki1.Position).Magnitude > 5 then
-                                _tp(FarmTiki1) -- Substituído topos por _tp
+                                _tp(FarmTiki1)
                             else
                                 task.wait(2)
                                 CurrentFarm = 2
                             end
                         else
                             if (char.HumanoidRootPart.Position - FarmTiki2.Position).Magnitude > 5 then
-                                _tp(FarmTiki2) -- Substituído topos por _tp
+                                _tp(FarmTiki2)
                             else
                                 task.wait(2)
                                 CurrentFarm = 1
@@ -3829,7 +3842,6 @@ spawn(function()
                 if mob then    
                     _tp(mob.PrimaryPart.CFrame)    
                     repeat task.wait()    
-                        -- Adicionada verificação de FullyTyrant aqui também
                         if not _G.StartFarm or not _G.AutoFarm_Bone or _G.FullyTyrant then break end
                         if mob.Parent and mob.Humanoid.Health > 0 then    
                             G.Kill(mob, _G.AutoFarm_Bone)    
@@ -4041,6 +4053,7 @@ spawn(function()
         end
     end
 end)
+
 
 
 
