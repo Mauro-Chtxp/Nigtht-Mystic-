@@ -3558,24 +3558,42 @@ b:AddToggle({
 -- =======================
 ----------------------------------------------------------------------
 
--- Função para equipar a arma escolhida pelo SEU sistema
+--=====================================================
+--  SISTEMA DE EQUIPAR ARMA
+--=====================================================
+
 local plr = game.Players.LocalPlayer
+
 local function EquipMyWeapon()
     local char = plr.Character
     local backpack = plr.Backpack
     if not char then return end
 
-    if _G.SelectWeapon and backpack:FindFirstChild(_G.SelectWeapon) then
+    if not _G.SelectWeapon then return end -- sem arma selecionada
+
+    -- remove qualquer arma equipada
+    for _, tool in pairs(char:GetChildren()) do
+        if tool:IsA("Tool") then
+            tool.Parent = backpack
+        end
+    end
+
+    -- equipa arma escolhida
+    if backpack:FindFirstChild(_G.SelectWeapon) then
         backpack[_G.SelectWeapon].Parent = char
     end
 end
 
--- Contagem dos olhos
+
+--=====================================================
+--  CONTAGEM DOS OLHOS
+--=====================================================
+
 spawn(function()
     while task.wait(3) do
         pcall(function()
-            local model = workspace:FindFirstChild("Map") 
-                and workspace.Map:FindFirstChild("TikiOutpost") 
+            local model = workspace:FindFirstChild("Map")
+                and workspace.Map:FindFirstChild("TikiOutpost")
                 and workspace.Map.TikiOutpost:FindFirstChild("IslandModel")
 
             local visibleCount = 0
@@ -3598,10 +3616,19 @@ spawn(function()
     end
 end)
 
--- Coordenadas do farm
+
+--=====================================================
+--  CONFIGURAÇÕES DO FARM
+--=====================================================
+
 local FarmTiki1 = CFrame.new(-16423.8047, 146.953003, -123.602005)
 local FarmTiki2 = CFrame.new(-16593.5996, 155.350998, 1130.48096)
 local Pos = CFrame.new(0, 30, 0)
+
+
+--=====================================================
+--  CHECAR SE O TYRANT ESTÁ VIVO
+--=====================================================
 
 function isSkyBossAlive()
     local enemyFolder = workspace:FindFirstChild("Enemies")
@@ -3609,6 +3636,11 @@ function isSkyBossAlive()
     local boss = enemyFolder:FindFirstChild("Tyrant of the Skies")
     return boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0
 end
+
+
+--=====================================================
+--  SISTEMA DE HABILIDADES
+--=====================================================
 
 function sendSkillKey(skillKey)
     local v = game:GetService("VirtualInputManager")
@@ -3622,7 +3654,7 @@ function equipAndUseSkill(toolType)
         if item:IsA("Tool") and item.ToolTip == toolType then
             item.Parent = plr.Character
             for _, skill in ipairs({"Z","X","C","V","F"}) do
-                wait()
+                task.wait()
                 pcall(function() sendSkillKey(skill) end)
             end
             item.Parent = plr.Backpack
@@ -3632,47 +3664,82 @@ function equipAndUseSkill(toolType)
 end
 
 
-----------------------------------------------------------------------
--- ATAQUE DO TYRANT (Boss)
-----------------------------------------------------------------------
+--=====================================================
+--  SISTEMA DE ENCONTRAR O MOB LISTADO MAIS PRÓXIMO
+--=====================================================
+
+local TargetList = {
+    ["Isle Champion"] = true,
+    ["Sun-kissed Warrior"] = true,
+    ["Island Boy"] = true,
+    ["Isle Outlaw"] = true
+}
+
+function GetClosestTarget()
+    local enemyFolder = workspace:FindFirstChild("Enemies")
+    if not enemyFolder then return nil end
+
+    local char = plr.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return nil end
+
+    local closestMob = nil
+    local shortestDistance = math.huge
+
+    for _, mob in pairs(enemyFolder:GetChildren()) do
+        if TargetList[mob.Name]
+        and mob:FindFirstChild("Humanoid")
+        and mob.Humanoid.Health > 0
+        and mob:FindFirstChild("HumanoidRootPart") then
+
+            local distance = (mob.HumanoidRootPart.Position - hrp.Position).Magnitude
+            if distance < shortestDistance then
+                shortestDistance = distance
+                closestMob = mob
+            end
+        end
+    end
+
+    return closestMob
+end
+
+
+--=====================================================
+--  ATAQUE DO TYRANT
+--=====================================================
 
 function attackSkyBoss()
     local enemyFolder = workspace:FindFirstChild("Enemies")
     for _, v in pairs(enemyFolder:GetChildren()) do
-        if v.Name == "Tyrant of the Skies" 
-        and v:FindFirstChild("Humanoid") 
-        and v.Humanoid.Health > 0 
+        if v.Name == "Tyrant of the Skies"
+        and v:FindFirstChild("Humanoid")
+        and v.Humanoid.Health > 0
         and v:FindFirstChild("HumanoidRootPart") then
 
             repeat task.wait()
 
-                -- EQUIPA ARMA ESCOLHIDA
                 EquipMyWeapon()
 
-                -- POSIÇÃO DO BOSS → usada pra BringEnemy
                 PosMon = v.HumanoidRootPart.Position
 
-                -- BRING AQUI ↦ funcionando no Tyrant agora
-                if BringEnemy then
-                    BringEnemy()
-                end
+                if BringEnemy then BringEnemy() end
 
                 _tp(v.HumanoidRootPart.CFrame * Pos)
 
                 v.HumanoidRootPart.Transparency = 1
-                sethiddenproperty(game.Players.LocalPlayer,"SimulationRadius",math.huge)
+                sethiddenproperty(game.Players.LocalPlayer, "SimulationRadius", math.huge)
 
-            until v.Humanoid.Health <= 0 
-            or not _G.FullyTyrant 
+            until v.Humanoid.Health <= 0
+            or not _G.FullyTyrant
             or _G.EyesCount == 4
         end
     end
 end
 
 
-----------------------------------------------------------------------
--- FARM MOBS DO TIKI ATÉ 4 OLHOS
-----------------------------------------------------------------------
+--=====================================================
+--  FARM DE MOBS ATÉ 4 OLHOS (AGORA COM MOB MAIS PRÓXIMO)
+--=====================================================
 
 spawn(function()
     local CurrentFarm = 1
@@ -3680,64 +3747,44 @@ spawn(function()
     while task.wait() do
         if _G.FullyTyrant and _G.StartFarm and _G.EyesCount ~= 4 then
             pcall(function()
-                local enemyFolder = workspace.Enemies
-                local targetList = {
-                    ["Isle Champion"] = true,
-                    ["Sun-kissed Warrior"] = true,
-                    ["Island Boy"] = true,
-                    ["Isle Outlaw"] = true
-                }
 
-                local foundEnemy = false
+                local mob = GetClosestTarget()
 
-                for _, v in pairs(enemyFolder:GetChildren()) do
-                    if targetList[v.Name] 
-                    and v:FindFirstChild("Humanoid") 
-                    and v.Humanoid.Health > 0 
-                    and v:FindFirstChild("HumanoidRootPart") then
+                if mob then
+                    repeat task.wait()
 
-                        foundEnemy = true
+                        EquipMyWeapon()
 
-                        repeat task.wait()
+                        PosMon = mob.HumanoidRootPart.Position
 
-                            -- EQUIPA ARMA
-                            EquipMyWeapon()
+                        if BringEnemy then BringEnemy() end
 
-                            -- POSIÇÃO DO MOB PARA O BRING
-                            PosMon = v.HumanoidRootPart.Position
+                        mob.HumanoidRootPart.CanCollide = false
+                        mob.Head.CanCollide = false
+                        mob.Humanoid.WalkSpeed = 0
 
-                            -- BRING MOBS AQUI
-                            if BringEnemy then
-                                BringEnemy()
-                            end
+                        _tp(mob.HumanoidRootPart.CFrame * Pos)
 
-                            v.HumanoidRootPart.CanCollide = false
-                            v.Head.CanCollide = false
-                            v.Humanoid.WalkSpeed = 0
+                    until not _G.FullyTyrant
+                    or not _G.StartFarm
+                    or _G.EyesCount == 4
+                    or not mob.Parent
+                    or mob.Humanoid.Health <= 0
 
-                            _tp(v.HumanoidRootPart.CFrame * Pos)
+                else
+                    local char = plr.Character
+                    local hrp = char and char:FindFirstChild("HumanoidRootPart")
 
-                        until not _G.FullyTyrant 
-                        or not _G.StartFarm 
-                        or _G.EyesCount == 4 
-                        or not v.Parent 
-                        or v.Humanoid.Health <= 0
-                    end
-                end
-
-                -- alterna pontos se não achar mobs
-                if not foundEnemy then
-                    local char = game.Players.LocalPlayer.Character
-                    if char and char:FindFirstChild("HumanoidRootPart") then
+                    if hrp then
                         if CurrentFarm == 1 then
-                            if (char.HumanoidRootPart.Position - FarmTiki1.Position).Magnitude > 5 then
+                            if (hrp.Position - FarmTiki1.Position).Magnitude > 5 then
                                 _tp(FarmTiki1)
                             else
                                 task.wait(2)
                                 CurrentFarm = 2
                             end
                         else
-                            if (char.HumanoidRootPart.Position - FarmTiki2.Position).Magnitude > 5 then
+                            if (hrp.Position - FarmTiki2.Position).Magnitude > 5 then
                                 _tp(FarmTiki2)
                             else
                                 task.wait(2)
@@ -3752,9 +3799,9 @@ spawn(function()
 end)
 
 
-----------------------------------------------------------------------
--- PLACAS + BOSS COM 4 OLHOS
-----------------------------------------------------------------------
+--=====================================================
+--  FARM DAS PLACAS COM 4 OLHOS
+--=====================================================
 
 local targetsty = {
     CFrame.new(-16335.1641,158.167007,1465.64404),
@@ -3784,7 +3831,6 @@ spawn(function()
                     if not hrp then continue end
 
                     if (hrp.Position - target.Position).Magnitude <= 5 then
-
                         if _G.UseSkullSummon then
                             pcall(function()
                                 game.ReplicatedStorage.Remotes.CommF_:InvokeServer("LoadItem", "Skull Guitar")
