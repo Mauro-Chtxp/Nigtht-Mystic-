@@ -426,57 +426,56 @@ statsSetings = function(I, e)
 		end;
 	end;
 
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
+local TweenService = game:GetService("TweenService")
+local tweenInfo = TweenInfo.new(0.35, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
 
 BringEnemy = function()
-	if not _B then return end
-	if not LocalPlayer.Character then return end
+if not _B then return end
 
-	local myRoot = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-	if not myRoot then return end
+for _, mob in pairs(workspace.Enemies:GetChildren()) do  
+	local hum = mob:FindFirstChild("Humanoid")  
+    local root = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart  
 
-	for _, mob in pairs(workspace.Enemies:GetChildren()) do
-		
-		local hum = mob:FindFirstChild("Humanoid")
-		local root = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart
+	if hum and hum.Health > 0 and root then  
+		local dist = (root.Position - PosMon).Magnitude  
+		if dist <= 225 then  
 
-		if hum and root and hum.Health > 0 then
-			
-			-- Evitar bosses (igual o outro código)
-			if not mob:GetAttribute("IsBoss") then
+			-- Garantir que o mob não reaja fisicamente  
+			root.Anchored = false  
+			root.CanCollide = false  
+			mob:MakeJoints()  
+			hum.AutoRotate = false  
+			hum.PlatformStand = true  
 
-				local dist = (root.Position - PosMon).Magnitude
-				if dist <= 230 then
+			-- Se estiver muito perto, usa teleporte pra impedir a "dança"  
+			if dist < 10 then  
+				-- Cancelar Tween antigo  
+				if root:FindFirstChild("BringTween") then  
+					root.BringTween:Cancel()  
+					root.BringTween:Destroy()  
+				end  
 
-					-- Desativar animação
-					if hum:FindFirstChild("Animator") then
-						hum.Animator:Destroy()
-					end
+				root.CFrame = CFrame.new(PosMon)  
+			else  
+				-- Criar Tween se estiver longe  
+				if root:FindFirstChild("BringTween") then  
+					root.BringTween:Cancel()  
+					root.BringTween:Destroy()  
+				end  
 
-					-- Impedir mob de se mover
-					hum.JumpPower = 0
-					hum.WalkSpeed = 0
-					hum:ChangeState(14)
+				local t = TweenService:Create(root, tweenInfo, { CFrame = CFrame.new(PosMon) })  
+				t.Name = "BringTween"  
+				t.Parent = root  
+				t:Play()  
+			end  
 
-					-- Remover colisão de TODAS as partes
-					for _, part in ipairs(mob:GetDescendants()) do
-						if part:IsA("BasePart") then
-							part.CanCollide = false
-						end
-					end
+			pcall(function()  
+				plr.SimulationRadius = math.huge  
+			end)  
+		end  
+	end  
+end
 
-					-- Teleporte instantâneo (seguro)
-					root.CFrame = CFrame.new(PosMon)
-
-					-- Aumentar radius
-					pcall(function()
-						sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge)
-					end)
-				end
-			end
-		end
-	end
 end
 Useskills = function(I, e)
 		if I == "Melee" then
