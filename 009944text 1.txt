@@ -3631,6 +3631,11 @@ function equipAndUseSkill(toolType)
     end
 end
 
+
+----------------------------------------------------------------------
+-- ATAQUE DO TYRANT (Boss)
+----------------------------------------------------------------------
+
 function attackSkyBoss()
     local enemyFolder = workspace:FindFirstChild("Enemies")
     for _, v in pairs(enemyFolder:GetChildren()) do
@@ -3641,8 +3646,16 @@ function attackSkyBoss()
 
             repeat task.wait()
 
-                -- EQUIPA SUA ARMA AUTOMATICAMENTE
+                -- EQUIPA ARMA ESCOLHIDA
                 EquipMyWeapon()
+
+                -- POSIÇÃO DO BOSS → usada pra BringEnemy
+                PosMon = v.HumanoidRootPart.Position
+
+                -- BRING AQUI ↦ funcionando no Tyrant agora
+                if BringEnemy then
+                    BringEnemy()
+                end
 
                 _tp(v.HumanoidRootPart.CFrame * Pos)
 
@@ -3656,7 +3669,11 @@ function attackSkyBoss()
     end
 end
 
--- Farm mobs do Tiki até 4 olhos
+
+----------------------------------------------------------------------
+-- FARM MOBS DO TIKI ATÉ 4 OLHOS
+----------------------------------------------------------------------
+
 spawn(function()
     local CurrentFarm = 1
 
@@ -3683,8 +3700,16 @@ spawn(function()
 
                         repeat task.wait()
 
-                            -- EQUIPA SUA ARMA AQUI TAMBÉM
+                            -- EQUIPA ARMA
                             EquipMyWeapon()
+
+                            -- POSIÇÃO DO MOB PARA O BRING
+                            PosMon = v.HumanoidRootPart.Position
+
+                            -- BRING MOBS AQUI
+                            if BringEnemy then
+                                BringEnemy()
+                            end
 
                             v.HumanoidRootPart.CanCollide = false
                             v.Head.CanCollide = false
@@ -3726,7 +3751,11 @@ spawn(function()
     end
 end)
 
--- Placas + Boss
+
+----------------------------------------------------------------------
+-- PLACAS + BOSS COM 4 OLHOS
+----------------------------------------------------------------------
+
 local targetsty = {
     CFrame.new(-16335.1641,158.167007,1465.64404),
     CFrame.new(-16288.6094,158.167007,1470.36804),
@@ -3760,8 +3789,6 @@ spawn(function()
                             pcall(function()
                                 game.ReplicatedStorage.Remotes.CommF_:InvokeServer("LoadItem", "Skull Guitar")
                             end)
-                        else
-                            -- nada aqui (sem skill)
                         end
                     end
                 end
