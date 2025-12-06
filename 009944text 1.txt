@@ -3558,6 +3558,18 @@ b:AddToggle({
 -- =======================
 ----------------------------------------------------------------------
 
+-- Função para equipar a arma escolhida pelo SEU sistema
+local plr = game.Players.LocalPlayer
+local function EquipMyWeapon()
+    local char = plr.Character
+    local backpack = plr.Backpack
+    if not char then return end
+
+    if _G.SelectWeapon and backpack:FindFirstChild(_G.SelectWeapon) then
+        backpack[_G.SelectWeapon].Parent = char
+    end
+end
+
 -- Contagem dos olhos
 spawn(function()
     while task.wait(3) do
@@ -3628,8 +3640,9 @@ function attackSkyBoss()
         and v:FindFirstChild("HumanoidRootPart") then
 
             repeat task.wait()
-                -- AutoHaki() removido aqui
-                -- EquipWeapon removido aqui
+
+                -- EQUIPA SUA ARMA AUTOMATICAMENTE
+                EquipMyWeapon()
 
                 _tp(v.HumanoidRootPart.CFrame * Pos)
 
@@ -3669,8 +3682,9 @@ spawn(function()
                         foundEnemy = true
 
                         repeat task.wait()
-                            -- AutoHaki() removido aqui
-                            -- EquipWeapon removido aqui
+
+                            -- EQUIPA SUA ARMA AQUI TAMBÉM
+                            EquipMyWeapon()
 
                             v.HumanoidRootPart.CanCollide = false
                             v.Head.CanCollide = false
@@ -3706,7 +3720,6 @@ spawn(function()
                             end
                         end
                     end
-                    -- UnEquipWeapon removido aqui
                 end
             end)
         end
@@ -3727,7 +3740,6 @@ local targetsty = {
 spawn(function()
     while task.wait() do
         if _G.FullyTyrant and _G.StartFarm and _G.EyesCount == 4 then
-            -- AutoHaki() removido aqui
 
             for _, target in ipairs(targetsty) do
                 if not _G.FullyTyrant or not _G.StartFarm or _G.EyesCount ~= 4 then break end
@@ -3745,13 +3757,11 @@ spawn(function()
                     if (hrp.Position - target.Position).Magnitude <= 5 then
 
                         if _G.UseSkullSummon then
-                            -- Mantive apenas o LoadItem; removi EquipWeapon e chamadas ao RemoteEvent para não equipar.
                             pcall(function()
                                 game.ReplicatedStorage.Remotes.CommF_:InvokeServer("LoadItem", "Skull Guitar")
                             end)
-                            -- sem equip/fire do instrumento (removido)
                         else
-                            -- equipAndUseSkill removido aqui (não será chamado no Tyrant)
+                            -- nada aqui (sem skill)
                         end
                     end
                 end
@@ -3759,7 +3769,6 @@ spawn(function()
         end
     end
 end)
-
 ----------------------------------------------------------------------
 -- ========== SISTEMA BONE FARM ==========
 ----------------------------------------------------------------------
