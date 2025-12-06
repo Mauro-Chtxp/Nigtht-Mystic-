@@ -427,7 +427,7 @@ statsSetings = function(I, e)
 	end;
 
 local TweenService = game:GetService("TweenService")
-local tweenInfo = TweenInfo.new(2.0, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
+local tweenInfo = TweenInfo.new(1.0, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
 
 BringEnemy = function()
 	if not _B then return end
