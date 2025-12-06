@@ -3739,17 +3739,11 @@ spawn(function()
                     return  
                 end  
 
-                local mirror = workspace.Map:FindFirstChild("CakeLoaf")  
-                mirror = mirror and mirror:FindFirstChild("BigMirror")  
-                local other = mirror and mirror:FindFirstChild("Other")  
-
-                -- Detecta boss e portal  
+                -- Detecta boss
                 local boss = enemies:FindFirstChild("Cake Prince") or enemies:FindFirstChild("Dough King")  
-                local portalOpen = other and other.Transparency == 0  
 
-                -- MODO BOSS
                 if boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then
-                    -- Teleporta para o boss ignorando o espelho
+                    -- Vai direto no boss, ignorando tudo
                     local bossPos = boss.PrimaryPart.CFrame * CFrame.new(0, 25, 0) * CFrame.Angles(math.rad(-90), 0, 0)
                     _tp(bossPos)
                     hrp.Velocity = Vector3.new(0,0,0)
@@ -3758,16 +3752,7 @@ spawn(function()
                     return
                 end
 
-                -- MODO SAFE SPOT (Portal Aberto ou Boss Recém-Morto)
-                if portalOpen then
-                    local safeSpot = CFrame.new(-2151.82, 149.32, -12404.91)  
-                    if (hrp.Position - safeSpot.Position).Magnitude > 10 then  
-                        _tp(safeSpot)  
-                    end  
-                    return  
-                end
-
-                -- Se não há boss e nem portal aberto, continua para o FARM MOBS
+                -- Se não tem boss, farma mobs
                 local CAKE_MOBS = {"Cookie Crafter", "Cake Guard", "Baking Staff", "Head Baker"}  
                 local QuestUI = plr.PlayerGui.Main.Quest  
 
@@ -3810,8 +3795,7 @@ spawn(function()
                 if bestMob and bestMob:FindFirstChild("HumanoidRootPart") then  
                     repeat  
                         task.wait()  
-                        if other and other.Transparency == 0 then break end
-                        if bestMob.Parent and bestMob.Humanoid.Health > 0 and bestMob:FindFirstChild("HumanoidRootPart") then  
+                        if bestMob.Parent and bestMob.Humanoid.Health > 0 then  
                             local farmPos = bestMob.HumanoidRootPart.CFrame * CFrame.new(0, 25, 0) * CFrame.Angles(math.rad(-90), 0, 0)  
                             _tp(farmPos)  
                             hrp.Velocity = Vector3.new(0, 0, 0)  
