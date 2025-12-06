@@ -426,70 +426,55 @@ statsSetings = function(I, e)
 		end;
 	end;
 
---// Script by Xester X Hiru adaptado para seu farm
-local plr = game.Players.LocalPlayer
 local TweenService = game:GetService("TweenService")
+local tweenInfo = TweenInfo.new(0.35, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
 
-local function TweenObject(Object, Pos, Speed)
-    Speed = Speed or 350
-    if not Object or not Pos then return end
-    local Distance = (Pos.Position - Object.Position).Magnitude
-    local info = TweenInfo.new(Distance / Speed, Enum.EasingStyle.Linear)
-    local tween = TweenService:Create(Object, info, {CFrame = Pos})
-    tween:Play()
-end
-
-local function GetMobPosition(EnemiesName)
-    local pos = Vector3.zero
-    local count = 0
-    for _, v in pairs(workspace.Enemies:GetChildren()) do
-        if v.Name == EnemiesName and v:FindFirstChild("HumanoidRootPart") then
-            pos += v.HumanoidRootPart.Position
-            count += 1
-        end
-    end
-    if count == 0 then
-        return nil
-    end
-    return pos / count
-end
-
--- Substitui BringEnemy mantendo _B
 BringEnemy = function()
-    if not _B then return end -- checa variável global
-    local enemies = workspace.Enemies:GetChildren()
-    if #enemies == 0 then return end
+	if not _B then return end
 
-    local totalpos = {}
-    for _, v in pairs(enemies) do
-        if not totalpos[v.Name] then
-            totalpos[v.Name] = GetMobPosition(v.Name)
-        end
-    end
+	for _, mob in pairs(workspace.Enemies:GetChildren()) do
+		local hum = mob:FindFirstChild("Humanoid")
+        local root = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart
 
-    for _, v in pairs(enemies) do
-        if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") then
-            local hrp = v.HumanoidRootPart
-            local humanoid = v.Humanoid
-            if humanoid.Health > 0 and (hrp.Position - plr.Character.HumanoidRootPart.Position).Magnitude <= 230 then
-                local mobPos = totalpos[v.Name]
-                if mobPos then
-                    local TargetCFrame = CFrame.new(mobPos.X, mobPos.Y, mobPos.Z)
-                    local Distance = (hrp.Position - TargetCFrame.Position).Magnitude
-                    if Distance > 3 and Distance <= 280 then
-                        TweenObject(hrp, TargetCFrame, 300)
-                        hrp.CanCollide = true
-                        if humanoid:FindFirstChild("Animator") then
-                            humanoid.Animator:Destroy()
-                        end
-                        pcall(function()
-                            sethiddenproperty(plr, "SimulationRadius", math.huge)
-                        end)
-                    end
-                end
-            end
-        end
-    end
+		if hum and hum.Health > 0 and root then
+			local dist = (root.Position - PosMon).Magnitude
+			if dist <= 225 then
+
+				-- Garantir que o mob não reaja fisicamente
+				root.Anchored = false
+				root.CanCollide = false
+				mob:MakeJoints()
+				hum.AutoRotate = false
+				hum.PlatformStand = true
+
+				-- Se estiver muito perto, usa teleporte pra impedir a "dança"
+				if dist < 10 then
+					-- Cancelar Tween antigo
+					if root:FindFirstChild("BringTween") then
+						root.BringTween:Cancel()
+						root.BringTween:Destroy()
+					end
+
+					root.CFrame = CFrame.new(PosMon)
+				else
+					-- Criar Tween se estiver longe
+					if root:FindFirstChild("BringTween") then
+						root.BringTween:Cancel()
+						root.BringTween:Destroy()
+					end
+
+					local t = TweenService:Create(root, tweenInfo, { CFrame = CFrame.new(PosMon) })
+					t.Name = "BringTween"
+					t.Parent = root
+					t:Play()
+				end
+
+				pcall(function()
+					plr.SimulationRadius = math.huge
+				end)
+			end
+		end
+	end
 end
 Useskills = function(I, e)
 		if I == "Melee" then
@@ -914,7 +899,7 @@ _tp = function(I)
 	end
 
 	local dist = (I.Position - HRP.Position).Magnitude;
-	local info = TweenInfo.new(dist / 285, Enum.EasingStyle.Linear);
+	local info = TweenInfo.new(dist / 300, Enum.EasingStyle.Linear);
 	local tween = game:GetService("TweenService"):Create(C, info, { CFrame = I });
 
 	if e.Humanoid.Sit == true then
@@ -3517,13 +3502,13 @@ _G.AcceptQuest = false
 local CurrentMobLevel = nil
 local CurrentMobLevelSystem = nil
 
-----------------------------------------------------------------------
--- 1. UI: DROPDOWN + TOGGLES
-----------------------------------------------------------------------
+-- ====================================================================================================================
+-- DROPDOWN / TOGGLE CONTROLE
+-- ====================================================================================================================
 
 b:AddDropdown({
     Title = "Select Farm Mode",
-    Values = {"Level", "Bone", "Cake Prince"},
+    Values = {"Level", "Bone", "Cake Prince", "Tyrant"}, -- Adicionado "Tyrant"
     Default = "Level",
     Callback = function(v)
         _G.SelectedFarmMode = v
@@ -3540,6 +3525,7 @@ b:AddToggle({
         _G.Level = false
         _G.AutoFarm_Bone = false
         _G.AutoFarm_Cake = false
+        _G.FullyTyrant = false -- Reset do Tyrant
 
         if v then
             if _G.SelectedFarmMode == "Level" then
@@ -3548,6 +3534,8 @@ b:AddToggle({
                 _G.AutoFarm_Bone = true
             elseif _G.SelectedFarmMode == "Cake Prince" then
                 _G.AutoFarm_Cake = true
+            elseif _G.SelectedFarmMode == "Tyrant" then -- Ativa o modo Tyrant
+                _G.FullyTyrant = true
             end
         end
     end
@@ -3561,13 +3549,227 @@ b:AddToggle({
     end
 })
 
+b:AddToggle({
+    Title = "Use Skull Guitar to Summon", -- Novo toggle para o Tyrant
+    Default = false,
+    Callback = function(v)
+        _G.UseSkullSummon = v
+    end
+})
+
+-- Nota: Assumi que as funções globais (G.Kill, EquipWeapon, UnEquipWeapon, AutoHaki, _tp, QuestNeta) já estão definidas
+-- em algum lugar do seu script global (_G).
+
+-- =======================
+-- SISTEMA TYRANT FARM
+-- =======================
+
+-- Monitoramento dos Olhos (Eyes Count)
+spawn(function()
+    while task.wait(3) do
+        pcall(function()
+            local model = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("TikiOutpost") and workspace.Map.TikiOutpost:FindFirstChild("IslandModel")
+            local visibleCount = 0
+
+            if model then
+                local eye1 = model:FindFirstChild("Eye1")
+                local eye2 = model:FindFirstChild("Eye2")
+                local chunks = model:FindFirstChild("IslandChunks")
+                local eye3 = chunks and chunks:FindFirstChild("E") and chunks.E:FindFirstChild("Eye3")
+                local eye4 = chunks and chunks:FindFirstChild("E") and chunks.E:FindFirstChild("Eye4")
+
+                if eye1 and eye1:IsA("BasePart") and eye1.Transparency == 0 then visibleCount = visibleCount + 1 end
+                if eye2 and eye2:IsA("BasePart") and eye2.Transparency == 0 then visibleCount = visibleCount + 1 end
+                if eye3 and eye3:IsA("BasePart") and eye3.Transparency == 0 then visibleCount = visibleCount + 1 end
+                if eye4 and eye4:IsA("BasePart") and eye4.Transparency == 0 then visibleCount = visibleCount + 1 end
+            end
+
+            _G.EyesCount = visibleCount
+        end)
+    end
+end)
+
+-- Variaveis e Funcoes Auxiliares do Tyrant
+local FarmTiki1 = CFrame.new(-16423.8047, 146.953003, -123.602005, -0.999392033, 8.7369628e-08, -0.0348646119, 8.43748182e-08, 1, 8.7369628e-08, 0.0348646119, 8.43748182e-08, -0.999392033)
+local FarmTiki2 = CFrame.new(-16593.5996, 155.350998, 1130.48096, 0.0870701671, 0.0561700463, -0.994617403, -0.542416334, 0.840109825, -3.94880772e-05, 0.835585654, 0.539500117, 0.103616059)
+local Pos = CFrame.new(0, 30, 0) -- Defini um padrão caso nao tenha global, ajuste se necessario
+
+function isSkyBossAlive()
+    local enemyFolder = workspace:FindFirstChild("Enemies")
+    if not enemyFolder then return false end
+    local boss = enemyFolder:FindFirstChild("Tyrant of the Skies")
+    return boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0
+end
+
+function sendSkillKey(skillKey)
+    local virtualInputManager = game:GetService("VirtualInputManager")
+    virtualInputManager:SendKeyEvent(true, skillKey, false, game)
+    virtualInputManager:SendKeyEvent(false, skillKey, false, game)
+end
+
+function equipAndUseSkill(toolType)
+    local player = game.Players.LocalPlayer
+    local backpack = player.Backpack
+    for _, item in pairs(backpack:GetChildren()) do
+        if item:IsA("Tool") and item.ToolTip == toolType then
+            item.Parent = player.Character
+            for _, skill in ipairs({"Z", "X", "C", "V", "F"}) do
+                wait()
+                pcall(function() sendSkillKey(skill) end)
+            end
+            item.Parent = backpack
+            break
+        end
+    end
+end
+
+function attackSkyBoss()
+    local enemyFolder = workspace:FindFirstChild("Enemies")
+    for i, v in pairs(enemyFolder:GetChildren()) do
+        if v.Name == "Tyrant of the Skies" and v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
+            repeat task.wait()
+                EquipWeapon(_G.SelectWeapon)
+                AutoHaki()
+                -- Substituído topos por _tp
+                _tp(v.HumanoidRootPart.CFrame * Pos) 
+                
+                v.HumanoidRootPart.Transparency = 1
+                sethiddenproperty(game.Players.LocalPlayer, "SimulationRadius", math.huge)
+            until v.Humanoid.Health <= 0 or not _G.FullyTyrant and _G.EyesCount == 4
+        end
+    end
+end
+
+-- Loop Principal de Farm dos Mobs do Tiki (Para spawnar o Boss)
+spawn(function()
+    local CurrentFarm = 1
+    while task.wait() do
+        -- Verifica se o modo Tyrant está ativo no Dropdown e se não tem 4 olhos
+        if _G.FullyTyrant and _G.StartFarm and _G.EyesCount ~= 4 then 
+            pcall(function()
+                local enemyFolder = workspace.Enemies
+                local targetList = {
+                    ["Isle Champion"] = true,
+                    ["Sun-kissed Warrior"] = true,
+                    ["Island Boy"] = true,
+                    ["Isle Outlaw"] = true
+                }
+
+                local foundEnemy = false
+
+                for _, v in pairs(enemyFolder:GetChildren()) do
+                    if targetList[v.Name] 
+                    and v:FindFirstChild("Humanoid") 
+                    and v:FindFirstChild("HumanoidRootPart") 
+                    and v.Humanoid.Health > 0 then
+
+                        foundEnemy = true
+                        repeat task.wait()
+                            AutoHaki()
+                            EquipWeapon(_G.SelectWeapon)
+
+                            v.HumanoidRootPart.CanCollide = false
+                            v.Head.CanCollide = false
+                            v.Humanoid.WalkSpeed = 0
+
+                            -- Substituído topos por _tp
+                            _tp(v.HumanoidRootPart.CFrame * Pos)
+
+                        until not _G.FullyTyrant or not _G.StartFarm or _G.EyesCount == 4 or not v.Parent or v.Humanoid.Health <= 0
+                    end
+                end
+
+                if not foundEnemy then
+                    local char = game.Players.LocalPlayer.Character
+                    if char and char:FindFirstChild("HumanoidRootPart") then
+                        if CurrentFarm == 1 then
+                            if (char.HumanoidRootPart.Position - FarmTiki1.Position).Magnitude > 5 then
+                                _tp(FarmTiki1) -- Substituído topos por _tp
+                            else
+                                task.wait(2)
+                                CurrentFarm = 2
+                            end
+                        else
+                            if (char.HumanoidRootPart.Position - FarmTiki2.Position).Magnitude > 5 then
+                                _tp(FarmTiki2) -- Substituído topos por _tp
+                            else
+                                task.wait(2)
+                                CurrentFarm = 1
+                            end
+                        end
+                    end
+                    UnEquipWeapon(_G.SelectWeapon)
+                end
+            end)
+        end
+    end
+end)
+
+-- Loop de Ativar Placas e Matar Boss
+local targetsty = {
+    CFrame.new(-16335.1641, 158.167007, 1465.64404, 0.999388874, 0, 0.0349550731, 0, 1, 0, -0.0349550731, 0, 0.999388874),
+    CFrame.new(-16288.6094, 158.167007, 1470.36804, 0.999388874, 0, 0.0349550731, 0, 1, 0, -0.0349550731, 0, 0.999388874),
+    CFrame.new(-16258.001, 156.761002, 1461.40405, 0.999388874, 0, 0.0349550731, 0, 1, 0, -0.0349550731, 0, 0.999388874),
+    CFrame.new(-16212.4688, 158.167007, 1466.34399, 0.999388874, 0, 0.0349550731, 0, 1, 0, -0.0349550731, 0, 0.999388874),
+    CFrame.new(-16335.0967, 159.334, 1324.88599, 0.999388874, 0, 0.0349550731, 0, 1, 0, -0.0349550731, 0, 0.999388874),
+    CFrame.new(-16286.0586, 155.949005, 1323.83801, 0.999388874, 0, 0.0349550731, 0, 1, 0, -0.0349550731, 0, 0.999388874),
+    CFrame.new(-16250.335, 159.334, 1316.38904, 0.999388874, 0, 0.0349550731, 0, 1, 0, -0.0349550731, 0, 0.999388874),
+}
+
+spawn(function()
+    while task.wait() do
+        -- Verifica se Tyrant está ativo, StartFarm está ON e se tem 4 olhos
+        if _G.FullyTyrant and _G.StartFarm and _G.EyesCount == 4 then
+            AutoHaki()
+
+            for _, target in ipairs(targetsty) do
+                if not _G.FullyTyrant or not _G.StartFarm or _G.EyesCount ~= 4 then break end
+
+                if isSkyBossAlive() then
+                    attackSkyBoss()
+                else
+                    _tp(target) -- Substituído topos por _tp
+                    task.wait(0.5)
+
+                    local char = game.Players.LocalPlayer.Character
+                    if char and char:FindFirstChild("HumanoidRootPart") then
+                        local distance = (char.HumanoidRootPart.Position - target.Position).Magnitude
+                        if distance <= 5 then -- Aumentei levemente a range para garantir
+
+                            if _G.UseSkullSummon then
+                                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("LoadItem", "Skull Guitar")
+                                EquipWeapon("Skull Guitar")
+
+                                local guitar = char:FindFirstChild("Skull Guitar")
+                                if guitar and guitar:FindFirstChild("RemoteEvent") then
+                                    guitar.RemoteEvent:FireServer("TAP", target.Position)
+                                    game:GetService("ReplicatedStorage").Remotes.Validator2:FireServer(8359618, 0)
+                                end
+
+                            else
+                                equipAndUseSkill("Melee")
+                                equipAndUseSkill("Sword")
+                                equipAndUseSkill("Gun")
+                                equipAndUseSkill("Blox Fruit")
+                            end
+
+                            task.wait(2)
+                        end
+                    end
+                end
+            end
+        end
+    end
+end)
+
 ----------------------------------------------------------------------
 -- 2. SISTEMA BONE FARM (EXATO)
 ----------------------------------------------------------------------
 
 spawn(function()
     while task.wait() do
-        if _G.AutoFarm_Bone and _G.StartFarm then
+        -- Adicionado verificação para não rodar se o modo Tyrant estiver ativo
+        if _G.AutoFarm_Bone and _G.StartFarm and not _G.FullyTyrant then
             pcall(function()
 
                 local plr = game.Players.LocalPlayer
@@ -3627,12 +3829,14 @@ spawn(function()
                 if mob then    
                     _tp(mob.PrimaryPart.CFrame)    
                     repeat task.wait()    
+                        -- Adicionada verificação de FullyTyrant aqui também
+                        if not _G.StartFarm or not _G.AutoFarm_Bone or _G.FullyTyrant then break end
                         if mob.Parent and mob.Humanoid.Health > 0 then    
                             G.Kill(mob, _G.AutoFarm_Bone)    
                         else    
                             break    
                         end    
-                    until not _G.StartFarm or not _G.AutoFarm_Bone    
+                    until not _G.StartFarm or not _G.AutoFarm_Bone or _G.FullyTyrant    
                 else    
                     _tp(CFrame.new(-9495.68,453.58,5977.34))    
                 end    
@@ -3668,7 +3872,8 @@ end
 
 spawn(function()
     while task.wait() do
-        if _G.Level and _G.StartFarm then
+        -- Adicionado verificação para não rodar se o modo Tyrant estiver ativo
+        if _G.Level and _G.StartFarm and not _G.FullyTyrant then
             pcall(function()
 
                 local plr = game.Players.LocalPlayer
@@ -3682,21 +3887,13 @@ spawn(function()
                     game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AbandonQuest")    
                 end    
 
-                -- ============================
-                --        PEGAR QUEST
-                -- ============================
                 if not plr.PlayerGui.Main.Quest.Visible then    
                     _tp(Q[6])    
-
-                    -- Espera chegar a 2 studs do NPC
-                    if (Root.Position - Q[6].Position).Magnitude <= 1 then    
-                        task.wait(2) -- Espera 2 segundos ANTES de pegar a quest
+                    if (Root.Position - Q[6].Position).Magnitude <= 50 then    
                         game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", Q[3], Q[2])    
                     end    
-
                     return    
                 end    
-                -- ============================
 
                 local Nearest = GetNearestMob(Q[1])    
 
@@ -3716,8 +3913,10 @@ spawn(function()
 
                 repeat    
                     task.wait()    
+                    -- Adicionada verificação de FullyTyrant aqui também
+                    if not _G.StartFarm or not _G.Level or _G.FullyTyrant then break end
                     G.Kill(CurrentMob, true)    
-                until not _G.StartFarm or not _G.Level or not CurrentMob.Parent or CurrentMob.Humanoid.Health <= 0    
+                until not _G.StartFarm or not _G.Level or _G.FullyTyrant or not CurrentMob.Parent or CurrentMob.Humanoid.Health <= 0    
 
                 CurrentMob = nil    
 
@@ -3732,7 +3931,8 @@ end)
 
 spawn(function()
     while task.wait() do
-        if _G.AutoFarm_Cake and _G.StartFarm then
+        -- Adicionado verificação para não rodar se o modo Tyrant estiver ativo
+        if _G.AutoFarm_Cake and _G.StartFarm and not _G.FullyTyrant then
             pcall(function()
                 local plr = game.Players.LocalPlayer
                 local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
@@ -3743,7 +3943,7 @@ spawn(function()
 
                 local CakePos = CFrame.new(-2091.91, 70.00, -12142.83)
 
-                -- 1. Teleporta para a ilha se estiver muito longe
+                -- Teleporta para a ilha se estiver muito longe
                 if (hrp.Position - CakePos.Position).Magnitude > 2000 then
                     _tp(CakePos)
                     return
@@ -3753,48 +3953,33 @@ spawn(function()
                 mirror = mirror and mirror:FindFirstChild("BigMirror")
                 local other = mirror and mirror:FindFirstChild("Other")
 
-                -- 2. Detecta Bosses
+                -- Detecta boss e portal
                 local boss = enemies:FindFirstChild("Cake Prince") or enemies:FindFirstChild("Dough King")
-                
-                -- Verifica se o boss existe e se está vivo
-                if boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then
-                    -- MODO BOSS: Prioridade Máxima
-                    
-                    local bossPos = boss.PrimaryPart.CFrame * CFrame.new(0, 25, 0) * CFrame.Angles(math.rad(-90), 0, 0)
-                    
-                    -- Teleporta para a posição de ataque do boss
-                    _tp(bossPos)
-                    
-                    -- Zera a velocidade para estabilizar o ataque
-                    hrp.Velocity = Vector3.new(0,0,0)
-                    if hrp:FindFirstChild("AssemblyLinearVelocity") then
-                        hrp.AssemblyLinearVelocity = Vector3.new(0,0,0)
-                    end
-                    
-                    -- Ataca o Boss
-                    G.Kill(boss, true)
-                    
-                    -- Garante que o script saia e repita o loop focando no Boss
-                    return
-                end
-                
-                -- Se o boss não estiver ativo/vivo, verifica o portal (segurança para esperar o boss spawnar/recompensas)
                 local portalOpen = other and other.Transparency == 0
 
-                if portalOpen then
-                    -- MODO ESPERA/PORTAL ABERTO: Vai para o safe spot
+                -- MODO BOSS
+                if boss or portalOpen then
+                    -- Adicionada verificação de FullyTyrant aqui
+                    if not _G.StartFarm or not _G.AutoFarm_Cake or _G.FullyTyrant then return end
+                    if boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then
+                        local bossPos = boss.PrimaryPart.CFrame * CFrame.new(0, 25, 0) * CFrame.Angles(math.rad(-90), 0, 0)
+                        _tp(bossPos)
+                        hrp.Velocity = Vector3.new(0,0,0)
+                        hrp.AssemblyLinearVelocity = Vector3.new(0,0,0)
+                        G.Kill(boss, true)
+                        return
+                    end
+
                     local safeSpot = CFrame.new(-2151.82, 149.32, -12404.91)
                     if (hrp.Position - safeSpot.Position).Magnitude > 10 then
                         _tp(safeSpot)
                     end
-                    -- Retorna para esperar o boss/portal fechar
                     return
                 end
 
-                -- 3. MODO FARM MOBS
+                -- MODO FARM MOBS
                 local CAKE_MOBS = {"Cookie Crafter", "Cake Guard", "Baking Staff", "Head Baker"}
 
-                -- Aceitar quest se necessário
                 local QuestUI = plr.PlayerGui.Main.Quest
                 if _G.AcceptQuest and not QuestUI.Visible then
                     local questPos = CFrame.new(-1927.92, 37.80, -12842.54)
@@ -3806,13 +3991,11 @@ spawn(function()
                             {"StartQuest", "CakeQuest1", 1},
                             {"StartQuest", "CakeQuest1", 2}
                         }
-                        -- Invoca uma quest aleatória
                         game.ReplicatedStorage.Remotes.CommF_:InvokeServer(unpack(q[math.random(1, 4)]))
                     end
                     return
                 end
 
-                -- Encontrar o melhor Mob
                 local bestMob
                 local bestDist = math.huge
 
@@ -3829,7 +4012,6 @@ spawn(function()
                 end
 
                 if not bestMob then
-                    -- Nenhum mob encontrado, volta para o centro da ilha
                     _tp(CakePos)
                     return
                 end
@@ -3838,11 +4020,9 @@ spawn(function()
                 if bestMob and bestMob:FindFirstChild("HumanoidRootPart") then
                     repeat
                         task.wait()
-                        -- Verifica o portal e o boss novamente DENTRO do loop de farm
-                        if other and other.Transparency == 0 then break end -- Portal abriu
-                        local recheckBoss = enemies:FindFirstChild("Cake Prince") or enemies:FindFirstChild("Dough King")
-                        if recheckBoss and recheckBoss:FindFirstChild("Humanoid") and recheckBoss.Humanoid.Health > 0 then break end -- Boss spawnou
-                        
+                        -- Adicionada verificação de FullyTyrant aqui
+                        if not _G.StartFarm or not _G.AutoFarm_Cake or _G.FullyTyrant then break end
+                        if other and other.Transparency == 0 then break end
                         if bestMob.Parent and bestMob.Humanoid.Health > 0 and bestMob:FindFirstChild("HumanoidRootPart") then
                             local farmPos = bestMob.HumanoidRootPart.CFrame * CFrame.new(0, 25, 0) * CFrame.Angles(math.rad(-90), 0, 0)
                             _tp(farmPos)
@@ -3854,13 +4034,14 @@ spawn(function()
                         else
                             break
                         end
-                    until not _G.StartFarm or not _G.AutoFarm_Cake or not bestMob.Parent or bestMob.Humanoid.Health <= 0
+                    until not _G.StartFarm or not _G.AutoFarm_Cake or _G.FullyTyrant or not bestMob.Parent or bestMob.Humanoid.Health <= 0
                 end
 
             end)
         end
     end
 end)
+
 
 
 b:AddSeperator("Other")
@@ -10019,171 +10200,170 @@ spawn(function()
 		end;
 	end;
 end);
-
 local V5 = game.Players.LocalPlayer;
 local function y5(I)
-if not I then
-return false;
-end;
-local e = I:FindFirstChild("Humanoid");
-return e and e.Health > 0;
+	if not I then
+		return false;
+	end;
+	local e = I:FindFirstChild("Humanoid");
+	return e and e.Health > 0;
 end;
 local function c5(I, e)
-local K = (game:GetService("Workspace")).Enemies:GetChildren();
-local n = (game:GetService("Players")):GetPlayers();
-local d = {};
-local z = (I:GetPivot()).Position;
-for I, K in ipairs(K) do
-local n = K:FindFirstChild("HumanoidRootPart");
-if n and y5(K) then
-local I = (n.Position - z).Magnitude;
-if I <= e then
-table.insert(d, K);
-end;
-end;
-end;
-for I, K in ipairs(n) do
-if K ~= V5 and K.Character then
-local I = K.Character:FindFirstChild("HumanoidRootPart");
-if I and y5(K.Character) then
-local n = (I.Position - z).Magnitude;
-if n <= e then
-table.insert(d, K.Character);
-end;
-end;
-end;
-end;
-return d;
+	local K = (game:GetService("Workspace")).Enemies:GetChildren();
+	local n = (game:GetService("Players")):GetPlayers();
+	local d = {};
+	local z = (I:GetPivot()).Position;
+	for I, K in ipairs(K) do
+		local n = K:FindFirstChild("HumanoidRootPart");
+		if n and y5(K) then
+			local I = (n.Position - z).Magnitude;
+			if I <= e then
+				table.insert(d, K);
+			end;
+		end;
+	end;
+	for I, K in ipairs(n) do
+		if K ~= V5 and K.Character then
+			local I = K.Character:FindFirstChild("HumanoidRootPart");
+			if I and y5(K.Character) then
+				local n = (I.Position - z).Magnitude;
+				if n <= e then
+					table.insert(d, K.Character);
+				end;
+			end;
+		end;
+	end;
+	return d;
 end;
 function AttackNoCoolDown()
-local I = (game:GetService("Players")).LocalPlayer;
-local e = I.Character;
-if not e then
-return;
-end;
-local K = nil;
-for I, e in ipairs(e:GetChildren()) do
-if e:IsA("Tool") then
-K = e;
-break;
-end;
-end;
-if not K then
-return;
-end;
-local n = c5(e, 60);
-if #n == 0 then
-return;
-end;
-local d = game:GetService("ReplicatedStorage");
-local z = d:FindFirstChild("Modules");
-if not z then
-return;
-end;
-local H = ((d:WaitForChild("Modules")):WaitForChild("Net")):WaitForChild("RE/RegisterAttack");
-local F = ((d:WaitForChild("Modules")):WaitForChild("Net")):WaitForChild("RE/RegisterHit");
-if not H or not F then
-return;
-end;
-local Q, X = {}, nil;
-for I, e in ipairs(n) do
-if not e:GetAttribute("IsBoat") then
-local I = {
-"RightLowerArm",
-"RightUpperArm",
-"LeftLowerArm",
-"LeftUpperArm",
-"RightHand",
-"LeftHand",
-};
-local K = e:FindFirstChild(I[math.random(#I)]) or e.PrimaryPart;
-if K then
-table.insert(Q, { e, K });
-X = K;
-end;
-end;
-end;
-if not X then
-return;
-end;
-H:FireServer(0);
-local P = I:FindFirstChild("PlayerScripts");
-if not P then
-return;
-end;
-local w = P:FindFirstChildOfClass("LocalScript");
-while not w do
-P.ChildAdded:Wait();
-w = P:FindFirstChildOfClass("LocalScript");
-end;
-local O;
-if getsenv then
-local I, e = pcall(getsenv, w);
-if I and e then
-O = e._G.SendHitsToServer;
-end;
-end;
-local G, J = pcall(function()
-return (require(z.Flags)).COMBAT_REMOTE_THREAD or false;
-end);
-if G and (J and O) then
-O(X, Q);
-elseif G and not J then
-F:FireServer(X, Q);
-end;
+	local I = (game:GetService("Players")).LocalPlayer;
+	local e = I.Character;
+	if not e then
+		return;
+	end;
+	local K = nil;
+	for I, e in ipairs(e:GetChildren()) do
+		if e:IsA("Tool") then
+			K = e;
+			break;
+		end;
+	end;
+	if not K then
+		return;
+	end;
+	local n = c5(e, 60);
+	if #n == 0 then
+		return;
+	end;
+	local d = game:GetService("ReplicatedStorage");
+	local z = d:FindFirstChild("Modules");
+	if not z then
+		return;
+	end;
+	local H = ((d:WaitForChild("Modules")):WaitForChild("Net")):WaitForChild("RE/RegisterAttack");
+	local F = ((d:WaitForChild("Modules")):WaitForChild("Net")):WaitForChild("RE/RegisterHit");
+	if not H or not F then
+		return;
+	end;
+	local Q, X = {}, nil;
+	for I, e in ipairs(n) do
+		if not e:GetAttribute("IsBoat") then
+			local I = {
+					"RightLowerArm",
+					"RightUpperArm",
+					"LeftLowerArm",
+					"LeftUpperArm",
+					"RightHand",
+					"LeftHand",
+				};
+			local K = e:FindFirstChild(I[math.random(#I)]) or e.PrimaryPart;
+			if K then
+				table.insert(Q, { e, K });
+				X = K;
+			end;
+		end;
+	end;
+	if not X then
+		return;
+	end;
+	H:FireServer(0);
+	local P = I:FindFirstChild("PlayerScripts");
+	if not P then
+		return;
+	end;
+	local w = P:FindFirstChildOfClass("LocalScript");
+	while not w do
+		P.ChildAdded:Wait();
+		w = P:FindFirstChildOfClass("LocalScript");
+	end;
+	local O;
+	if getsenv then
+		local I, e = pcall(getsenv, w);
+		if I and e then
+			O = e._G.SendHitsToServer;
+		end;
+	end;
+	local G, J = pcall(function()
+			return (require(z.Flags)).COMBAT_REMOTE_THREAD or false;
+		end);
+	if G and (J and O) then
+		O(X, Q);
+	elseif G and not J then
+		F:FireServer(X, Q);
+	end;
 end;
 CameraShakerR = require(game.ReplicatedStorage.Util.CameraShaker);
 CameraShakerR:Stop();
 get_Monster = function()
-for I, e in pairs(workspace.Enemies:GetChildren()) do
-local K = e:FindFirstChild("UpperTorso") or e:FindFirstChild("Head");
-if e:FindFirstChild("HumanoidRootPart", true) and K then
-if (e.Head.Position - plr.Character.HumanoidRootPart.Position).Magnitude <= 50 then
-return true, K.Position;
-end;
-end;
-end;
-for I, e in pairs(workspace.SeaBeasts:GetChildren()) do
-if e:FindFirstChild("HumanoidRootPart") and (e:FindFirstChild("Health") and e.Health.Value > 0) then
-return true, e.HumanoidRootPart.Position;
-end;
-end;
-for I, e in pairs(workspace.Enemies:GetChildren()) do
-if e:FindFirstChild("Health") and (e.Health.Value > 0 and e:FindFirstChild("VehicleSeat")) then
-return true, e.Engine.Position;
-end;
-end;
-end;
+		for I, e in pairs(workspace.Enemies:GetChildren()) do
+			local K = e:FindFirstChild("UpperTorso") or e:FindFirstChild("Head");
+			if e:FindFirstChild("HumanoidRootPart", true) and K then
+				if (e.Head.Position - plr.Character.HumanoidRootPart.Position).Magnitude <= 50 then
+					return true, K.Position;
+				end;
+			end;
+		end;
+		for I, e in pairs(workspace.SeaBeasts:GetChildren()) do
+			if e:FindFirstChild("HumanoidRootPart") and (e:FindFirstChild("Health") and e.Health.Value > 0) then
+				return true, e.HumanoidRootPart.Position;
+			end;
+		end;
+		for I, e in pairs(workspace.Enemies:GetChildren()) do
+			if e:FindFirstChild("Health") and (e.Health.Value > 0 and e:FindFirstChild("VehicleSeat")) then
+				return true, e.Engine.Position;
+			end;
+		end;
+	end;
 Actived = function()
-local I = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool");
-for I, e in next, getconnections(I.Activated) do
-if typeof(e.Function) == "function" then
-getupvalues(e.Function);
-end;
-end;
-end;
+		local I = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool");
+		for I, e in next, getconnections(I.Activated) do
+			if typeof(e.Function) == "function" then
+				getupvalues(e.Function);
+			end;
+		end;
+	end;
 task.spawn(function()
-RunSer.Heartbeat:Connect(function()
-pcall(function()
-if not _G.Seriality then
-return;
-end;
-AttackNoCoolDown();
-local I = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool");
-local e = I.ToolTip;
-local K, n = get_Monster();
-if e == "Blox Fruit" then
-if K then
-local e = I:FindFirstChild("LeftClickRemote");
-if e then
-Actived();
-e:FireServer(Vector3.new(.01, -500, .01), 1, true);
-e:FireServer(false);
-end;
-end;
-end;
-end);
-end);
+	RunSer.Heartbeat:Connect(function()
+		pcall(function()
+			if not _G.Seriality then
+				return;
+			end;
+			AttackNoCoolDown();
+			local I = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool");
+			local e = I.ToolTip;
+			local K, n = get_Monster();
+			if e == "Blox Fruit" then
+				if K then
+					local e = I:FindFirstChild("LeftClickRemote");
+					if e then
+						Actived();
+						e:FireServer(Vector3.new(.01, -500, .01), 1, true);
+						e:FireServer(false);
+					end;
+				end;
+			end;
+		end);
+	end);
 end);
 -- FastAttack extraído do seu script (cole isso onde precisar)
 local FastAttackModule = {}
@@ -10195,13 +10375,13 @@ local RunService = game:GetService("RunService")
 local Player = Players.LocalPlayer
 
 local function SafeWaitForChild(parent, childName)
-local success, result = pcall(function()
-return parent:WaitForChild(childName)
-end)
-if not success or not result then
-warn("SafeWaitForChild falhou: " .. tostring(childName))
-end
-return result
+    local success, result = pcall(function()
+        return parent:WaitForChild(childName)
+    end)
+    if not success or not result then
+        warn("SafeWaitForChild falhou: " .. tostring(childName))
+    end
+    return result
 end
 
 local Modules = SafeWaitForChild(ReplicatedStorage, "Modules")
@@ -10209,128 +10389,98 @@ local Net = SafeWaitForChild(Modules, "Net")
 
 -- Configs usadas pelo loop externo (podem ser mudadas em runtime)
 local Settings = {
-AutoClick = true,
-ClickDelay = 0
+    AutoClick = true,
+    ClickDelay = 0
 }
 
 -- Implementação do FastAttack
 local FastAttack = {
-Distance = 100,
-attackMobs = true,
-attackPlayers = true,
-Equipped = nil
+    Distance = 100,
+    attackMobs = true,
+    attackPlayers = true,
+    Equipped = nil
 }
 
 local RegisterAttack = SafeWaitForChild(Net, "RE/RegisterAttack")
 local RegisterHit = SafeWaitForChild(Net, "RE/RegisterHit")
 
 local function IsAlive(character)
-return character and character:FindFirstChild("Humanoid") and character.Humanoid.Health > 0
+    return character and character:FindFirstChild("Humanoid") and character.Humanoid.Health > 0
 end
 
--- FUNÇÃO MODIFICADA: Encontra apenas o ÚNICO alvo mais próximo dentro do alcance.
-local function FindNearestTargetInFolder(Folder, CurrentNearest, CurrentPart, CurrentDistance)
-    local nearestEnemy = CurrentNearest
-    local nearestPart = CurrentPart
-    local minDistance = CurrentDistance or FastAttack.Distance + 1 -- Começa com uma distância fora do alcance máximo
-
+-- Procura inimigos (Head) dentro da pasta passada (Enemies ou Characters)
+local function ProcessEnemies(OthersEnemies, Folder)
+    local BasePart = nil
     for _, Enemy in ipairs(Folder:GetChildren()) do
         local Head = Enemy:FindFirstChild("Head")
-        
-        -- Verifica se está vivo, tem Head e não é o próprio jogador
-        if Head and IsAlive(Enemy) and Enemy ~= Player.Character then
-            local distance = Player:DistanceFromCharacter(Head.Position)
-            
-            if distance < FastAttack.Distance and distance < minDistance then
-                minDistance = distance
-                nearestEnemy = Enemy
-                nearestPart = Head
+        if Head and IsAlive(Enemy) and Player:DistanceFromCharacter(Head.Position) < FastAttack.Distance then
+            if Enemy ~= Player.Character then
+                table.insert(OthersEnemies, { Enemy, Head })
+                BasePart = Head
             end
         end
     end
-    return nearestEnemy, nearestPart, minDistance
+    return BasePart
 end
 
 function FastAttack:Attack(BasePart, OthersEnemies)
-    -- Envia hit para a lista de alvos (agora com apenas um alvo)
     if not BasePart or #OthersEnemies == 0 then return end
+    -- envia RegisterAttack com delay configurado e depois RegisterHit com os alvos
     pcall(function()
         RegisterAttack:FireServer(Settings.ClickDelay or 0)
         RegisterHit:FireServer(BasePart, OthersEnemies)
     end)
 end
 
--- FUNÇÃO MODIFICADA: Coleta apenas o alvo mais próximo de todas as pastas.
 function FastAttack:AttackNearest()
-    local NearestEnemy = nil
-    local NearestPart = nil
-    local MinDistance = FastAttack.Distance + 1
-
+    local OthersEnemies = {}
     -- assume que as pastas 'Enemies' e 'Characters' existem no workspace
     local EnemiesFolder = workspace:FindFirstChild("Enemies")
     local CharactersFolder = workspace:FindFirstChild("Characters")
-    
-    -- Busca o alvo mais próximo na pasta Enemies
-    if EnemiesFolder and FastAttack.attackMobs then 
-        NearestEnemy, NearestPart, MinDistance = FindNearestTargetInFolder(
-            EnemiesFolder, 
-            NearestEnemy, 
-            NearestPart, 
-            MinDistance
-        ) 
-    end
-    
-    -- Busca o alvo mais próximo na pasta Characters (considerando o já encontrado)
-    if CharactersFolder and FastAttack.attackPlayers then 
-        NearestEnemy, NearestPart, MinDistance = FindNearestTargetInFolder(
-            CharactersFolder, 
-            NearestEnemy, 
-            NearestPart, 
-            MinDistance
-        ) 
-    end
+    local Part1 = nil
+    local Part2 = nil
+    if EnemiesFolder then Part1 = ProcessEnemies(OthersEnemies, EnemiesFolder) end
+    if CharactersFolder then Part2 = ProcessEnemies(OthersEnemies, CharactersFolder) end
 
     local character = Player.Character
-    if not character or not NearestEnemy then return end
-    
-    -- Agora há apenas UM alvo na lista para o RegisterHit: { {Enemy, Part} }
-    local singleTarget = {{NearestEnemy, NearestPart}}
-    
+    if not character then return end
     local equippedWeapon = character:FindFirstChildOfClass("Tool")
 
-    -- Se a arma tem LeftClickRemote, usa ela (para frutas e skills, enviando a direção)
+    -- Se a arma tem LeftClickRemote, usa ela (some armas enviam direção)
     if equippedWeapon and equippedWeapon:FindFirstChild("LeftClickRemote") then
-        if NearestEnemy and NearestEnemy:FindFirstChild("HumanoidRootPart") and character:FindFirstChild("HumanoidRootPart") then
-            local direction = (NearestEnemy.HumanoidRootPart.Position - character:GetPivot().Position).Unit
-            pcall(function()
-                equippedWeapon.LeftClickRemote:FireServer(direction, 1)
-            end)
+        for _, enemyData in ipairs(OthersEnemies) do
+            local enemy = enemyData[1]
+            if enemy and enemy:FindFirstChild("HumanoidRootPart") and character:FindFirstChild("HumanoidRootPart") then
+                local direction = (enemy.HumanoidRootPart.Position - character:GetPivot().Position).Unit
+                pcall(function()
+                    equippedWeapon.LeftClickRemote:FireServer(direction, 1)
+                end)
+            end
         end
-    elseif #singleTarget > 0 then
-        -- fallback: usa RegisterHit no único alvo
-        self:Attack(NearestPart, singleTarget)
+    elseif #OthersEnemies > 0 then
+        -- fallback: usa RegisterHit
+        self:Attack(Part1 or Part2, OthersEnemies)
     else
         task.wait(0)
     end
-
 end
 
 function FastAttack:BladeHits()
-local Equipped = IsAlive(Player.Character) and Player.Character:FindFirstChildOfClass("Tool")
-if Equipped and Equipped.ToolTip ~= "Gun" then
-self:AttackNearest()
-else
-task.wait(0)
-end
+    local Equipped = IsAlive(Player.Character) and Player.Character:FindFirstChildOfClass("Tool")
+    if Equipped and Equipped.ToolTip ~= "Gun" then
+        self:AttackNearest()
+    else
+        task.wait(0)
+    end
 end
 
 -- loop automático que dispara BladeHits de acordo com Settings
 task.spawn(function()
-while task.wait(Settings.ClickDelay) do
-if Settings.AutoClick then
-FastAttack:BladeHits()
-end
-end
+    while task.wait(Settings.ClickDelay) do
+        if Settings.AutoClick then
+            FastAttack:BladeHits()
+        end
+    end
 end)
 
 -- exporta / cacheia no _ENV como no original
