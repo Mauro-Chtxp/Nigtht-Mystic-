@@ -434,39 +434,25 @@ BringEnemy = function()
 
 	for _, mob in pairs(workspace.Enemies:GetChildren()) do
 		local hum = mob:FindFirstChild("Humanoid")
-        local root = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart
+		local root = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart
 
 		if hum and hum.Health > 0 and root then
 			local dist = (root.Position - PosMon).Magnitude
 			if dist <= 225 then
 
-				-- Garantir que o mob não reaja fisicamente
+				-- Travar comportamento físico do mob
 				root.Anchored = false
 				root.CanCollide = false
 				mob:MakeJoints()
 				hum.AutoRotate = false
 				hum.PlatformStand = true
 
-				-- Se estiver muito perto, usa teleporte pra impedir a "dança"
-				if dist < 10 then
-					-- Cancelar Tween antigo
-					if root:FindFirstChild("BringTween") then
-						root.BringTween:Cancel()
-						root.BringTween:Destroy()
-					end
-
+				-- Se estiver muito perto, força alinhamento para evitar tremor
+				if dist < 8 then
 					root.CFrame = CFrame.new(PosMon)
 				else
-					-- Criar Tween se estiver longe
-					if root:FindFirstChild("BringTween") then
-						root.BringTween:Cancel()
-						root.BringTween:Destroy()
-					end
-
-					local t = TweenService:Create(root, tweenInfo, { CFrame = CFrame.new(PosMon) })
-					t.Name = "BringTween"
-					t.Parent = root
-					t:Play()
+					-- Agora não usa Tween — usa MoveTo (andar com W)
+					hum:MoveTo(PosMon)
 				end
 
 				pcall(function()
