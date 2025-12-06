@@ -427,32 +427,46 @@ statsSetings = function(I, e)
 	end;
 
 local TweenService = game:GetService("TweenService")
-local tweenInfo = TweenInfo.new(0.35, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
+local tweenInfo = TweenInfo.new(2.0, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
 
 BringEnemy = function()
 	if not _B then return end
 
 	for _, mob in pairs(workspace.Enemies:GetChildren()) do
 		local hum = mob:FindFirstChild("Humanoid")
-		local root = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart
+        local root = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart
 
 		if hum and hum.Health > 0 and root then
 			local dist = (root.Position - PosMon).Magnitude
 			if dist <= 225 then
 
-				-- Travar comportamento físico do mob
+				-- Garantir que o mob não reaja fisicamente
 				root.Anchored = false
 				root.CanCollide = false
 				mob:MakeJoints()
 				hum.AutoRotate = false
 				hum.PlatformStand = true
 
-				-- Se estiver muito perto, força alinhamento para evitar tremor
-				if dist < 8 then
+				-- Se estiver muito perto, usa teleporte pra impedir a "dança"
+				if dist < 10 then
+					-- Cancelar Tween antigo
+					if root:FindFirstChild("BringTween") then
+						root.BringTween:Cancel()
+						root.BringTween:Destroy()
+					end
+
 					root.CFrame = CFrame.new(PosMon)
 				else
-					-- Agora não usa Tween — usa MoveTo (andar com W)
-					hum:MoveTo(PosMon)
+					-- Criar Tween se estiver longe
+					if root:FindFirstChild("BringTween") then
+						root.BringTween:Cancel()
+						root.BringTween:Destroy()
+					end
+
+					local t = TweenService:Create(root, tweenInfo, { CFrame = CFrame.new(PosMon) })
+					t.Name = "BringTween"
+					t.Parent = root
+					t:Play()
 				end
 
 				pcall(function()
@@ -3660,7 +3674,7 @@ spawn(function()
                     _tp(Q[6])    
 
                     -- Espera chegar a 2 studs do NPC
-                    if (Root.Position - Q[6].Position).Magnitude <= 2 then    
+                    if (Root.Position - Q[6].Position).Magnitude <= 1 then    
                         task.wait(2) -- Espera 2 segundos ANTES de pegar a quest
                         game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", Q[3], Q[2])    
                     end    
