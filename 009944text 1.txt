@@ -3719,6 +3719,7 @@ spawn(function()
     while task.wait() do
         if _G.AutoFarm_Cake and _G.StartFarm then
             pcall(function()
+
                 local plr = game.Players.LocalPlayer
                 local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
                 if not hrp then return end
@@ -3726,96 +3727,91 @@ spawn(function()
                 local enemies = workspace:FindFirstChild("Enemies")
                 if not enemies then return end
 
-                local CakePos = CFrame.new(-2091.91, 70.00, -12142.83)
+                local cakeLoaf = workspace.Map:FindFirstChild("CakeLoaf")
+                local bigMirror = cakeLoaf and cakeLoaf:FindFirstChild("BigMirror")
+                local other = bigMirror and bigMirror:FindFirstChild("Other")
 
-                -- Teleporta para a ilha se estiver muito longe
-                if (hrp.Position - CakePos.Position).Magnitude > 2000 then
-                    _tp(CakePos)
+                -- Se o mirror não existir ainda
+                if not other then
+                    _tp(CFrame.new(-2077, 252, -12373))
                     return
                 end
 
-                local mirror = workspace.Map:FindFirstChild("CakeLoaf")
-                mirror = mirror and mirror:FindFirstChild("BigMirror")
-                local other = mirror and mirror:FindFirstChild("Other")
+                -- ===========================
+                --     MODO BOSS
+                -- ===========================
 
-                -- Detecta boss e portal
-                local boss = enemies:FindFirstChild("Cake Prince") or enemies:FindFirstChild("Dough King")
-                local portalOpen = other and other.Transparency == 0
+                local function GetBoss()
+                    return GetConnectionEnemies("Cake Prince") or GetConnectionEnemies("Dough King")
+                end
 
-                -- MODO BOSS
+                local boss = GetBoss()
+                local portalOpen = (other.Transparency == 0)
+
                 if boss or portalOpen then
-                    if boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then
-                        local bossPos = boss.PrimaryPart.CFrame * CFrame.new(0, 25, 0) * CFrame.Angles(math.rad(-90), 0, 0)
-                        _tp(bossPos)
-                        hrp.Velocity = Vector3.new(0,0,0)
-                        hrp.AssemblyLinearVelocity = Vector3.new(0,0,0)
-                        G.Kill(boss, true)
-                        return
+
+                    if boss then
+                        repeat
+                            task.wait()
+                            G.Kill(boss, true)
+                        until not _G.AutoFarm_Cake
+                            or not boss.Parent
+                            or boss.Humanoid.Health <= 0
+                    else
+                        if portalOpen and (CFrame.new(-1990.67, 4533, -14973.67).Position - hrp.Position).Magnitude >= 2000 then
+                            _tp(CFrame.new(-2151.82, 149.32, -12404.91))
+                        end
                     end
 
-                    local safeSpot = CFrame.new(-2151.82, 149.32, -12404.91)
-                    if (hrp.Position - safeSpot.Position).Magnitude > 10 then
-                        _tp(safeSpot)
-                    end
                     return
                 end
 
-                -- MODO FARM MOBS
-                local CAKE_MOBS = {"Cookie Crafter", "Cake Guard", "Baking Staff", "Head Baker"}
+                -- ===========================
+                --     MODO FARM NORMAL
+                -- ===========================
+
+                local CAKE_MOBS = {
+                    "Cookie Crafter",
+                    "Cake Guard",
+                    "Baking Staff",
+                    "Head Baker"
+                }
 
                 local QuestUI = plr.PlayerGui.Main.Quest
+
                 if _G.AcceptQuest and not QuestUI.Visible then
-                    local questPos = CFrame.new(-1927.92, 37.80, -12842.54)
+                    local questPos = CFrame.new(-1927.92, 37.8, -12842.54)
                     _tp(questPos)
-                    if (hrp.Position - questPos.Position).Magnitude <= 40 then
-                        local q = {
-                            {"StartQuest", "CakeQuest2", 2},
-                            {"StartQuest", "CakeQuest2", 1},
-                            {"StartQuest", "CakeQuest1", 1},
-                            {"StartQuest", "CakeQuest1", 2}
-                        }
-                        game.ReplicatedStorage.Remotes.CommF_:InvokeServer(unpack(q[math.random(1, 4)]))
+
+                    while (questPos.Position - hrp.Position).Magnitude > 50 do 
+                        task.wait(0.2) 
                     end
+
+                    local q = {
+                        {"StartQuest","CakeQuest2",2},
+                        {"StartQuest","CakeQuest2",1},
+                        {"StartQuest","CakeQuest1",1},
+                        {"StartQuest","CakeQuest1",2}
+                    }
+
+                    game.ReplicatedStorage.Remotes.CommF_:InvokeServer(unpack(q[math.random(1, 4)]))
                     return
                 end
 
-                local bestMob
-                local bestDist = math.huge
+                local mob = GetConnectionEnemies(CAKE_MOBS)
 
-                for _, mob in ipairs(enemies:GetChildren()) do
-                    if table.find(CAKE_MOBS, mob.Name) and mob:FindFirstChild("Humanoid")
-                        and mob:FindFirstChild("HumanoidRootPart") and mob.Humanoid.Health > 0 then
-
-                        local dist = (mob.HumanoidRootPart.Position - hrp.Position).Magnitude
-                        if dist < bestDist then
-                            bestDist = dist
-                            bestMob = mob
-                        end
-                    end
-                end
-
-                if not bestMob then
-                    _tp(CakePos)
-                    return
-                end
-
-                -- Farmar mob
-                if bestMob and bestMob:FindFirstChild("HumanoidRootPart") then
+                if mob then
                     repeat
                         task.wait()
-                        if other and other.Transparency == 0 then break end
-                        if bestMob.Parent and bestMob.Humanoid.Health > 0 and bestMob:FindFirstChild("HumanoidRootPart") then
-                            local farmPos = bestMob.HumanoidRootPart.CFrame * CFrame.new(0, 25, 0) * CFrame.Angles(math.rad(-90), 0, 0)
-                            _tp(farmPos)
-                            hrp.Velocity = Vector3.new(0, 0, 0)
-                            if hrp:FindFirstChild("AssemblyLinearVelocity") then
-                                hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-                            end
-                            G.Kill(bestMob, true)
-                        else
-                            break
-                        end
-                    until not _G.StartFarm or not _G.AutoFarm_Cake or not bestMob.Parent or bestMob.Humanoid.Health <= 0
+                        G.Kill(mob, true)
+                    until not _G.StartFarm
+                        or not _G.AutoFarm_Cake
+                        or not mob.Parent
+                        or mob.Humanoid.Health <= 0
+                        or other.Transparency == 0
+                        or (_G.AcceptQuest and not QuestUI.Visible)
+                else
+                    _tp(CFrame.new(-2077, 252, -12373))
                 end
 
             end)
