@@ -3728,89 +3728,119 @@ spawn(function()
                 local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
                 if not hrp then return end
 
-                local enemies = workspace:FindFirstChild("Enemies")  
-                if not enemies then return end  
+                local enemies = workspace:FindFirstChild("Enemies")
+                if not enemies then return end
 
-                local CakePos = CFrame.new(-2091.91, 70.00, -12142.83)  
+                -- DETECÇÃO DO BOSS (PRIORIDADE MÁXIMA)
+                local boss = enemies:FindFirstChild("Cake Prince") or enemies:FindFirstChild("Dough King")
 
-                -- Teleporta para a ilha se estiver muito longe  
-                if (hrp.Position - CakePos.Position).Magnitude > 2000 then  
-                    _tp(CakePos)  
-                    return  
-                end  
-
-                -- Detecta boss
-                local boss = enemies:FindFirstChild("Cake Prince") or enemies:FindFirstChild("Dough King")  
-
-                if boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then
-                    -- Vai direto no boss, ignorando tudo
-                    local bossPos = boss.PrimaryPart.CFrame * CFrame.new(0, 25, 0) * CFrame.Angles(math.rad(-90), 0, 0)
-                    _tp(bossPos)
+                -- SE O BOSS EXISTIR E ESTIVER VIVO
+                if boss and boss:FindFirstChild("Humanoid") and boss:FindFirstChild("HumanoidRootPart") and boss.Humanoid.Health > 0 then
+                    
+                    -- Calcula posição de ataque (em cima do boss para evitar dano excessivo)
+                    local bossPos = boss.HumanoidRootPart.CFrame * CFrame.new(0, 25, 0) * CFrame.Angles(math.rad(-90), 0, 0)
+                    
+                    -- Teleporta direto para o Boss (Ignora Espelho/Safe Spot)
+                    if (hrp.Position - bossPos.Position).Magnitude > 5 then
+                        _tp(bossPos) 
+                    end
+                    
+                    -- Trava a velocidade para não cair
                     hrp.Velocity = Vector3.new(0,0,0)
-                    hrp.AssemblyLinearVelocity = Vector3.new(0,0,0)
-                    G.Kill(boss, true)
+                    if hrp:FindFirstChild("AssemblyLinearVelocity") then
+                        hrp.AssemblyLinearVelocity = Vector3.new(0,0,0)
+                    end
+
+                    -- Ataca usando sua função global G.Kill
+                    if G and G.Kill then
+                        G.Kill(boss, true)
+                    else
+                        -- Fallback caso G.Kill não esteja definido (ataque básico)
+                        game:GetService("VirtualUser"):CaptureController()
+                        game:GetService("VirtualUser"):Button1Down(Vector2.new(1280, 672))
+                    end
+                    
+                    -- O return aqui garante que ele não faça mais nada enquanto o boss estiver vivo
+                    return 
+                end
+
+                -- ==========================================================
+                -- MODO FARM MOBS (SÓ RODA SE NÃO TIVER BOSS)
+                -- ==========================================================
+                
+                local CAKE_MOBS = {"Cookie Crafter", "Cake Guard", "Baking Staff", "Head Baker"}
+                local QuestUI = plr.PlayerGui.Main.Quest
+
+                -- Pega a Missão Automaticamente
+                if _G.AcceptQuest and not QuestUI.Visible then
+                    local questPos = CFrame.new(-1927.92, 37.80, -12842.54)
+                    
+                    if (hrp.Position - questPos.Position).Magnitude > 40 then
+                        _tp(questPos)
+                    else
+                        local q = {
+                            {"StartQuest", "CakeQuest2", 2},
+                            {"StartQuest", "CakeQuest2", 1},
+                            {"StartQuest", "CakeQuest1", 1},
+                            {"StartQuest", "CakeQuest1", 2}
+                        }
+                        game.ReplicatedStorage.Remotes.CommF_:InvokeServer(unpack(q[math.random(1, 4)]))
+                    end
                     return
                 end
 
-                -- Se não tem boss, farma mobs
-                local CAKE_MOBS = {"Cookie Crafter", "Cake Guard", "Baking Staff", "Head Baker"}  
-                local QuestUI = plr.PlayerGui.Main.Quest  
+                -- Busca o mob mais próximo
+                local bestMob
+                local bestDist = math.huge
 
-                if _G.AcceptQuest and not QuestUI.Visible then  
-                    local questPos = CFrame.new(-1927.92, 37.80, -12842.54)  
-                    _tp(questPos)  
-                    if (hrp.Position - questPos.Position).Magnitude <= 40 then  
-                        local q = {  
-                            {"StartQuest", "CakeQuest2", 2},  
-                            {"StartQuest", "CakeQuest2", 1},  
-                            {"StartQuest", "CakeQuest1", 1},  
-                            {"StartQuest", "CakeQuest1", 2}  
-                        }  
-                        game.ReplicatedStorage.Remotes.CommF_:InvokeServer(unpack(q[math.random(1, 4)]))  
-                    end  
-                    return  
-                end  
+                for _, mob in ipairs(enemies:GetChildren()) do
+                    if table.find(CAKE_MOBS, mob.Name) and mob:FindFirstChild("Humanoid") and mob:FindFirstChild("HumanoidRootPart") and mob.Humanoid.Health > 0 then
+                        local dist = (mob.HumanoidRootPart.Position - hrp.Position).Magnitude
+                        if dist < bestDist then
+                            bestDist = dist
+                            bestMob = mob
+                        end
+                    end
+                end
 
-                local bestMob  
-                local bestDist = math.huge  
+                -- Se não achar mob, vai para o ponto central da ilha
+                if not bestMob then
+                    _tp(CFrame.new(-2091.91, 70.00, -12142.83))
+                    return
+                end
 
-                for _, mob in ipairs(enemies:GetChildren()) do  
-                    if table.find(CAKE_MOBS, mob.Name) and mob:FindFirstChild("Humanoid")  
-                        and mob:FindFirstChild("HumanoidRootPart") and mob.Humanoid.Health > 0 then  
+                -- Mata o Mob
+                if bestMob and bestMob:FindFirstChild("HumanoidRootPart") then
+                    -- Loop de ataque ao mob específico
+                    repeat
+                        task.wait()
+                        -- VERIFICAÇÃO DE EMERGÊNCIA: Se o boss spawnar ENQUANTO mata mob, para tudo e reinicia o loop
+                        if enemies:FindFirstChild("Cake Prince") or enemies:FindFirstChild("Dough King") then
+                            break 
+                        end
 
-                        local dist = (mob.HumanoidRootPart.Position - hrp.Position).Magnitude  
-                        if dist < bestDist then  
-                            bestDist = dist  
-                            bestMob = mob  
-                        end  
-                    end  
-                end  
-
-                if not bestMob then  
-                    _tp(CakePos)  
-                    return  
-                end  
-
-                -- Farmar mob  
-                if bestMob and bestMob:FindFirstChild("HumanoidRootPart") then  
-                    repeat  
-                        task.wait()  
-                        if bestMob.Parent and bestMob.Humanoid.Health > 0 then  
-                            local farmPos = bestMob.HumanoidRootPart.CFrame * CFrame.new(0, 25, 0) * CFrame.Angles(math.rad(-90), 0, 0)  
-                            _tp(farmPos)  
-                            hrp.Velocity = Vector3.new(0, 0, 0)  
-                            if hrp:FindFirstChild("AssemblyLinearVelocity") then  
-                                hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)  
-                            end  
-                            G.Kill(bestMob, true)  
-                        else  
-                            break  
-                        end  
-                    until not _G.StartFarm or not _G.AutoFarm_Cake or not bestMob.Parent or bestMob.Humanoid.Health <= 0  
-                end  
-
-            end)  
-        end  
+                        if bestMob.Parent and bestMob.Humanoid.Health > 0 and bestMob:FindFirstChild("HumanoidRootPart") then
+                            local farmPos = bestMob.HumanoidRootPart.CFrame * CFrame.new(0, 25, 0) * CFrame.Angles(math.rad(-90), 0, 0)
+                            _tp(farmPos)
+                            
+                            hrp.Velocity = Vector3.new(0, 0, 0)
+                            if hrp:FindFirstChild("AssemblyLinearVelocity") then
+                                hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                            end
+                            
+                            if G and G.Kill then
+                                G.Kill(bestMob, true)
+                            else
+                                game:GetService("VirtualUser"):CaptureController()
+                                game:GetService("VirtualUser"):Button1Down(Vector2.new(1280, 672))
+                            end
+                        else
+                            break
+                        end
+                    until not _G.StartFarm or not _G.AutoFarm_Cake or not bestMob.Parent or bestMob.Humanoid.Health <= 0
+                end
+            end)
+        end
     end
 end)
 
