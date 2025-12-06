@@ -3559,6 +3559,7 @@ b:AddToggle({
 ----------------------------------------------------------------------
 
 --=====================================================
+--=====================================================
 --  SISTEMA DE EQUIPAR ARMA
 --=====================================================
 
@@ -3672,7 +3673,11 @@ local TargetList = {
     ["Isle Champion"] = true,
     ["Sun-kissed Warrior"] = true,
     ["Island Boy"] = true,
-    ["Isle Outlaw"] = true
+    ["Isle Outlaw"] = true,
+
+    -- adicionados a pedido
+    ["Skull Slayer"] = true,
+    ["Serpent Hunter"] = true,
 }
 
 function GetClosestTarget()
@@ -3738,7 +3743,7 @@ end
 
 
 --=====================================================
---  FARM DE MOBS ATÉ 4 OLHOS (AGORA COM MOB MAIS PRÓXIMO)
+--  FARM DE MOBS ATÉ 4 OLHOS
 --=====================================================
 
 spawn(function()
