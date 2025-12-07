@@ -437,54 +437,40 @@ function GetCakePrince()
     return nil
 end
 
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-
 BringEnemy = function()
-	if not _B then return end
-	if not LocalPlayer.Character then return end
-
-	local myRoot = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-	if not myRoot then return end
+	
+	local __cake = GetCakePrince()
+	if __cake then
+		return
+	end
+if not _B then
+		return
+	end
 
 	for _, mob in pairs(workspace.Enemies:GetChildren()) do
-		
 		local hum = mob:FindFirstChild("Humanoid")
 		local root = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart
 
-		if hum and root and hum.Health > 0 then
-			
-			-- Evitar bosses (igual o outro código)
-			if not mob:GetAttribute("IsBoss") then
+		if hum and hum.Health > 0 and root then
+			local dist = (root.Position - PosMon).Magnitude
 
-				local dist = (root.Position - PosMon).Magnitude
-				if dist <= 230 then
+			-- Aumentei a distância pra puxar
+			if dist <= 210 then  
+				-- Apenas garante que o mob não fique travado no chão
+				-- sem alterar Anchored nem CanCollide
+				mob:MakeJoints()      
+				
+				-- Anti-trava de rotação
+				hum.AutoRotate = false
+				hum.PlatformStand = true
 
-					-- Desativar animação
-					if hum:FindFirstChild("Animator") then
-						hum.Animator:Destroy()
-					end
+				-- Teleporte suave
+				mob:PivotTo(CFrame.new(PosMon))
 
-					-- Impedir mob de se mover
-					hum.JumpPower = 0
-					hum.WalkSpeed = 0
-					hum:ChangeState(14)
-
-					-- Remover colisão de TODAS as partes
-					for _, part in ipairs(mob:GetDescendants()) do
-						if part:IsA("BasePart") then
-							part.CanCollide = false
-						end
-					end
-
-					-- Teleporte instantâneo (seguro)
-					root.CFrame = CFrame.new(PosMon)
-
-					-- Aumentar radius
-					pcall(function()
-						sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge)
-					end)
-				end
+				-- Simulação do jogador
+				pcall(function()
+					plr.SimulationRadius = math.huge
+				end)
 			end
 		end
 	end
@@ -889,63 +875,71 @@ task.spawn(function()
 	end;
 end);
 
--- =======================
--- TWEEN CORRIGIDO
--- =======================
 
-_tp = function(I)
-	local e = plr.Character;
-	if not e or not e:FindFirstChild("HumanoidRootPart") then
-		return;
-	end;
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local plr = game.Players.LocalPlayer
 
-	local HRP = e.HumanoidRootPart;
+_tp = function(TargetCFrame)
+    local Char = plr.Character
+    if not Char or not Char:FindFirstChild("HumanoidRootPart") then return end
 
-	--  Impedir que o sistema "C" puxe o player durante o tween
-	shouldTween = true
-	getgenv().OnFarm = false
+    local HRP = Char.HumanoidRootPart
 
-	--  Garantir que não esteja ancorado
-	if HRP.Anchored then
-		HRP.Anchored = false
-		task.wait()
-	end
+    shouldTween = true
+    getgenv().OnFarm = false
 
-	local dist = (I.Position - HRP.Position).Magnitude;
-	local info = TweenInfo.new(dist / 300, Enum.EasingStyle.Linear);
-	local tween = game:GetService("TweenService"):Create(C, info, { CFrame = I });
+    if HRP.Anchored then
+        HRP.Anchored = false
+        task.wait()
+    end
 
-	if e.Humanoid.Sit == true then
-		C.CFrame = CFrame.new(C.Position.X, I.Y, C.Position.Z);
-	end;
+    local Distance = (TargetCFrame.Position - HRP.Position).Magnitude
+    local Speed = (getgenv().Settings and getgenv().Settings.TweenSpeed) or 300
+    local Time = Distance / Speed
 
-	tween:Play();
+    if Distance <= 50 then
+        HRP.CFrame = TargetCFrame
+        getgenv().OnFarm = true
+        return
+    end
 
-	task.spawn(function()
-		while tween.PlaybackState == Enum.PlaybackState.Playing do
-			if not shouldTween then
-				tween:Cancel();
-				break;
-			end;
-			task.wait(.1);
-		end
+    local info = TweenInfo.new(Time, Enum.EasingStyle.Linear)
+    local tween = TweenService:Create(HRP, info, { CFrame = TargetCFrame })
+    tween:Play()
 
-		-- 🔥 Reativar sistema após o tween
-		getgenv().OnFarm = true
-	end);
-end;
+    local connection
+    connection = RunService.RenderStepped:Connect(function()
+        if not shouldTween then
+            tween:Cancel()
+            connection:Disconnect()
+            return
+        end
+
+        if (HRP.Position - TargetCFrame.Position).Magnitude < 20 then
+            tween:Cancel()
+            HRP.CFrame = TargetCFrame
+            connection:Disconnect()
+        end
+    end)
+
+    tween.Completed:Connect(function()
+        getgenv().OnFarm = true
+    end)
+end
 
 TeleportToTarget = function(I)
-	if (I.Position - plr.Character.HumanoidRootPart.Position).Magnitude > 1000 then
-		_tp(I);
-	else
-		_tp(I);
-	end;
-end;
+    _tp(I)
+end
 
-notween = function(I)
-	plr.Character.HumanoidRootPart.CFrame = I;
-end;
+notween = function(TargetCFrame)
+    local Char = plr.Character
+    if not Char or not Char:FindFirstChild("HumanoidRootPart") then return end
+
+    shouldTween = false
+    plr.Character.HumanoidRootPart.CFrame = TargetCFrame
+    getgenv().OnFarm = true
+end
 
 function BTP(I)
 	local e = game.Players.LocalPlayer;
@@ -3731,53 +3725,48 @@ spawn(function()
                 local enemies = workspace:FindFirstChild("Enemies")
                 if not enemies then return end
 
-                -- DETECÇÃO DO BOSS (PRIORIDADE MÁXIMA)
-                local boss = enemies:FindFirstChild("Cake Prince") or enemies:FindFirstChild("Dough King")
+                local CakePos = CFrame.new(-2091.91, 70.00, -12142.83)
 
-                -- SE O BOSS EXISTIR E ESTIVER VIVO
-                if boss and boss:FindFirstChild("Humanoid") and boss:FindFirstChild("HumanoidRootPart") and boss.Humanoid.Health > 0 then
-                    
-                    -- Calcula posição de ataque (em cima do boss para evitar dano excessivo)
-                    local bossPos = boss.HumanoidRootPart.CFrame * CFrame.new(0, 25, 0) * CFrame.Angles(math.rad(-90), 0, 0)
-                    
-                    -- Teleporta direto para o Boss (Ignora Espelho/Safe Spot)
-                    if (hrp.Position - bossPos.Position).Magnitude > 5 then
-                        _tp(bossPos) 
-                    end
-                    
-                    -- Trava a velocidade para não cair
-                    hrp.Velocity = Vector3.new(0,0,0)
-                    if hrp:FindFirstChild("AssemblyLinearVelocity") then
-                        hrp.AssemblyLinearVelocity = Vector3.new(0,0,0)
-                    end
-
-                    -- Ataca usando sua função global G.Kill
-                    if G and G.Kill then
-                        G.Kill(boss, true)
-                    else
-                        -- Fallback caso G.Kill não esteja definido (ataque básico)
-                        game:GetService("VirtualUser"):CaptureController()
-                        game:GetService("VirtualUser"):Button1Down(Vector2.new(1280, 672))
-                    end
-                    
-                    -- O return aqui garante que ele não faça mais nada enquanto o boss estiver vivo
-                    return 
+                -- Teleporta para a ilha se estiver muito longe
+                if (hrp.Position - CakePos.Position).Magnitude > 2000 then
+                    _tp(CakePos)
+                    return
                 end
 
-                -- ==========================================================
-                -- MODO FARM MOBS (SÓ RODA SE NÃO TIVER BOSS)
-                -- ==========================================================
-                
-                local CAKE_MOBS = {"Cookie Crafter", "Cake Guard", "Baking Staff", "Head Baker"}
-                local QuestUI = plr.PlayerGui.Main.Quest
+                local mirror = workspace.Map:FindFirstChild("CakeLoaf")
+                mirror = mirror and mirror:FindFirstChild("BigMirror")
+                local other = mirror and mirror:FindFirstChild("Other")
 
-                -- Pega a Missão Automaticamente
+                -- Detecta boss e portal
+                local boss = enemies:FindFirstChild("Cake Prince") or enemies:FindFirstChild("Dough King")
+                local portalOpen = other and other.Transparency == 0
+
+                -- MODO BOSS
+                if boss or portalOpen then
+                    if boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then
+                        local bossPos = boss.PrimaryPart.CFrame * CFrame.new(0, 25, 0) * CFrame.Angles(math.rad(-90), 0, 0)
+                        _tp(bossPos)
+                        hrp.Velocity = Vector3.new(0,0,0)
+                        hrp.AssemblyLinearVelocity = Vector3.new(0,0,0)
+                        G.Kill(boss, true)
+                        return
+                    end
+
+                    local safeSpot = CFrame.new(-2151.82, 149.32, -12404.91)
+                    if (hrp.Position - safeSpot.Position).Magnitude > 10 then
+                        _tp(safeSpot)
+                    end
+                    return
+                end
+
+                -- MODO FARM MOBS
+                local CAKE_MOBS = {"Cookie Crafter", "Cake Guard", "Baking Staff", "Head Baker"}
+
+                local QuestUI = plr.PlayerGui.Main.Quest
                 if _G.AcceptQuest and not QuestUI.Visible then
                     local questPos = CFrame.new(-1927.92, 37.80, -12842.54)
-                    
-                    if (hrp.Position - questPos.Position).Magnitude > 40 then
-                        _tp(questPos)
-                    else
+                    _tp(questPos)
+                    if (hrp.Position - questPos.Position).Magnitude <= 40 then
                         local q = {
                             {"StartQuest", "CakeQuest2", 2},
                             {"StartQuest", "CakeQuest2", 1},
@@ -3789,12 +3778,13 @@ spawn(function()
                     return
                 end
 
-                -- Busca o mob mais próximo
                 local bestMob
                 local bestDist = math.huge
 
                 for _, mob in ipairs(enemies:GetChildren()) do
-                    if table.find(CAKE_MOBS, mob.Name) and mob:FindFirstChild("Humanoid") and mob:FindFirstChild("HumanoidRootPart") and mob.Humanoid.Health > 0 then
+                    if table.find(CAKE_MOBS, mob.Name) and mob:FindFirstChild("Humanoid")
+                        and mob:FindFirstChild("HumanoidRootPart") and mob.Humanoid.Health > 0 then
+
                         local dist = (mob.HumanoidRootPart.Position - hrp.Position).Magnitude
                         if dist < bestDist then
                             bestDist = dist
@@ -3803,42 +3793,30 @@ spawn(function()
                     end
                 end
 
-                -- Se não achar mob, vai para o ponto central da ilha
                 if not bestMob then
-                    _tp(CFrame.new(-2091.91, 70.00, -12142.83))
+                    _tp(CakePos)
                     return
                 end
 
-                -- Mata o Mob
+                -- Farmar mob
                 if bestMob and bestMob:FindFirstChild("HumanoidRootPart") then
-                    -- Loop de ataque ao mob específico
                     repeat
                         task.wait()
-                        -- VERIFICAÇÃO DE EMERGÊNCIA: Se o boss spawnar ENQUANTO mata mob, para tudo e reinicia o loop
-                        if enemies:FindFirstChild("Cake Prince") or enemies:FindFirstChild("Dough King") then
-                            break 
-                        end
-
+                        if other and other.Transparency == 0 then break end
                         if bestMob.Parent and bestMob.Humanoid.Health > 0 and bestMob:FindFirstChild("HumanoidRootPart") then
                             local farmPos = bestMob.HumanoidRootPart.CFrame * CFrame.new(0, 25, 0) * CFrame.Angles(math.rad(-90), 0, 0)
                             _tp(farmPos)
-                            
                             hrp.Velocity = Vector3.new(0, 0, 0)
                             if hrp:FindFirstChild("AssemblyLinearVelocity") then
                                 hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
                             end
-                            
-                            if G and G.Kill then
-                                G.Kill(bestMob, true)
-                            else
-                                game:GetService("VirtualUser"):CaptureController()
-                                game:GetService("VirtualUser"):Button1Down(Vector2.new(1280, 672))
-                            end
+                            G.Kill(bestMob, true)
                         else
                             break
                         end
                     until not _G.StartFarm or not _G.AutoFarm_Cake or not bestMob.Parent or bestMob.Humanoid.Health <= 0
                 end
+
             end)
         end
     end
