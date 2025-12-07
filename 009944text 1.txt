@@ -876,69 +876,125 @@ task.spawn(function()
 end);
 
 
-local TweenService = game:GetService("TweenService")
-local RunService = game:GetService("RunService")
-local plr = game.Players.LocalPlayer
+--=====================================================
+--   SISTEMA DE MOVIMENTO COMPLETO (MELHORADO)
+--   _tp   → Tween inteligente
+--   TeleportToTarget → gerenciador
+--   notween → TP instantâneo manual
+--=====================================================
 
-_tp = function(TargetCFrame)
-    local Char = plr.Character
-    if not Char or not Char:FindFirstChild("HumanoidRootPart") then return end
+_tp = function(I)
+	local e = plr.Character
+	if not e then return end
 
-    local HRP = Char.HumanoidRootPart
+	local HRP = e:FindFirstChild("HumanoidRootPart")
+	if not HRP then return end
 
-    shouldTween = true
-    getgenv().OnFarm = false
+	------------------------------------
+	-- 🔵 Distância até o destino
+	------------------------------------
+	local dist = (I.Position - HRP.Position).Magnitude
 
-    if HRP.Anchored then
-        HRP.Anchored = false
-        task.wait()
-    end
+	------------------------------------
+	-- 🟦 TP instantâneo se estiver muito perto
+	------------------------------------
+	if dist <= 5 then
+		shouldTween = false
+		getgenv().OnFarm = false
 
-    local Distance = (TargetCFrame.Position - HRP.Position).Magnitude
-    local Speed = (getgenv().Settings and getgenv().Settings.TweenSpeed) or 300
-    local Time = Distance / Speed
+		if HRP.Anchored then
+			HRP.Anchored = false
+		end
 
-    if Distance <= 50 then
-        HRP.CFrame = TargetCFrame
-        getgenv().OnFarm = true
-        return
-    end
+		HRP.CFrame = I
 
-    local info = TweenInfo.new(Time, Enum.EasingStyle.Linear)
-    local tween = TweenService:Create(HRP, info, { CFrame = TargetCFrame })
-    tween:Play()
+		getgenv().OnFarm = true
+		return
+	end
 
-    local connection
-    connection = RunService.RenderStepped:Connect(function()
-        if not shouldTween then
-            tween:Cancel()
-            connection:Disconnect()
-            return
-        end
+	------------------------------------
+	-- 🔵 Configurações para Tween
+	------------------------------------
+	shouldTween = true
+	getgenv().OnFarm = false
 
-        if (HRP.Position - TargetCFrame.Position).Magnitude < 20 then
-            tween:Cancel()
-            HRP.CFrame = TargetCFrame
-            connection:Disconnect()
-        end
-    end)
+	if HRP.Anchored then
+		HRP.Anchored = false
+		task.wait()
+	end
 
-    tween.Completed:Connect(function()
-        getgenv().OnFarm = true
-    end)
+	-- velocidade suave e limitada
+	local speed = math.clamp(dist / 300, 0.1, 3.8)
+
+	local info = TweenInfo.new(
+		speed,
+		Enum.EasingStyle.Linear,
+		Enum.EasingDirection.Out
+	)
+
+	local tween = game:GetService("TweenService"):Create(HRP, info, { CFrame = I })
+
+	-- caso o player esteja sentado
+	local hum = e:FindFirstChild("Humanoid")
+	if hum and hum.Sit then
+		HRP.CFrame = CFrame.new(HRP.Position.X, I.Y, HRP.Position.Z)
+	end
+
+	------------------------------------
+	-- 🔵 Iniciar Tween
+	------------------------------------
+	tween:Play()
+
+	------------------------------------
+	-- 🔵 Monitorar Tween
+	------------------------------------
+	task.spawn(function()
+		while tween.PlaybackState == Enum.PlaybackState.Playing do
+			if not shouldTween then
+				tween:Cancel()
+				break
+			end
+			task.wait(0.03)
+		end
+
+		getgenv().OnFarm = true
+	end)
 end
+
+--=====================================================
+--   TeleportToTarget → chama o tween inteligente
+--=====================================================
 
 TeleportToTarget = function(I)
-    _tp(I)
+	local char = plr.Character
+	if not char then return end
+
+	local HRP = char:FindFirstChild("HumanoidRootPart")
+	if not HRP then return end
+
+	_tp(I)
 end
 
-notween = function(TargetCFrame)
-    local Char = plr.Character
-    if not Char or not Char:FindFirstChild("HumanoidRootPart") then return end
+--=====================================================
+--   notween → teleporte bruto instantâneo
+--=====================================================
 
-    shouldTween = false
-    plr.Character.HumanoidRootPart.CFrame = TargetCFrame
-    getgenv().OnFarm = true
+notween = function(I)
+	local char = plr.Character
+	if not char then return end
+
+	local HRP = char:FindFirstChild("HumanoidRootPart")
+	if not HRP then return end
+
+	shouldTween = false
+	getgenv().OnFarm = false
+
+	if HRP.Anchored then
+		HRP.Anchored = false
+	end
+
+	HRP.CFrame = I
+	getgenv().OnFarm = true
 end
 
 function BTP(I)
