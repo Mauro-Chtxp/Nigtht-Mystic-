@@ -30,71 +30,77 @@ local q=(gethui or function()return g.CoreGui end)()
 local r = {
     Darker = {
         Colors = {
-            -- Fundo: Mantendo o degradê de vermelho escuro (60, 20, 20)
+            -- FUNDO PRETO FOSCO
             Background = ColorSequence.new{
-                ColorSequenceKeypoint.new(0.00, Color3.fromRGB(60, 20, 20)),
-                ColorSequenceKeypoint.new(0.50, Color3.fromRGB(100, 30, 30)),
-                ColorSequenceKeypoint.new(1.00, Color3.fromRGB(60, 20, 20))
+                ColorSequenceKeypoint.new(0.00, Color3.fromRGB(20, 20, 20)),
+                ColorSequenceKeypoint.new(0.50, Color3.fromRGB(25, 25, 25)),
+                ColorSequenceKeypoint.new(1.00, Color3.fromRGB(20, 20, 20))
             },
-            
-            -- Cores Primárias (Vermelho Neon)
-            Primary = Color3.fromRGB(255, 30, 30),
-            OnPrimary = Color3.fromRGB(200, 0, 0),
-            ScrollBar = Color3.fromRGB(255, 50, 50),
-            Stroke = Color3.fromRGB(10, 10, 10), -- Preto Escuro/Quase Preto
 
-            Error = Color3.fromRGB(255, 50, 50),
-            Icons = Color3.fromRGB(255, 255, 255), -- Ícones em branco para visibilidade
+            -- AZUL-ROXO PRINCIPAL
+            Primary   = Color3.fromRGB(110, 60, 255),  -- Roxo-azulado vivo
+            OnPrimary = Color3.fromRGB(90, 50, 220),
+            ScrollBar = Color3.fromRGB(80, 40, 200),
+            Stroke    = Color3.fromRGB(70, 35, 180),
 
-            JoinButton = Color3.fromRGB(255, 30, 30),
-            Link = Color3.fromRGB(255, 80, 80),
+            Error     = Color3.fromRGB(255, 120, 120),
+            Icons     = Color3.fromRGB(230, 230, 240),
+
+            JoinButton = Color3.fromRGB(120, 70, 255),
+            Link       = Color3.fromRGB(140, 80, 255),
 
             Dialog = {
-                Background = Color3.fromRGB(30, 30, 30) -- Fundo de Diálogo escuro
+                Background = Color3.fromRGB(30, 30, 30) -- Preto fosco direto
             },
+
             Buttons = {
-                Holding = Color3.fromRGB(20, 20, 20),  -- Botões Preto Escuro
-                Default = Color3.fromRGB(15, 15, 15)
+                Holding = Color3.fromRGB(100, 50, 220),
+                Default = Color3.fromRGB(70, 40, 180)
             },
+
             Border = {
-                Holding = Color3.fromRGB(255, 50, 50), -- Borda em Vermelho Neon
-                Default = Color3.fromRGB(20, 20, 20),  -- Borda Padrão Escura
+                Holding = Color3.fromRGB(140, 80, 255),
+                Default = Color3.fromRGB(110, 60, 230)
             },
+
             Text = {
-                Default = Color3.fromRGB(255, 255, 255), -- Texto em branco
-                Dark = Color3.fromRGB(220, 220, 220),
-                Darker = Color3.fromRGB(200, 200, 200),
+                Default = Color3.fromRGB(255, 255, 255),
+                Dark    = Color3.fromRGB(220, 220, 235),
+                Darker  = Color3.fromRGB(200, 200, 220),
             },
+
             Slider = {
-                -- Slider/Toggle de Vermelho Neon
-                SliderBar = Color3.fromRGB(255, 30, 30), 
-                SliderNumber = Color3.fromRGB(255, 200, 200),
+                SliderBar    = Color3.fromRGB(100, 60, 240),
+                SliderNumber = Color3.fromRGB(210, 190, 255),
             },
+
             Dropdown = {
-                Holder = Color3.fromRGB(15, 15, 15), -- Dropdown Preto Escuro
+                Holder = Color3.fromRGB(20, 20, 20) -- PRETO FOSCO
             }
         },
-        -- Mantendo os ícones e a fonte
+
         Icons = {
-            Error = "rbxassetid://10709752996",
-            Button = "rbxassetid://10709791437",
-            Close = "rbxassetid://10747384394",
+            Error   = "rbxassetid://10709752996",
+            Button  = "rbxassetid://10709791437",
+            Close   = "rbxassetid://10747384394",
             TextBox = "rbxassetid://15637081879",
-            Search = "rbxassetid://10734943674",
+            Search  = "rbxassetid://10734943674",
             Keybind = "rbxassetid://10734982144",
             Dropdown = {
-                Open = "rbxassetid://10709791523",
+                Open  = "rbxassetid://10709791523",
                 Close = "rbxassetid://10709790948"
             }
         },
+
         Font = {
-            Normal = Enum.Font.BuilderSans,
-            Medium = Enum.Font.BuilderSansMedium,
-            Bold = Enum.Font.BuilderSansBold,
-            ExtraBold = Enum.Font.BuilderSansExtraBold,
+            Normal     = Enum.Font.BuilderSans,
+            Medium     = Enum.Font.BuilderSansMedium,
+            Bold       = Enum.Font.BuilderSansBold,
+            ExtraBold  = Enum.Font.BuilderSansExtraBold,
             SliderValue = Enum.Font.FredokaOne
         },
-        BackgroundTransparency = 0.02
+
+        BackgroundTransparency = 0.03
     }
 }
 
