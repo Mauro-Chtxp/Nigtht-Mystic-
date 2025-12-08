@@ -873,63 +873,39 @@ task.spawn(function()
 	end;
 end);
 
--- =======================
--- TWEEN CORRIGIDO
--- =======================
-
 _tp = function(I)
-	local e = plr.Character;
-	if not e or not e:FindFirstChild("HumanoidRootPart") then
-		return;
-	end;
-
-	local HRP = e.HumanoidRootPart;
-
-	--  Impedir que o sistema "C" puxe o player durante o tween
-	shouldTween = true
-	getgenv().OnFarm = false
-
-	--  Garantir que não esteja ancorado
-	if HRP.Anchored then
-		HRP.Anchored = false
-		task.wait()
-	end
-
-	local dist = (I.Position - HRP.Position).Magnitude;
-	local info = TweenInfo.new(dist / 300, Enum.EasingStyle.Linear);
-	local tween = game:GetService("TweenService"):Create(C, info, { CFrame = I });
-
-	if e.Humanoid.Sit == true then
-		C.CFrame = CFrame.new(C.Position.X, I.Y, C.Position.Z);
-	end;
-
-	tween:Play();
-
-	task.spawn(function()
-		while tween.PlaybackState == Enum.PlaybackState.Playing do
-			if not shouldTween then
-				tween:Cancel();
-				break;
+		local e = plr.Character;
+		if not e or not e:FindFirstChild("HumanoidRootPart") then
+			return;
+		end;
+		local K = e.HumanoidRootPart;
+		local n = (I.Position - K.Position).Magnitude;
+		local d = TweenInfo.new(n / 300, Enum.EasingStyle.Linear);
+		local z = (game:GetService("TweenService")):Create(C, d, { CFrame = I });
+		if plr.Character.Humanoid.Sit == true then
+			C.CFrame = CFrame.new(C.Position.X, I.Y, C.Position.Z);
+		end;
+		z:Play();
+		task.spawn(function()
+			while z.PlaybackState == Enum.PlaybackState.Playing do
+				if not shouldTween then
+					z:Cancel();
+					break;
+				end;
+				task.wait(.1);
 			end;
-			task.wait(.1);
-		end
-
-		-- 🔥 Reativar sistema após o tween
-		getgenv().OnFarm = true
-	end);
-end;
-
-TeleportToTarget = function(I)
-	if (I.Position - plr.Character.HumanoidRootPart.Position).Magnitude > 1000 then
-		_tp(I);
-	else
-		_tp(I);
+		end);
 	end;
-end;
-
+TeleportToTarget = function(I)
+		if (I.Position - plr.Character.HumanoidRootPart.Position).Magnitude > 1000 then
+			_tp(I);
+		else
+			_tp(I);
+		end;
+	end;
 notween = function(I)
-	plr.Character.HumanoidRootPart.CFrame = I;
-end;
+		plr.Character.HumanoidRootPart.CFrame = I;
+	end;
 
 function BTP(I)
 	local e = game.Players.LocalPlayer;
