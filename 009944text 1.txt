@@ -1925,7 +1925,6 @@ elseif I == 1650 or I <= 1699 then
 		end
 	end
 end
-
 MaterialMon = function()
 		local I = game.Players.LocalPlayer;
 		local e = I.Character and I.Character:FindFirstChild("HumanoidRootPart");
