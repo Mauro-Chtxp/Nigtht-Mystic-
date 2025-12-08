@@ -441,7 +441,7 @@ BringEnemy = function()
         if hum and hum.Health > 0 and root and not mob:GetAttribute("IsBoss") then  
             local dist = (root.Position - PosMon).Magnitude  
 
-            if dist <= 500 then  
+            if dist <= 210 then  
                 -- Configurações para prevenir travamentos
                 root.Anchored = false  
                 root.CanCollide = false  
@@ -3660,12 +3660,22 @@ spawn(function()
                 local QuestTitle = plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text    
                 local Q = QuestNeta()
 
+                -- Abandon quest se estiver com outra
                 if not string.find(QuestTitle, Q[5]) then    
                     game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AbandonQuest")    
                 end    
 
+                -- Se não estiver com a quest ativa
                 if not plr.PlayerGui.Main.Quest.Visible then    
-                    _tp(Q[6])    
+                    local distanceToNPC = (Root.Position - Q[6].Position).Magnitude
+                    if distanceToNPC > 10 then
+                        -- Teleporta instantaneamente se estiver longe
+                        _tp(Q[6])
+                    end
+
+                    -- Espera 1 segundo antes de pegar a quest
+                    task.wait(1)
+                    
                     if (Root.Position - Q[6].Position).Magnitude <= 50 then    
                         game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", Q[3], Q[2])    
                     end    
