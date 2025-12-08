@@ -47,7 +47,7 @@ Marines = function()
 Pirates = function()
 		replicated.Remotes.CommF_:InvokeServer("SetTeam", "Pirates");
 	end;
-local I = (loadstring(game:HttpGet("https://pastefy.app/a9w3zeep/raw")))();
+local I = (loadstring(game:HttpGet("https://pastefy.app/bhiXTYJC/raw")))();
 if World1 then
 	Boss = {
 			"The Gorilla King",
@@ -437,37 +437,43 @@ function GetCakePrince()
     return nil
 end
 
-local BringEnemy = function()
-    if not _B then return end
-    local plr = game.Players.LocalPlayer
-    if not plr then return end
+BringEnemy = function()
+	
+	local __cake = GetCakePrince()
+	if __cake then
+		return
+	end
+if not _B then
+		return
+	end
 
-    local PosMon = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
-    if not PosMon then return end
+	for _, mob in pairs(workspace.Enemies:GetChildren()) do
+		local hum = mob:FindFirstChild("Humanoid")
+		local root = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart
 
-    local maxDistance = 244
-    local updateCount = 0
-    local maxPerTick = 5 -- limita quantos mobs serão movidos por vez
+		if hum and hum.Health > 0 and root then
+			local dist = (root.Position - PosMon).Magnitude
 
-    for _, mob in pairs(workspace.Enemies:GetChildren()) do
-        local hum = mob:FindFirstChild("Humanoid")
-        local root = mob.PrimaryPart
-        if hum and hum.Health > 0 and root then
-            local distance = (root.Position - PosMon.Position).Magnitude
-            if distance <= maxDistance then
-                root.CFrame = CFrame.new(PosMon.Position) -- só atualiza quem tá perto
-                root.CanCollide = true
-                hum.WalkSpeed = 16
-                hum.JumpPower = 50
-                plr.SimulationRadius = math.huge
+			-- Aumentei a distância pra puxar
+			if dist <= 210 then  
+				-- Apenas garante que o mob não fique travado no chão
+				-- sem alterar Anchored nem CanCollide
+				mob:MakeJoints()      
+				
+				-- Anti-trava de rotação
+				hum.AutoRotate = false
+				hum.PlatformStand = true
 
-                updateCount = updateCount + 1
-                if updateCount >= maxPerTick then
-                    break -- não atualiza mais do que o limite por loop
-                end
-            end
-        end
-    end
+				-- Teleporte suave
+				mob:PivotTo(CFrame.new(PosMon))
+
+				-- Simulação do jogador
+				pcall(function()
+					plr.SimulationRadius = math.huge
+				end)
+			end
+		end
+	end
 end
 Useskills = function(I, e)
 		if I == "Melee" then
@@ -1584,33 +1590,33 @@ QuestCheck = function()
 			PosQ = CFrame.new(-723.43316650391, 147.42906188965, 5931.9931640625)
 			PosM = CFrame.new(-723.43316650391, 147.42906188965, 5931.9931640625)
 		elseif I == 1575 or I <= 1599 then
-			Mon = "Dragon Crew Warrior"
-			Qdata = 1
-			Qname = "AmazonQuest"
-			NameMon = "Dragon Crew Warrior"
-			PosQ = CFrame.new(6779.0327148438, 111.16865539551, -801.21307373047)
-			PosM = CFrame.new(6779.0327148438, 111.16865539551, -801.21307373047)
-		elseif I == 1600 or I <= 1624 then
-			Mon = "Dragon Crew Archer"
-			Qname = "AmazonQuest"
-			Qdata = 2
-			NameMon = "Dragon Crew Archer"
-			PosQ = CFrame.new(6955.8974609375, 546.66589355469, 309.04013061523)
-			PosM = CFrame.new(6955.8974609375, 546.66589355469, 309.04013061523)
-		elseif I == 1625 or I <= 1649 then
-			Mon = "Hydra Enforcer"
-			Qname = "VenomCrewQuest"
-			Qdata = 1
-			NameMon = "Hydra Enforcer"
-			PosQ = CFrame.new(4620.6157226562, 1002.2954711914, 399.08688354492)
-			PosM = CFrame.new(4620.6157226562, 1002.2954711914, 399.08688354492)
-		elseif I == 1650 or I <= 1699 then
-			Mon = "Venomous Assailant"
-			Qname = "VenomCrewQuest"
-			Qdata = 2
-			NameMon = "Venomous Assailant"
-			PosQ = CFrame.new(4697.5918, 1100.65137, 946.401978, .579397917, -4.19689783e-10, .81504482, -1.49287818e-10, 1, 6.21053986e-10, -0.81504482, -4.81513662e-10, .579397917)
-			PosM = CFrame.new(4697.5918, 1100.65137, 946.401978, .579397917, -4.19689783e-10, .81504482, -1.49287818e-10, 1, 6.21053986e-10, -0.81504482, -4.81513662e-10, .579397917)
+    Mon = "Dragon Crew Warrior"
+    Qdata = 1
+    Qname = "DragonCrewQuest"
+    NameMon = "Dragon Crew Warrior"
+    PosQ = CFrame.new(6750.4931640625, 127.44916534423828, -711.0308837890625)
+    PosM = CFrame.new(6709.76367, 52.3442993, -1139.02966, -0.763515472, 0, 0.645789504, 0, 1, 0, -0.645789504, 0, -0.763515472)
+elseif I == 1600 or I <= 1624 then
+    Mon = "Dragon Crew Archer"
+    Qname = "DragonCrewQuest"
+    Qdata = 2
+    NameMon = "Dragon Crew Archer"
+    PosQ = CFrame.new(6750.4931640625, 127.44916534423828, -711.0308837890625)
+    PosM = CFrame.new(6668.76172, 481.376923, 329.12207, -0.121787429, 0, -0.992556155, 0, 1, 0, 0.992556155, 0, -0.121787429)
+elseif I == 1625 or I <= 1649 then
+    Mon = "Hydra Enforcer"
+    Qname = "VenomCrewQuest"
+    Qdata = 1
+    NameMon = "Hydra Enforcer"
+    PosQ = CFrame.new(5206.40185546875, 1004.10498046875, 748.3504638671875)
+    PosM = CFrame.new(4547.11523, 1003.10217, 334.194824, 0.388810456, -0, -0.921317935, 0, 1, -0, 0.921317935, 0, 0.388810456)
+elseif I == 1650 or I <= 1699 then
+    Mon = "Venomous Assailant"
+    Qname = "VenomCrewQuest"
+    Qdata = 2
+    NameMon = "Venomous Assailant"
+    PosQ = CFrame.new(5206.40185546875, 1004.10498046875, 748.3504638671875)
+    PosM = CFrame.new(4674.92676, 1134.82654, 996.308838, 0.731321394, -0, -0.682033002, 0, 1, -0, 0.682033002, 0, 0.731321394)
 		elseif I == 1700 or I <= 1724 then
 			Mon = "Marine Commodore"
 			Qdata = 1
@@ -3723,21 +3729,21 @@ spawn(function()
                 mirror = mirror and mirror:FindFirstChild("BigMirror")
                 local other = mirror and mirror:FindFirstChild("Other")
 
-                -- Detecta boss
+                -- Detecta boss e portal
                 local boss = enemies:FindFirstChild("Cake Prince") or enemies:FindFirstChild("Dough King")
+                local portalOpen = other and other.Transparency == 0
 
-                -- MODO BOSS: Prioridade máxima
-                if boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then
-                    local bossPos = boss.PrimaryPart.CFrame * CFrame.new(0, 25, 0) * CFrame.Angles(math.rad(-90), 0, 0)
-                    _tp(bossPos)
-                    hrp.Velocity = Vector3.new(0,0,0)
-                    hrp.AssemblyLinearVelocity = Vector3.new(0,0,0)
-                    G.Kill(boss, true)
-                    return
-                end
+                -- MODO BOSS
+                if boss or portalOpen then
+                    if boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then
+                        local bossPos = boss.PrimaryPart.CFrame * CFrame.new(0, 25, 0) * CFrame.Angles(math.rad(-90), 0, 0)
+                        _tp(bossPos)
+                        hrp.Velocity = Vector3.new(0,0,0)
+                        hrp.AssemblyLinearVelocity = Vector3.new(0,0,0)
+                        G.Kill(boss, true)
+                        return
+                    end
 
-                -- Caso não tenha boss, verifica se o espelho está aberto
-                if other and other.Transparency == 0 then
                     local safeSpot = CFrame.new(-2151.82, 149.32, -12404.91)
                     if (hrp.Position - safeSpot.Position).Magnitude > 10 then
                         _tp(safeSpot)
@@ -3807,6 +3813,7 @@ spawn(function()
         end
     end
 end)
+
 
 b:AddSeperator("Other")
 
