@@ -10325,5 +10325,3 @@ end)
 _ENV.rz_FastAttack = FastAttack
 FastAttackModule.FastAttack = FastAttack
 return FastAttackModule
-
-setclipboard("https://discord.gg/3SrzUYqzPJ")
