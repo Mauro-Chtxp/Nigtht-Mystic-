@@ -429,7 +429,7 @@ statsSetings = function(I, e)
 
 local TweenService = game:GetService("TweenService")
 local tweenInfo = TweenInfo.new(0.35, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
-local ActiveTweens = {} -- Para rastrear tweens ativos
+local ActiveTweens = {}
 
 BringEnemy = function()
     if not _B then return end
@@ -445,23 +445,11 @@ BringEnemy = function()
             local dist = (root.Position - PosMon).Magnitude  
 
             if dist <= 210 then  
-                -- Previne travamentos apenas uma vez
+                -- Criar Tween apenas se não houver um ativo
                 if not ActiveTweens[root] then
-                    root.Anchored = false  
-                    root.CanCollide = false  
-                    hum.AutoRotate = false  
-                    hum.PlatformStand = true  
-                end
-
-                -- Tween suave ou teleporte direto
-                if dist < 10 then  
-                    root.CFrame = CFrame.new(PosMon)
-                    if ActiveTweens[root] then
-                        ActiveTweens[root]:Cancel()
-                        ActiveTweens[root] = nil
-                    end
-                else  
-                    if not ActiveTweens[root] then
+                    if dist < 10 then  
+                        root.CFrame = CFrame.new(PosMon)
+                    else  
                         local t = TweenService:Create(root, tweenInfo, { CFrame = CFrame.new(PosMon) })
                         t:Play()
                         ActiveTweens[root] = t
@@ -473,11 +461,6 @@ BringEnemy = function()
             end
         end  
     end
-
-    -- Atualizar SimulationRadius apenas uma vez
-    pcall(function()  
-        plr.SimulationRadius = 1000 -- limite alto, mas não infinito
-    end)
 end
 Useskills = function(I, e)
 		if I == "Melee" then
