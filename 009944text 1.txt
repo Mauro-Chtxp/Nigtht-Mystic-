@@ -441,10 +441,10 @@ BringEnemy = function()
         if hum and hum.Health > 0 and root and not mob:GetAttribute("IsBoss") then  
             local dist = (root.Position - PosMon).Magnitude  
 
-            if dist <= 210 then  
+            if dist <= 200 then  
                 -- Configurações para prevenir travamentos
                 root.Anchored = false  
-                root.CanCollide = false  
+                root.CanCollide = true  
                 hum.AutoRotate = false  
                 hum.PlatformStand = true  
 
@@ -3733,6 +3733,7 @@ spawn(function()
                     return
                 end
 
+                -- Referências do espelho
                 local mirror = workspace.Map:FindFirstChild("CakeLoaf")
                 mirror = mirror and mirror:FindFirstChild("BigMirror")
                 local other = mirror and mirror:FindFirstChild("Other")
@@ -3741,9 +3742,16 @@ spawn(function()
                 local boss = enemies:FindFirstChild("Cake Prince") or enemies:FindFirstChild("Dough King")
                 local portalOpen = other and other.Transparency == 0
 
-                -- MODO BOSS
+                --------------------------------------------------------------------
+                -- ============ MODO BOSS (CORRIGIDO COM DETECÇÃO DE DIMENSÃO) ============
+                --------------------------------------------------------------------
                 if boss or portalOpen then
-                    if boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then
+                    
+                    -- Detecta se o player já está dentro da dimensão
+                    local inDimension = hrp.Position.Y > 3000
+
+                    -- Se o boss existe e estamos dentro da dimensão -> atacar
+                    if inDimension and boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then
                         local bossPos = boss.PrimaryPart.CFrame * CFrame.new(0, 25, 0) * CFrame.Angles(math.rad(-90), 0, 0)
                         _tp(bossPos)
                         hrp.Velocity = Vector3.new(0,0,0)
@@ -3752,12 +3760,27 @@ spawn(function()
                         return
                     end
 
-                    local safeSpot = CFrame.new(-2151.82, 149.32, -12404.91)
-                    if (hrp.Position - safeSpot.Position).Magnitude > 10 then
-                        _tp(safeSpot)
+                    -- Se o portal abriu, mas ainda estamos FORA da dimensão → esperar no safeSpot
+                    if portalOpen and not inDimension then
+                        local safeSpot = CFrame.new(-2151.82, 149.32, -12404.91)
+                        if (hrp.Position - safeSpot.Position).Magnitude > 10 then
+                            _tp(safeSpot)
+                        end
+                        return
                     end
+
+                    -- Se o boss já existe mas player ainda não entrou → tentar entrar
+                    if boss and not inDimension then
+                        local goToBoss = boss.PrimaryPart.CFrame * CFrame.new(0, 25, 0)
+                        _tp(goToBoss)
+                        return
+                    end
+
                     return
                 end
+                --------------------------------------------------------------------
+                -- ===================== FIM DO MODO BOSS ==========================
+                --------------------------------------------------------------------
 
                 -- MODO FARM MOBS
                 local CAKE_MOBS = {"Cookie Crafter", "Cake Guard", "Baking Staff", "Head Baker"}
@@ -3782,8 +3805,10 @@ spawn(function()
                 local bestDist = math.huge
 
                 for _, mob in ipairs(enemies:GetChildren()) do
-                    if table.find(CAKE_MOBS, mob.Name) and mob:FindFirstChild("Humanoid")
-                        and mob:FindFirstChild("HumanoidRootPart") and mob.Humanoid.Health > 0 then
+                    if table.find(CAKE_MOBS, mob.Name)
+                        and mob:FindFirstChild("Humanoid")
+                        and mob:FindFirstChild("HumanoidRootPart")
+                        and mob.Humanoid.Health > 0 then
 
                         local dist = (mob.HumanoidRootPart.Position - hrp.Position).Magnitude
                         if dist < bestDist then
@@ -3803,25 +3828,29 @@ spawn(function()
                     repeat
                         task.wait()
                         if other and other.Transparency == 0 then break end
-                        if bestMob.Parent and bestMob.Humanoid.Health > 0 and bestMob:FindFirstChild("HumanoidRootPart") then
+
+                        if bestMob.Parent
+                        and bestMob.Humanoid.Health > 0
+                        and bestMob:FindFirstChild("HumanoidRootPart") then
+
                             local farmPos = bestMob.HumanoidRootPart.CFrame * CFrame.new(0, 25, 0) * CFrame.Angles(math.rad(-90), 0, 0)
                             _tp(farmPos)
+
                             hrp.Velocity = Vector3.new(0, 0, 0)
                             if hrp:FindFirstChild("AssemblyLinearVelocity") then
                                 hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
                             end
+
                             G.Kill(bestMob, true)
                         else
                             break
                         end
                     until not _G.StartFarm or not _G.AutoFarm_Cake or not bestMob.Parent or bestMob.Humanoid.Health <= 0
                 end
-
             end)
         end
     end
 end)
-
 
 b:AddSeperator("Other")
 
