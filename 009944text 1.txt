@@ -3603,7 +3603,24 @@ end)
 -- 3. SISTEMA LEVEL FARM (EXATO)
 ----------------------------------------------------------------------
 local CurrentMob = nil
-local NeedPreTP = false
+
+local function GetNearestMob(TargetName)
+    local plr = game.Players.LocalPlayer
+    local Root = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+    if not Root then return nil end
+
+    local Closest, Dist = nil, math.huge  
+    for _, Mob in pairs(workspace.Enemies:GetChildren()) do  
+        if G.Alive(Mob) and Mob.Name == TargetName and Mob:FindFirstChild("HumanoidRootPart") then  
+            local d = (Mob.HumanoidRootPart.Position - Root.Position).Magnitude  
+            if d < Dist then  
+                Dist = d  
+                Closest = Mob  
+            end  
+        end  
+    end  
+    return Closest
+end
 
 spawn(function()
     while task.wait() do
@@ -3614,91 +3631,43 @@ spawn(function()
                 local Root = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
                 if not Root then return end
 
-                local QuestGui = plr.PlayerGui.Main.Quest
-                local QuestTitle = QuestGui.Container.QuestTitle.Title.Text
+                local QuestTitle = plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text    
                 local Q = QuestNeta()
 
-                ---------------------------------------------------------
-                -- SE A QUEST TEM UM PASSO PRÉVIO, ATIVA PRE-TP
-                ---------------------------------------------------------
-                if not QuestGui.Visible then
-                    CurrentMob = nil
+                if not string.find(QuestTitle, Q[5]) then    
+                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AbandonQuest")    
+                end    
 
-                    if Q[7] then
-                        NeedPreTP = true
-                    else
-                        NeedPreTP = false
-                    end
-                end
+                if not plr.PlayerGui.Main.Quest.Visible then    
+                    _tp(Q[6])    
+                    if (Root.Position - Q[6].Position).Magnitude <= 50 then    
+                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", Q[3], Q[2])    
+                    end    
+                    return    
+                end    
 
-                ---------------------------------------------------------
-                -- PRIMEIRO FAZ O PRÉ-TELEPORTE
-                ---------------------------------------------------------
-                if NeedPreTP and Q[7] then
-                    if (Root.Position - Q[7].Position).Magnitude > 10 then
-                        _tp(Q[7])
-                        return
-                    end
+                local Nearest = GetNearestMob(Q[1])    
 
-                    -- Chegou no local prévio
-                    NeedPreTP = false
-                end
+                if CurrentMob and G.Alive(CurrentMob) and CurrentMob.Parent then    
+                    G.Kill(CurrentMob, true)    
+                    return    
+                else    
+                    CurrentMob = nil    
+                end    
 
-                ---------------------------------------------------------
-                -- DEPOIS PEGA A QUEST NORMALMENTE
-                ---------------------------------------------------------
-                if not QuestGui.Visible then
-                    if (Root.Position - Q[6].Position).Magnitude > 10 then
-                        _tp(Q[6])
-                    end
+                if not Nearest then    
+                    _tp(Q[4])    
+                    return    
+                end    
 
-                    task.wait(1)
+                CurrentMob = Nearest    
 
-                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(
-                        "StartQuest", Q[3], Q[2]
-                    )
-                    return
-                end
+                repeat    
+                    task.wait()    
+                    G.Kill(CurrentMob, true)    
+                until not _G.StartFarm or not _G.Level or not CurrentMob.Parent or CurrentMob.Humanoid.Health <= 0    
 
-                ---------------------------------------------------------
-                -- QUEST ENCERRADA DURANTE O COMBATE → PARAR
-                ---------------------------------------------------------
-                if not string.find(QuestTitle, Q[5]) then
-                    CurrentMob = nil
-                    return
-                end
-
-                ---------------------------------------------------------
-                -- SISTEMA DE COMBATE (igual antes)
-                ---------------------------------------------------------
-                if CurrentMob and G.Alive(CurrentMob) and CurrentMob.Parent then
-                    G.Kill(CurrentMob, true)
-                    return
-                else
-                    CurrentMob = nil
-                end
-
-                local Nearest = GetNearestMob(Q[1])
-                if not Nearest then
-                    _tp(Q[4])
-                    return
-                end
-
-                CurrentMob = Nearest
-
-                repeat
-                    task.wait()
-
-                    if not string.find(QuestTitle, Q[5]) then
-                        CurrentMob = nil
-                        break
-                    end
-
-                    G.Kill(CurrentMob, true)
-
-                until not _G.StartFarm or not _G.Level or not CurrentMob.Parent or CurrentMob.Humanoid.Health <= 0
-
-                CurrentMob = nil
+                CurrentMob = nil    
 
             end)
         end
