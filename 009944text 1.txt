@@ -427,39 +427,43 @@ statsSetings = function(I, e)
 	end;
 
 
-local TweenService = game:GetService("TweenService")
-local tweenInfo = TweenInfo.new(0.35, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
-local ActiveTweens = {}
+local RunService = game:GetService("RunService")
 
 BringEnemy = function()
     if not _B then return end
-
     local plr = game.Players.LocalPlayer
     local enemies = workspace.Enemies:GetChildren()
 
-    for _, mob in pairs(enemies) do  
-        local hum = mob:FindFirstChild("Humanoid")  
-        local root = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart  
+    for _, mob in pairs(enemies) do
+        local hum = mob:FindFirstChild("Humanoid")
+        local root = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart
 
-        if hum and hum.Health > 0 and root and not mob:GetAttribute("IsBoss") then  
-            local dist = (root.Position - PosMon).Magnitude  
-
-            if dist <= 210 then  
-                -- Criar Tween apenas se não houver um ativo
-                if not ActiveTweens[root] then
-                    if dist < 10 then  
-                        root.CFrame = CFrame.new(PosMon)
-                    else  
-                        local t = TweenService:Create(root, tweenInfo, { CFrame = CFrame.new(PosMon) })
-                        t:Play()
-                        ActiveTweens[root] = t
-                        t.Completed:Connect(function()
-                            ActiveTweens[root] = nil
-                        end)
-                    end
+        if hum and hum.Health > 0 and root and not mob:GetAttribute("IsBoss") then
+            local dist = (root.Position - PosMon).Magnitude
+            if dist <= 210 then
+                -- Cria BodyPosition se não existir
+                local bp = root:FindFirstChild("BringBP")
+                if not bp then
+                    bp = Instance.new("BodyPosition")
+                    bp.Name = "BringBP"
+                    bp.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+                    bp.P = 2000
+                    bp.D = 100
+                    bp.Parent = root
                 end
+                bp.Position = PosMon
             end
-        end  
+        end
+    end
+end
+
+-- Limpar BodyPosition quando não precisar mais
+local function ClearBring()
+    for _, mob in pairs(workspace.Enemies:GetChildren()) do
+        local root = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart
+        if root and root:FindFirstChild("BringBP") then
+            root.BringBP:Destroy()
+        end
     end
 end
 Useskills = function(I, e)
