@@ -429,49 +429,55 @@ statsSetings = function(I, e)
 
 local TweenService = game:GetService("TweenService")
 local tweenInfo = TweenInfo.new(0.35, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
+local ActiveTweens = {} -- Para rastrear tweens ativos
 
 BringEnemy = function()
     if not _B then return end
 
-    for _, mob in pairs(workspace.Enemies:GetChildren()) do  
+    local plr = game.Players.LocalPlayer
+    local enemies = workspace.Enemies:GetChildren()
+
+    for _, mob in pairs(enemies) do  
         local hum = mob:FindFirstChild("Humanoid")  
         local root = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart  
 
-        -- Ignorar bosses
         if hum and hum.Health > 0 and root and not mob:GetAttribute("IsBoss") then  
             local dist = (root.Position - PosMon).Magnitude  
 
             if dist <= 210 then  
-                -- Configurações para prevenir travamentos
-                root.Anchored = false  
-                root.CanCollide = false  
-                hum.AutoRotate = false  
-                hum.PlatformStand = true  
+                -- Previne travamentos apenas uma vez
+                if not ActiveTweens[root] then
+                    root.Anchored = false  
+                    root.CanCollide = false  
+                    hum.AutoRotate = false  
+                    hum.PlatformStand = true  
+                end
 
-                -- Cancelar Tween antigo
-                if root:FindFirstChild("BringTween") then  
-                    root.BringTween:Cancel()  
-                    root.BringTween:Destroy()  
-                end  
-
+                -- Tween suave ou teleporte direto
                 if dist < 10 then  
-                    -- Teleporte direto se muito perto
-                    root.CFrame = CFrame.new(PosMon)  
+                    root.CFrame = CFrame.new(PosMon)
+                    if ActiveTweens[root] then
+                        ActiveTweens[root]:Cancel()
+                        ActiveTweens[root] = nil
+                    end
                 else  
-                    -- Tween suave se longe
-                    local t = TweenService:Create(root, tweenInfo, { CFrame = CFrame.new(PosMon) })  
-                    t.Name = "BringTween"  
-                    t.Parent = root  
-                    t:Play()  
-                end  
-
-                -- Expandir radius para garantir interação
-                pcall(function()  
-                    plr.SimulationRadius = math.huge  
-                end)  
-            end  
+                    if not ActiveTweens[root] then
+                        local t = TweenService:Create(root, tweenInfo, { CFrame = CFrame.new(PosMon) })
+                        t:Play()
+                        ActiveTweens[root] = t
+                        t.Completed:Connect(function()
+                            ActiveTweens[root] = nil
+                        end)
+                    end
+                end
+            end
         end  
     end
+
+    -- Atualizar SimulationRadius apenas uma vez
+    pcall(function()  
+        plr.SimulationRadius = 1000 -- limite alto, mas não infinito
+    end)
 end
 Useskills = function(I, e)
 		if I == "Melee" then
