@@ -3669,7 +3669,7 @@ spawn(function()
                         _tp(Q[6])
                     end
 
-                    task.wait(1)
+                    task.wait(1.9)
 
                     if (Root.Position - Q[6].Position).Magnitude <= 50 then
                         game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(
