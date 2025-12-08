@@ -441,11 +441,11 @@ BringEnemy = function()
         if hum and hum.Health > 0 and root and not mob:GetAttribute("IsBoss") then  
             local dist = (root.Position - PosMon).Magnitude  
 
-            if dist <= 200 then  
+            if dist <= 250 then  
                 -- Configurações para prevenir travamentos
-                root.Anchored = false  
+                root.Anchored = true  
                 root.CanCollide = true  
-                hum.AutoRotate = false  
+                hum.AutoRotate = true  
                 hum.PlatformStand = true  
 
                 -- Cancelar Tween antigo
