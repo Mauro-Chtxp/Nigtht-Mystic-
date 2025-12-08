@@ -427,43 +427,50 @@ statsSetings = function(I, e)
 	end;
 
 
-local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local tweenInfo = TweenInfo.new(0.35, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
 
 BringEnemy = function()
     if not _B then return end
-    local plr = game.Players.LocalPlayer
-    local enemies = workspace.Enemies:GetChildren()
 
-    for _, mob in pairs(enemies) do
-        local hum = mob:FindFirstChild("Humanoid")
-        local root = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart
+    for _, mob in pairs(workspace.Enemies:GetChildren()) do  
+        local hum = mob:FindFirstChild("Humanoid")  
+        local root = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart  
 
-        if hum and hum.Health > 0 and root and not mob:GetAttribute("IsBoss") then
-            local dist = (root.Position - PosMon).Magnitude
-            if dist <= 210 then
-                -- Cria BodyPosition se não existir
-                local bp = root:FindFirstChild("BringBP")
-                if not bp then
-                    bp = Instance.new("BodyPosition")
-                    bp.Name = "BringBP"
-                    bp.MaxForce = Vector3.new(1e5, 1e5, 1e5)
-                    bp.P = 2000
-                    bp.D = 100
-                    bp.Parent = root
-                end
-                bp.Position = PosMon
-            end
-        end
-    end
-end
+        -- Ignorar bosses
+        if hum and hum.Health > 0 and root and not mob:GetAttribute("IsBoss") then  
+            local dist = (root.Position - PosMon).Magnitude  
 
--- Limpar BodyPosition quando não precisar mais
-local function ClearBring()
-    for _, mob in pairs(workspace.Enemies:GetChildren()) do
-        local root = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart
-        if root and root:FindFirstChild("BringBP") then
-            root.BringBP:Destroy()
-        end
+            if dist <= 210 then  
+                -- Configurações para prevenir travamentos
+                root.Anchored = false  
+                root.CanCollide = false  
+                hum.AutoRotate = false  
+                hum.PlatformStand = true  
+
+                -- Cancelar Tween antigo
+                if root:FindFirstChild("BringTween") then  
+                    root.BringTween:Cancel()  
+                    root.BringTween:Destroy()  
+                end  
+
+                if dist < 10 then  
+                    -- Teleporte direto se muito perto
+                    root.CFrame = CFrame.new(PosMon)  
+                else  
+                    -- Tween suave se longe
+                    local t = TweenService:Create(root, tweenInfo, { CFrame = CFrame.new(PosMon) })  
+                    t.Name = "BringTween"  
+                    t.Parent = root  
+                    t:Play()  
+                end  
+
+                -- Expandir radius para garantir interação
+                pcall(function()  
+                    plr.SimulationRadius = math.huge  
+                end)  
+            end  
+        end  
     end
 end
 Useskills = function(I, e)
