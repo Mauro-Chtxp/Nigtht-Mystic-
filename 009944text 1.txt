@@ -3603,24 +3603,7 @@ end)
 -- 3. SISTEMA LEVEL FARM (EXATO)
 ----------------------------------------------------------------------
 local CurrentMob = nil
-
-local function GetNearestMob(TargetName)
-    local plr = game.Players.LocalPlayer
-    local Root = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
-    if not Root then return nil end
-
-    local Closest, Dist = nil, math.huge  
-    for _, Mob in pairs(workspace.Enemies:GetChildren()) do  
-        if G.Alive(Mob) and Mob.Name == TargetName and Mob:FindFirstChild("HumanoidRootPart") then  
-            local d = (Mob.HumanoidRootPart.Position - Root.Position).Magnitude  
-            if d < Dist then  
-                Dist = d  
-                Closest = Mob  
-            end  
-        end  
-    end  
-    return Closest
-end
+local NeedPreTP = false
 
 spawn(function()
     while task.wait() do
@@ -3635,37 +3618,59 @@ spawn(function()
                 local QuestTitle = QuestGui.Container.QuestTitle.Title.Text
                 local Q = QuestNeta()
 
-                ---------------------------------------------
-                -- 1. PEGAR QUEST SE NÃO ESTIVER ATIVA
-                ---------------------------------------------
+                ---------------------------------------------------------
+                -- SE A QUEST TEM UM PASSO PRÉVIO, ATIVA PRE-TP
+                ---------------------------------------------------------
                 if not QuestGui.Visible then
-                    CurrentMob = nil -- limpa mob para não atacar mais
+                    CurrentMob = nil
+
+                    if Q[7] then
+                        NeedPreTP = true
+                    else
+                        NeedPreTP = false
+                    end
+                end
+
+                ---------------------------------------------------------
+                -- PRIMEIRO FAZ O PRÉ-TELEPORTE
+                ---------------------------------------------------------
+                if NeedPreTP and Q[7] then
+                    if (Root.Position - Q[7].Position).Magnitude > 10 then
+                        _tp(Q[7])
+                        return
+                    end
+
+                    -- Chegou no local prévio
+                    NeedPreTP = false
+                end
+
+                ---------------------------------------------------------
+                -- DEPOIS PEGA A QUEST NORMALMENTE
+                ---------------------------------------------------------
+                if not QuestGui.Visible then
                     if (Root.Position - Q[6].Position).Magnitude > 10 then
                         _tp(Q[6])
                     end
 
                     task.wait(1)
 
-                    if (Root.Position - Q[6].Position).Magnitude <= 50 then
-                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(
-                            "StartQuest", Q[3], Q[2]
-                        )
-                    end
+                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(
+                        "StartQuest", Q[3], Q[2]
+                    )
                     return
                 end
 
-                ---------------------------------------------
-                -- 2. SE A QUEST ACABOU DURANTE A LUTA,
-                -- PARE IMEDIATAMENTE DE ATACAR OS MOBS
-                ---------------------------------------------
+                ---------------------------------------------------------
+                -- QUEST ENCERRADA DURANTE O COMBATE → PARAR
+                ---------------------------------------------------------
                 if not string.find(QuestTitle, Q[5]) then
                     CurrentMob = nil
-                    return -- <<<<<< ESSA LINHA RESOLVE SEU PROBLEMA COMPLETO
+                    return
                 end
 
-                ---------------------------------------------
-                -- 3. Se tem mob atual, matar
-                ---------------------------------------------
+                ---------------------------------------------------------
+                -- SISTEMA DE COMBATE (igual antes)
+                ---------------------------------------------------------
                 if CurrentMob and G.Alive(CurrentMob) and CurrentMob.Parent then
                     G.Kill(CurrentMob, true)
                     return
@@ -3673,9 +3678,6 @@ spawn(function()
                     CurrentMob = nil
                 end
 
-                ---------------------------------------------
-                -- 4. Buscar mob novo
-                ---------------------------------------------
                 local Nearest = GetNearestMob(Q[1])
                 if not Nearest then
                     _tp(Q[4])
@@ -3687,11 +3689,9 @@ spawn(function()
                 repeat
                     task.wait()
 
-                    -- se quest acabou no meio DO LOOP → para tudo e vai pegar outra
-                    QuestTitle = QuestGui.Container.QuestTitle.Title.Text
                     if not string.find(QuestTitle, Q[5]) then
                         CurrentMob = nil
-                        break -- <<<<<< PARA DE ATACAR TODOS DE UMA VEZ
+                        break
                     end
 
                     G.Kill(CurrentMob, true)
