@@ -437,39 +437,37 @@ function GetCakePrince()
     return nil
 end
 
-BringEnemy = function()
-	local __cake = GetCakePrince()
-	if __cake then return end
-	if not _B then return end
+local BringEnemy = function()
+    if not _B then return end
+    local plr = game.Players.LocalPlayer
+    if not plr then return end
 
-	local plr = game.Players.LocalPlayer
-	local radius = 5 -- distância do círculo
-	local speed = 2 -- velocidade de rotação
+    local PosMon = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+    if not PosMon then return end
 
-	for i, mob in pairs(workspace.Enemies:GetChildren()) do
-		local hum = mob:FindFirstChild("Humanoid")
-		local root = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart
-		if hum and hum.Health > 0 and root then
-			local dist = (root.Position - PosMon).Magnitude
-			if dist <= 210 then
-				-- posição inicial no círculo
-				local angle = (i / #workspace.Enemies:GetChildren()) * math.pi * 2
-				local targetPos = PosMon + Vector3.new(math.cos(angle) * radius, 0, math.sin(angle) * radius)
+    local maxDistance = 244
+    local updateCount = 0
+    local maxPerTick = 5 -- limita quantos mobs serão movidos por vez
 
-				-- tween suave
-				coroutine.wrap(function()
-					for step = 0, 1, 0.05 do
-						local t = tick() * speed + angle
-						local newPos = PosMon + Vector3.new(math.cos(t) * radius, 0, math.sin(t) * radius)
-						if root then
-							root.CFrame = CFrame.new(newPos)
-						end
-						wait(0.03)
-					end
-				end)()
-			end
-		end
-	end
+    for _, mob in pairs(workspace.Enemies:GetChildren()) do
+        local hum = mob:FindFirstChild("Humanoid")
+        local root = mob.PrimaryPart
+        if hum and hum.Health > 0 and root then
+            local distance = (root.Position - PosMon.Position).Magnitude
+            if distance <= maxDistance then
+                root.CFrame = CFrame.new(PosMon.Position) -- só atualiza quem tá perto
+                root.CanCollide = true
+                hum.WalkSpeed = 16
+                hum.JumpPower = 50
+                plr.SimulationRadius = math.huge
+
+                updateCount = updateCount + 1
+                if updateCount >= maxPerTick then
+                    break -- não atualiza mais do que o limite por loop
+                end
+            end
+        end
+    end
 end
 Useskills = function(I, e)
 		if I == "Melee" then
