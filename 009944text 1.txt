@@ -3669,7 +3669,7 @@ spawn(function()
                         _tp(Q[6])
                     end
 
-                    task.wait(1.9)
+                    task.wait(1)
 
                     if (Root.Position - Q[6].Position).Magnitude <= 50 then
                         game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(
@@ -3752,49 +3752,25 @@ spawn(function()
                     return
                 end
 
-                -- Referências do espelho
-                local mirror = workspace.Map:FindFirstChild("CakeLoaf")
-                mirror = mirror and mirror:FindFirstChild("BigMirror")
-                local other = mirror and mirror:FindFirstChild("Other")
-
-                -- Detecta boss e portal
+                -- Sempre detectar boss diretamente, sem espelho
                 local boss = enemies:FindFirstChild("Cake Prince") or enemies:FindFirstChild("Dough King")
-                local portalOpen = other and other.Transparency == 0
 
                 --------------------------------------------------------------------
-                -- ============ MODO BOSS (CORRIGIDO COM DETECÇÃO DE DIMENSÃO) ============
+                -- ============ MODO BOSS (IGNORANDO TOTALMENTE O ESPELHO) ============
                 --------------------------------------------------------------------
-                if boss or portalOpen then
+                if boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then
                     
-                    -- Detecta se o player já está dentro da dimensão
-                    local inDimension = hrp.Position.Y > 3000
+                    -- posição pra atacar o boss
+                    local bossPos = boss.PrimaryPart.CFrame 
+                        * CFrame.new(0, 25, 0) 
+                        * CFrame.Angles(math.rad(-90), 0, 0)
 
-                    -- Se o boss existe e estamos dentro da dimensão -> atacar
-                    if inDimension and boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then
-                        local bossPos = boss.PrimaryPart.CFrame * CFrame.new(0, 25, 0) * CFrame.Angles(math.rad(-90), 0, 0)
-                        _tp(bossPos)
-                        hrp.Velocity = Vector3.new(0,0,0)
-                        hrp.AssemblyLinearVelocity = Vector3.new(0,0,0)
-                        G.Kill(boss, true)
-                        return
-                    end
+                    _tp(bossPos)
 
-                    -- Se o portal abriu, mas ainda estamos FORA da dimensão → esperar no safeSpot
-                    if portalOpen and not inDimension then
-                        local safeSpot = CFrame.new(-2151.82, 149.32, -12404.91)
-                        if (hrp.Position - safeSpot.Position).Magnitude > 10 then
-                            _tp(safeSpot)
-                        end
-                        return
-                    end
+                    hrp.Velocity = Vector3.new(0,0,0)
+                    hrp.AssemblyLinearVelocity = Vector3.new(0,0,0)
 
-                    -- Se o boss já existe mas player ainda não entrou → tentar entrar
-                    if boss and not inDimension then
-                        local goToBoss = boss.PrimaryPart.CFrame * CFrame.new(0, 25, 0)
-                        _tp(goToBoss)
-                        return
-                    end
-
+                    G.Kill(boss, true)
                     return
                 end
                 --------------------------------------------------------------------
@@ -3846,13 +3822,15 @@ spawn(function()
                 if bestMob and bestMob:FindFirstChild("HumanoidRootPart") then
                     repeat
                         task.wait()
-                        if other and other.Transparency == 0 then break end
 
                         if bestMob.Parent
                         and bestMob.Humanoid.Health > 0
                         and bestMob:FindFirstChild("HumanoidRootPart") then
 
-                            local farmPos = bestMob.HumanoidRootPart.CFrame * CFrame.new(0, 25, 0) * CFrame.Angles(math.rad(-90), 0, 0)
+                            local farmPos = bestMob.HumanoidRootPart.CFrame 
+                                * CFrame.new(0, 25, 0)
+                                * CFrame.Angles(math.rad(-90), 0, 0)
+
                             _tp(farmPos)
 
                             hrp.Velocity = Vector3.new(0, 0, 0)
@@ -3866,11 +3844,11 @@ spawn(function()
                         end
                     until not _G.StartFarm or not _G.AutoFarm_Cake or not bestMob.Parent or bestMob.Humanoid.Health <= 0
                 end
+
             end)
         end
     end
 end)
-
 b:AddSeperator("Other")
 
 b:AddToggle({
