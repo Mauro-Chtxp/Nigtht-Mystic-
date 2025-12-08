@@ -3627,7 +3627,6 @@ end)
 ----------------------------------------------------------------------
 -- 3. SISTEMA LEVEL FARM (EXATO)
 ----------------------------------------------------------------------
-
 local CurrentMob = nil
 
 local function GetNearestMob(TargetName)
@@ -3657,59 +3656,79 @@ spawn(function()
                 local Root = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
                 if not Root then return end
 
-                local QuestTitle = plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text    
+                local QuestGui = plr.PlayerGui.Main.Quest
+                local QuestTitle = QuestGui.Container.QuestTitle.Title.Text
                 local Q = QuestNeta()
 
-                -- Abandon quest se estiver com outra
-                if not string.find(QuestTitle, Q[5]) then    
-                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AbandonQuest")    
-                end    
-
-                -- Se não estiver com a quest ativa
-                if not plr.PlayerGui.Main.Quest.Visible then    
-                    local distanceToNPC = (Root.Position - Q[6].Position).Magnitude
-                    if distanceToNPC > 10 then
-                        -- Teleporta instantaneamente se estiver longe
+                ---------------------------------------------
+                -- 1. PEGAR QUEST SE NÃO ESTIVER ATIVA
+                ---------------------------------------------
+                if not QuestGui.Visible then
+                    CurrentMob = nil -- limpa mob para não atacar mais
+                    if (Root.Position - Q[6].Position).Magnitude > 10 then
                         _tp(Q[6])
                     end
 
-                    -- Espera 1 segundo antes de pegar a quest
                     task.wait(1)
-                    
-                    if (Root.Position - Q[6].Position).Magnitude <= 50 then    
-                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", Q[3], Q[2])    
-                    end    
-                    return    
-                end    
 
-                local Nearest = GetNearestMob(Q[1])    
+                    if (Root.Position - Q[6].Position).Magnitude <= 50 then
+                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(
+                            "StartQuest", Q[3], Q[2]
+                        )
+                    end
+                    return
+                end
 
-                if CurrentMob and G.Alive(CurrentMob) and CurrentMob.Parent then    
-                    G.Kill(CurrentMob, true)    
-                    return    
-                else    
-                    CurrentMob = nil    
-                end    
+                ---------------------------------------------
+                -- 2. SE A QUEST ACABOU DURANTE A LUTA,
+                -- PARE IMEDIATAMENTE DE ATACAR OS MOBS
+                ---------------------------------------------
+                if not string.find(QuestTitle, Q[5]) then
+                    CurrentMob = nil
+                    return -- <<<<<< ESSA LINHA RESOLVE SEU PROBLEMA COMPLETO
+                end
 
-                if not Nearest then    
-                    _tp(Q[4])    
-                    return    
-                end    
+                ---------------------------------------------
+                -- 3. Se tem mob atual, matar
+                ---------------------------------------------
+                if CurrentMob and G.Alive(CurrentMob) and CurrentMob.Parent then
+                    G.Kill(CurrentMob, true)
+                    return
+                else
+                    CurrentMob = nil
+                end
 
-                CurrentMob = Nearest    
+                ---------------------------------------------
+                -- 4. Buscar mob novo
+                ---------------------------------------------
+                local Nearest = GetNearestMob(Q[1])
+                if not Nearest then
+                    _tp(Q[4])
+                    return
+                end
 
-                repeat    
-                    task.wait()    
-                    G.Kill(CurrentMob, true)    
-                until not _G.StartFarm or not _G.Level or not CurrentMob.Parent or CurrentMob.Humanoid.Health <= 0    
+                CurrentMob = Nearest
 
-                CurrentMob = nil    
+                repeat
+                    task.wait()
+
+                    -- se quest acabou no meio DO LOOP → para tudo e vai pegar outra
+                    QuestTitle = QuestGui.Container.QuestTitle.Title.Text
+                    if not string.find(QuestTitle, Q[5]) then
+                        CurrentMob = nil
+                        break -- <<<<<< PARA DE ATACAR TODOS DE UMA VEZ
+                    end
+
+                    G.Kill(CurrentMob, true)
+
+                until not _G.StartFarm or not _G.Level or not CurrentMob.Parent or CurrentMob.Humanoid.Health <= 0
+
+                CurrentMob = nil
 
             end)
         end
     end
 end)
-
 ----------------------------------------------------------------------
 -- 4. SISTEMA CAKE PRINCE FARM (EXATO E ESTABILIZADO)
 ----------------------------------------------------------------------
