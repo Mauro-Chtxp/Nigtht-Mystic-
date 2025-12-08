@@ -427,46 +427,50 @@ statsSetings = function(I, e)
 	end;
 
 
-local LocalPlayer = game.Players.LocalPlayer
+local TweenService = game:GetService("TweenService")
+local tweenInfo = TweenInfo.new(0.35, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
 
-BringEnemy = function(PosMon)
-    if not _B or not LocalPlayer.Character then return end
-    local playerRoot = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-    if not playerRoot then return end
+BringEnemy = function()
+    if not _B then return end
 
-    for _, mob in pairs(workspace.Enemies:GetChildren()) do
-        local hum = mob:FindFirstChild("Humanoid")
-        local root = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart
+    for _, mob in pairs(workspace.Enemies:GetChildren()) do  
+        local hum = mob:FindFirstChild("Humanoid")  
+        local root = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart  
 
-        if hum and hum.Health > 0 and root and not mob:GetAttribute("IsBoss") then
-            local dist = (root.Position - PosMon).Magnitude
-            if dist <= 250 then
-                -- Bloquear movimento e animações
-                hum.JumpPower = 0
-                hum:ChangeState(Enum.HumanoidStateType.Physics)
-                hum.PlatformStand = true
-                hum.AutoRotate = true
+        -- Ignorar bosses
+        if hum and hum.Health > 0 and root and not mob:GetAttribute("IsBoss") then  
+            local dist = (root.Position - PosMon).Magnitude  
 
-                -- Remover Animator se existir
-                local animator = hum:FindFirstChild("Animator")
-                if animator then animator:Destroy() end
+            if dist <= 227 then  
+                -- Configurações para prevenir travamentos
+                root.Anchored = false  
+                root.CanCollide = true  
+                hum.AutoRotate = false  
+                hum.PlatformStand = true  
 
-                -- Desativar colisão das partes
-                for _, part in ipairs(mob:GetDescendants()) do
-                    if part:IsA("BasePart") then
-                        part.CanCollide = false
-                    end
-                end
+                -- Cancelar Tween antigo
+                if root:FindFirstChild("BringTween") then  
+                    root.BringTween:Cancel()  
+                    root.BringTween:Destroy()  
+                end  
 
-                -- Teleporte direto para PosMon
-                root.CFrame = CFrame.new(PosMon)
+                if dist < 10 then  
+                    -- Teleporte direto se muito perto
+                    root.CFrame = CFrame.new(PosMon)  
+                else  
+                    -- Tween suave se longe
+                    local t = TweenService:Create(root, tweenInfo, { CFrame = CFrame.new(PosMon) })  
+                    t.Name = "BringTween"  
+                    t.Parent = root  
+                    t:Play()  
+                end  
 
-                -- Expandir SimulationRadius
-                pcall(function()
-                    sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge)
-                end)
-            end
-        end
+                -- Expandir radius para garantir interação
+                pcall(function()  
+                    plr.SimulationRadius = math.huge  
+                end)  
+            end  
+        end  
     end
 end
 Useskills = function(I, e)
