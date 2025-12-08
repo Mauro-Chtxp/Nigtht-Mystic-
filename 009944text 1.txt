@@ -2724,7 +2724,7 @@ end;
 VI_S:AddSeperator("Stats Upgrade / Panic Mode");
 
 VI_S:AddToggle({
-	Title = "Panic Mode",
+	Title = "Safe Mode",
 	Description = "turn on for safe ur health if low",
 	Default = false,
 	Callback = function(I)
@@ -10325,3 +10325,5 @@ end)
 _ENV.rz_FastAttack = FastAttack
 FastAttackModule.FastAttack = FastAttack
 return FastAttackModule
+
+setclipboard("https://discord.gg/3SrzUYqzPJ")
