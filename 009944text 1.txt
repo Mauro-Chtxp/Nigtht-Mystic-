@@ -47,7 +47,7 @@ Marines = function()
 Pirates = function()
 		replicated.Remotes.CommF_:InvokeServer("SetTeam", "Pirates");
 	end;
-local I = (loadstring(game:HttpGet("https://pastefy.app/bhiXTYJC/raw")))();
+local I = (loadstring(game:HttpGet("https://pastefy.app/CiBuu0Lk/raw")))();
 if World1 then
 	Boss = {
 			"The Gorilla King",
@@ -426,38 +426,51 @@ statsSetings = function(I, e)
 		end;
 	end;
 
+local TweenService = game:GetService("TweenService")
+local tweenInfo = TweenInfo.new(0.35, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
+
 BringEnemy = function()
-	if not _B then
-		return
-	end
+    if not _B then return end
 
-	for _, mob in pairs(workspace.Enemies:GetChildren()) do
-		local hum = mob:FindFirstChild("Humanoid")
-		local root = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart
+    for _, mob in pairs(workspace.Enemies:GetChildren()) do  
+        local hum = mob:FindFirstChild("Humanoid")  
+        local root = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart  
 
-		if hum and hum.Health > 0 and root then
-			local dist = (root.Position - PosMon).Magnitude
+        -- Ignorar bosses
+        if hum and hum.Health > 0 and root and not mob:GetAttribute("IsBoss") then  
+            local dist = (root.Position - PosMon).Magnitude  
 
-			-- Aumentei a distância pra puxar
-			if dist <= 210 then  
-				-- Apenas garante que o mob não fique travado no chão
-				-- sem alterar Anchored nem CanCollide
-				mob:MakeJoints()      
-				
-				-- Anti-trava de rotação
-				hum.AutoRotate = false
-				hum.PlatformStand = true
+            if dist <= 227 then  
+                -- Configurações para prevenir travamentos
+                root.Anchored = false  
+                root.CanCollide = true  
+                hum.AutoRotate = false  
+                hum.PlatformStand = true  
 
-				-- Teleporte suave
-				mob:PivotTo(CFrame.new(PosMon))
+                -- Cancelar Tween antigo
+                if root:FindFirstChild("BringTween") then  
+                    root.BringTween:Cancel()  
+                    root.BringTween:Destroy()  
+                end  
 
-				-- Simulação do jogador
-				pcall(function()
-					plr.SimulationRadius = math.huge
-				end)
-			end
-		end
-	end
+                if dist < 10 then  
+                    -- Teleporte direto se muito perto
+                    root.CFrame = CFrame.new(PosMon)  
+                else  
+                    -- Tween suave se longe
+                    local t = TweenService:Create(root, tweenInfo, { CFrame = CFrame.new(PosMon) })  
+                    t.Name = "BringTween"  
+                    t.Parent = root  
+                    t:Play()  
+                end  
+
+                -- Expandir radius para garantir interação
+                pcall(function()  
+                    plr.SimulationRadius = math.huge  
+                end)  
+            end  
+        end  
+    end
 end
 Useskills = function(I, e)
 		if I == "Melee" then
@@ -1574,33 +1587,33 @@ QuestCheck = function()
 			PosQ = CFrame.new(-723.43316650391, 147.42906188965, 5931.9931640625)
 			PosM = CFrame.new(-723.43316650391, 147.42906188965, 5931.9931640625)
 		elseif I == 1575 or I <= 1599 then
-			Mon = "Dragon Crew Warrior"
-			Qdata = 1
-			Qname = "AmazonQuest"
-			NameMon = "Dragon Crew Warrior"
-			PosQ = CFrame.new(6779.0327148438, 111.16865539551, -801.21307373047)
-			PosM = CFrame.new(6779.0327148438, 111.16865539551, -801.21307373047)
-		elseif I == 1600 or I <= 1624 then
-			Mon = "Dragon Crew Archer"
-			Qname = "AmazonQuest"
-			Qdata = 2
-			NameMon = "Dragon Crew Archer"
-			PosQ = CFrame.new(6955.8974609375, 546.66589355469, 309.04013061523)
-			PosM = CFrame.new(6955.8974609375, 546.66589355469, 309.04013061523)
-		elseif I == 1625 or I <= 1649 then
-			Mon = "Hydra Enforcer"
-			Qname = "VenomCrewQuest"
-			Qdata = 1
-			NameMon = "Hydra Enforcer"
-			PosQ = CFrame.new(4620.6157226562, 1002.2954711914, 399.08688354492)
-			PosM = CFrame.new(4620.6157226562, 1002.2954711914, 399.08688354492)
-		elseif I == 1650 or I <= 1699 then
-			Mon = "Venomous Assailant"
-			Qname = "VenomCrewQuest"
-			Qdata = 2
-			NameMon = "Venomous Assailant"
-			PosQ = CFrame.new(4697.5918, 1100.65137, 946.401978, .579397917, -4.19689783e-10, .81504482, -1.49287818e-10, 1, 6.21053986e-10, -0.81504482, -4.81513662e-10, .579397917)
-			PosM = CFrame.new(4697.5918, 1100.65137, 946.401978, .579397917, -4.19689783e-10, .81504482, -1.49287818e-10, 1, 6.21053986e-10, -0.81504482, -4.81513662e-10, .579397917)
+    Mon = "Dragon Crew Warrior"
+    Qdata = 1
+    Qname = "DragonCrewQuest"
+    NameMon = "Dragon Crew Warrior"
+    PosQ = CFrame.new(6750.4931640625, 127.44916534423828, -711.0308837890625)
+    PosM = CFrame.new(6709.76367, 52.3442993, -1139.02966, -0.763515472, 0, 0.645789504, 0, 1, 0, -0.645789504, 0, -0.763515472)
+elseif I == 1600 or I <= 1624 then
+    Mon = "Dragon Crew Archer"
+    Qname = "DragonCrewQuest"
+    Qdata = 2
+    NameMon = "Dragon Crew Archer"
+    PosQ = CFrame.new(6750.4931640625, 127.44916534423828, -711.0308837890625)
+    PosM = CFrame.new(6668.76172, 481.376923, 329.12207, -0.121787429, 0, -0.992556155, 0, 1, 0, 0.992556155, 0, -0.121787429)
+elseif I == 1625 or I <= 1649 then
+    Mon = "Hydra Enforcer"
+    Qname = "VenomCrewQuest"
+    Qdata = 1
+    NameMon = "Hydra Enforcer"
+    PosQ = CFrame.new(5206.40185546875, 1004.10498046875, 748.3504638671875)
+    PosM = CFrame.new(4547.11523, 1003.10217, 334.194824, 0.388810456, -0, -0.921317935, 0, 1, -0, 0.921317935, 0, 0.388810456)
+elseif I == 1650 or I <= 1699 then
+    Mon = "Venomous Assailant"
+    Qname = "VenomCrewQuest"
+    Qdata = 2
+    NameMon = "Venomous Assailant"
+    PosQ = CFrame.new(5206.40185546875, 1004.10498046875, 748.3504638671875)
+    PosM = CFrame.new(4674.92676, 1134.82654, 996.308838, 0.731321394, -0, -0.682033002, 0, 1, -0, 0.682033002, 0, 0.731321394)
 		elseif I == 1700 or I <= 1724 then
 			Mon = "Marine Commodore"
 			Qdata = 1
@@ -2706,11 +2719,141 @@ if World3 then
 		end,
 	});
 end;
+VI_S:AddSeperator("Fontes");
 
-VI_S:AddSeperator("Stats Upgrade / Panic Mode");
+local function ApplyGlobalFont(fontEnum)
+    for _, obj in ipairs(game.Players.LocalPlayer.PlayerGui:GetDescendants()) do
+        if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
+            obj.Font = fontEnum
+        end
+    end
+end
+
+VI_S:AddButton({
+    Title = "Fonte: Amatic SC",
+    Description = "",
+    Callback = function()
+        ApplyGlobalFont(Enum.Font.AmaticSC)
+    end
+})
+
+VI_S:AddButton({
+    Title = "Fonte: Antique",
+    Description = "",
+    Callback = function()
+        ApplyGlobalFont(Enum.Font.Antique)
+    end
+})
+
+VI_S:AddButton({
+    Title = "Fonte: Arcade",
+    Description = "",
+    Callback = function()
+        ApplyGlobalFont(Enum.Font.Arcade)
+    end
+})
+
+VI_S:AddButton({
+    Title = "Fonte: Arial",
+    Description = "",
+    Callback = function()
+        ApplyGlobalFont(Enum.Font.Arial)
+    end
+})
+
+VI_S:AddButton({
+    Title = "Fonte: Arial Bold",
+    Description = "",
+    Callback = function()
+        ApplyGlobalFont(Enum.Font.ArialBold)
+    end
+})
+
+VI_S:AddButton({
+    Title = "Fonte: Bangers",
+    Description = "",
+    Callback = function()
+        ApplyGlobalFont(Enum.Font.Bangers)
+    end
+})
+
+VI_S:AddButton({
+    Title = "Fonte: Bodoni",
+    Description = "",
+    Callback = function()
+        ApplyGlobalFont(Enum.Font.Bodoni)
+    end
+})
+
+VI_S:AddButton({
+    Title = "Fonte: Cartoon",
+    Description = "",
+    Callback = function()
+        ApplyGlobalFont(Enum.Font.Cartoon)
+    end
+})
+
+VI_S:AddButton({
+    Title = "Fonte: Code",
+    Description = "",
+    Callback = function()
+        ApplyGlobalFont(Enum.Font.Code)
+    end
+})
+
+VI_S:AddButton({
+    Title = "Fonte: Creepster",
+    Description = "",
+    Callback = function()
+        ApplyGlobalFont(Enum.Font.Creepster)
+    end
+})
+
+VI_S:AddButton({
+    Title = "Fonte: Denk One",
+    Description = "",
+    Callback = function()
+        ApplyGlobalFont(Enum.Font.DenkOne)
+    end
+})
+
+VI_S:AddButton({
+    Title = "Fonte: Fondamento",
+    Description = "",
+    Callback = function()
+        ApplyGlobalFont(Enum.Font.Fondamento)
+    end
+})
+
+VI_S:AddButton({
+    Title = "Fonte: Fredoka One",
+    Description = "",
+    Callback = function()
+        ApplyGlobalFont(Enum.Font.FredokaOne)
+    end
+})
+
+VI_S:AddButton({
+    Title = "Fonte: Garamond",
+    Description = "",
+    Callback = function()
+        ApplyGlobalFont(Enum.Font.Garamond)
+    end
+})
+
+VI_S:AddButton({
+    Title = "Fonte: Gotham",
+    Description = "",
+    Callback = function()
+        ApplyGlobalFont(Enum.Font.Gotham)
+    end
+})
+
+
+VI_S:AddSeperator("Stats");
 
 VI_S:AddToggle({
-	Title = "Panic Mode",
+	Title = "Safe Mode",
 	Description = "turn on for safe ur health if low",
 	Default = false,
 	Callback = function(I)
@@ -3630,7 +3773,7 @@ local function GetNearestMob(TargetName)
                 Closest = Mob  
             end  
         end  
-    end  
+    end
     return Closest
 end
 
@@ -3652,13 +3795,15 @@ spawn(function()
 
                 if not plr.PlayerGui.Main.Quest.Visible then    
                     _tp(Q[6])    
+
                     if (Root.Position - Q[6].Position).Magnitude <= 50 then    
+                        task.wait(1.9)
                         game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", Q[3], Q[2])    
                     end    
                     return    
                 end    
 
-                local Nearest = GetNearestMob(Q[1])    
+                local Nearest = GetNearestMob(Q[1])
 
                 if CurrentMob and G.Alive(CurrentMob) and CurrentMob.Parent then    
                     G.Kill(CurrentMob, true)    
@@ -3677,7 +3822,10 @@ spawn(function()
                 repeat    
                     task.wait()    
                     G.Kill(CurrentMob, true)    
-                until not _G.StartFarm or not _G.Level or not CurrentMob.Parent or CurrentMob.Humanoid.Health <= 0    
+                until not _G.StartFarm 
+                    or not _G.Level 
+                    or not CurrentMob.Parent 
+                    or CurrentMob.Humanoid.Health <= 0    
 
                 CurrentMob = nil    
 
@@ -3685,7 +3833,6 @@ spawn(function()
         end
     end
 end)
-
 ----------------------------------------------------------------------
 -- 4. SISTEMA CAKE PRINCE FARM (EXATO E ESTABILIZADO)
 ----------------------------------------------------------------------
