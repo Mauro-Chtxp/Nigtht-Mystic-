@@ -3818,7 +3818,7 @@ function _tp(targetCFrame, speed)
     if not plr.Character or not plr.Character:FindFirstChild("HumanoidRootPart") then return end
     local hrp = plr.Character.HumanoidRootPart
 
-    speed = speed or 16 -- velocidade em studs por segundo (ajuste como quiser)
+    speed = speed or 350 -- velocidade em studs por segundo (ajuste como quiser)
 
     while (hrp.Position - targetCFrame.Position).Magnitude > 2 do
         local deltaTime = task.wait()
