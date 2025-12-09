@@ -8879,9 +8879,8 @@ p:AddToggle({
     end,
 })
 
-local RunService = game:GetService("RunService")
 local Enemies = workspace:WaitForChild("Enemies")
-local Locations = workspace["_WorldOrigin"].Locations
+local Locations = workspace["_WorldOrigin"]:WaitForChild("Locations")
 local plr = game.Players.LocalPlayer
 
 local islands = {
@@ -8892,8 +8891,9 @@ local islands = {
     "Island 1",
 }
 
-local function getClosestEnemy(maxDist, islandPos)
-    local best, dist = nil, maxDist
+-- scanner com raio 1000
+local function getRaidEnemy(islandPos)
+    local closest, dist = nil, 1000 -- raio aumentado
 
     for _, mob in ipairs(Enemies:GetChildren()) do
         local hum = mob:FindFirstChild("Humanoid")
@@ -8901,66 +8901,52 @@ local function getClosestEnemy(maxDist, islandPos)
 
         if hum and hrp and hum.Health > 0 then
             local d = (hrp.Position - islandPos).Magnitude
-
-            -- ignora mobs muito distantes ou bugados
-            if d < dist and d < 600 and hrp.Parent == mob then
+            if d < dist then
                 dist = d
-                best = mob
+                closest = mob
             end
         end
     end
 
-    return best
+    return closest
 end
 
 spawn(function()
-    while task.wait(0.15) do
+    while task.wait(0.05) do
         if not _G.Raiding then
             continue
         end
 
-        -- checa se realmente está em raid
-        local inRaid = plr.PlayerGui.Main.TopHUDList.RaidTimer.Visible
-        if not inRaid then
+        local raid = plr.PlayerGui.Main.TopHUDList.RaidTimer.Visible
+        if not raid then
             continue
         end
 
-        -- percorre as ilhas na ordem correta
         for _, islandName in ipairs(islands) do
-            if not _G.Raiding then 
-                break 
-            end
+            if not _G.Raiding then break end
 
             local island = Locations:FindFirstChild(islandName)
-            if not island then
-                continue
-            end
+            if not island then continue end
 
-            -- busca inimigo mais próximo dessa ilha
-            local enemy = getClosestEnemy(9999, island.Position)
+            local enemy = getRaidEnemy(island.Position)
 
             if enemy then
-                -- loop de ataque super seguro
-                while _G.Raiding 
-                    and enemy.Parent 
-                    and enemy:FindFirstChild("Humanoid") 
+                while _G.Raiding
+                    and enemy.Parent
+                    and enemy:FindFirstChild("Humanoid")
                     and enemy.Humanoid.Health > 0 do
-                    
+
                     task.wait()
 
-                    -- ataque seguro
-                    local ok = pcall(function()
+                    pcall(function()
                         G.Kill(enemy, true)
                     end)
-
-                    -- mob bugou → aborta
-                    if not ok then
-                        break
-                    end
                 end
 
-                -- após matar um, volta ao início do loop geral
-                break
+                break -- só troca de ilha quando realmente não tiver mais mobs
+            else
+                -- nenhum mob na área de 1000 → próxima ilha
+                continue
             end
         end
     end
