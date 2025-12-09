@@ -3812,22 +3812,31 @@ end)
 -- 4. SISTEMA CAKE PRINCE FARM (EXATO E ESTABILIZADO)
 ----------------------------------------------------------------------
 
--- ========== AUTO FARM CAKE COMPLETO ==========
+-- ========== AUTO FARM CAKE COMPLETO (COM _TP GRADUAL) ==========
 
--- Função de teleporte confiável
-function _tp(pos)
+-- Função _tp atualizada: teleporta gradualmente
+function _tp(targetCFrame, speed)
     local plr = game.Players.LocalPlayer
     if not plr.Character or not plr.Character:FindFirstChild("HumanoidRootPart") then return end
     local hrp = plr.Character.HumanoidRootPart
 
-    -- Garante que o personagem está parado
-    hrp.Velocity = Vector3.new(0,0,0)
-    if hrp:FindFirstChild("AssemblyLinearVelocity") then
-        hrp.AssemblyLinearVelocity = Vector3.new(0,0,0)
-    end
+    speed = speed or 0.1 -- quanto menor, mais suave será o movimento
 
-    -- Teleporta
-    hrp.CFrame = pos
+    local delta = (targetCFrame.Position - hrp.Position)
+    while delta.Magnitude > 2 do
+        -- Move gradualmente para o destino
+        local newPos = hrp.Position:Lerp(targetCFrame.Position, speed)
+        hrp.CFrame = CFrame.new(newPos) * targetCFrame - targetCFrame.Position
+
+        -- Garante que o personagem não continue com velocidade residual
+        hrp.Velocity = Vector3.new(0,0,0)
+        if hrp:FindFirstChild("AssemblyLinearVelocity") then
+            hrp.AssemblyLinearVelocity = Vector3.new(0,0,0)
+        end
+
+        task.wait()
+        delta = (targetCFrame.Position - hrp.Position)
+    end
 end
 
 -- Função para pegar o boss (usando GetConnectionEnemies ou similar)
@@ -3851,11 +3860,10 @@ spawn(function()
 
                 local CakePos = CFrame.new(-2091.91, 70.00, -12142.83)
 
-                -- Teleporta para a ilha se estiver muito longe
+                -- Teleporta/anda para a ilha se estiver muito longe
                 if (hrp.Position - CakePos.Position).Magnitude > 2000 then
-                    print("Teleportando para a ilha...")
+                    print("Indo para a ilha...")
                     _tp(CakePos)
-                    task.wait(1)
                     return
                 end
 
