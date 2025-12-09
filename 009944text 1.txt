@@ -426,52 +426,79 @@ statsSetings = function(I, e)
 		end;
 	end;
 
-_G.BringD = 200
+local TweenService = game:GetService("TweenService")
+local tweenInfo = TweenInfo.new(0.35, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
 
-function BringMob(p128)
-    if C()["Bring Monster"] then
-        local v129 = vu14
-        local v130, v131, v132 = ipairs(v129:GetPlayers())
-        while true do
-            local v133
-            v132, v133 = v130(v131, v132)
-            if v132 == nil then
-                break
-            end
-            local vu134 = false
-            local function v135()
-                vu134 = true
-            end
-            if v133 ~= vu28 and v133.Character and (v133.Character:FindFirstChild("HumanoidRootPart") and (v133.Character.HumanoidRootPart.Position - p128:GetPivot().Position).Magnitude <= 500) then
-                v135()
-            end
-            if vu134 then
-                break
-            end
+local function IsRaidMob(mob)
+    -- Nome indicando raid
+    local n = mob.Name:lower()
+    if n:find("raid") or n:find("microchip") or n:find("island") then
+        return true
+    end
+
+    -- Marcação por atributo
+    if mob:GetAttribute("IsRaid") or mob:GetAttribute("RaidMob") then
+        return true
+    end
+
+    -- Alguns scripts marcam humanoid
+    local hum = mob:FindFirstChild("Humanoid")
+    if hum and hum.WalkSpeed == 0 then
+        return true
+    end
+
+    -- Alguns mobs de raid ficam dentro de _WorldOrigin primeiro
+    if mob.Parent and tostring(mob.Parent):lower():find("_worldorigin") then
+        return true
+    end
+
+    return false
+end
+
+BringEnemy = function()
+    if not _B then return end
+
+    for _, mob in pairs(workspace.Enemies:GetChildren()) do  
+        -- SE FOR MOB DE RAID → IGNORA
+        if IsRaidMob(mob) then 
+            continue 
         end
-        local v136 = vu41
-        local v137, v138, v139 = ipairs(v136:GetChildren())
-        local v140 = 0
-        while true do
-            local v141
-            v139, v141 = v137(v138, v139)
-            if v139 == nil or v140 >= 2 then
-                break
-            end
-            if v141:FindFirstChild("Humanoid") and (v141:FindFirstChild("HumanoidRootPart") and (not v141:GetAttribute("IsBoss") and (v141.Humanoid.Health > 0 and (v141.HumanoidRootPart.Position - p128:GetPivot().Position).Magnitude <= _G.BringD))) then
-                v141.HumanoidRootPart.CFrame = p128:GetPivot()
-                v141.HumanoidRootPart.CanCollide = false
-                v141.Humanoid.JumpPower = 0
-                v141.Humanoid.WalkSpeed = 0
-                if v141.Humanoid:FindFirstChild("Animator") then
-                    v141.Humanoid.Animator:Destroy()
-                end
-                pcall(function()
-                    sethiddenproperty(vu28, "SimulationRadius", math.huge)
-                end)
-                v140 = v140 + 1
-            end
-        end
+
+        local hum = mob:FindFirstChild("Humanoid")  
+        local root = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart  
+
+        -- Ignorar bosses
+        if hum and hum.Health > 0 and root and not mob:GetAttribute("IsBoss") then  
+            local dist = (root.Position - PosMon).Magnitude  
+
+            if dist <= 200 then  
+                -- Configurações para prevenir travamentos
+                root.Anchored = false  
+                root.CanCollide = true  
+                hum.AutoRotate = false  
+                hum.PlatformStand = true  
+
+                -- Cancelar Tween antigo
+                if root:FindFirstChild("BringTween") then  
+                    root.BringTween:Cancel()  
+                    root.BringTween:Destroy()  
+                end  
+
+                if dist < 10 then  
+                    root.CFrame = CFrame.new(PosMon)  
+                else  
+                    local t = TweenService:Create(root, tweenInfo, { CFrame = CFrame.new(PosMon) })  
+                    t.Name = "BringTween"  
+                    t.Parent = root  
+                    t:Play()  
+                end  
+
+                -- Expandir radius para garantir interação
+                pcall(function()  
+                    plr.SimulationRadius = math.huge  
+                end)  
+            end  
+        end  
     end
 end
 
@@ -3849,12 +3876,36 @@ end)
 -- 4. SISTEMA CAKE PRINCE FARM (EXATO E ESTABILIZADO)
 ----------------------------------------------------------------------
 
+---------------------------------------------------------------------
+-- ANTI ROTATE / ANTI TILT (MANTÉM O PLAYER SEM VIRAR / SEM DEITAR)
+---------------------------------------------------------------------
+spawn(function()
+    while task.wait() do
+        local plr = game.Players.LocalPlayer
+        local char = plr.Character
+        if char then
+            local hrp = char:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                hrp.RotVelocity = Vector3.new(0, 0, 0)
+                hrp.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+                hrp.Orientation = Vector3.new(0, 0, 0)
+            end
+        end
+    end
+end)
+
+---------------------------------------------------------------------
+-- AUTO FARM CAKE PRINCE / NPCs COMPLETO
+---------------------------------------------------------------------
 spawn(function()
     while task.wait() do
         if _G.AutoFarm_Cake and _G.StartFarm then
             pcall(function()
+
                 local plr = game.Players.LocalPlayer
-                local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+                local char = plr.Character
+                if not char then return end
+                local hrp = char:FindFirstChild("HumanoidRootPart")
                 if not hrp then return end
 
                 local enemies = workspace:FindFirstChild("Enemies")
@@ -3863,55 +3914,60 @@ spawn(function()
                 local CakePos = CFrame.new(-2091.91, 70.00, -12142.83)
                 local PortalEntrance = CFrame.new(-2151.82, 149.32, -12404.91)
 
-                -- Verifica portal
+                -- Verificar portal
                 local mirror = workspace.Map:FindFirstChild("CakeLoaf")
                 mirror = mirror and mirror:FindFirstChild("BigMirror")
                 local other = mirror and mirror:FindFirstChild("Other")
                 local portalOpen = other and other.Transparency == 0
-                
-                -- Verifica Boss
+
+                -- Verificar Boss
                 local boss = enemies:FindFirstChild("Cake Prince") or enemies:FindFirstChild("Dough King")
 
-                -- PARTE 1: Voltar para ilha se não tiver nada acontecendo
+                ---------------------------------------------------------
+                -- PARTE 1: Voltar para Ilha Cake
+                ---------------------------------------------------------
                 if not boss and not portalOpen and (hrp.Position - CakePos.Position).Magnitude > 3000 then
                     _tp(CakePos)
                     return
                 end
 
-                -- =================================================================
-                -- PARTE 2: Lógica do Boss (CORRIGIDA)
-                -- =================================================================
+                ---------------------------------------------------------
+                -- PARTE 2: LÓGICA DO BOSS (CORRIGIDO)
+                ---------------------------------------------------------
                 if boss or portalOpen then
-                    
-                    -- CASO A: O Boss já existe
+
+                    -----------------------------------------------------
+                    -- CASO A: Boss Ativo
+                    -----------------------------------------------------
                     if boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 and boss.PrimaryPart then
                         
-                        -- CORREÇÃO AQUI: Verifica a distância antes de atacar
                         local distToBoss = (hrp.Position - boss.PrimaryPart.Position).Magnitude
 
+                        -- Se muito longe, apenas vai até ele
                         if distToBoss > 350 then
-                            -- SE ESTIVER LONGE: Apenas vai até ele (sem flutuar alto, sem atacar)
-                            -- Isso evita o bug de sair voando pra cima
-                            _tp(boss.PrimaryPart.CFrame * CFrame.new(0, 5, 0))
+                            _tp(boss.PrimaryPart.CFrame + Vector3.new(0,5,0))
                             hrp.Velocity = Vector3.new(0,0,0)
+                            hrp.AssemblyLinearVelocity = Vector3.new(0,0,0)
                         else
-                            -- SE ESTIVER PERTO: Posiciona em cima e ataca
-                            local bossPos = boss.PrimaryPart.CFrame * CFrame.new(0, 25, 0) * CFrame.Angles(math.rad(-90), 0, 0)
-                            _tp(bossPos)
-                            
+                            -- Posição perfeita acima, sem girar
+                            local bossPos = boss.PrimaryPart.Position + Vector3.new(0,25,0)
+
+                            _tp(CFrame.new(bossPos.X, bossPos.Y, bossPos.Z))
+
                             hrp.Velocity = Vector3.new(0,0,0)
-                            if hrp:FindFirstChild("AssemblyLinearVelocity") then
-                                hrp.AssemblyLinearVelocity = Vector3.new(0,0,0)
-                            end
-                            
+                            hrp.AssemblyLinearVelocity = Vector3.new(0,0,0)
+                            hrp.RotVelocity = Vector3.new(0,0,0)
+
                             G.Kill(boss, true)
                         end
                         return
                     end
 
-                    -- CASO B: Portal aberto, mas Boss não spawnou (Entrando na dimensão)
+                    -----------------------------------------------------
+                    -- CASO B: Portal abriu, Boss ainda não spawnou
+                    -----------------------------------------------------
                     local distToEntrance = (hrp.Position - PortalEntrance.Position).Magnitude
-                    
+
                     if distToEntrance < 500 then
                         _tp(PortalEntrance)
                     else
@@ -3920,9 +3976,9 @@ spawn(function()
                     return
                 end
 
-                -- =================================================================
-                -- PARTE 3: Farmar NPCs (Mesma lógica)
-                -- =================================================================
+                ---------------------------------------------------------
+                -- PARTE 3: Farm das Mobs
+                ---------------------------------------------------------
                 local CAKE_MOBS = {"Cookie Crafter", "Cake Guard", "Baking Staff", "Head Baker"}
 
                 -- Quest
@@ -3942,13 +3998,15 @@ spawn(function()
                     return
                 end
 
-                -- Busca Mob
+                -- Achar mob
                 local bestMob
                 local bestDist = math.huge
 
                 for _, mob in ipairs(enemies:GetChildren()) do
-                    if table.find(CAKE_MOBS, mob.Name) and mob:FindFirstChild("Humanoid")
-                        and mob:FindFirstChild("HumanoidRootPart") and mob.Humanoid.Health > 0 then
+                    if table.find(CAKE_MOBS, mob.Name)
+                        and mob:FindFirstChild("Humanoid")
+                        and mob:FindFirstChild("HumanoidRootPart")
+                        and mob.Humanoid.Health > 0 then
 
                         local dist = (mob.HumanoidRootPart.Position - hrp.Position).Magnitude
                         if dist < bestDist then
@@ -3960,36 +4018,42 @@ spawn(function()
 
                 if not bestMob then
                     if (hrp.Position - CakePos.Position).Magnitude > 500 then
-                         _tp(CakePos)
+                        _tp(CakePos)
                     end
                     return
                 end
 
-                -- Ataque NPC
+                ---------------------------------------------------------
+                -- ATAQUE NPC — SEM GIRAR / SEM DEITAR
+                ---------------------------------------------------------
                 if bestMob and bestMob:FindFirstChild("HumanoidRootPart") then
-                    repeat
-                        task.wait()
-                        -- Checa portal
+                    repeat task.wait()
+
+                        -- Portal abriu? Para imediatamente
                         local checkMirror = workspace.Map:FindFirstChild("CakeLoaf")
                         checkMirror = checkMirror and checkMirror:FindFirstChild("BigMirror")
                         local checkOther = checkMirror and checkMirror:FindFirstChild("Other")
                         if checkOther and checkOther.Transparency == 0 then break end
 
-                        -- Checa Boss spawnando enquanto farma
+                        -- Boss spawnou? Para farm e vai pra ele
                         local checkBoss = enemies:FindFirstChild("Cake Prince") or enemies:FindFirstChild("Dough King")
                         if checkBoss then break end
 
-                        if bestMob.Parent and bestMob.Humanoid.Health > 0 and bestMob:FindFirstChild("HumanoidRootPart") then
-                            local farmPos = bestMob.HumanoidRootPart.CFrame * CFrame.new(0, 25, 0) * CFrame.Angles(math.rad(-90), 0, 0)
-                            _tp(farmPos)
-                            hrp.Velocity = Vector3.new(0, 0, 0)
-                            if hrp:FindFirstChild("AssemblyLinearVelocity") then
-                                hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-                            end
+                        if bestMob.Parent and bestMob.Humanoid.Health > 0 then
+                            
+                            local farmPos = bestMob.HumanoidRootPart.Position + Vector3.new(0,25,0)
+
+                            _tp(CFrame.new(farmPos.X, farmPos.Y, farmPos.Z))
+
+                            hrp.Velocity = Vector3.new(0,0,0)
+                            hrp.AssemblyLinearVelocity = Vector3.new(0,0,0)
+                            hrp.RotVelocity = Vector3.new(0,0,0)
+
                             G.Kill(bestMob, true)
                         else
                             break
                         end
+
                     until not _G.StartFarm or not _G.AutoFarm_Cake or not bestMob.Parent or bestMob.Humanoid.Health <= 0
                 end
 
@@ -4526,13 +4590,13 @@ T:AddToggle({
 	end,
 });
 T:AddToggle({
-    Title = "Bring Mobs",
-    Description = "",
-    Default = true,
-    Callback = function(I)
-        _G.BringMobsEnabled = I
-    end,
-})
+	Title = "Bring Mobs",
+	Description = "",
+	Default = true,
+	Callback = function(I)
+		_B = I;
+	end,
+});
 T:AddToggle({
 	Title = "Auto Turn on Buso",
 	Description = "",
