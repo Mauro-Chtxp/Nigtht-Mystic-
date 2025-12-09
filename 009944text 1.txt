@@ -4872,50 +4872,79 @@ j:AddToggle({
     Callback = function(I)
         _G.FarmEliteHunt = I;
     end,
-});
-
--- Coordenadas para ir primeiro
-local targetCFrame = CFrame.new(-5418.82959, 313.696899, -2824.58228, -0.89500773, -2.14904965e-08, -0.446050644, -4.22143138e-08, 1, 3.65241917e-08, 0.446050644, 5.15191552e-08, -0.89500773)
+})
 
 spawn(function()
     while wait(Sec) do
         pcall(function()
             if _G.FarmEliteHunt then
-                -- Ir para as coordenadas primeiro
-                _tp(targetCFrame)
-                wait(1.9) -- Espera 1.9 segundos antes de tentar pegar a quest
+                
+                -- VERIFICAR SE EXISTE ELITE SPAWNADO
+                local EliteSpawnado = false
+                for _, v in pairs(Enemies:GetChildren()) do
+                    if v.Name:find("Diablo") or v.Name:find("Urban") or v.Name:find("Deandre") then
+                        EliteSpawnado = true
+                        break
+                    end
+                end
 
-                -- Verifica se a quest está visível e se é a do Elite Hunter
+                -- SE NÃO TIVER ELITE, NÃO PEGA QUEST
+                if not EliteSpawnado then
+                    return
+                end
+
+                -- SE NÃO TIVER QUEST PEGAR → MAS PRIMEIRO TP E ESPERA
+                if plr.PlayerGui.Main.Quest.Visible == false then
+                    
+                    -- PRIMEIRO TP PRA COORDENADA PEDIDA
+                    _tp(CFrame.new(
+                        -5418.82959, 313.696899, -2824.58228,
+                        -0.89500773, -2.14904965e-07, -0.446050644,
+                        -4.22143138e-08, 1, 3.65241917e-08,
+                        0.446050644, 5.15191552e-08, -0.89500773
+                    ))
+
+                    wait(1.9)
+
+                    -- AGORA SIM PEGAR QUEST
+                    replicated.Remotes.CommF:InvokeServer("EliteHunter")
+                    return
+                end
+
+                -- SE TIVER COM QUEST, PROCURAR ELITE
                 if plr.PlayerGui.Main.Quest.Visible == true then
-                    if string.find(plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "Diablo") or 
-                       string.find(plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "Urban") or 
-                       string.find(plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "Deandre") then
-
-                        for I, e in pairs(replicated:GetChildren()) do
-                            if string.find(e.Name, "Diablo") or string.find(e.Name, "Urban") or string.find(e.Name, "Deandre") then
-                                _tp(e.HumanoidRootPart.CFrame)
+                    if string.find(plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "Diablo")
+                    or string.find(plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "Urban")
+                    or string.find(plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "Deandre") then
+                        
+                        -- TP ATÉ O NPC ELITE
+                        for _, e in pairs(replicated:GetChildren()) do
+                            if e.Name:find("Diablo") or e.Name:find("Urban") or e.Name:find("Deandre") then
+                                if e:FindFirstChild("HumanoidRootPart") then
+                                    _tp(e.HumanoidRootPart.CFrame)
+                                end
                             end
                         end
 
-                        for I, e in pairs(Enemies:GetChildren()) do
-                            if (string.find(e.Name, "Diablo") or string.find(e.Name, "Urban") or string.find(e.Name, "Deandre")) and G.Alive(e) then
+                        -- MATAR O ELITE
+                        for _, e in pairs(Enemies:GetChildren()) do
+                            if (e.Name:find("Diablo") or e.Name:find("Urban") or e.Name:find("Deandre")) and G.Alive(e) then
                                 repeat
                                     wait()
                                     G.Kill(e, _G.FarmEliteHunt)
-                                until not _G.FarmEliteHunt or plr.PlayerGui.Main.Quest.Visible == false or not e.Parent or e.Humanoid.Health <= 0
+                                until not _G.FarmEliteHunt
+                                or plr.PlayerGui.Main.Quest.Visible == false
+                                or not e.Parent
+                                or e.Humanoid.Health <= 0
                             end
                         end
-                    end
-                else
-                    -- Só pega a quest se o Elite Hunter estiver spawnado
-                    if replicated:FindFirstChild("EliteHunter") then
-                        replicated.Remotes.CommF_:InvokeServer("EliteHunter")
                     end
                 end
             end
         end)
     end
 end)
+
 j:AddToggle({
 	Title = "Stop when got God\'s Chalice",
 	Description = "",
