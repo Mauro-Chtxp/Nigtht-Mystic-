@@ -4866,85 +4866,40 @@ spawn(function()
 	end;
 end);
 j:AddToggle({
-    Title = "Auto Elite Quest",
-    Description = "",
-    Default = false,
-    Callback = function(I)
-        _G.FarmEliteHunt = I;
-    end,
-})
-
+	Title = "Auto Elite Quest",
+	Description = "",
+	Default = false,
+	Callback = function(I)
+		_G.FarmEliteHunt = I;
+	end,
+});
 spawn(function()
-    while wait(Sec) do
-        pcall(function()
-            if _G.FarmEliteHunt then
-                
-                -- VERIFICAR SE EXISTE ELITE SPAWNADO
-                local EliteSpawnado = false
-                for _, v in pairs(Enemies:GetChildren()) do
-                    if v.Name:find("Diablo") or v.Name:find("Urban") or v.Name:find("Deandre") then
-                        EliteSpawnado = true
-                        break
-                    end
-                end
-
-                -- SE NÃO TIVER ELITE, NÃO PEGA QUEST
-                if not EliteSpawnado then
-                    return
-                end
-
-                -- SE NÃO TIVER QUEST PEGAR → MAS PRIMEIRO TP E ESPERA
-                if plr.PlayerGui.Main.Quest.Visible == false then
-                    
-                    -- PRIMEIRO TP PRA COORDENADA PEDIDA
-                    _tp(CFrame.new(
-                        -5418.82959, 313.696899, -2824.58228,
-                        -0.89500773, -2.14904965e-07, -0.446050644,
-                        -4.22143138e-08, 1, 3.65241917e-08,
-                        0.446050644, 5.15191552e-08, -0.89500773
-                    ))
-
-                    wait(1.9)
-
-                    -- AGORA SIM PEGAR QUEST
-                    replicated.Remotes.CommF:InvokeServer("EliteHunter")
-                    return
-                end
-
-                -- SE TIVER COM QUEST, PROCURAR ELITE
-                if plr.PlayerGui.Main.Quest.Visible == true then
-                    if string.find(plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "Diablo")
-                    or string.find(plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "Urban")
-                    or string.find(plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "Deandre") then
-                        
-                        -- TP ATÉ O NPC ELITE
-                        for _, e in pairs(replicated:GetChildren()) do
-                            if e.Name:find("Diablo") or e.Name:find("Urban") or e.Name:find("Deandre") then
-                                if e:FindFirstChild("HumanoidRootPart") then
-                                    _tp(e.HumanoidRootPart.CFrame)
-                                end
-                            end
-                        end
-
-                        -- MATAR O ELITE
-                        for _, e in pairs(Enemies:GetChildren()) do
-                            if (e.Name:find("Diablo") or e.Name:find("Urban") or e.Name:find("Deandre")) and G.Alive(e) then
-                                repeat
-                                    wait()
-                                    G.Kill(e, _G.FarmEliteHunt)
-                                until not _G.FarmEliteHunt
-                                or plr.PlayerGui.Main.Quest.Visible == false
-                                or not e.Parent
-                                or e.Humanoid.Health <= 0
-                            end
-                        end
-                    end
-                end
-            end
-        end)
-    end
-end)
-
+	while wait(Sec) do
+		pcall(function()
+			if _G.FarmEliteHunt then
+				if plr.PlayerGui.Main.Quest.Visible == true then
+					if string.find(plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "Diablo") or string.find(plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "Urban") or string.find(plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "Deandre") then
+						for I, e in pairs(replicated:GetChildren()) do
+							if string.find(e.Name, "Diablo") or string.find(e.Name, "Urban") or string.find(e.Name, "Deandre") then
+								_tp(e.HumanoidRootPart.CFrame);
+							end;
+						end;
+						for I, e in pairs(Enemies:GetChildren()) do
+							if (string.find(e.Name, "Diablo") or string.find(e.Name, "Urban") or string.find(e.Name, "Deandre")) and G.Alive(e) then
+								repeat
+									wait();
+									G.Kill(e, _G.FarmEliteHunt);
+								until not _G.FarmEliteHunt or plr.PlayerGui.Main.Quest.Visible == false or not e.Parent or e.Humanoid.Health <= 0;
+							end;
+						end;
+					end;
+				else
+					replicated.Remotes.CommF_:InvokeServer("EliteHunter");
+				end;
+			end;
+		end);
+	end;
+end);
 j:AddToggle({
 	Title = "Stop when got God\'s Chalice",
 	Description = "",
@@ -8795,18 +8750,6 @@ A:AddButton({ Title = "Talk with kitsune statue", Description = "", Callback = f
 		(replicated.Modules.Net:FindFirstChild("RE/TouchKitsuneStatue")):FireServer();
 	end });
 p:AddSeperator("Dungeon Event / Raiding");
-local P5 = p:AddParagraph({ Title = " Raiding Status ", Content = "" });
-spawn(function()
-	while wait(.2) do
-		pcall(function()
-			if plr.PlayerGui.Main.Timer.Visible == true then
-				P5:SetDesc(" Raiding Statud : True");
-			else
-				P5:SetDesc(" Raiding Statud : False");
-			end;
-		end);
-	end;
-end);
 e = {
 		"Flame",
 		"Ice",
@@ -8829,14 +8772,6 @@ p:AddDropdown({
 	Multi = false,
 	Callback = function(I)
 		_G.SelectChip = I;
-	end,
-});
-p:AddToggle({
-	Title = "Auto Select Dungeon Chip",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.AutoSelectDungeon = I;
 	end,
 });
 spawn(function()
@@ -8874,32 +8809,41 @@ spawn(function()
 		end;
 	end;
 end);
-p:AddButton({ Title = "Buy Dungeon Chips [Beli]", Description = "", Callback = function()
-		if not GetBP("Special Microchip") then
-			replicated.Remotes.CommF_:InvokeServer("RaidsNpc", "Select", _G.SelectChip);
-		end;
-	end });
-p:AddButton({ Title = "Buy Dungeon Chips [Devil Fruit]", Description = "Use your lowest fruit in your bag", Callback = function()
-		if GetBP("Special Microchip") then
-			return;
-		end;
-		local I = {};
-		local K = {};
-		for e, K in next, (replicated:WaitForChild("Remotes")).CommF_:InvokeServer("GetFruits") do
-			if K.Price <= 490000 then
-				table.insert(I, K.Name);
-			end;
-		end;
-		for I, K in pairs(I) do
-			for I, e in pairs(e) do
+p:AddToggle({
+	Title = "Buy Chip With Fruit",
+	Description = "Use your lowest fruit in your bag",
+	Default = false,
+	Callback = function(state)
+		_G.AutoBuyChip = state
+
+		task.spawn(function()
+			while _G.AutoBuyChip do
+
 				if not GetBP("Special Microchip") then
-					replicated.Remotes.CommF_:InvokeServer("LoadFruit", tostring(K));
-					replicated.Remotes.CommF_:InvokeServer("RaidsNpc", "Select", _G.SelectChip);
-				end;
-			end;
-		end;
-	end });
-p:AddSeperator("Raiding Menu");
+					
+					local I = {}
+					local K = {}
+
+					for _, K in next, (replicated:WaitForChild("Remotes")).CommF_:InvokeServer("GetFruits") do
+						if K.Price <= 490000 then
+							table.insert(I, K.Name)
+						end
+					end
+
+					for _, fruitName in pairs(I) do
+						if not GetBP("Special Microchip") then
+							replicated.Remotes.CommF_:InvokeServer("LoadFruit", tostring(fruitName))
+							replicated.Remotes.CommF_:InvokeServer("RaidsNpc", "Select", _G.SelectChip)
+						end
+					end
+				end
+
+				task.wait(3)
+			end
+		end)
+	end
+})
+p:AddSeperator("Raid Farming");
 p:AddToggle({
 	Title = "Auto Start Raid",
 	Description = "",
@@ -8928,157 +8872,99 @@ spawn(function()
 	end;
 end);
 p:AddToggle({
-	Title = "Teleport To Lab",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.TpLab = I;
-		spawn(function()
-			while _G.TpLab do
-				wait(Sec);
-				if _G.TpLab then
-					if World2 then
-						_tp(CFrame.new(-6438.73535, 250.645355, -4501.50684));
-					elseif World3 then
-						_tp(CFrame.new(-5017.40869, 314.844055, -2823.0127, -0.925743818, 4.48217499e-08, -0.378151238, 4.55503146e-09, 1, 1.07377559e-07, .378151238, 9.7681621e-08, -0.925743818));
-					end;
-				end;
-			end;
-		end);
-	end,
-});
-p:AddToggle({
-    Title = "Auto Complete Raid [Safety]",
-    Description = "",
+    Title = "Auto Complete Raid",
     Default = false,
-    Callback = function(I)
-        _G.Raiding = I
+    Callback = function(state)
+        _G.Raiding = state
     end,
 })
 
-spawn(function()
-    pcall(function()
-        while wait(Sec) do
-            if _G.Raiding then
-                -- verifica se está em raid
-                if plr.PlayerGui.Main.TopHUDList.RaidTimer.Visible == true then
-                    
-                    -- ordem correta das ilhas (5 → 1)
-                    local islands = {
-                        "Island 5",
-                        "Island 4",
-                        "Island 3",
-                        "Island 2",
-                        "Island 1"
-                    }
+local RunService = game:GetService("RunService")
+local Enemies = workspace:WaitForChild("Enemies")
+local Locations = workspace["_WorldOrigin"].Locations
+local plr = game.Players.LocalPlayer
 
-                    local foundEnemies = false
+local islands = {
+    "Island 5",
+    "Island 4",
+    "Island 3",
+    "Island 2",
+    "Island 1",
+}
 
-                    for _, island in ipairs(islands) do
-                        local location = game:GetService("Workspace")["_WorldOrigin"].Locations:FindFirstChild(island)
-                        if location then
+local function getClosestEnemy(maxDist, islandPos)
+    local best, dist = nil, maxDist
 
-                            local closestEnemy
-                            local shortestDistance = 9999
+    for _, mob in ipairs(Enemies:GetChildren()) do
+        local hum = mob:FindFirstChild("Humanoid")
+        local hrp = mob:FindFirstChild("HumanoidRootPart")
 
-                            -- procura o inimigo mais próximo dessa ilha
-                            for _, v in pairs(workspace.Enemies:GetChildren()) do
-                                if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") then
-                                    if v.Humanoid.Health > 0 then
-                                        local distance = (v.HumanoidRootPart.Position - location.Position).Magnitude
-                                        if distance < 500 and distance < shortestDistance then
-                                            shortestDistance = distance
-                                            closestEnemy = v
-                                        end
-                                    end
-                                end
-                            end
+        if hum and hrp and hum.Health > 0 then
+            local d = (hrp.Position - islandPos).Magnitude
 
-                            -- se achou, mata até morrer
-                            if closestEnemy then
-                                foundEnemies = true
-                                repeat
-                                    task.wait()
-                                    G.Kill(closestEnemy, _G.Raiding)
-                                until
-                                    not _G.Raiding or
-                                    not closestEnemy.Parent or
-                                    closestEnemy.Humanoid.Health <= 0
-                            end
-
-                            -- depois de matar um inimigo, volta pro início do loop
-                            if foundEnemies then
-                                break
-                            end
-                        end
-                    end
-
-                    -- se não achou nenhum inimigo → pode ir para próxima ilha
-                    NextIs = not foundEnemies
-
-                else
-                    NextIs = false
-                end
-            else
-                NextIs = false
+            -- ignora mobs muito distantes ou bugados
+            if d < dist and d < 600 and hrp.Parent == mob then
+                dist = d
+                best = mob
             end
         end
-    end)
+    end
+
+    return best
+end
+
+spawn(function()
+    while task.wait(0.15) do
+        if not _G.Raiding then
+            continue
+        end
+
+        -- checa se realmente está em raid
+        local inRaid = plr.PlayerGui.Main.TopHUDList.RaidTimer.Visible
+        if not inRaid then
+            continue
+        end
+
+        -- percorre as ilhas na ordem correta
+        for _, islandName in ipairs(islands) do
+            if not _G.Raiding then 
+                break 
+            end
+
+            local island = Locations:FindFirstChild(islandName)
+            if not island then
+                continue
+            end
+
+            -- busca inimigo mais próximo dessa ilha
+            local enemy = getClosestEnemy(9999, island.Position)
+
+            if enemy then
+                -- loop de ataque super seguro
+                while _G.Raiding 
+                    and enemy.Parent 
+                    and enemy:FindFirstChild("Humanoid") 
+                    and enemy.Humanoid.Health > 0 do
+                    
+                    task.wait()
+
+                    -- ataque seguro
+                    local ok = pcall(function()
+                        G.Kill(enemy, true)
+                    end)
+
+                    -- mob bugou → aborta
+                    if not ok then
+                        break
+                    end
+                end
+
+                -- após matar um, volta ao início do loop geral
+                break
+            end
+        end
+    end
 end)
-p:AddToggle({
-	Title = "Kill Aura",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.KillH = I;
-	end,
-});
-spawn(function()
-	while wait(Sec) do
-		if _G.KillH then
-			for I, e in pairs(workspace.Enemies:GetChildren()) do
-				if G.Alive(e) then
-					pcall(function()
-						repeat
-							wait(Sec);
-							sethiddenproperty(plr, "SimulationRadius", math.huge);
-							e:BreakJoints();
-							e.Humanoid.Health = 0;
-							e.HumanoidRootPart.CanCollide = false;
-						until not _G.KillH or not e.Parent or e.Humanoid.Health <= 0;
-					end);
-				end;
-			end;
-		end;
-	end;
-end);
-p:AddToggle({
-	Title = "Auto Next Island",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		NextIs = I;
-	end,
-});
-spawn(function()
-	while wait(Sec) do
-		if NextIs then
-			if plr.PlayerGui.Main.TopHUDList.RaidTimer.Visible == true then
-				if workspace._WorldOrigin.Locations:FindFirstChild("Island 5") then
-					_tp((workspace._WorldOrigin.Locations:FindFirstChild("Island 5")).CFrame * CFrame.new(0, 50, 100));
-				elseif workspace._WorldOrigin.Locations:FindFirstChild("Island 4") then
-					_tp((workspace._WorldOrigin.Locations:FindFirstChild("Island 4")).CFrame * CFrame.new(0, 50, 100));
-				elseif workspace._WorldOrigin.Locations:FindFirstChild("Island 3") then
-					_tp((workspace._WorldOrigin.Locations:FindFirstChild("Island 3")).CFrame * CFrame.new(0, 50, 100));
-				elseif workspace._WorldOrigin.Locations:FindFirstChild("Island 2") then
-					_tp((workspace._WorldOrigin.Locations:FindFirstChild("Island 2")).CFrame * CFrame.new(0, 50, 100));
-				elseif workspace._WorldOrigin.Locations:FindFirstChild("Island 1") then
-					_tp((workspace._WorldOrigin.Locations:FindFirstChild("Island 1")).CFrame * CFrame.new(0, 50, 100));
-				end;
-			end;
-		end;
-	end;
-end);
 p:AddToggle({
 	Title = "Auto Awakening",
 	Description = "",
