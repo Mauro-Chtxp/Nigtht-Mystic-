@@ -166,8 +166,8 @@ local Q = {
 		"Sloop",
 		"The Sentinel",
 	};
-local X = { "Cookie Crafter", "Head Baker", "Baking Staff", "Cake Guard" };
-local P = { "Reborn Skeleton", "Posessed Mummy", "Demonic Soul", "Living Zombie" };
+local X = { "Cookie Crafter" };
+local P = { "Reborn Skeleton" };
 local w = {
 		["Pirate Millionaire"] = CFrame.new(-712.82727050781, 98.577049255371, 5711.9541015625),
 		["Pistol Billionaire"] = CFrame.new(-723.43316650391, 147.42906188965, 5931.9931640625),
@@ -4237,7 +4237,9 @@ b:AddDropdown({
     end
 })
 
+---------------------------------------------------------------------
 -- FUNÇÃO: pegar inimigo mais próximo dentro de uma lista
+---------------------------------------------------------------------
 local function GetNearestMobFromList(list)
     local plr = game.Players.LocalPlayer
     local root = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
@@ -4257,7 +4259,6 @@ local function GetNearestMobFromList(list)
     return nearest
 end
 
-
 ---------------------------------------------------------------------
 -- AUTO FARM MASTERY FRUIT
 ---------------------------------------------------------------------
@@ -4270,11 +4271,12 @@ b:AddToggle({
     end
 })
 
+-- remove notificações de skill lock
 spawn(function()
-    RunSer.RenderStepped:Connect(function()
+    game:GetService("RunService").RenderStepped:Connect(function()
         pcall(function()
             if _G.FarmMastery_Dev or _G.FarmMastery_G then
-                for _, e in pairs(plr.PlayerGui.Notifications:GetChildren()) do
+                for _, e in pairs(game.Players.LocalPlayer.PlayerGui.Notifications:GetChildren()) do
                     if e.Name == "NotificationTemplate" and string.find(e.Text, "Skill locked!") then
                         e:Destroy()
                     end
@@ -4284,11 +4286,12 @@ spawn(function()
     end)
 end)
 
+-- loop principal
 spawn(function()
-    while wait(Sec) do
+    while task.wait() do
         if _G.FarmMastery_Dev then
             pcall(function()
-
+                local plr = game.Players.LocalPlayer
                 local I
                 if SelectIsland == "Cake" then
                     I = GetNearestMobFromList(X)
@@ -4297,13 +4300,14 @@ spawn(function()
                 end
 
                 if I then
-                    HealthM = (I.Humanoid.MaxHealth * 70) / 100
+                    local HealthM = (I.Humanoid.MaxHealth * 70) / 100
                     repeat
-                        wait()
+                        task.wait()
                         MousePos = I.HumanoidRootPart.Position
                         G.Mas(I, _G.FarmMastery_Dev)
                     until not _G.FarmMastery_Dev or I.Humanoid.Health <= 0 or not I.Parent
                 else
+                    -- Teleporta se não tiver mob
                     if SelectIsland == "Cake" then
                         _tp(CFrame.new(-1943.6765, 251.5095, -12337.8808))
                     else
@@ -4314,8 +4318,6 @@ spawn(function()
         end
     end
 end)
-
-
 
 ---------------------------------------------------------------------
 -- AUTO FARM MASTERY GUN
@@ -4330,9 +4332,14 @@ b:AddToggle({
 })
 
 spawn(function()
-    while wait(Sec) do
+    while task.wait() do
         if _G.FarmMastery_G then
             pcall(function()
+                local plr = game.Players.LocalPlayer
+                local replicated = game:GetService("ReplicatedStorage")
+                local modules = replicated:FindFirstChild("Modules")
+                local K = modules and modules:FindFirstChild("Net")
+                local shoot = K and K:FindFirstChild("RE/ShootGunEvent")
 
                 local I
                 if SelectIsland == "Cake" then
@@ -4342,30 +4349,22 @@ spawn(function()
                 end
 
                 if I then
-                    HealthM = (I.Humanoid.MaxHealth * 70) / 100
+                    local HealthM = (I.Humanoid.MaxHealth * 70) / 100
                     repeat
-                        wait()
-
+                        task.wait()
                         MousePos = I.HumanoidRootPart.Position
                         G.Masgun(I, _G.FarmMastery_G)
 
-                        local modules = replicated:FindFirstChild("Modules")
-                        local K = modules:FindFirstChild("Net")
-                        local shoot = K:FindFirstChild("RE/ShootGunEvent")
-
                         local tool = plr.Character:FindFirstChildOfClass("Tool")
-
                         if tool and tool.Name == "Skull Guitar" then
                             SoulGuitar = true
                             tool.RemoteEvent:FireServer("TAP", MousePos)
-                        elseif tool then
+                        elseif tool and shoot then
                             SoulGuitar = false
-                            shoot:FireServer(MousePos, { I.HumanoidRootPart })
+                            shoot:FireServer(MousePos, {I.HumanoidRootPart})
                         end
-
                     until not _G.FarmMastery_G or I.Humanoid.Health <= 0 or not I.Parent
                     SoulGuitar = false
-
                 else
                     if SelectIsland == "Cake" then
                         _tp(CFrame.new(-1943.6765, 251.5095, -12337.8808))
@@ -4373,7 +4372,58 @@ spawn(function()
                         _tp(CFrame.new(-9495.6806, 453.5862, 5977.3486))
                     end
                 end
+            end)
+        end
+    end
+end)
 
+b:AddToggle({
+    Title = "Auto Farm Mastery Gun",
+    Description = "",
+    Default = false,
+    Callback = function(I)
+        _G.FarmMastery_G = I
+    end
+})
+
+spawn(function()
+    while wait(Sec) do
+        if _G.FarmMastery_G then
+            pcall(function()
+                local function farmGun()
+                    local I
+                    if SelectIsland == "Cake" then
+                        I = GetConnectionEnemies(X)
+                    elseif SelectIsland == "Bone" then
+                        I = GetConnectionEnemies(P)
+                    end
+                    if I then
+                        HealthM = (I.Humanoid.MaxHealth * 70) / 100
+                        repeat
+                            wait()
+                            MousePos = I.HumanoidRootPart.Position
+                            G.Masgun(I, _G.FarmMastery_G)
+                            local e = replicated:FindFirstChild("Modules")
+                            local K = e:FindFirstChild("Net")
+                            local n = K:FindFirstChild("RE/ShootGunEvent")
+                            if plr.Character:FindFirstChildOfClass("Tool") and (plr.Character:FindFirstChildOfClass("Tool")).Name == "Skull Guitar" then
+                                SoulGuitar = true
+                                (plr.Character:FindFirstChildOfClass("Tool")).RemoteEvent:FireServer("TAP", MousePos)
+                            elseif plr.Character:FindFirstChildOfClass("Tool") and (plr.Character:FindFirstChildOfClass("Tool")).Name ~= "Skull Guitar" then
+                                SoulGuitar = false
+                                n:FireServer(MousePos, { I.HumanoidRootPart })
+                            end
+                        until not _G.FarmMastery_G or I.Humanoid.Health <= 0 or not I.Parent
+                        SoulGuitar = false
+                    else
+                        if SelectIsland == "Cake" then
+                            _tp(CFrame.new(-1943.6765136719, 251.50956726074, -12337.880859375))
+                        else
+                            _tp(CFrame.new(-9495.6806640625, 453.58624267578, 5977.3486328125))
+                        end
+                    end
+                end
+                farmGun()
             end)
         end
     end
