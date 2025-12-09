@@ -166,8 +166,8 @@ local Q = {
 		"Sloop",
 		"The Sentinel",
 	};
-local X = { "Cookie Crafter" };
-local P = { "Reborn Skeleton" };
+local X = { "Cookie Crafter", "Head Baker", "Baking Staff", "Cake Guard" };
+local P = { "Reborn Skeleton", "Posessed Mummy", "Demonic Soul", "Living Zombie" };
 local w = {
 		["Pirate Millionaire"] = CFrame.new(-712.82727050781, 98.577049255371, 5711.9541015625),
 		["Pistol Billionaire"] = CFrame.new(-723.43316650391, 147.42906188965, 5931.9931640625),
