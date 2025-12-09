@@ -429,10 +429,41 @@ statsSetings = function(I, e)
 local TweenService = game:GetService("TweenService")
 local tweenInfo = TweenInfo.new(0.35, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
 
+local function IsRaidMob(mob)
+    -- Nome indicando raid
+    local n = mob.Name:lower()
+    if n:find("raid") or n:find("microchip") or n:find("island") then
+        return true
+    end
+
+    -- Marcação por atributo
+    if mob:GetAttribute("IsRaid") or mob:GetAttribute("RaidMob") then
+        return true
+    end
+
+    -- Alguns scripts marcam humanoid
+    local hum = mob:FindFirstChild("Humanoid")
+    if hum and hum.WalkSpeed == 0 then
+        return true
+    end
+
+    -- Alguns mobs de raid ficam dentro de _WorldOrigin primeiro
+    if mob.Parent and tostring(mob.Parent):lower():find("_worldorigin") then
+        return true
+    end
+
+    return false
+end
+
 BringEnemy = function()
     if not _B then return end
 
     for _, mob in pairs(workspace.Enemies:GetChildren()) do  
+        -- SE FOR MOB DE RAID → IGNORA
+        if IsRaidMob(mob) then 
+            continue 
+        end
+
         local hum = mob:FindFirstChild("Humanoid")  
         local root = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart  
 
@@ -454,10 +485,8 @@ BringEnemy = function()
                 end  
 
                 if dist < 10 then  
-                    -- Teleporte direto se muito perto
                     root.CFrame = CFrame.new(PosMon)  
                 else  
-                    -- Tween suave se longe
                     local t = TweenService:Create(root, tweenInfo, { CFrame = CFrame.new(PosMon) })  
                     t.Name = "BringTween"  
                     t.Parent = root  
@@ -472,6 +501,7 @@ BringEnemy = function()
         end  
     end
 end
+
 Useskills = function(I, e)
 		if I == "Melee" then
 			weaponSc("Melee");
