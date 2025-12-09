@@ -4237,7 +4237,9 @@ b:AddDropdown({
     end
 })
 
+---------------------------------------------------------------------
 -- FUNÇÃO: pegar inimigo mais próximo dentro de uma lista
+---------------------------------------------------------------------
 local function GetNearestMobFromList(list)
     local plr = game.Players.LocalPlayer
     local root = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
@@ -4245,7 +4247,11 @@ local function GetNearestMobFromList(list)
 
     local nearest, dist = nil, math.huge
     for _, mob in pairs(workspace.Enemies:GetChildren()) do
-        if table.find(list, mob.Name) and mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") then
+        if table.find(list, mob.Name)
+        and mob:FindFirstChild("HumanoidRootPart")
+        and mob:FindFirstChild("Humanoid")
+        and mob.Humanoid.Health > 0 then
+
             local d = (mob.HumanoidRootPart.Position - root.Position).Magnitude
             if d < dist then
                 dist = d
@@ -4257,6 +4263,19 @@ local function GetNearestMobFromList(list)
     return nearest
 end
 
+---------------------------------------------------------------------
+-- FUNÇÃO: verificar se ainda existe algum mob vivo na lista
+---------------------------------------------------------------------
+local function HasAliveMob(list)
+    for _, mob in pairs(workspace.Enemies:GetChildren()) do
+        if table.find(list, mob.Name)
+        and mob:FindFirstChild("Humanoid")
+        and mob.Humanoid.Health > 0 then
+            return true
+        end
+    end
+    return false
+end
 
 ---------------------------------------------------------------------
 -- AUTO FARM MASTERY FRUIT
@@ -4270,10 +4289,11 @@ b:AddToggle({
     end
 })
 
+-- remover notificações do "Skill Locked!"
 spawn(function()
     RunSer.RenderStepped:Connect(function()
         pcall(function()
-            if _G.FarmMastery_Dev or _G.FarmMastery_G then
+            if _G.FarmMastery_Dev then
                 for _, e in pairs(plr.PlayerGui.Notifications:GetChildren()) do
                     if e.Name == "NotificationTemplate" and string.find(e.Text, "Skill locked!") then
                         e:Destroy()
@@ -4285,37 +4305,44 @@ spawn(function()
 end)
 
 spawn(function()
-    while wait(Sec) do
+    while task.wait(Sec) do
         if _G.FarmMastery_Dev then
             pcall(function()
 
-                local I
-                if SelectIsland == "Cake" then
-                    I = GetNearestMobFromList(X)
-                elseif SelectIsland == "Bone" then
-                    I = GetNearestMobFromList(P)
-                end
+                local list = (SelectIsland == "Cake" and X or P)
+                local mob = GetNearestMobFromList(list)
 
-                if I then
-                    HealthM = (I.Humanoid.MaxHealth * 70) / 100
+                if mob then
+                    HealthM = (mob.Humanoid.MaxHealth * 70) / 100
+
                     repeat
-                        wait()
-                        MousePos = I.HumanoidRootPart.Position
-                        G.Mas(I, _G.FarmMastery_Dev)
-                    until not _G.FarmMastery_Dev or I.Humanoid.Health <= 0 or not I.Parent
+                        task.wait()
+
+                        if not mob:FindFirstChild("HumanoidRootPart") then break end
+
+                        MousePos = mob.HumanoidRootPart.Position
+                        G.Mas(mob, _G.FarmMastery_Dev)
+
+                        -- 🔥 DETECÇÃO IMEDIATA DE QUE ACABARAM OS MOBS
+                        if not HasAliveMob(list) then break end
+
+                    until not _G.FarmMastery_Dev
+                    or mob.Humanoid.Health <= 0
+                    or not mob.Parent
+
                 else
+                    -- teleport para a área correta
                     if SelectIsland == "Cake" then
                         _tp(CFrame.new(-1943.6765, 251.5095, -12337.8808))
                     else
                         _tp(CFrame.new(-9495.6806, 453.5862, 5977.3486))
                     end
                 end
+
             end)
         end
     end
 end)
-
-
 
 ---------------------------------------------------------------------
 -- AUTO FARM MASTERY GUN
@@ -4330,29 +4357,27 @@ b:AddToggle({
 })
 
 spawn(function()
-    while wait(Sec) do
+    while task.wait(Sec) do
         if _G.FarmMastery_G then
             pcall(function()
 
-                local I
-                if SelectIsland == "Cake" then
-                    I = GetNearestMobFromList(X)
-                elseif SelectIsland == "Bone" then
-                    I = GetNearestMobFromList(P)
-                end
+                local list = (SelectIsland == "Cake" and X or P)
+                local mob = GetNearestMobFromList(list)
 
-                if I then
-                    HealthM = (I.Humanoid.MaxHealth * 70) / 100
+                if mob then
+                    HealthM = (mob.Humanoid.MaxHealth * 70) / 100
+
                     repeat
-                        wait()
+                        task.wait()
 
-                        MousePos = I.HumanoidRootPart.Position
-                        G.Masgun(I, _G.FarmMastery_G)
+                        if not mob:FindFirstChild("HumanoidRootPart") then break end
+
+                        MousePos = mob.HumanoidRootPart.Position
+                        G.Masgun(mob, _G.FarmMastery_G)
 
                         local modules = replicated:FindFirstChild("Modules")
                         local K = modules:FindFirstChild("Net")
                         local shoot = K:FindFirstChild("RE/ShootGunEvent")
-
                         local tool = plr.Character:FindFirstChildOfClass("Tool")
 
                         if tool and tool.Name == "Skull Guitar" then
@@ -4360,10 +4385,16 @@ spawn(function()
                             tool.RemoteEvent:FireServer("TAP", MousePos)
                         elseif tool then
                             SoulGuitar = false
-                            shoot:FireServer(MousePos, { I.HumanoidRootPart })
+                            shoot:FireServer(MousePos, { mob.HumanoidRootPart })
                         end
 
-                    until not _G.FarmMastery_G or I.Humanoid.Health <= 0 or not I.Parent
+                        -- 🔥 DETECÇÃO INSTANTÂNEA — SEM DELAY ENTRE MOBS
+                        if not HasAliveMob(list) then break end
+
+                    until not _G.FarmMastery_G
+                    or mob.Humanoid.Health <= 0
+                    or not mob.Parent
+
                     SoulGuitar = false
 
                 else
@@ -4378,6 +4409,7 @@ spawn(function()
         end
     end
 end)
+
 b:AddSeperator("Material");
 
 b:AddDropdown({
