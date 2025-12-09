@@ -8851,18 +8851,25 @@ p:AddToggle({
 
 				if not GetBP("Special Microchip") then
 					
-					local I = {}
-					local K = {}
+					local I = {} -- Lista de frutas válidas
 
-					for _, K in next, (replicated:WaitForChild("Remotes")).CommF_:InvokeServer("GetFruits") do
-						if K.Price <= 490000 then
-							table.insert(I, K.Name)
+					for _, data in next, replicated.Remotes.CommF_:InvokeServer("GetFruits") do
+						local rarity = tostring(data.Rarity or ""):lower()
+
+						-- Aceita frutas até 1.150.000 OU raridades Common/Uncommon/Rare
+						if data.Price <= 1150000
+							or rarity == "common"
+							or rarity == "uncommon"
+							or rarity == "rare"
+						then
+							table.insert(I, data.Name)
 						end
 					end
 
+					-- Usar frutas válidas para comprar chip
 					for _, fruitName in pairs(I) do
 						if not GetBP("Special Microchip") then
-							replicated.Remotes.CommF_:InvokeServer("LoadFruit", tostring(fruitName))
+							replicated.Remotes.CommF_:InvokeServer("LoadFruit", fruitName)
 							replicated.Remotes.CommF_:InvokeServer("RaidsNpc", "Select", _G.SelectChip)
 						end
 					end
@@ -8873,6 +8880,7 @@ p:AddToggle({
 		end)
 	end
 })
+
 p:AddSeperator("Raid Farming");
 p:AddToggle({
 	Title = "Auto Start Raid",
