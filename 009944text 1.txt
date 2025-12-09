@@ -8879,21 +8879,23 @@ p:AddToggle({
     end,
 })
 
+local plr = game.Players.LocalPlayer
 local Enemies = workspace:WaitForChild("Enemies")
 local Locations = workspace["_WorldOrigin"]:WaitForChild("Locations")
-local plr = game.Players.LocalPlayer
 
 local islands = {
-    "Island 5",
-    "Island 4",
-    "Island 3",
-    "Island 2",
     "Island 1",
+    "Island 2",
+    "Island 3",
+    "Island 4",
+    "Island 5",
 }
 
--- scanner com raio 1000
+NextIs = false
+Sec = 0.05
+
 local function getRaidEnemy(islandPos)
-    local closest, dist = nil, 1000 -- raio aumentado
+    local closest, dist = nil, 1000
 
     for _, mob in ipairs(Enemies:GetChildren()) do
         local hum = mob:FindFirstChild("Humanoid")
@@ -8912,15 +8914,18 @@ local function getRaidEnemy(islandPos)
 end
 
 spawn(function()
-    while task.wait(0.05) do
+    while task.wait(Sec) do
         if not _G.Raiding then
+            NextIs = false
             continue
         end
 
-        local raid = plr.PlayerGui.Main.TopHUDList.RaidTimer.Visible
-        if not raid then
+        if not plr.PlayerGui.Main.TopHUDList.RaidTimer.Visible then
+            NextIs = false
             continue
         end
+
+        NextIs = true
 
         for _, islandName in ipairs(islands) do
             if not _G.Raiding then break end
@@ -8931,22 +8936,44 @@ spawn(function()
             local enemy = getRaidEnemy(island.Position)
 
             if enemy then
+                NextIs = false
+
                 while _G.Raiding
                     and enemy.Parent
                     and enemy:FindFirstChild("Humanoid")
                     and enemy.Humanoid.Health > 0 do
 
                     task.wait()
-
                     pcall(function()
                         G.Kill(enemy, true)
                     end)
                 end
 
-                break -- só troca de ilha quando realmente não tiver mais mobs
-            else
-                -- nenhum mob na área de 1000 → próxima ilha
-                continue
+                break
+            end
+        end
+    end
+end)
+
+spawn(function()
+    while wait(Sec) do
+        if NextIs and plr.PlayerGui.Main.TopHUDList.RaidTimer.Visible then
+            local L = Locations
+
+            if L:FindFirstChild("Island 1") then
+                _tp(L["Island 1"].CFrame * CFrame.new(0, 50, 100))
+
+            elseif L:FindFirstChild("Island 2") then
+                _tp(L["Island 2"].CFrame * CFrame.new(0, 50, 100))
+
+            elseif L:FindFirstChild("Island 3") then
+                _tp(L["Island 3"].CFrame * CFrame.new(0, 50, 100))
+
+            elseif L:FindFirstChild("Island 4") then
+                _tp(L["Island 4"].CFrame * CFrame.new(0, 50, 100))
+
+            elseif L:FindFirstChild("Island 5") then
+                _tp(L["Island 5"].CFrame * CFrame.new(0, 50, 100))
             end
         end
     end
