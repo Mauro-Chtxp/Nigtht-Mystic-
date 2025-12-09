@@ -427,27 +427,27 @@ statsSetings = function(I, e)
 	end;
 
 local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
 local tweenInfo = TweenInfo.new(0.35, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
 
+-- Cooldowns para evitar spam
+local LastBring = {}
+
 local function IsRaidMob(mob)
-    -- Nome indicando raid
     local n = mob.Name:lower()
     if n:find("raid") or n:find("microchip") or n:find("island") then
         return true
     end
 
-    -- Marcação por atributo
     if mob:GetAttribute("IsRaid") or mob:GetAttribute("RaidMob") then
         return true
     end
 
-    -- Alguns scripts marcam humanoid
     local hum = mob:FindFirstChild("Humanoid")
     if hum and hum.WalkSpeed == 0 then
         return true
     end
 
-    -- Alguns mobs de raid ficam dentro de _WorldOrigin primeiro
     if mob.Parent and tostring(mob.Parent):lower():find("_worldorigin") then
         return true
     end
@@ -455,53 +455,67 @@ local function IsRaidMob(mob)
     return false
 end
 
+
+-- SISTEMA DE BRING LEVE COM APENAS 1 TWEEN POR MOB
 BringEnemy = function()
     if not _B then return end
 
-    for _, mob in pairs(workspace.Enemies:GetChildren()) do  
-        -- SE FOR MOB DE RAID → IGNORA
-        if IsRaidMob(mob) then 
-            continue 
+    for _, mob in ipairs(workspace.Enemies:GetChildren()) do
+        
+        if IsRaidMob(mob) then
+            continue
         end
 
-        local hum = mob:FindFirstChild("Humanoid")  
-        local root = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart  
+        local hum = mob:FindFirstChild("Humanoid")
+        local root = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart
+        if not (hum and root and hum.Health > 0) then
+            continue
+        end
 
-        -- Ignorar bosses
-        if hum and hum.Health > 0 and root and not mob:GetAttribute("IsBoss") then  
-            local dist = (root.Position - PosMon).Magnitude  
+        if mob:GetAttribute("IsBoss") then
+            continue
+        end
 
-            if dist <= 227 then  
-                -- Configurações para prevenir travamentos
-                root.Anchored = false  
-                root.CanCollide = true  
-                hum.AutoRotate = false  
-                hum.PlatformStand = true  
+        local dist = (root.Position - PosMon).Magnitude
+        if dist > 230 then
+            continue
+        end
 
-                -- Cancelar Tween antigo
-                if root:FindFirstChild("BringTween") then  
-                    root.BringTween:Cancel()  
-                    root.BringTween:Destroy()  
-                end  
+        -- throttle por mob (evita criar tween repetidamente)
+        if LastBring[mob] and tick() - LastBring[mob] < 0.25 then
+            continue
+        end
+        LastBring[mob] = tick()
 
-                if dist < 10 then  
-                    root.CFrame = CFrame.new(PosMon)  
-                else  
-                    local t = TweenService:Create(root, tweenInfo, { CFrame = CFrame.new(PosMon) })  
-                    t.Name = "BringTween"  
-                    t.Parent = root  
-                    t:Play()  
-                end  
+        -- remover tween antigo
+        if root:FindFirstChild("BringTween") then
+            root.BringTween:Cancel()
+            root.BringTween:Destroy()
+        end
 
-                -- Expandir radius para garantir interação
-                pcall(function()  
-                    plr.SimulationRadius = math.huge  
-                end)  
-            end  
-        end  
+        -- garantir que nada fique pesado
+        pcall(function()
+            root.Anchored = false
+            root.CanCollide = false
+        end)
+
+        if dist <= 10 then
+            root.CFrame = CFrame.new(PosMon)
+        else
+            local t = TweenService:Create(root, tweenInfo, {CFrame = CFrame.new(PosMon)})
+            t.Name = "BringTween"
+            t.Parent = root
+
+            t.Completed:Connect(function()
+                if root and root:FindFirstChild("BringTween") then
+                    root.BringTween:Destroy()
+                end
+            end)
+
+            t:Play()
+        end
     end
 end
-
 Useskills = function(I, e)
 		if I == "Melee" then
 			weaponSc("Melee");
