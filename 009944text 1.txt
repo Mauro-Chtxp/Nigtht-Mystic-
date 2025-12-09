@@ -427,127 +427,80 @@ statsSetings = function(I, e)
 	end;
 
 local TweenService = game:GetService("TweenService")
-local RunService = game:GetService("RunService")
-local Players = game:GetService("Players")
-local plr = Players.LocalPlayer
-
--- Tween mais suave e rápido para evitar acúmulo
-local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
-
--- Cache para evitar chamar funções pesadas repetidamente
-local checkedMobs = {}
+local tweenInfo = TweenInfo.new(0.35, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
 
 local function IsRaidMob(mob)
-    -- Se já verificamos esse mob antes, retorna o resultado salvo
-    if checkedMobs[mob] ~= nil then
-        return checkedMobs[mob]
-    end
-
-    local isRaid = false
+    -- Nome indicando raid
     local n = mob.Name:lower()
-
-    -- Verificações
     if n:find("raid") or n:find("microchip") or n:find("island") then
-        isRaid = true
-    elseif mob:GetAttribute("IsRaid") or mob:GetAttribute("RaidMob") then
-        isRaid = true
-    elseif mob.Parent and tostring(mob.Parent):lower():find("_worldorigin") then
-        isRaid = true
-    else
-        local hum = mob:FindFirstChild("Humanoid")
-        if hum and hum.WalkSpeed == 0 then
-            isRaid = true
-        end
+        return true
     end
 
-    -- Salva no cache para a próxima vez ser instantânea
-    checkedMobs[mob] = isRaid
-    
-    -- Limpa do cache se o mob for destruído (evita vazamento de memória)
-    mob.Destroying:Connect(function()
-        checkedMobs[mob] = nil
-    end)
-
-    return isRaid
-end
-
-local function SetNetworkOwner(part)
-    -- Tenta dar a posse da física para o jogador local (reduz lag de movimento)
-    if part:CanSetNetworkOwnership() then
-        try
-            part:SetNetworkOwner(plr)
-        catch
-            -- As vezes falha se o mob estiver ancorado ou longe, ignoramos o erro
-        end
+    -- Marcação por atributo
+    if mob:GetAttribute("IsRaid") or mob:GetAttribute("RaidMob") then
+        return true
     end
+
+    -- Alguns scripts marcam humanoid
+    local hum = mob:FindFirstChild("Humanoid")
+    if hum and hum.WalkSpeed == 0 then
+        return true
+    end
+
+    -- Alguns mobs de raid ficam dentro de _WorldOrigin primeiro
+    if mob.Parent and tostring(mob.Parent):lower():find("_worldorigin") then
+        return true
+    end
+
+    return false
 end
 
 BringEnemy = function()
     if not _B then return end
 
-    -- Use uma tabela local se a pasta Enemies for muito grande para evitar GetChildren constante
-    local enemies = workspace.Enemies:GetChildren() 
-
-    for _, mob in ipairs(enemies) do
-        -- Checagem rápida de validação
-        if not mob or not mob.Parent then continue end
-        
-        -- Verifica Raid Mob (usando o sistema otimizado)
-        if IsRaidMob(mob) then continue end
-
-        local hum = mob:FindFirstChild("Humanoid")
-        local root = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart
-
-        -- Validações básicas e Boss
-        if hum and root and hum.Health > 0 and not mob:GetAttribute("IsBoss") then
-            
-            local dist = (root.Position - PosMon).Magnitude
-
-            if dist <= 227 then
-                -- OTIMIZAÇÃO 1: Só aplica propriedades físicas se necessário
-                if not root:GetAttribute("MobConfigured") then
-                    root.Anchored = false
-                    root.CanCollide = false -- CanCollide false evita colisão entre mobs (menos lag físico)
-                    hum.AutoRotate = false
-                    hum.PlatformStand = true
-                    root:SetAttribute("MobConfigured", true)
-                    
-                    -- OTIMIZAÇÃO 2: Define dono da rede para evitar "cabo de guerra" com o servidor
-                    task.spawn(function()
-                        pcall(function() root:SetNetworkOwner(plr) end)
-                    end)
-                end
-
-                -- Se estiver muito perto, apenas CFrame direto (mais leve que Tween)
-                if dist < 5 then
-                    root.CFrame = CFrame.new(PosMon)
-                else
-                    -- OTIMIZAÇÃO 3: Previne SPAM de Tweens
-                    -- Só cria um novo tween se não houver um rodando
-                    if not root:GetAttribute("Tweening") then
-                        root:SetAttribute("Tweening", true)
-                        
-                        local t = TweenService:Create(root, tweenInfo, { CFrame = CFrame.new(PosMon) })
-                        t:Play()
-                        
-                        -- Quando o tween acabar, libera para criar outro se necessário
-                        t.Completed:Connect(function()
-                            root:SetAttribute("Tweening", nil)
-                            t:Destroy() -- Limpa a instância da memória
-                        end)
-                    end
-                end
-            end
+    for _, mob in pairs(workspace.Enemies:GetChildren()) do  
+        -- SE FOR MOB DE RAID → IGNORA
+        if IsRaidMob(mob) then 
+            continue 
         end
-    end
-    
-    -- OTIMIZAÇÃO 4: Removemos o SimulationRadius loopado (geralmente inútil e pesado aqui)
-    -- Se precisar muito, coloque fora do loop de mobs.
-end
 
--- DICA: Não chame BringEnemy num "while true do", use RunService
--- Exemplo de como rodar (descomente se precisar):
--- RunService.Heartbeat:Connect(BringEnemy)
+        local hum = mob:FindFirstChild("Humanoid")  
+        local root = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart  
+
+        -- Ignorar bosses
+        if hum and hum.Health > 0 and root and not mob:GetAttribute("IsBoss") then  
+            local dist = (root.Position - PosMon).Magnitude  
+
+            if dist <= 227 then  
+                -- Configurações para prevenir travamentos
+                root.Anchored = false  
+                root.CanCollide = true  
+                hum.AutoRotate = false  
+                hum.PlatformStand = true  
+
+                -- Cancelar Tween antigo
+                if root:FindFirstChild("BringTween") then  
+                    root.BringTween:Cancel()  
+                    root.BringTween:Destroy()  
+                end  
+
+                if dist < 10 then  
+                    root.CFrame = CFrame.new(PosMon)  
+                else  
+                    local t = TweenService:Create(root, tweenInfo, { CFrame = CFrame.new(PosMon) })  
+                    t.Name = "BringTween"  
+                    t.Parent = root  
+                    t:Play()  
+                end  
+
+                -- Expandir radius para garantir interação
+                pcall(function()  
+                    plr.SimulationRadius = math.huge  
+                end)  
+            end  
+        end  
+    end
+end
 
 Useskills = function(I, e)
 		if I == "Melee" then
