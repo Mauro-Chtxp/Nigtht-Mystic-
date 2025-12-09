@@ -4237,22 +4237,9 @@ b:AddDropdown({
     end
 })
 
-local plr = game.Players.LocalPlayer
-local RunSer = game:GetService("RunService")
-local replicated = game:GetService("ReplicatedStorage")
-local Sec = 0.3 -- tempo entre verificações (quanto menor, mais rápido troca de mob)
-
--- Configurações
-local _G = _G or {}
-_G.FarmMastery_Dev = false
-_G.FarmMastery_G = false
-
--- Listas de mobs por ilha
-local X = { "Cookie Crafter", "Head Baker", "Baking Staff", "Cake Guard" }
-local P = { "Reborn Skeleton", "Posessed Mummy", "Demonic Soul", "Living Zombie" }
-
--- Função para achar o mob mais próximo de uma lista
+-- FUNÇÃO: pegar inimigo mais próximo dentro de uma lista
 local function GetNearestMobFromList(list)
+    local plr = game.Players.LocalPlayer
     local root = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
     if not root then return nil end
 
@@ -4261,23 +4248,19 @@ local function GetNearestMobFromList(list)
         if table.find(list, mob.Name) and mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") then
             local d = (mob.HumanoidRootPart.Position - root.Position).Magnitude
             if d < dist then
-                nearest = mob
                 dist = d
+                nearest = mob
             end
         end
     end
+
     return nearest
 end
 
--- Função para ficar acima do mob suavemente
-local function StayAboveTarget(root, target)
-    if not root or not target then return end
-    local targetPos = target.HumanoidRootPart.Position + Vector3.new(0, 20, 0)
-    root.CFrame = root.CFrame:Lerp(CFrame.new(targetPos), 0.3)
-    root.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-end
 
--- Toggles da UI
+---------------------------------------------------------------------
+-- AUTO FARM MASTERY FRUIT
+---------------------------------------------------------------------
 b:AddToggle({
     Title = "Auto Farm Mastery Fruit",
     Description = "",
@@ -4287,6 +4270,56 @@ b:AddToggle({
     end
 })
 
+spawn(function()
+    RunSer.RenderStepped:Connect(function()
+        pcall(function()
+            if _G.FarmMastery_Dev or _G.FarmMastery_G then
+                for _, e in pairs(plr.PlayerGui.Notifications:GetChildren()) do
+                    if e.Name == "NotificationTemplate" and string.find(e.Text, "Skill locked!") then
+                        e:Destroy()
+                    end
+                end
+            end
+        end)
+    end)
+end)
+
+spawn(function()
+    while wait(Sec) do
+        if _G.FarmMastery_Dev then
+            pcall(function()
+
+                local I
+                if SelectIsland == "Cake" then
+                    I = GetNearestMobFromList(X)
+                elseif SelectIsland == "Bone" then
+                    I = GetNearestMobFromList(P)
+                end
+
+                if I then
+                    HealthM = (I.Humanoid.MaxHealth * 70) / 100
+                    repeat
+                        wait()
+                        MousePos = I.HumanoidRootPart.Position
+                        G.Mas(I, _G.FarmMastery_Dev)
+                    until not _G.FarmMastery_Dev or I.Humanoid.Health <= 0 or not I.Parent
+                else
+                    if SelectIsland == "Cake" then
+                        _tp(CFrame.new(-1943.6765, 251.5095, -12337.8808))
+                    else
+                        _tp(CFrame.new(-9495.6806, 453.5862, 5977.3486))
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+
+
+---------------------------------------------------------------------
+-- AUTO FARM MASTERY GUN
+---------------------------------------------------------------------
 b:AddToggle({
     Title = "Auto Farm Mastery Gun",
     Description = "",
@@ -4296,88 +4329,53 @@ b:AddToggle({
     end
 })
 
--- Limpar notificações de "Skill locked!"
 spawn(function()
-    RunSer.RenderStepped:Connect(function()
-        if _G.FarmMastery_Dev or _G.FarmMastery_G then
-            for _, e in pairs(plr.PlayerGui.Notifications:GetChildren()) do
-                if e.Name == "NotificationTemplate" and string.find(e.Text, "Skill locked!") then
-                    e:Destroy()
-                end
-            end
-        end
-    end)
-end)
+    while wait(Sec) do
+        if _G.FarmMastery_G then
+            pcall(function()
 
--- Função principal do Auto Farm
-spawn(function()
-    while true do
-        task.wait(Sec)
-        if not (_G.FarmMastery_Dev or _G.FarmMastery_G) then continue end
-
-        pcall(function()
-            local root = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
-            if not root then return end
-
-            -- Escolher lista de mobs de acordo com a ilha
-            local list
-            if SelectIsland == "Cake" then list = X end
-            if SelectIsland == "Bone" then list = P end
-
-            -- Procurar o mob mais próximo
-            local mob = GetNearestMobFromList(list)
-
-            -- Se não tiver mob, teleportar para spawn
-            if not mob then
+                local I
                 if SelectIsland == "Cake" then
-                    _tp(CFrame.new(-1943.6765, 251.5095, -12337.8808))
+                    I = GetNearestMobFromList(X)
+                elseif SelectIsland == "Bone" then
+                    I = GetNearestMobFromList(P)
+                end
+
+                if I then
+                    HealthM = (I.Humanoid.MaxHealth * 70) / 100
+                    repeat
+                        wait()
+
+                        MousePos = I.HumanoidRootPart.Position
+                        G.Masgun(I, _G.FarmMastery_G)
+
+                        local modules = replicated:FindFirstChild("Modules")
+                        local K = modules:FindFirstChild("Net")
+                        local shoot = K:FindFirstChild("RE/ShootGunEvent")
+
+                        local tool = plr.Character:FindFirstChildOfClass("Tool")
+
+                        if tool and tool.Name == "Skull Guitar" then
+                            SoulGuitar = true
+                            tool.RemoteEvent:FireServer("TAP", MousePos)
+                        elseif tool then
+                            SoulGuitar = false
+                            shoot:FireServer(MousePos, { I.HumanoidRootPart })
+                        end
+
+                    until not _G.FarmMastery_G or I.Humanoid.Health <= 0 or not I.Parent
+                    SoulGuitar = false
+
                 else
-                    _tp(CFrame.new(-9495.6806, 453.5862, 5977.3486))
-                end
-                task.wait(0.5)
-                return
-            end
-
-            -- Ativar PlatformStand só quando atacando
-            plr.Character.Humanoid.PlatformStand = true
-            local SoulGuitar = false
-
-            -- Loop de ataque do mob
-            while mob and mob.Parent and mob.Humanoid.Health > 0 and (_G.FarmMastery_Dev or _G.FarmMastery_G) do
-                task.wait(0.1)
-
-                if not root or not mob:FindFirstChild("HumanoidRootPart") then break end
-
-                StayAboveTarget(root, mob)
-                local MousePos = mob.HumanoidRootPart.Position
-
-                -- Atacar com Mastery Fruit
-                if _G.FarmMastery_Dev then
-                    G.Mas(mob, true)
-                end
-
-                -- Atacar com Gun
-                if _G.FarmMastery_G then
-                    G.Masgun(mob, true)
-
-                    local modules = replicated:FindFirstChild("Modules")
-                    local K = modules and modules:FindFirstChild("Net")
-                    local shoot = K and K:FindFirstChild("RE/ShootGunEvent")
-                    local tool = plr.Character:FindFirstChildOfClass("Tool")
-
-                    if tool and tool.Name == "Skull Guitar" then
-                        SoulGuitar = true
-                        tool.RemoteEvent:FireServer("TAP", MousePos)
-                    elseif tool and shoot then
-                        SoulGuitar = false
-                        shoot:FireServer(MousePos, { mob.HumanoidRootPart })
+                    if SelectIsland == "Cake" then
+                        _tp(CFrame.new(-1943.6765, 251.5095, -12337.8808))
+                    else
+                        _tp(CFrame.new(-9495.6806, 453.5862, 5977.3486))
                     end
                 end
-            end
 
-            plr.Character.Humanoid.PlatformStand = false
-            SoulGuitar = false
-        end)
+            end)
+        end
     end
 end)
 b:AddSeperator("Material");
