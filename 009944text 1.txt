@@ -4237,9 +4237,7 @@ b:AddDropdown({
     end
 })
 
----------------------------------------------------------------------
 -- FUNÇÃO: pegar inimigo mais próximo dentro de uma lista
----------------------------------------------------------------------
 local function GetNearestMobFromList(list)
     local plr = game.Players.LocalPlayer
     local root = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
@@ -4259,13 +4257,10 @@ local function GetNearestMobFromList(list)
             end
         end
     end
-
     return nearest
 end
 
----------------------------------------------------------------------
 -- FUNÇÃO: verificar se ainda existe algum mob vivo na lista
----------------------------------------------------------------------
 local function HasAliveMob(list)
     for _, mob in pairs(workspace.Enemies:GetChildren()) do
         if table.find(list, mob.Name)
@@ -4277,76 +4272,8 @@ local function HasAliveMob(list)
     return false
 end
 
----------------------------------------------------------------------
--- AUTO FARM MASTERY FRUIT
----------------------------------------------------------------------
-b:AddToggle({
-    Title = "Auto Farm Mastery Fruit",
-    Description = "",
-    Default = false,
-    Callback = function(I)
-        _G.FarmMastery_Dev = I
-    end
-})
 
--- remover notificações do "Skill Locked!"
-spawn(function()
-    RunSer.RenderStepped:Connect(function()
-        pcall(function()
-            if _G.FarmMastery_Dev then
-                for _, e in pairs(plr.PlayerGui.Notifications:GetChildren()) do
-                    if e.Name == "NotificationTemplate" and string.find(e.Text, "Skill locked!") then
-                        e:Destroy()
-                    end
-                end
-            end
-        end)
-    end)
-end)
-
-spawn(function()
-    while task.wait(Sec) do
-        if _G.FarmMastery_Dev then
-            pcall(function()
-
-                local list = (SelectIsland == "Cake" and X or P)
-                local mob = GetNearestMobFromList(list)
-
-                if mob then
-                    HealthM = (mob.Humanoid.MaxHealth * 70) / 100
-
-                    repeat
-                        task.wait()
-
-                        if not mob:FindFirstChild("HumanoidRootPart") then break end
-
-                        MousePos = mob.HumanoidRootPart.Position
-                        G.Mas(mob, _G.FarmMastery_Dev)
-
-                        -- 🔥 DETECÇÃO IMEDIATA DE QUE ACABARAM OS MOBS
-                        if not HasAliveMob(list) then break end
-
-                    until not _G.FarmMastery_Dev
-                    or mob.Humanoid.Health <= 0
-                    or not mob.Parent
-
-                else
-                    -- teleport para a área correta
-                    if SelectIsland == "Cake" then
-                        _tp(CFrame.new(-1943.6765, 251.5095, -12337.8808))
-                    else
-                        _tp(CFrame.new(-9495.6806, 453.5862, 5977.3486))
-                    end
-                end
-
-            end)
-        end
-    end
-end)
-
----------------------------------------------------------------------
 -- AUTO FARM MASTERY GUN
----------------------------------------------------------------------
 b:AddToggle({
     Title = "Auto Farm Mastery Gun",
     Description = "",
@@ -4370,11 +4297,20 @@ spawn(function()
                     repeat
                         task.wait()
 
-                        if not mob:FindFirstChild("HumanoidRootPart") then break end
+                        -- 🔥 VERIFICA SE O MOB BUGOU / MORREU / SUMIU
+                        if not mob.Parent
+                        or not mob:FindFirstChild("Humanoid")
+                        or mob.Humanoid.Health <= 0
+                        or not mob:FindFirstChild("HumanoidRootPart") then
+
+                            mob = GetNearestMobFromList(list)
+                            if not mob then break end
+                        end
 
                         MousePos = mob.HumanoidRootPart.Position
                         G.Masgun(mob, _G.FarmMastery_G)
 
+                        -- TIRO (normal ou soul guitar)
                         local modules = replicated:FindFirstChild("Modules")
                         local K = modules:FindFirstChild("Net")
                         local shoot = K:FindFirstChild("RE/ShootGunEvent")
@@ -4388,16 +4324,15 @@ spawn(function()
                             shoot:FireServer(MousePos, { mob.HumanoidRootPart })
                         end
 
-                        -- 🔥 DETECÇÃO INSTANTÂNEA — SEM DELAY ENTRE MOBS
+                        -- 🔥 DETECÇÃO IMEDIATA DE QUE ACABARAM OS MOBS
                         if not HasAliveMob(list) then break end
 
                     until not _G.FarmMastery_G
-                    or mob.Humanoid.Health <= 0
-                    or not mob.Parent
 
                     SoulGuitar = false
 
                 else
+                    -- TELEPORT SE NÃO TEM MOB PERTO
                     if SelectIsland == "Cake" then
                         _tp(CFrame.new(-1943.6765, 251.5095, -12337.8808))
                     else
@@ -4409,6 +4344,7 @@ spawn(function()
         end
     end
 end)
+
 
 b:AddSeperator("Material");
 
