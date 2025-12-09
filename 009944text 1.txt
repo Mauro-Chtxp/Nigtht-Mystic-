@@ -426,79 +426,52 @@ statsSetings = function(I, e)
 		end;
 	end;
 
-local TweenService = game:GetService("TweenService")
-local tweenInfo = TweenInfo.new(0.35, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
+_G.BringD = 200
 
-local function IsRaidMob(mob)
-    -- Nome indicando raid
-    local n = mob.Name:lower()
-    if n:find("raid") or n:find("microchip") or n:find("island") then
-        return true
-    end
-
-    -- Marcação por atributo
-    if mob:GetAttribute("IsRaid") or mob:GetAttribute("RaidMob") then
-        return true
-    end
-
-    -- Alguns scripts marcam humanoid
-    local hum = mob:FindFirstChild("Humanoid")
-    if hum and hum.WalkSpeed == 0 then
-        return true
-    end
-
-    -- Alguns mobs de raid ficam dentro de _WorldOrigin primeiro
-    if mob.Parent and tostring(mob.Parent):lower():find("_worldorigin") then
-        return true
-    end
-
-    return false
-end
-
-BringEnemy = function()
-    if not _B then return end
-
-    for _, mob in pairs(workspace.Enemies:GetChildren()) do  
-        -- SE FOR MOB DE RAID → IGNORA
-        if IsRaidMob(mob) then 
-            continue 
+function BringMob(p128)
+    if C()["Bring Monster"] then
+        local v129 = vu14
+        local v130, v131, v132 = ipairs(v129:GetPlayers())
+        while true do
+            local v133
+            v132, v133 = v130(v131, v132)
+            if v132 == nil then
+                break
+            end
+            local vu134 = false
+            local function v135()
+                vu134 = true
+            end
+            if v133 ~= vu28 and v133.Character and (v133.Character:FindFirstChild("HumanoidRootPart") and (v133.Character.HumanoidRootPart.Position - p128:GetPivot().Position).Magnitude <= 500) then
+                v135()
+            end
+            if vu134 then
+                break
+            end
         end
-
-        local hum = mob:FindFirstChild("Humanoid")  
-        local root = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart  
-
-        -- Ignorar bosses
-        if hum and hum.Health > 0 and root and not mob:GetAttribute("IsBoss") then  
-            local dist = (root.Position - PosMon).Magnitude  
-
-            if dist <= 200 then  
-                -- Configurações para prevenir travamentos
-                root.Anchored = false  
-                root.CanCollide = true  
-                hum.AutoRotate = false  
-                hum.PlatformStand = true  
-
-                -- Cancelar Tween antigo
-                if root:FindFirstChild("BringTween") then  
-                    root.BringTween:Cancel()  
-                    root.BringTween:Destroy()  
-                end  
-
-                if dist < 10 then  
-                    root.CFrame = CFrame.new(PosMon)  
-                else  
-                    local t = TweenService:Create(root, tweenInfo, { CFrame = CFrame.new(PosMon) })  
-                    t.Name = "BringTween"  
-                    t.Parent = root  
-                    t:Play()  
-                end  
-
-                -- Expandir radius para garantir interação
-                pcall(function()  
-                    plr.SimulationRadius = math.huge  
-                end)  
-            end  
-        end  
+        local v136 = vu41
+        local v137, v138, v139 = ipairs(v136:GetChildren())
+        local v140 = 0
+        while true do
+            local v141
+            v139, v141 = v137(v138, v139)
+            if v139 == nil or v140 >= 2 then
+                break
+            end
+            if v141:FindFirstChild("Humanoid") and (v141:FindFirstChild("HumanoidRootPart") and (not v141:GetAttribute("IsBoss") and (v141.Humanoid.Health > 0 and (v141.HumanoidRootPart.Position - p128:GetPivot().Position).Magnitude <= _G.BringD))) then
+                v141.HumanoidRootPart.CFrame = p128:GetPivot()
+                v141.HumanoidRootPart.CanCollide = false
+                v141.Humanoid.JumpPower = 0
+                v141.Humanoid.WalkSpeed = 0
+                if v141.Humanoid:FindFirstChild("Animator") then
+                    v141.Humanoid.Animator:Destroy()
+                end
+                pcall(function()
+                    sethiddenproperty(vu28, "SimulationRadius", math.huge)
+                end)
+                v140 = v140 + 1
+            end
+        end
     end
 end
 
@@ -4553,13 +4526,13 @@ T:AddToggle({
 	end,
 });
 T:AddToggle({
-	Title = "Bring Mobs",
-	Description = "",
-	Default = true,
-	Callback = function(I)
-		_B = I;
-	end,
-});
+    Title = "Bring Mobs",
+    Description = "",
+    Default = true,
+    Callback = function(I)
+        _G.BringMobsEnabled = I
+    end,
+})
 T:AddToggle({
 	Title = "Auto Turn on Buso",
 	Description = "",
