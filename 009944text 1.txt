@@ -4721,34 +4721,33 @@ spawn(function()
 	end;
 end);
 j:AddSeperator("Boss Farming");
+
 -- Dropdown para selecionar o Boss
-local BossDropdown = j:AddDropdown({
-    Title = "Selecione o Boss",
-    Description = "Selecione o Boss Para Farm",
+j:AddDropdown({
+    Title = "Select Boss",
     Values = Boss,
-    Default = 1,
+    Default = Boss[1],
     Callback = function(value)
         _G.FindBoss = value
     end
 })
 
--- Toggle para ativar/desativar Auto Farm Boss
-local FarmBoss = j:AddToggle({
+-- Toggle de Auto Farm Boss
+j:AddToggle({
     Title = "Auto Farm Boss",
-    Description = "Farma o Boss Selecionado",
     Default = false,
-    Callback = function(I)
-        _G.FarmBoss = I
-        spawn(function()
-            while wait(Sec) do
-                if _G.FarmBoss then
+    Callback = function(v)
+        _G.FarmBoss = v
+        if v then
+            spawn(function()
+                while _G.FarmBoss do
+                    wait(Sec)
                     pcall(function()
                         local HasQuest = QuestBeta()[2] ~= nil and QuestBeta()[3] ~= nil
-
-                        if HasQuest and _G.AcceptQuestBoss then
-                            -- BOSS COM QUEST
+                        
+                        if HasQuest and _G.AcceptBossQuest then
+                            -- Boss com Quest
                             local QuestTitle = plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text
-
                             if not string.find(QuestTitle, QuestBeta()[0]) then
                                 replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
                             end
@@ -4758,10 +4757,9 @@ local FarmBoss = j:AddToggle({
                                 if (Root.Position - QuestBeta()[5].Position).Magnitude <= 5 then
                                     replicated.Remotes.CommF_:InvokeServer("StartQuest", QuestBeta()[3], QuestBeta()[2])
                                 end
-
                             elseif plr.PlayerGui.Main.Quest.Visible == true then
                                 if workspace.Enemies:FindFirstChild(QuestBeta()[1]) then
-                                    for i, v in pairs(workspace.Enemies:GetChildren()) do
+                                    for _, v in pairs(workspace.Enemies:GetChildren()) do
                                         if Attack.Alive(v) and v.Name == QuestBeta()[1] then
                                             if string.find(QuestTitle, QuestBeta()[0]) then
                                                 repeat
@@ -4776,14 +4774,14 @@ local FarmBoss = j:AddToggle({
                                 else
                                     _tp(QuestBeta()[4])
                                     if replicated:FindFirstChild(QuestBeta()[1]) then
-                                        _tp(replicated:FindFirstChild(QuestBeta()[1]).HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
+                                        _tp(replicated:FindFirstChild(QuestBeta()[1]).HumanoidRootPart.CFrame * CFrame.new(0,30,0))
                                     end
                                 end
                             end
                         else
-                            -- BOSS SEM QUEST - farm direto
+                            -- Boss sem Quest ou não aceitar Quest
                             if workspace.Enemies:FindFirstChild(QuestBeta()[1]) then
-                                for i, v in pairs(workspace.Enemies:GetChildren()) do
+                                for _, v in pairs(workspace.Enemies:GetChildren()) do
                                     if Attack.Alive(v) and v.Name == QuestBeta()[1] then
                                         repeat
                                             wait()
@@ -4794,27 +4792,25 @@ local FarmBoss = j:AddToggle({
                             else
                                 _tp(QuestBeta()[4])
                                 if replicated:FindFirstChild(QuestBeta()[1]) then
-                                    _tp(replicated:FindFirstChild(QuestBeta()[1]).HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
+                                    _tp(replicated:FindFirstChild(QuestBeta()[1]).HumanoidRootPart.CFrame * CFrame.new(0,30,0))
                                 end
                             end
                         end
                     end)
                 end
-            end
-        end)
+            end)
+        end
     end
 })
 
--- Toggle para aceitar ou não a quest do Boss
-local AcceptQuestBossToggle = j:AddToggle({
+-- Toggle para aceitar ou não a quest do Boss (depois do Auto Farm Boss)
+j:AddToggle({
     Title = "Accept Quest Boss",
-    Description = "Se ativado, pega a missão do Boss",
     Default = false,
-    Callback = function(I)
-        _G.AcceptQuestBoss = I
+    Callback = function(v)
+        _G.AcceptBossQuest = v
     end
 })
-
 j:AddSeperator("Quests");
 j:AddToggle({
 	Title = "Auto Farm Observation",
