@@ -3664,108 +3664,146 @@ spawn(function()
 end)
 
 
--- =================================================================
--- Funções Auxiliares (Assumidas no ambiente de execução)
--- =================================================================
+-- 1. UI: DROPDOWN + TOGGLES
 
--- Estas são funções de um exploit/executor (Ex: _tp, EquipWeapon, UnEquipWeapon, G.Kill, QuestNeta, World3)
--- Elas precisam existir no seu ambiente. Substitua-as por funções dummy se o ambiente for diferente.
-local function _tp(cframe) 
-    -- Função dummy para teleporte
-    if game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = cframe
+b:AddDropdown({
+    Title = "Select Farm Mode",
+    Values = {"Level", "Bone", "Cake Prince", "Tyrant"},
+    Default = "Level",
+    Callback = function(v)
+        _G.SelectedFarmMode = v
     end
-end
-local function EquipWeapon(name) end
-local function UnEquipWeapon(name) end
-local function QuestNeta() 
-    -- Dados de exemplo para Level Farm (ajuste conforme o mapa)
-    return {"Mob_Name", 1, "Quest_Name1", CFrame.new(0, 0, 0), "Quest_Title", CFrame.new(0, 0, 0)} 
-end
-local G = {
-    Kill = function(mob, isAutoFarm) end, -- Função dummy para matar mob
-    Alive = function(mob) return mob and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 end
-}
-local World3 = true -- Variável global assumida para verificar se está no Mundo 3
-_G.SelectWeapon = "Sua Arma" -- Substitua pela arma que deseja usar
-local Pos = CFrame.new(0, 0, -2) -- Posição de ataque/teleporte offset
+})
 
--- =================================================================
--- VARIÁVEIS GLOBAIS
--- =================================================================
+b:AddToggle({
+    Title = "Start Farm",
+    Default = false,
+    Callback = function(v)
+        _G.StartFarm = v
+    end
+})
+
+b:AddToggle({
+    Title = "Accept Quests",
+    Default = false,
+    Callback = function(v)
+        _G.AcceptQuest = v
+    end
+})
+
+-- VARIAVEIS GLOBAIS
 _G.SelectedFarmMode = "Level"
 _G.StartFarm = false
 _G.Level = false
 _G.AutoFarm_Bone = false
 _G.AutoFarm_Cake = false
 _G.AcceptQuest = false
-_G.FullyTyrant = false
+_G.FullyTyrant = true
 _G.EyesCount = 0
-_G.UseSkullSummon = false -- Toggle para usar a Skull Guitar no Tyrant (se preferir)
+_G.SelectWeapon = "Melee"
+_G.UseSkullSummon = false
 
--- Variáveis internas
 local CurrentMobLevel = nil
 local CurrentMobLevelSystem = nil
 
--- =================================================================
--- 1. UI: DROPDOWN + TOGGLES (Assumindo um objeto 'b' de UI)
--- =================================================================
+local function QuestNeta()
+    return {"Mob_Exemplo", 1, 1, CFrame.new(0, 100, 0), "Exemplo Quest", CFrame.new(100, 100, 100)}
+end
 
--- **NOTA**: O bloco de UI está aqui para indicar como as variáveis globais devem ser definidas.
--- Você precisará adaptá-lo ao seu Executor/Painel de UI (Ex: Krnl, Synapse X, Fluxus, etc.).
+-- SISTEMA TYRANT OF THE SKIES (CONTROLE DE OLHOS)
 
--- b:AddDropdown({
---     Title = "Select Farm Mode",
---     Values = {"Level", "Bone", "Cake Prince", "Tyrant"},
---     Default = "Level",
---     Callback = function(v)
---         _G.SelectedFarmMode = v
---     end
--- })
+spawn(function()
+    while task.wait(3) do
+        pcall(function()
+            local model = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("TikiOutpost") and workspace.Map.TikiOutpost:FindFirstChild("IslandModel")
+            local visibleCount = 0
 
--- b:AddToggle({
---     Title = "Start Farm",
---     Default = false,
---     Callback = function(v)
---         _G.StartFarm = v
---         _G.Level = false
---         _G.AutoFarm_Bone = false
---         _G.AutoFarm_Cake = false
---         _G.FullyTyrant = false
+            if model then
+                local eye1 = model:FindFirstChild("Eye1")
+                local eye2 = model:FindFirstChild("Eye2")
+                local chunks = model:FindFirstChild("IslandChunks")
+                local eye3 = chunks and chunks:FindFirstChild("E") and chunks.E:FindFirstChild("Eye3")
+                local eye4 = chunks and chunks:FindFirstChild("E") and chunks.E:FindFirstChild("Eye4")
 
---         if v then
---             if _G.SelectedFarmMode == "Level" then
---                 _G.Level = true
---             elseif _G.SelectedFarmMode == "Bone" then
---                 _G.AutoFarm_Bone = true
---             elseif _G.SelectedFarmMode == "Cake Prince" then
---                 _G.AutoFarm_Cake = true
---             elseif _G.SelectedFarmMode == "Tyrant" then
---                 _G.FullyTyrant = true
---             end
---         end
---     end
--- })
+                if eye1 and eye1:IsA("BasePart") and eye1.Transparency == 0 then visibleCount += 1 end
+                if eye2 and eye2:IsA("BasePart") and eye2.Transparency == 0 then visibleCount += 1 end
+                if eye3 and eye3:IsA("BasePart") and eye3.Transparency == 0 then visibleCount += 1 end
+                if eye4 and eye4:IsA("BasePart") and eye4.Transparency == 0 then visibleCount += 1 end
+            end
 
--- b:AddToggle({
---     Title = "Accept Quests",
---     Default = false,
---     Callback = function(v)
---         _G.AcceptQuest = v
---     end
--- })
+            _G.EyesCount = visibleCount
+        end)
+    end
+end)
 
--- b:AddToggle({
---     Title = "Use Skull Guitar (Tyrant)",
---     Default = false,
---     Callback = function(v)
---         _G.UseSkullSummon = v
---     end
--- })
+-- SISTEMA TYRANT OF THE SKIES (FARM DE MOBS PARA OLHOS)
 
--- =================================================================
--- Funções Tyrant
--- =================================================================
+local FarmTiki1 = CFrame.new(-16423.8047, 146.953003, -123.602005, -0.999392033, 8.7369628e-08, -0.0348646119, 8.43748182e-08, 1, 8.7369628e-08, 0.0348646119, 8.43748182e-08, -0.999392033)
+local FarmTiki2 = CFrame.new(-16593.5996, 155.350998, 1130.48096, 0.0870701671, 0.0561700463, -0.994617403, -0.542416334, 0.840109825, -3.94880772e-05, 0.835585654, 0.539500117, 0.103616059)
+
+spawn(function() 
+    local CurrentFarm = 1
+    while task.wait() do 
+        if _G.StartFarm and _G.SelectedFarmMode == "Tyrant" and _G.EyesCount ~= 4 and World3 then 
+            pcall(function() 
+                local enemyFolder = workspace.Enemies
+                local targetList = { 
+                    ["Isle Champion"] = true,
+                    ["Serpent Hunter"] = true,
+                    ["Sun-kissed Warrior"] = true, 
+                    ["Island Boy"] = true, 
+                    ["Isle Outlaw"] = true 
+                }
+
+                local foundEnemy = false
+
+                for _, v in pairs(enemyFolder:GetChildren()) do
+                    if targetList[v.Name] 
+                    and v:FindFirstChild("Humanoid") 
+                    and v:FindFirstChild("HumanoidRootPart") 
+                    and v.Humanoid.Health > 0 then
+                        
+                        foundEnemy = true
+                        repeat task.wait()
+                            EquipWeapon(_G.SelectWeapon)
+
+                            v.HumanoidRootPart.CanCollide = false
+                            v.Head.CanCollide = false
+                            v.Humanoid.WalkSpeed = 0
+
+                            _tp(v.HumanoidRootPart.CFrame * Pos)
+
+                        until not _G.StartFarm or _G.SelectedFarmMode ~= "Tyrant" or _G.EyesCount == 4 or not v.Parent or v.Humanoid.Health <= 0
+                    end
+                end
+                
+                if not foundEnemy then
+                    local char = game.Players.LocalPlayer.Character
+                    if char and char:FindFirstChild("HumanoidRootPart") then
+                        if CurrentFarm == 1 then
+                            if (char.HumanoidRootPart.Position - FarmTiki1.Position).Magnitude > 5 then
+                                _tp(FarmTiki1)
+                            else
+                                task.wait(2)
+                                CurrentFarm = 2
+                            end
+                        else
+                            if (char.HumanoidRootPart.Position - FarmTiki2.Position).Magnitude > 5 then
+                                _tp(FarmTiki2)
+                            else
+                                task.wait(2)
+                                CurrentFarm = 1
+                            end
+                        end
+                    end
+                    UnEquipWeapon(_G.SelectWeapon)
+                end
+            end)
+        end
+    end
+end)
+
+-- SISTEMA TYRANT OF THE SKIES (LOGICA DE ATAQUE AO BOSS)
 
 function isSkyBossAlive()
     local enemyFolder = workspace:FindFirstChild("Enemies")
@@ -3783,7 +3821,7 @@ function attackSkyBoss()
                 _tp(v.HumanoidRootPart.CFrame * Pos)
                 v.HumanoidRootPart.Transparency = 1
                 sethiddenproperty(game.Players.LocalPlayer, "SimulationRadius", math.huge)
-            until v.Humanoid.Health <= 0 or not _G.FullyTyrant or _G.EyesCount ~= 4
+            until v.Humanoid.Health <= 0 or not _G.StartFarm or _G.SelectedFarmMode ~= "Tyrant" or _G.EyesCount ~= 4
         end
     end
 end
@@ -3810,15 +3848,6 @@ function equipAndUseSkill(toolType)
     end
 end
 
--- =================================================================
--- SISTEMA TYRANT FARM
--- =================================================================
-
--- Posições para teleporte no farm de NPCs da ilha
-local FarmTiki1 = CFrame.new(-16423.8047, 146.953003, -123.602005, -0.999392033, 8.7369628e-08, -0.0348646119, 8.43748182e-08, 1, 8.7369628e-08, 0.0348646119, 8.43748182e-08, -0.999392033)
-local FarmTiki2 = CFrame.new(-16593.5996, 155.350998, 1130.48096, 0.0870701671, 0.0561700463, -0.994617403, -0.542416334, 0.840109825, -3.94880772e-05, 0.835585654, 0.539500117, 0.103616059)
-
--- Posições para summon/ataque do Tyrant of the Skies
 local targetsty = {
     CFrame.new(-16335.1641, 158.167007, 1465.64404, 0.999388874, 0, 0.0349550731, 0, 1, 0, -0.0349550731, 0, 0.999388874),
     CFrame.new(-16288.6094, 158.167007, 1470.36804, 0.999388874, 0, 0.0349550731, 0, 1, 0, -0.0349550731, 0, 0.999388874),
@@ -3829,103 +3858,12 @@ local targetsty = {
     CFrame.new(-16250.335, 159.334, 1316.38904, 0.999388874, 0, 0.0349550731, 0, 1, 0, -0.0349550731, 0, 0.999388874),
 }
 
--- **Thread 1: Contagem dos Olhos (Eye Count)**
-spawn(function()
-    while task.wait(3) do
-        pcall(function()
-            local model = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("TikiOutpost") and workspace.Map.TikiOutpost:FindFirstChild("IslandModel")
-            local visibleCount = 0
-
-            if model then
-                local eye1 = model:FindFirstChild("Eye1")
-                local eye2 = model:FindFirstChild("Eye2")
-                local chunks = model:FindFirstChild("IslandChunks")
-                local eye3 = chunks and chunks:FindFirstChild("E") and chunks.E:FindFirstChild("Eye3")
-                local eye4 = chunks and chunks:FindFirstChild("E") and chunks.E:FindFirstChild("Eye4")
-
-                if eye1 and eye1:IsA("BasePart") and eye1.Transparency == 0 then visibleCount += 1 end
-                if eye2 and eye2:IsA("BasePart") and eye2.Transparency == 0 then visibleCount += 1 end
-                if eye3 and eye3:IsA("BasePart") and eye3.Transparency == 0 then visibleCount += 1 end
-                if eye4 and eye4:IsA("BasePart") and eye4.Transparency == 0 then visibleCount += 1 end
-            end
-
-            _G.EyesCount = visibleCount
-        end)
-    end
-end)
-
--- **Thread 2: Farm de NPCs / Aguardando Olhos**
-spawn(function() 
-    local CurrentFarm = 1
-    while task.wait() do 
-        -- Condição: Farm Tyrant ATIVADO E olhos < 4 (Modo NPC/Esperando)
-        if _G.FullyTyrant and _G.EyesCount ~= 4 and World3 then 
-            pcall(function() 
-                local enemyFolder = workspace.Enemies
-                local targetList = { 
-                    ["Isle Champion"] = true, ["Serpent Hunter"] = true,
-                    ["Sun-kissed Warrior"] = true, ["Island Boy"] = true, 
-                    ["Isle Outlaw"] = true 
-                }
-
-                local foundEnemy = false
-                local char = game.Players.LocalPlayer.Character
-                local hrp = char and char:FindFirstChild("HumanoidRootPart")
-
-                if not hrp then return end
-
-                for _, v in pairs(enemyFolder:GetChildren()) do
-                    if targetList[v.Name] 
-                    and v:FindFirstChild("Humanoid") 
-                    and v:FindFirstChild("HumanoidRootPart") 
-                    and v.Humanoid.Health > 0 then
-                        
-                        foundEnemy = true
-                        repeat task.wait()
-                            EquipWeapon(_G.SelectWeapon)
-
-                            v.HumanoidRootPart.CanCollide = false
-                            v.Head.CanCollide = false
-                            v.Humanoid.WalkSpeed = 0
-
-                            _tp(v.HumanoidRootPart.CFrame * Pos)
-
-                        until not _G.FullyTyrant or _G.EyesCount == 4 or not v.Parent or v.Humanoid.Health <= 0
-                    end
-                end
-                
-                if not foundEnemy then
-                    -- Lógica de mover entre pontos para spawnar/encontrar mobs
-                    if CurrentFarm == 1 then
-                        if (hrp.Position - FarmTiki1.Position).Magnitude > 5 then
-                            _tp(FarmTiki1)
-                        else
-                            task.wait(2)
-                            CurrentFarm = 2
-                        end
-                    else
-                        if (hrp.Position - FarmTiki2.Position).Magnitude > 5 then
-                            _tp(FarmTiki2)
-                        else
-                            task.wait(2)
-                            CurrentFarm = 1
-                        end
-                    end
-                    UnEquipWeapon(_G.SelectWeapon)
-                end
-            end)
-        end
-    end
-end)
-
--- **Thread 3: Boss Tyrant (Eyes = 4)**
 spawn(function()  
     while task.wait() do  
-        -- Condição: Farm Tyrant ATIVADO E olhos == 4 (Modo Boss)
-        if _G.FullyTyrant and _G.EyesCount == 4 then  
+        if _G.StartFarm and _G.SelectedFarmMode == "Tyrant" and _G.EyesCount == 4 then  
 
             for _, target in ipairs(targetsty) do             
-                if not _G.FullyTyrant or _G.EyesCount ~= 4 then break end  
+                if not _G.StartFarm or _G.SelectedFarmMode ~= "Tyrant" or _G.EyesCount ~= 4 then break end  
 
                 if isSkyBossAlive() then  
                     attackSkyBoss()  
@@ -3939,7 +3877,6 @@ spawn(function()
                         if distance <= 1 then  
 
                             if _G.UseSkullSummon then      
-                                -- Lógica de invocação com Skull Guitar
                                 game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("LoadItem", "Skull Guitar")  
                                 EquipWeapon("Skull Guitar")  
 
@@ -3948,8 +3885,8 @@ spawn(function()
                                     guitar.RemoteEvent:FireServer("TAP", target.Position)  
                                     game:GetService("ReplicatedStorage").Remotes.Validator2:FireServer(8359618, 0)  
                                 end  
+
                             else                         
-                                -- Lógica de uso de habilidades padrão (Melee, Sword, Gun, Blox Fruit)
                                 equipAndUseSkill("Melee")  
                                 equipAndUseSkill("Sword")  
                                 equipAndUseSkill("Gun")  
@@ -3965,13 +3902,11 @@ spawn(function()
     end
 end)
 
--- =================================================================
--- 2. SISTEMA BONE FARM (Assumido Haunted Castle)
--- =================================================================
+-- 2. SISTEMA BONE FARM (EXATO)
 
 spawn(function()
     while task.wait() do
-        if _G.AutoFarm_Bone and _G.StartFarm then
+        if _G.StartFarm and _G.SelectedFarmMode == "Bone" then
             pcall(function()
 
                 local plr = game.Players.LocalPlayer
@@ -3987,7 +3922,6 @@ spawn(function()
                     "Posessed Mummy",    
                 }    
 
-                -- Aceitar Quest
                 if _G.AcceptQuest and not QuestUI.Visible then    
                     local npcPos = CFrame.new(-9516.99,172.01,6078.46)    
                     _tp(npcPos)    
@@ -4020,7 +3954,7 @@ spawn(function()
                                 if dist < shortest then    
                                     shortest = dist    
                                     closest = mob    
-                                end
+                                end    
                             end    
                         end    
                     end    
@@ -4030,16 +3964,15 @@ spawn(function()
                 local mob = GetClosestMob()    
 
                 if mob then    
-                    _tp(mob.PrimaryPart.CFrame * CFrame.new(0, 5, 0) * CFrame.Angles(math.rad(-90), 0, 0))    
+                    _tp(mob.PrimaryPart.CFrame)    
                     repeat task.wait()    
                         if mob.Parent and mob.Humanoid.Health > 0 then    
-                            G.Kill(mob, _G.AutoFarm_Bone)    
+                            G.Kill(mob, true)    
                         else    
                             break    
                         end    
-                    until not _G.StartFarm or not _G.AutoFarm_Bone    
+                    until not _G.StartFarm or _G.SelectedFarmMode ~= "Bone"    
                 else    
-                    -- Ponto de espera se não houver mobs (Para forçar o spawn)
                     _tp(CFrame.new(-9495.68,453.58,5977.34))    
                 end    
 
@@ -4048,9 +3981,9 @@ spawn(function()
     end
 end)
 
--- =================================================================
--- 3. SISTEMA LEVEL FARM (Geral)
--- =================================================================
+-- 3. SISTEMA LEVEL FARM (EXATO)
+
+local CurrentMob = nil
 
 local function GetNearestMob(TargetName)
     local plr = game.Players.LocalPlayer
@@ -4072,24 +4005,21 @@ end
 
 spawn(function()
     while task.wait() do
-        if _G.Level and _G.StartFarm then
+        if _G.StartFarm and _G.SelectedFarmMode == "Level" then
             pcall(function()
 
                 local plr = game.Players.LocalPlayer
                 local Root = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
                 if not Root then return end
 
-                local Q = QuestNeta() -- [1]=MobName, [2]=QuestID2, [3]=QuestID1, [4]=FarmPos, [5]=QuestTitle, [6]=NpcPos
+                local QuestTitle = plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text    
+                local Q = QuestNeta()
 
-                -- Lógica para Abortar/Aceitar Quest
-                if plr.PlayerGui.Main.Quest.Visible then
-                    local QuestTitle = plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text    
-                    if not string.find(QuestTitle, Q[5]) then    
-                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AbandonQuest")    
-                    end    
-                end
-                
-                if _G.AcceptQuest and not plr.PlayerGui.Main.Quest.Visible then    
+                if not string.find(QuestTitle, Q[5]) then    
+                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AbandonQuest")    
+                end    
+
+                if not plr.PlayerGui.Main.Quest.Visible then    
                     _tp(Q[6])    
 
                     if (Root.Position - Q[6].Position).Magnitude <= 50 then    
@@ -4101,30 +4031,25 @@ spawn(function()
 
                 local Nearest = GetNearestMob(Q[1])
 
-                -- Se o mob atual ainda está vivo, continua o ataque
                 if CurrentMob and G.Alive(CurrentMob) and CurrentMob.Parent then    
-                    _tp(CurrentMob.HumanoidRootPart.CFrame * Pos)
                     G.Kill(CurrentMob, true)    
                     return    
                 else    
                     CurrentMob = nil    
                 end    
 
-                -- Se não encontrou mob e não tem quest, vai para a posição de farm
                 if not Nearest then    
                     _tp(Q[4])    
                     return    
                 end    
 
-                -- Encontrou novo mob
                 CurrentMob = Nearest    
 
                 repeat    
                     task.wait()    
-                    _tp(CurrentMob.HumanoidRootPart.CFrame * Pos)
                     G.Kill(CurrentMob, true)    
                 until not _G.StartFarm 
-                    or not _G.Level 
+                    or _G.SelectedFarmMode ~= "Level"
                     or not CurrentMob.Parent 
                     or CurrentMob.Humanoid.Health <= 0    
 
@@ -4135,13 +4060,11 @@ spawn(function()
     end
 end)
 
--- =================================================================
--- 4. SISTEMA CAKE PRINCE FARM (Sea of Treats)
--- =================================================================
+-- 4. SISTEMA CAKE PRINCE FARM
 
 spawn(function()
     while task.wait() do
-        if _G.AutoFarm_Cake and _G.StartFarm then
+        if _G.StartFarm and _G.SelectedFarmMode == "Cake Prince" then
             pcall(function()
                 local plr = game.Players.LocalPlayer
                 local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
@@ -4150,39 +4073,31 @@ spawn(function()
                 local enemies = workspace:FindFirstChild("Enemies")
                 if not enemies then return end
 
-                local CakePos = CFrame.new(-2091.91, 70.00, -12142.83) -- Ponto central (spawn)
-                local PortalEntrance = CFrame.new(-2151.82, 149.32, -12404.91) -- Ponto do portal
+                local CakePos = CFrame.new(-2091.91, 70.00, -12142.83)
+                local PortalEntrance = CFrame.new(-2151.82, 149.32, -12404.91)
 
-                -- Checagem do Portal (CakeLoaf -> BigMirror -> Other)
                 local mirror = workspace.Map:FindFirstChild("CakeLoaf")
                 mirror = mirror and mirror:FindFirstChild("BigMirror")
                 local other = mirror and mirror:FindFirstChild("Other")
                 local portalOpen = other and other.Transparency == 0
                 
-                -- Checagem do Boss (Cake Prince ou Dough King)
                 local boss = enemies:FindFirstChild("Cake Prince") or enemies:FindFirstChild("Dough King")
 
-                -- PARTE 1: Voltar para ilha se estiver muito longe e não houver Boss/Portal
                 if not boss and not portalOpen and (hrp.Position - CakePos.Position).Magnitude > 3000 then
                     _tp(CakePos)
                     return
                 end
 
-                -- =================================================================
-                -- PARTE 2: Lógica do Boss/Portal
-                -- =================================================================
                 if boss or portalOpen then
                     
-                    -- CASO A: O Boss já existe e está vivo
                     if boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 and boss.PrimaryPart then
+                        
                         local distToBoss = (hrp.Position - boss.PrimaryPart.Position).Magnitude
 
                         if distToBoss > 350 then
-                            -- SE ESTIVER LONGE: Apenas vai até ele (sem flutuar alto, sem atacar)
                             _tp(boss.PrimaryPart.CFrame * CFrame.new(0, 5, 0))
                             hrp.Velocity = Vector3.new(0,0,0)
                         else
-                            -- SE ESTIVER PERTO: Posiciona em cima e ataca
                             local bossPos = boss.PrimaryPart.CFrame * CFrame.new(0, 25, 0) * CFrame.Angles(math.rad(-90), 0, 0)
                             _tp(bossPos)
                             
@@ -4196,7 +4111,6 @@ spawn(function()
                         return
                     end
 
-                    -- CASO B: Portal aberto, mas Boss não spawnou (Entrando na dimensão)
                     local distToEntrance = (hrp.Position - PortalEntrance.Position).Magnitude
                     
                     if distToEntrance < 500 then
@@ -4207,17 +4121,13 @@ spawn(function()
                     return
                 end
 
-                -- =================================================================
-                -- PARTE 3: Farmar NPCs
-                -- =================================================================
                 local CAKE_MOBS = {"Cookie Crafter", "Cake Guard", "Baking Staff", "Head Baker"}
-                local QuestNpcPos = CFrame.new(-1927.92, 37.80, -12842.54)
 
-                -- Lógica de Quest (Aceitar)
                 local QuestUI = plr.PlayerGui.Main.Quest
                 if _G.AcceptQuest and not QuestUI.Visible then
-                    _tp(QuestNpcPos)
-                    if (hrp.Position - QuestNpcPos.Position).Magnitude <= 40 then
+                    local questPos = CFrame.new(-1927.92, 37.80, -12842.54)
+                    _tp(questPos)
+                    if (hrp.Position - questPos.Position).Magnitude <= 40 then
                         local q = {
                             {"StartQuest", "CakeQuest2", 2},
                             {"StartQuest", "CakeQuest2", 1},
@@ -4229,7 +4139,6 @@ spawn(function()
                     return
                 end
 
-                -- Busca Mob mais próximo
                 local bestMob
                 local bestDist = math.huge
 
@@ -4245,7 +4154,6 @@ spawn(function()
                     end
                 end
 
-                -- Se não achou mob, volta para o ponto de spawn
                 if not bestMob then
                     if (hrp.Position - CakePos.Position).Magnitude > 500 then
                          _tp(CakePos)
@@ -4253,11 +4161,10 @@ spawn(function()
                     return
                 end
 
-                -- Ataque ao NPC
                 if bestMob and bestMob:FindFirstChild("HumanoidRootPart") then
                     repeat
                         task.wait()
-                        -- Checa se o portal/boss abriu enquanto farma
+
                         local checkMirror = workspace.Map:FindFirstChild("CakeLoaf")
                         checkMirror = checkMirror and checkMirror:FindFirstChild("BigMirror")
                         local checkOther = checkMirror and checkMirror:FindFirstChild("Other")
@@ -4277,14 +4184,13 @@ spawn(function()
                         else
                             break
                         end
-                    until not _G.StartFarm or not _G.AutoFarm_Cake or not bestMob.Parent or bestMob.Humanoid.Health <= 0
+                    until not _G.StartFarm or _G.SelectedFarmMode ~= "Cake Prince" or not bestMob.Parent or bestMob.Humanoid.Health <= 0
                 end
 
             end)
         end
     end
 end)
-
 
 b:AddSeperator("Other")
 
