@@ -426,90 +426,101 @@ statsSetings = function(I, e)
 		end;
 	end;
 
-local TweenService = game:GetService("TweenService")
-local tweenInfo = TweenInfo.new(0.35, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
 
+-- Adicione essas variáveis fora da função, se não existirem
+local PosMon -- Assumindo que esta variável global ou externa define o ponto de agrupamento.
+local _B -- Assumindo que esta variável global ou externa é o toggle (true/false) do Bring.
+
+-- Função IsRaidMob (Mantida igual, pois parece robusta)
 local function IsRaidMob(mob)
-    -- Nome indicando raid
     local n = mob.Name:lower()
     if n:find("raid") or n:find("microchip") or n:find("island") then
         return true
     end
-
-    -- Marcação por atributo
     if mob:GetAttribute("IsRaid") or mob:GetAttribute("RaidMob") then
         return true
     end
-
-    -- Alguns scripts marcam humanoid
     local hum = mob:FindFirstChild("Humanoid")
     if hum and hum.WalkSpeed == 0 then
         return true
     end
-
-    -- Alguns mobs de raid ficam dentro de _WorldOrigin primeiro
     if mob.Parent and tostring(mob.Parent):lower():find("_worldorigin") then
         return true
     end
-
     return false
 end
 
-BringEnemy = function()
-    if not _B then return end -- Verifica se o botão Bring Mobs está ativado
+-- Novo Humanoid Setup Otimizado: Fazemos isso uma vez por mob (fora do loop de movimento)
+local function SetupMob(hum)
+    -- Desabilita estados de física pesada
+    hum:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+    hum:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+    hum:SetStateEnabled(Enum.HumanoidStateType.GettingUp, false)
+    
+    hum.AutoRotate = false
+    -- StateType.StrafingNoPhysics é bom, mas HumanoidStateType.Flying é ainda mais leve
+    -- e não tenta calcular nada além do movimento forçado pela CFrame.
+    hum:ChangeState(Enum.HumanoidStateType.Flying) 
+end
 
-    local LocalPlayer = game.Players.LocalPlayer
+BringEnemy = function()
+    -- **GARDRAIL ESSENCIAL CONTRA CRASH:** -- Se o script for chamado via um loop simples, adicione uma pequena pausa
+    -- para evitar esgotar o ciclo da CPU em um único frame.
+    -- Se você estiver usando RunService.Heartbeat, remova esta linha.
+    -- task.wait() 
+    
+    if not _B then return end
+
+    local LocalPlayer = Players.LocalPlayer
     local HRP_Player = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
     
     if not HRP_Player then return end
 
-    -- Expandir SimulationRadius para garantir que você "domine" a física dos mobs próximos
-    if setscriptable then
-        setscriptable(LocalPlayer, "SimulationRadius", true)
-    end
-    if sethiddenproperty then
-        sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge)
-    end
+    local targetPos = PosMon or HRP_Player.Position
+    
+    -- Otimização: Apenas itera sobre a pasta de inimigos
+    for _, mob in pairs(Workspace.Enemies:GetChildren()) do
+        local hum = mob:FindFirstChild("Humanoid")
+        local root = mob:FindFirstChild("HumanoidRootPart")
 
-    for _, mob in pairs(workspace.Enemies:GetChildren()) do
-        -- Verifica se o mob é válido e não é de Raid/Boss
-        if mob:FindFirstChild("Humanoid") and mob:FindFirstChild("HumanoidRootPart") and mob.Humanoid.Health > 0 then
-            -- Usa a função IsRaidMob que já existe no seu script
-            if not IsRaidMob(mob) and not mob:GetAttribute("IsBoss") then
-                
-                local root = mob.HumanoidRootPart
-                local hum = mob.Humanoid
-                
-                -- Se PosMon não estiver definido, usa a posição do player como fallback
-                local targetPos = PosMon or HRP_Player.Position 
-                local dist = (root.Position - targetPos).Magnitude
+        -- Checagem rápida de validade
+        if not hum or not root or hum.Health <= 0 then continue end
 
-                if dist <= 350 then -- Alcance do Bring (aumentei um pouco para garantir)
-                    
-                    -- Configurações Anti-Lag para o Mob
-                    hum.AutoRotate = false
-                    hum:ChangeState(11) -- Enum.HumanoidStateType.StrafingNoPhysics (Mais leve para CPU)
-                    
+        -- Usa a função IsRaidMob existente e checa o Boss
+        if not IsRaidMob(mob) and not mob:GetAttribute("IsBoss") then
+            
+            local dist = (root.Position - targetPos).Magnitude
+
+            if dist <= 350 then -- Alcance do Bring
+                
+                -- Se o mob não foi configurado, faz o setup leve
+                if hum.RootPart.CanCollide then -- Usamos CanCollide como um simples check de setup
+                    SetupMob(hum)
                     root.CanCollide = false
                     root.Anchored = false
-                    
-                    -- === MOVIMENTO OTIMIZADO (SEM TWEEN) ===
-                    -- Se estiver longe (> 200 studs), teleporta instantâneo.
-                    -- Se estiver perto, usa Lerp (matemática simples) que é leve e suave.
-                    if dist > 200 then
-                        root.CFrame = CFrame.new(targetPos) 
-                    else
-                        -- Move 50% do caminho a cada frame (efeito magnético suave sem travar)
-                        root.CFrame = root.CFrame:Lerp(CFrame.new(targetPos), 0.5) 
-                    end
-                    
-                    -- Zera a velocidade para o mob não ser jogado longe pela física
-                    root.Velocity = Vector3.new(0,0,0)
                 end
+                
+                -- === MOVIMENTO OTIMIZADO ===
+                if dist > 200 then
+                    -- Teleporta instantaneamente se estiver muito longe
+                    root.CFrame = CFrame.new(targetPos) 
+                else
+                    -- Move 20% do caminho. O 0.5 estava muito agressivo e causava jitter/lag em massa.
+                    -- Um valor menor (0.2 a 0.3) é mais suave e diminui a carga.
+                    root.CFrame = root.CFrame:Lerp(CFrame.new(targetPos), 0.25) 
+                end
+                
+                -- Zera a velocidade para cancelar qualquer força residual de física
+                root.Velocity = Vector3.new(0,0,0)
+                root.RotVelocity = Vector3.new(0,0,0)
             end
         end
     end
 end
+
 
 Useskills = function(I, e)
 		if I == "Melee" then
