@@ -4753,7 +4753,7 @@ j:AddToggle({
                             end
 
                             if plr.PlayerGui.Main.Quest.Visible == false then
-                                _tp(QuestBeta()[5])
+                                TeleportToTarget(QuestBeta()[5])
                                 if (Root.Position - QuestBeta()[5].Position).Magnitude <= 5 then
                                     replicated.Remotes.CommF_:InvokeServer("StartQuest", QuestBeta()[3], QuestBeta()[2])
                                 end
@@ -4772,9 +4772,9 @@ j:AddToggle({
                                         end
                                     end
                                 else
-                                    _tp(QuestBeta()[4])
+                                    TeleportToTarget(QuestBeta()[4])
                                     if replicated:FindFirstChild(QuestBeta()[1]) then
-                                        _tp(replicated:FindFirstChild(QuestBeta()[1]).HumanoidRootPart.CFrame * CFrame.new(0,30,0))
+                                        TeleportToTarget(replicated:FindFirstChild(QuestBeta()[1]).HumanoidRootPart.CFrame * CFrame.new(0,30,0))
                                     end
                                 end
                             end
@@ -4790,9 +4790,9 @@ j:AddToggle({
                                     end
                                 end
                             else
-                                _tp(QuestBeta()[4])
+                                TeleportToTarget(QuestBeta()[4])
                                 if replicated:FindFirstChild(QuestBeta()[1]) then
-                                    _tp(replicated:FindFirstChild(QuestBeta()[1]).HumanoidRootPart.CFrame * CFrame.new(0,30,0))
+                                    TeleportToTarget(replicated:FindFirstChild(QuestBeta()[1]).HumanoidRootPart.CFrame * CFrame.new(0,30,0))
                                 end
                             end
                         end
@@ -4803,7 +4803,7 @@ j:AddToggle({
     end
 })
 
--- Toggle para aceitar ou não a quest do Boss (depois do Auto Farm Boss)
+-- Toggle para aceitar ou não a quest do Boss
 j:AddToggle({
     Title = "Accept Quest Boss",
     Default = false,
