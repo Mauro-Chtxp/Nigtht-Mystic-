@@ -1,3 +1,31 @@
+--========================================--
+-- SISTEMA DE SAVE / LOAD CONFIG UNIVERSAL
+--========================================--
+
+local HttpService = game:GetService("HttpService")
+local ConfigFile = "JJ_Config.json"
+
+_G.Config = {}
+
+local function SaveConfig()
+    pcall(function()
+        writefile(ConfigFile, HttpService:JSONEncode(_G.Config))
+    end)
+end
+
+local function LoadConfig()
+    if isfile(ConfigFile) then
+        local data = readfile(ConfigFile)
+        local decoded = HttpService:JSONDecode(data)
+
+        for i,v in pairs(decoded) do
+            _G.Config[i] = v
+        end
+    end
+end
+
+LoadConfig()
+
 do
 	ply = game.Players;
 	plr = ply.LocalPlayer;
@@ -4720,97 +4748,6 @@ spawn(function()
 		end);
 	end;
 end);
-j:AddSeperator("Boss Farming");
-
--- Dropdown para selecionar o Boss
-j:AddDropdown({
-    Title = "Select Boss",
-    Values = Boss,
-    Default = Boss[1],
-    Callback = function(value)
-        _G.FindBoss = value
-    end
-})
-
--- Toggle de Auto Farm Boss
-j:AddToggle({
-    Title = "Auto Farm Boss",
-    Default = false,
-    Callback = function(v)
-        _G.FarmBoss = v
-        if v then
-            spawn(function()
-                while _G.FarmBoss do
-                    wait(Sec)
-                    pcall(function()
-                        local HasQuest = QuestBeta()[2] ~= nil and QuestBeta()[3] ~= nil
-                        
-                        if HasQuest and _G.AcceptBossQuest then
-                            -- Boss com Quest
-                            local QuestTitle = plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text
-                            if not string.find(QuestTitle, QuestBeta()[0]) then
-                                replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
-                            end
-
-                            if plr.PlayerGui.Main.Quest.Visible == false then
-                                TeleportToTarget(QuestBeta()[5])
-                                if (Root.Position - QuestBeta()[5].Position).Magnitude <= 5 then
-                                    replicated.Remotes.CommF_:InvokeServer("StartQuest", QuestBeta()[3], QuestBeta()[2])
-                                end
-                            elseif plr.PlayerGui.Main.Quest.Visible == true then
-                                if workspace.Enemies:FindFirstChild(QuestBeta()[1]) then
-                                    for _, v in pairs(workspace.Enemies:GetChildren()) do
-                                        if Attack.Alive(v) and v.Name == QuestBeta()[1] then
-                                            if string.find(QuestTitle, QuestBeta()[0]) then
-                                                repeat
-                                                    wait()
-                                                    Attack.Kill(v, _G.FarmBoss)
-                                                until not _G.FarmBoss or v.Humanoid.Health <= 0 or not v.Parent or plr.PlayerGui.Main.Quest.Visible == false
-                                            else
-                                                replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
-                                            end
-                                        end
-                                    end
-                                else
-                                    TeleportToTarget(QuestBeta()[4])
-                                    if replicated:FindFirstChild(QuestBeta()[1]) then
-                                        TeleportToTarget(replicated:FindFirstChild(QuestBeta()[1]).HumanoidRootPart.CFrame * CFrame.new(0,30,0))
-                                    end
-                                end
-                            end
-                        else
-                            -- Boss sem Quest ou não aceitar Quest
-                            if workspace.Enemies:FindFirstChild(QuestBeta()[1]) then
-                                for _, v in pairs(workspace.Enemies:GetChildren()) do
-                                    if Attack.Alive(v) and v.Name == QuestBeta()[1] then
-                                        repeat
-                                            wait()
-                                            Attack.Kill(v, _G.FarmBoss)
-                                        until not _G.FarmBoss or v.Humanoid.Health <= 0 or not v.Parent
-                                    end
-                                end
-                            else
-                                TeleportToTarget(QuestBeta()[4])
-                                if replicated:FindFirstChild(QuestBeta()[1]) then
-                                    TeleportToTarget(replicated:FindFirstChild(QuestBeta()[1]).HumanoidRootPart.CFrame * CFrame.new(0,30,0))
-                                end
-                            end
-                        end
-                    end)
-                end
-            end)
-        end
-    end
-})
-
--- Toggle para aceitar ou não a quest do Boss
-j:AddToggle({
-    Title = "Accept Quest Boss",
-    Default = false,
-    Callback = function(v)
-        _G.AcceptBossQuest = v
-    end
-})
 j:AddSeperator("Quests");
 j:AddToggle({
 	Title = "Auto Farm Observation",
