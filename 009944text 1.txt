@@ -9271,6 +9271,110 @@ task.spawn(function()
 		end);
 	end;
 end);
+E:AddSeperator("Speed/Jump");
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+
+local plr = Players.LocalPlayer
+local humanoid = plr.Character and plr.Character:FindFirstChildOfClass("Humanoid") or nil
+
+plr.CharacterAdded:Connect(function(char)
+    humanoid = char:WaitForChild("Humanoid")
+end)
+
+local SpeedEnabled = false
+local JumpEnabled = false
+
+local desiredSpeed = 16
+local desiredJump = 50
+
+local function protectSpeed()
+    if humanoid then
+        humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
+            if SpeedEnabled and humanoid.WalkSpeed ~= desiredSpeed then
+                humanoid.WalkSpeed = desiredSpeed
+            end
+        end)
+    end
+end
+
+local function applyStats()
+    if humanoid then
+        if SpeedEnabled then humanoid.WalkSpeed = desiredSpeed end
+        if JumpEnabled then humanoid.JumpPower = desiredJump end
+    end
+end
+
+RunService.Heartbeat:Connect(function()
+    if humanoid then
+        if SpeedEnabled and humanoid.WalkSpeed ~= desiredSpeed then
+            humanoid.WalkSpeed = desiredSpeed
+        end
+        if JumpEnabled and humanoid.JumpPower ~= desiredJump then
+            humanoid.JumpPower = desiredJump
+        end
+    end
+end)
+
+plr.CharacterAdded:Connect(function(char)
+    humanoid = char:WaitForChild("Humanoid")
+    protectSpeed()
+end)
+
+protectSpeed()
+
+-- Toggle para WalkSpeed
+E:AddToggle({
+    Title = "Set WalkSpeed",
+    Description = "Enable custom WalkSpeed",
+    Default = false,
+    Callback = function(Value)
+        SpeedEnabled = Value
+        applyStats()
+    end
+})
+
+-- Input para definir valor da WalkSpeed
+E:AddInput({
+    Title = "WalkSpeed Value",
+    Description = "Digite a velocidade desejada",
+    PlaceHolder = "16",
+    Default = tostring(desiredSpeed),
+    Callback = function(Value)
+        local num = tonumber(Value)
+        if num then
+            desiredSpeed = num
+            applyStats()
+        end
+    end
+})
+
+-- Toggle para JumpPower
+E:AddToggle({
+    Title = "Set JumpPower",
+    Description = "Enable custom JumpPower",
+    Default = false,
+    Callback = function(Value)
+        JumpEnabled = Value
+        applyStats()
+    end
+})
+
+-- Input para definir valor do JumpPower
+E:AddInput({
+    Title = "JumpPower Value",
+    Description = "Digite o JumpPower desejado",
+    PlaceHolder = "50",
+    Default = tostring(desiredJump),
+    Callback = function(Value)
+        local num = tonumber(Value)
+        if num then
+            desiredJump = num
+            applyStats()
+        end
+    end
+})
+
 E:AddSeperator("LocalPlayer Settings / Misc");
 E:AddToggle({
 	Title = "Instance Mink V3 [ INF ]",
