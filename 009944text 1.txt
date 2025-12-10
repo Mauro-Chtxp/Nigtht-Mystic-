@@ -484,7 +484,7 @@ BringEnemy = function()
                 local targetPos = PosMon or HRP_Player.Position 
                 local dist = (root.Position - targetPos).Magnitude
 
-                if dist <= 350 then -- Alcance do Bring (aumentei um pouco para garantir)
+                if dist <= 210 then -- Alcance do Bring (aumentei um pouco para garantir)
                     
                     -- Configurações Anti-Lag para o Mob
                     hum.AutoRotate = false
