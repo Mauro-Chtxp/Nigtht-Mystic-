@@ -429,38 +429,34 @@ statsSetings = function(I, e)
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 
-local broughtMobs = {} -- Tabela para evitar recalcular mobs já trazidos
+local activeTweens = {} -- Mobs atualmente sendo movidos
+local broughtMobs = {}  -- Controle para evitar repetir
 
 local function IsRaidMob(mob)
     local n = mob.Name:lower()
     if n:find("raid") or n:find("microchip") or n:find("island") then
         return true
     end
-
     if mob:GetAttribute("IsRaid") or mob:GetAttribute("RaidMob") then
         return true
     end
-
     local hum = mob:FindFirstChild("Humanoid")
     if hum and hum.WalkSpeed == 0 then
         return true
     end
-
     if mob.Parent and tostring(mob.Parent):lower():find("_worldorigin") then
         return true
     end
-
     return false
 end
 
 BringEnemy = function()
-    if not _B then return end -- Checa se Bring está ativo
+    if not _B then return end
 
     local LocalPlayer = game.Players.LocalPlayer
     local HRP_Player = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
     if not HRP_Player then return end
 
-    -- Expandir SimulationRadius para física
     if setscriptable then setscriptable(LocalPlayer, "SimulationRadius", true) end
     if sethiddenproperty then sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge) end
 
@@ -469,28 +465,30 @@ BringEnemy = function()
         local root = mob:FindFirstChild("HumanoidRootPart")
         if hum and root and hum.Health > 0 then
             if not IsRaidMob(mob) and not mob:GetAttribute("IsBoss") then
-                
                 local dist = (root.Position - HRP_Player.Position).Magnitude
                 if dist <= 350 then
-                    -- Evita processar repetidamente mobs já trazidos
                     if not broughtMobs[mob] then
                         broughtMobs[mob] = true
                     end
 
                     hum.AutoRotate = false
-                    hum:ChangeState(11) -- StrafingNoPhysics
+                    hum:ChangeState(11)
                     root.CanCollide = false
                     root.Anchored = false
                     root.Velocity = Vector3.new(0,0,0)
 
-                    -- Movimenta de forma suave, sem lag
-                    if dist > 200 then
-                        root.CFrame = CFrame.new(HRP_Player.Position)
-                    else
-                        root.CFrame = root.CFrame:Lerp(CFrame.new(HRP_Player.Position), 0.5)
+                    -- Tween otimizado
+                    if not activeTweens[mob] then
+                        local targetCFrame = CFrame.new(HRP_Player.Position)
+                        local tweenInfo = TweenInfo.new(math.clamp(dist/300, 0.2, 0.5), Enum.EasingStyle.Linear)
+                        local tween = TweenService:Create(root, tweenInfo, {CFrame = targetCFrame})
+                        tween:Play()
+                        activeTweens[mob] = tween
+                        tween.Completed:Connect(function()
+                            activeTweens[mob] = nil
+                        end)
                     end
                 else
-                    -- Mob fora do alcance, remove da tabela para recalcular futuramente
                     broughtMobs[mob] = nil
                 end
             end
@@ -498,7 +496,6 @@ BringEnemy = function()
     end
 end
 
--- Atualiza BringEnemy apenas a cada frame de forma leve
 RunService.RenderStepped:Connect(function()
     BringEnemy()
 end)
