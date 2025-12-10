@@ -427,78 +427,89 @@ statsSetings = function(I, e)
 	end;
 
 local TweenService = game:GetService("TweenService")
-local RunService = game:GetService("RunService")
-
-local activeTweens = {} -- Mobs atualmente sendo movidos
-local broughtMobs = {}  -- Controle para evitar repetir
+local tweenInfo = TweenInfo.new(0.35, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
 
 local function IsRaidMob(mob)
+    -- Nome indicando raid
     local n = mob.Name:lower()
     if n:find("raid") or n:find("microchip") or n:find("island") then
         return true
     end
+
+    -- Marcação por atributo
     if mob:GetAttribute("IsRaid") or mob:GetAttribute("RaidMob") then
         return true
     end
+
+    -- Alguns scripts marcam humanoid
     local hum = mob:FindFirstChild("Humanoid")
     if hum and hum.WalkSpeed == 0 then
         return true
     end
+
+    -- Alguns mobs de raid ficam dentro de _WorldOrigin primeiro
     if mob.Parent and tostring(mob.Parent):lower():find("_worldorigin") then
         return true
     end
+
     return false
 end
 
 BringEnemy = function()
-    if not _B then return end
+    if not _B then return end -- Verifica se o botão Bring Mobs está ativado
 
     local LocalPlayer = game.Players.LocalPlayer
     local HRP_Player = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    
     if not HRP_Player then return end
 
-    if setscriptable then setscriptable(LocalPlayer, "SimulationRadius", true) end
-    if sethiddenproperty then sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge) end
+    -- Expandir SimulationRadius para garantir que você "domine" a física dos mobs próximos
+    if setscriptable then
+        setscriptable(LocalPlayer, "SimulationRadius", true)
+    end
+    if sethiddenproperty then
+        sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge)
+    end
 
     for _, mob in pairs(workspace.Enemies:GetChildren()) do
-        local hum = mob:FindFirstChild("Humanoid")
-        local root = mob:FindFirstChild("HumanoidRootPart")
-        if hum and root and hum.Health > 0 then
+        -- Verifica se o mob é válido e não é de Raid/Boss
+        if mob:FindFirstChild("Humanoid") and mob:FindFirstChild("HumanoidRootPart") and mob.Humanoid.Health > 0 then
+            -- Usa a função IsRaidMob que já existe no seu script
             if not IsRaidMob(mob) and not mob:GetAttribute("IsBoss") then
-                local dist = (root.Position - HRP_Player.Position).Magnitude
-                if dist <= 350 then
-                    if not broughtMobs[mob] then
-                        broughtMobs[mob] = true
-                    end
+                
+                local root = mob.HumanoidRootPart
+                local hum = mob.Humanoid
+                
+                -- Se PosMon não estiver definido, usa a posição do player como fallback
+                local targetPos = PosMon or HRP_Player.Position 
+                local dist = (root.Position - targetPos).Magnitude
 
+                if dist <= 350 then -- Alcance do Bring (aumentei um pouco para garantir)
+                    
+                    -- Configurações Anti-Lag para o Mob
                     hum.AutoRotate = false
-                    hum:ChangeState(11)
+                    hum:ChangeState(11) -- Enum.HumanoidStateType.StrafingNoPhysics (Mais leve para CPU)
+                    
                     root.CanCollide = false
                     root.Anchored = false
-                    root.Velocity = Vector3.new(0,0,0)
-
-                    -- Tween otimizado
-                    if not activeTweens[mob] then
-                        local targetCFrame = CFrame.new(HRP_Player.Position)
-                        local tweenInfo = TweenInfo.new(math.clamp(dist/300, 0.2, 0.5), Enum.EasingStyle.Linear)
-                        local tween = TweenService:Create(root, tweenInfo, {CFrame = targetCFrame})
-                        tween:Play()
-                        activeTweens[mob] = tween
-                        tween.Completed:Connect(function()
-                            activeTweens[mob] = nil
-                        end)
+                    
+                    -- === MOVIMENTO OTIMIZADO (SEM TWEEN) ===
+                    -- Se estiver longe (> 200 studs), teleporta instantâneo.
+                    -- Se estiver perto, usa Lerp (matemática simples) que é leve e suave.
+                    if dist > 200 then
+                        root.CFrame = CFrame.new(targetPos) 
+                    else
+                        -- Move 50% do caminho a cada frame (efeito magnético suave sem travar)
+                        root.CFrame = root.CFrame:Lerp(CFrame.new(targetPos), 0.5) 
                     end
-                else
-                    broughtMobs[mob] = nil
+                    
+                    -- Zera a velocidade para o mob não ser jogado longe pela física
+                    root.Velocity = Vector3.new(0,0,0)
                 end
             end
         end
     end
 end
-
-RunService.RenderStepped:Connect(function()
-    BringEnemy()
-end)
 
 Useskills = function(I, e)
 		if I == "Melee" then
@@ -4235,6 +4246,43 @@ b:AddDropdown({
     end
 })
 
+-- FUNÇÃO: pegar inimigo mais próximo dentro de uma lista
+local function GetNearestMobFromList(list)
+    local plr = game.Players.LocalPlayer
+    local root = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+    if not root then return nil end
+
+    local nearest, dist = nil, math.huge
+    for _, mob in pairs(workspace.Enemies:GetChildren()) do
+        if table.find(list, mob.Name)
+        and mob:FindFirstChild("HumanoidRootPart")
+        and mob:FindFirstChild("Humanoid")
+        and mob.Humanoid.Health > 0 then
+            local d = (mob.HumanoidRootPart.Position - root.Position).Magnitude
+            if d < dist then
+                dist = d
+                nearest = mob
+            end
+        end
+    end
+    return nearest
+end
+
+-- FUNÇÃO: verificar se ainda existe mob vivo
+local function HasAliveMob(list)
+    for _, mob in pairs(workspace.Enemies:GetChildren()) do
+        if table.find(list, mob.Name)
+        and mob:FindFirstChild("Humanoid")
+        and mob.Humanoid.Health > 0 then
+            return true
+        end
+    end
+    return false
+end
+
+
+
+-- AUTO FARM MASTERY FRUIT
 b:AddToggle({
     Title = "Auto Farm Mastery Fruit",
     Description = "",
@@ -4246,54 +4294,63 @@ b:AddToggle({
 
 spawn(function()
     RunSer.RenderStepped:Connect(function()
-        pcall(function()
-            if _G.FarmMastery_Dev or _G.FarmMastery_G or _G.FarmMastery_S then
+        if _G.FarmMastery_Dev then
+            pcall(function()
                 for _, e in pairs(plr.PlayerGui.Notifications:GetChildren()) do
-                    if e.Name == "NotificationTemplate" then
-                        if string.find(e.Text, "Skill locked!") then
-                            e:Destroy()
-                        end
+                    if e.Name == "NotificationTemplate" and string.find(e.Text, "Skill locked!") then
+                        e:Destroy()
                     end
                 end
-            end
-        end)
+            end)
+        end
     end)
 end)
 
 spawn(function()
-    while wait(Sec) do
+    while task.wait(Sec) do
         if _G.FarmMastery_Dev then
             pcall(function()
-                if SelectIsland == "Cake" then
-                    local I = GetConnectionEnemies(X)
-                    if I then
-                        HealthM = (I.Humanoid.MaxHealth * 70) / 100
-                        repeat
-                            wait()
-                            MousePos = I.HumanoidRootPart.Position
-                            G.Mas(I, _G.FarmMastery_Dev)
-                        until not _G.FarmMastery_Dev or I.Humanoid.Health <= 0 or not I.Parent
+
+                local list = (SelectIsland == "Cake" and X or P)
+                local mob = GetNearestMobFromList(list)
+
+                if mob then
+                    HealthM = mob.Humanoid.MaxHealth * 0.7
+
+                    repeat
+                        task.wait()
+
+                        if not mob.Parent
+                        or not mob:FindFirstChild("Humanoid")
+                        or mob.Humanoid.Health <= 0
+                        or not mob:FindFirstChild("HumanoidRootPart") then
+                            mob = GetNearestMobFromList(list)
+                            if not mob then break end
+                        end
+
+                        MousePos = mob.HumanoidRootPart.Position
+                        G.Mas(mob, _G.FarmMastery_Dev)
+
+                        if not HasAliveMob(list) then break end
+
+                    until not _G.FarmMastery_Dev
+
+                else
+                    if SelectIsland == "Cake" then
+                        _tp(CFrame.new(-1943.6765, 251.5095, -12337.8808))
                     else
-                        _tp(CFrame.new(-1943.6765136719, 251.50956726074, -12337.880859375))
-                    end
-                elseif SelectIsland == "Bone" then
-                    local I = GetConnectionEnemies(P)
-                    if I then
-                        HealthM = (I.Humanoid.MaxHealth * 70) / 100
-                        repeat
-                            wait()
-                            MousePos = I.HumanoidRootPart.Position
-                            G.Mas(I, _G.FarmMastery_Dev)
-                        until not _G.FarmMastery_Dev or I.Humanoid.Health <= 0 or not I.Parent
-                    else
-                        _tp(CFrame.new(-9495.6806640625, 453.58624267578, 5977.3486328125))
+                        _tp(CFrame.new(-9495.6806, 453.5862, 5977.3486))
                     end
                 end
+
             end)
         end
     end
 end)
 
+
+
+-- AUTO FARM MASTERY GUN
 b:AddToggle({
     Title = "Auto Farm Mastery Gun",
     Description = "",
@@ -4304,47 +4361,62 @@ b:AddToggle({
 })
 
 spawn(function()
-    while wait(Sec) do
+    while task.wait(Sec) do
         if _G.FarmMastery_G then
             pcall(function()
-                local function farmGun()
-                    local I
-                    if SelectIsland == "Cake" then
-                        I = GetConnectionEnemies(X)
-                    elseif SelectIsland == "Bone" then
-                        I = GetConnectionEnemies(P)
-                    end
-                    if I then
-                        HealthM = (I.Humanoid.MaxHealth * 70) / 100
-                        repeat
-                            wait()
-                            MousePos = I.HumanoidRootPart.Position
-                            G.Masgun(I, _G.FarmMastery_G)
-                            local e = replicated:FindFirstChild("Modules")
-                            local K = e:FindFirstChild("Net")
-                            local n = K:FindFirstChild("RE/ShootGunEvent")
-                            if plr.Character:FindFirstChildOfClass("Tool") and (plr.Character:FindFirstChildOfClass("Tool")).Name == "Skull Guitar" then
-                                SoulGuitar = true
-                                (plr.Character:FindFirstChildOfClass("Tool")).RemoteEvent:FireServer("TAP", MousePos)
-                            elseif plr.Character:FindFirstChildOfClass("Tool") and (plr.Character:FindFirstChildOfClass("Tool")).Name ~= "Skull Guitar" then
-                                SoulGuitar = false
-                                n:FireServer(MousePos, { I.HumanoidRootPart })
-                            end
-                        until not _G.FarmMastery_G or I.Humanoid.Health <= 0 or not I.Parent
-                        SoulGuitar = false
-                    else
-                        if SelectIsland == "Cake" then
-                            _tp(CFrame.new(-1943.6765136719, 251.50956726074, -12337.880859375))
-                        else
-                            _tp(CFrame.new(-9495.6806640625, 453.58624267578, 5977.3486328125))
+
+                local list = (SelectIsland == "Cake" and X or P)
+                local mob = GetNearestMobFromList(list)
+
+                if mob then
+                    HealthM = mob.Humanoid.MaxHealth * 0.7
+
+                    repeat
+                        task.wait()
+
+                        if not mob.Parent
+                        or not mob:FindFirstChild("Humanoid")
+                        or mob.Humanoid.Health <= 0
+                        or not mob:FindFirstChild("HumanoidRootPart") then
+                            mob = GetNearestMobFromList(list)
+                            if not mob then break end
                         end
+
+                        MousePos = mob.HumanoidRootPart.Position
+                        G.Masgun(mob, _G.FarmMastery_G)
+
+                        local modules = replicated:FindFirstChild("Modules")
+                        local K = modules:FindFirstChild("Net")
+                        local shoot = K:FindFirstChild("RE/ShootGunEvent")
+                        local tool = plr.Character:FindFirstChildOfClass("Tool")
+
+                        if tool and tool.Name == "Skull Guitar" then
+                            SoulGuitar = true
+                            tool.RemoteEvent:FireServer("TAP", MousePos)
+                        elseif tool then
+                            SoulGuitar = false
+                            shoot:FireServer(MousePos, { mob.HumanoidRootPart })
+                        end
+
+                        if not HasAliveMob(list) then break end
+
+                    until not _G.FarmMastery_G
+
+                    SoulGuitar = false
+
+                else
+                    if SelectIsland == "Cake" then
+                        _tp(CFrame.new(-1943.6765, 251.5095, -12337.8808))
+                    else
+                        _tp(CFrame.new(-9495.6806, 453.5862, 5977.3486))
                     end
                 end
-                farmGun()
+
             end)
         end
     end
 end)
+
 b:AddSeperator("Material");
 
 b:AddDropdown({
