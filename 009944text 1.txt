@@ -4048,7 +4048,7 @@ end)
 -- 5. LÓGICA TYRANT OF THE SKIES (ADAPTADA)
 ----------------------------------------------------------------------
 
-local Pos = CFrame.new(0, 25, 0) 
+local Pos = CFrame.new(0, 30, 0) 
 
 local FarmTiki1 = CFrame.new(-16423.8047, 146.953003, -123.602005, -0.999392033, 8.7369628e-08, -0.0348646119, 8.43748182e-08, 1, 8.7369628e-08, 0.0348646119, 8.43748182e-08, -0.999392033)
 local FarmTiki2 = CFrame.new(-16593.5996, 155.350998, 1130.48096, 0.0870701671, 0.0561700463, -0.994617403, -0.542416334, 0.840109825, -3.94880772e-05, 0.835585654, 0.539500117, 0.103616059)
@@ -4083,8 +4083,7 @@ local function GetClosestTyrantMob(hrp)
         ["Isle Champion"] = true, 
         ["Sun-kissed Warrior"] = true, 
         ["Island Boy"] = true, 
-        ["Isle Outlaw"] = true
-         ["Serpent Hunter"] = true 
+        ["Isle Outlaw"] = true 
     }
     local closestMob = nil
     local shortestDistance = math.huge
