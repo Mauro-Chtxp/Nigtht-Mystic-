@@ -2097,6 +2097,107 @@ local p=B:AddSection("Fruits");
 local D=g:AddSection("Shop");
 local Z=u:AddSection("Misc");
 local SS=s:AddSection("Stats");
+serverSection:AddSeperator("Server - Function");
+
+serverSection:AddButton({ Title = "Rejoin Server", Description = "", Callback = function()
+    (game:GetService("TeleportService")):Teleport(game.PlaceId, game.Players.LocalPlayer);
+end });
+
+serverSection:AddButton({ Title = "Hop Server", Description = "", Callback = function()
+    Hop();
+end });
+
+serverSection:AddButton({ Title = "Hop to Lowest Players", Description = "", Callback = function()
+    local I = game:GetService("HttpService");
+    local e = game:GetService("TeleportService");
+    local K = "https://games.roblox.com/v1/games/";
+    local n = game.PlaceId;
+    local d = K .. (n .. "/servers/Public?sortOrder=Asc&limit=100");
+    function ListServers(e)
+        local K = game:HttpGet(d .. (e and "&cursor=" .. e or ""));
+        return I:JSONDecode(K);
+    end;
+    local z, H;
+    repeat
+        local I = ListServers(H);
+        z = I.data[1];
+        H = I.nextPageCursor;
+    until z;
+    e:TeleportToPlaceInstance(n, z.id, plr);
+end });
+
+serverSection:AddButton({ Title = "Hop to Lowest Pings Server", Description = "", Callback = function()
+    local I = game:GetService("HttpService");
+    local e = game:GetService("TeleportService");
+    local K = game:GetService("Stats");
+    local function n(e, K)
+        local n = string.format("https://games.roblox.com/v1/games/%d/servers/Public?limit=%d", e, K);
+        local d, z = pcall(function()
+            return I:JSONDecode(game:HttpGet(n));
+        end);
+        if d and (z and z.data) then
+            return z.data;
+        end;
+        return nil;
+    end;
+    local d = game.PlaceId;
+    local z = 100;
+    local H = n(d, z);
+    if not H then
+        return;
+    end;
+    local F = H[1];
+    for I, e in pairs(H) do
+        if e.ping < F.ping and e.maxPlayers > e.playing then
+            F = e;
+        end;
+    end;
+    local Q = .5;
+    task.wait(Q);
+    local X = 100;
+    local P = K.Network.ServerStatsItem;
+    local w = P["Data Ping"]:GetValueString();
+    local O = tonumber(w:match("(%d+)"));
+    if O >= X then
+        e:TeleportToPlaceInstance(d, F.id);
+    end;
+end });
+
+serverSection:AddInput({
+    Title = "JobID",
+    Description = "",
+    PlaceHolder = "",
+    Default = "",
+    Callback = function(I)
+        _G.JobId = I;
+    end,
+});
+
+spawn(function()
+    while wait(Sec) do
+        if _G.JobId then
+            pcall(function()
+                local I;
+                I = plr.OnTeleport:Connect(function(e)
+                    if e == Enum.TeleportState.Failed then
+                        I:Disconnect();
+                        if workspace:FindFirstChild("Message") then
+                            workspace.Message:Destroy();
+                        end;
+                    end;
+                end);
+            end);
+        end;
+    end;
+end);
+
+serverSection:AddButton({ Title = "Teleport [Job ID]", Description = "", Callback = function()
+    replicated.__ServerBrowser:InvokeServer("teleport", _G.JobId);
+end });
+
+serverSection:AddButton({ Title = "Copy JobID", Description = "", Callback = function()
+    setclipboard(tostring(game.JobId));
+end });
 
 function isnil(I)
 	return I == nil;
@@ -9878,101 +9979,6 @@ D:AddButton({ Title = "Buy Ghoul Race (2.5k)", Description = "", Callback = func
 	end });
 D:AddButton({ Title = "Buy Cyborg Race (2.5k)", Description = "", Callback = function()
 		replicated.Remotes.CommF_:InvokeServer("CyborgTrainer", " Buy");
-	end });
-Z:AddSeperator("Server - Function");
-Z:AddButton({ Title = "Rejoin Server", Description = "", Callback = function()
-		(game:GetService("TeleportService")):Teleport(game.PlaceId, game.Players.LocalPlayer);
-	end });
-Z:AddButton({ Title = "Hop Server", Description = "", Callback = function()
-		Hop();
-	end });
-Z:AddButton({ Title = "Hop to Lowest Players", Description = "", Callback = function()
-		local I = game:GetService("HttpService");
-		local e = game:GetService("TeleportService");
-		local K = "https://games.roblox.com/v1/games/";
-		local n = game.PlaceId;
-		local d = K .. (n .. "/servers/Public?sortOrder=Asc&limit=100");
-		function ListServers(e)
-			local K = game:HttpGet(d .. (e and "&cursor=" .. e or ""));
-			return I:JSONDecode(K);
-		end;
-		local z, H;
-		repeat
-			local I = ListServers(H);
-			z = I.data[1];
-			H = I.nextPageCursor;
-		until z;
-		e:TeleportToPlaceInstance(n, z.id, plr);
-	end });
-Z:AddButton({ Title = "Hop to Lowest Pings Server", Description = "", Callback = function()
-		local I = game:GetService("HttpService");
-		local e = game:GetService("TeleportService");
-		local K = game:GetService("Stats");
-		local function n(e, K)
-			local n = string.format("https://games.roblox.com/v1/games/%d/servers/Public?limit=%d", e, K);
-			local d, z = pcall(function()
-					return I:JSONDecode(game:HttpGet(n));
-				end);
-			if d and (z and z.data) then
-				return z.data;
-			end;
-			return nil;
-		end;
-		local d = game.PlaceId;
-		local z = 100;
-		local H = n(d, z);
-		if not H then
-			return;
-		end;
-		local F = H[1];
-		for I, e in pairs(H) do
-			if e.ping < F.ping and e.maxPlayers > e.playing then
-				F = e;
-			end;
-		end;
-		local Q = .5;
-		task.wait(Q);
-		local X = 100;
-		local P = K.Network.ServerStatsItem;
-		local w = P["Data Ping"]:GetValueString();
-		local O = tonumber(w:match("(%d+)"));
-		if O >= X then
-			e:TeleportToPlaceInstance(d, F.id);
-		else
- 
-		end;
-	end });
-Z:AddInput({
-	Title = "JobID",
-	Description = "",
-	PlaceHolder = "",
-	Default = "",
-	Callback = function(I)
-		_G.JobId = I;
-	end,
-});
-spawn(function()
-	while wait(Sec) do
-		if _G.JobId then
-			pcall(function()
-				local I;
-				I = plr.OnTeleport:Connect(function(e)
-						if e == Enum.TeleportState.Failed then
-							I:Disconnect();
-							if workspace:FindFirstChild("Message") then
-								workspace.Message:Destroy();
-							end;
-						end;
-					end);
-			end);
-		end;
-	end;
-end);
-Z:AddButton({ Title = "Teleport [Job ID]", Description = "", Callback = function()
-		replicated.__ServerBrowser:InvokeServer("teleport", _G.JobId);
-	end });
-Z:AddButton({ Title = "Copy JobID", Description = "", Callback = function()
-		setclipboard(tostring(game.JobId));
 	end });
 Z:AddSeperator("Player Gui / Others");
 Z:AddButton({ Title = "Open Awakenings Expert", Description = "", Callback = function()
