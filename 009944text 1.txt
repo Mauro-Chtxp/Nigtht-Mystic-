@@ -2107,7 +2107,7 @@ serverSection:AddButton({ Title = "Hop Server", Description = "", Callback = fun
     Hop();
 end });
 
-serverSection:AddButton({ Title = "Hop to Lowest Players", Description = "", Callback = function()
+serverSection:AddButton({ Title = "Hop Server with a few people", Description = "", Callback = function()
     local I = game:GetService("HttpService");
     local e = game:GetService("TeleportService");
     local K = "https://games.roblox.com/v1/games/";
@@ -2126,7 +2126,7 @@ serverSection:AddButton({ Title = "Hop to Lowest Players", Description = "", Cal
     e:TeleportToPlaceInstance(n, z.id, plr);
 end });
 
-serverSection:AddButton({ Title = "Hop to Lowest Pings Server", Description = "", Callback = function()
+serverSection:AddButton({ Title = "Hop Sever with low ping", Description = "", Callback = function()
     local I = game:GetService("HttpService");
     local e = game:GetService("TeleportService");
     local K = game:GetService("Stats");
@@ -2191,11 +2191,11 @@ spawn(function()
     end;
 end);
 
-serverSection:AddButton({ Title = "Teleport [Job ID]", Description = "", Callback = function()
+serverSection:AddButton({ Title = "Join Server", Description = "", Callback = function()
     replicated.__ServerBrowser:InvokeServer("teleport", _G.JobId);
 end });
 
-serverSection:AddButton({ Title = "Copy JobID", Description = "", Callback = function()
+serverSection:AddButton({ Title = "Copy JobID Server", Description = "", Callback = function()
     setclipboard(tostring(game.JobId));
 end });
 
