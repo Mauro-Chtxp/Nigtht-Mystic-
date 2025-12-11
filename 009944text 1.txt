@@ -4089,7 +4089,7 @@ local function GetClosestTyrantMob(hrp)
     local shortestDistance = math.huge
 
     for _, v in pairs(enemyFolder:GetChildren()) do
-        if targetList[v.Name] and G.Alive(v) and v:FindFirstChild("HumanoidRootPart") then
+        if targetList[v.Name] and _G.Alive(v) and v:FindFirstChild("HumanoidRootPart") then
             
             local distance = (v.HumanoidRootPart.Position - hrp.Position).Magnitude
             
@@ -4244,10 +4244,19 @@ spawn(function()
                                 end  
 
                             else                         
-                                equipAndUseSkill("Melee")  
-                                equipAndUseSkill("Sword")  
-                                equipAndUseSkill("Gun")  
-                                equipAndUseSkill("Blox Fruit")  
+                                EquipWeapon(_G.SelectWeapon) -- CORREÇÃO: Equipa a arma selecionada
+                                task.wait(0.1) -- CORREÇÃO: Pequena espera para garantir que a arma esteja equipada
+                                
+                                -- CORREÇÃO: Dispara as teclas de habilidade da arma equipada
+                                sendSkillKey("Z")
+                                task.wait(0.1)
+                                sendSkillKey("X")
+                                task.wait(0.1)
+                                sendSkillKey("C")
+                                task.wait(0.1)
+                                sendSkillKey("V")
+                                task.wait(0.1)
+                                sendSkillKey("F")
                             end  
 
                             task.wait(2)  
@@ -4258,6 +4267,7 @@ spawn(function()
         end  
     end  
 end)
+
 
 
 b:AddSeperator("Other")
