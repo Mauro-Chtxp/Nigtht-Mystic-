@@ -47,7 +47,7 @@ Marines = function()
 Pirates = function()
 		replicated.Remotes.CommF_:InvokeServer("SetTeam", "Pirates");
 	end;
-local I = (loadstring(game:HttpGet("https://pastefy.app/ihzBeYbw/raw")))();
+local I = (loadstring(game:HttpGet("https://pastefy.app/IMguyGTs/raw")))();
 if World1 then
 	Boss = {
 			"The Gorilla King",
@@ -900,6 +900,16 @@ spawn(function()
 					I.Parent = plr.Character.HumanoidRootPart;
 					I.MaxForce = Vector3.new(100000, 100000, 100000);
 					I.Velocity = Vector3.new(0, 0, 0);
+				end;
+				if not plr.Character:FindFirstChild("highlight") then
+					local I = Instance.new("Highlight");
+					I.Name = "highlight";
+					I.Enabled = true;
+					I.FillColor = Color3.fromRGB(2, 197, 60);
+					I.OutlineColor = Color3.fromRGB(255, 255, 255);
+					I.FillTransparency = .5;
+					I.OutlineTransparency = .2;
+					I.Parent = plr.Character;
 				end;
 				for I, e in pairs(plr.Character:GetDescendants()) do
 					if e:IsA("BasePart") then
@@ -1889,25 +1899,24 @@ QuestNeta = function()
 		};
 	end;
 local V = I:NewWindow();
-local i = V:T("Info")
 local y = V:T("Farm");
 local c = V:T("Config");
+local a = V:T("Fighting Style");
 local x = V:T("Items Farm");
-local mf = V:T("Misc Farm");
 local t = V:T("Sea Events");
 local m = V:T("Mirage + RaceV4");
 local v = V:T("Drago Dojo");
 local S = V:T("Prehistoric");
 local L = V:T("Raid");
-local q = V:T("Pvp");
+local q = V:T("Combat PVP");
 local l = V:T("Teleport");
 local B = V:T("Fruits");
 local g = V:T("Shop");
 local u = V:T("Misc");
-local b = y:AddSection("Farming");
+local b = y:AddSection("Farm");
 local T = c:AddSection("Config");
+local U = a:AddSection("Fighting Style");
 local j = x:AddSection("Items Farm");
-local MF = mf:AddSection("Fishing");
 local A = t:AddSection("Sea Events");
 local h = m:AddSection("Mirage + RaceV4");
 local W = v:AddSection("Drago Dojo");
@@ -1918,179 +1927,6 @@ local Y = l:AddSection("Teleport");
 local p = B:AddSection("Fruits");
 local D = g:AddSection("Shop");
 local Z = u:AddSection("Misc");
-
-local plr = game.Players.LocalPlayer
-local rep = game:GetService("ReplicatedStorage")
-local Modules = rep:WaitForChild("Modules")
-local Net = Modules:WaitForChild("Net")
-local FishReplicated = rep:WaitForChild("FishReplicated")
-local FishingRequest = FishReplicated:FindFirstChild("FishingRequest")
-local FishingClient = FishReplicated:WaitForChild("FishingClient")
-local Config = require(FishingClient:WaitForChild("Config"))
-local Util = rep:WaitForChild("Util")
-local GetWaterHeightAtLocation = require(Util:WaitForChild("GetWaterHeightAtLocation"))
-local CommF_ = Net:FindFirstChild("RF/JobsRemoteFunction")
-local CraftRF = Net:FindFirstChild("RF/Craft")
-
-local SelectedRod = "Fishing Rod"
-local SelectedBait = "Basic Bait"
-local AutoFishing = false
-
-local function EnsureRodAndBait()
-	pcall(function()
-		CommF_:InvokeServer("FishingNPC", "FirstTimeFreeRod")
-		if SelectedRod then
-			CommF_:InvokeServer("LoadItem", SelectedRod, {"Gear"})
-		end
-	end)
-	task.wait(0.5)
-
-	local Data = plr:FindFirstChild("Data") and plr.Data:FindFirstChild("FishingData")
-	if Data and (Data:GetAttribute("SelectedBait") == "None" or Data:GetAttribute("SelectedBait") == nil) then
-		local inv = CommF_:InvokeServer("getInventory")
-		for _, v in pairs(inv) do
-			if v.Type == "Bait" and v.Name == SelectedBait then
-				CommF_:InvokeServer("LoadItem", v.Name, {"Usables"})
-				return
-			end
-		end
-		if CraftRF and SelectedBait then
-			CraftRF:InvokeServer("Craft", SelectedBait)
-			task.wait(2)
-		end
-	end
-end
-
-local function EquipRod()
-	local char = plr.Character
-	if not char then return end
-	local hum = char:FindFirstChildOfClass("Humanoid")
-	if not char:FindFirstChild(SelectedRod) then
-		local Rod = plr.Backpack:FindFirstChild(SelectedRod)
-		if Rod and hum then
-			hum:EquipTool(Rod)
-			task.wait(0.3)
-		end
-	end
-end
-
-local function GetCastPosition()
-	local char = plr.Character
-	if not char then return end
-	local hrp = char:WaitForChild("HumanoidRootPart")
-	local direction = hrp.CFrame.LookVector * (Config.Rod.MaxLaunchDistance or 50)
-	local _, hitPos = workspace:FindPartOnRayWithIgnoreList(
-		Ray.new(char.Head.Position, direction),
-		{char, workspace.Characters, workspace.Enemies}
-	)
-	return hitPos or (hrp.Position + Vector3.new(0, -10, 0))
-end
-
-local function CastLine()
-	if not FishingRequest then return end
-	pcall(function()
-		FishingRequest:InvokeServer("StartCasting")
-		task.wait(0.7)
-		FishingRequest:InvokeServer("CastLineAtLocation", GetCastPosition(), 100, true)
-	end)
-end
-
-local function CatchFish()
-	if not FishingRequest then return end
-	pcall(function()
-		FishingRequest:InvokeServer("Catching", 1)
-		task.wait(0.25)
-		FishingRequest:InvokeServer("Catch", 1)
-	end)
-end
-
-function StartFishingLoop()
-	task.spawn(function()
-		while AutoFishing do
-			task.wait(0.5)
-			pcall(function()
-				local char = plr.Character or plr.CharacterAdded:Wait()
-				if not char then return end
-				EnsureRodAndBait()
-				EquipRod()
-
-				local RodTool = char:FindFirstChild(SelectedRod)
-				if RodTool then
-					local state = RodTool:GetAttribute("ServerState") or RodTool:GetAttribute("State")
-					if state == "Biting" then
-						CatchFish()
-					elseif state == "ReeledIn" or state == "Idle" or not state then
-						CastLine()
-					end
-				end
-			end)
-		end
-	end)
-end
-
-MF:AddDropdown({
-    Title = "Select Fishing Rod",
-    Values = {"Fishing Rod", "Gold Rod", "Shark Rod", "Shell Rod", "Treasure Rod"},
-    Default = "Fishing Rod",
-    Callback = function(v)
-        SelectedRod = v
-    end
-})
-
-MF:AddDropdown({
-    Title = "Select Bait",
-    Values = {"Basic Bait", "Kelp Bait", "Good Bait", "Abyssal Bait", "Frozen Bait", "Epic Bait", "Carnivore Bait"},
-    Default = "Basic Bait",
-    Callback = function(v)
-        SelectedBait = v
-    end
-})
-
-MF:AddToggle({
-    Title = "Auto Farm Fishing",
-    Default = false,
-    Callback = function(v)
-        AutoFishing = v
-        if v then
-            StartFishingLoop()
-        end
-    end
-})
-
-local I1 = i:AddSection("Info");
-
-I1:AddParagraph({
-    Title = "Sobre o Night Mystic V2",
-    Content = "O Night Mystic V2 foi criado devido os problemas
-    com a hospedagem do script original."
-})
-
-I1:AddParagraph({
-    Title = "Por que outra versão?",
-    Content = "O GitHub — serviço usado para hospedar
-   o Night Mystic original — deixou de funcionar corretamente,
-  então criamos uma nova versão."
-})
-
-I1:AddParagraph({
-    Title = "Observação",
-    Content = "O Night Mystic V2 não possui as mesmas funcionalidades 
-   da versão original."
-})
-
-I1:AddButton({
-    Title = "Discord",
-    Description = "Copiar link do nosso servidor",
-    Callback = function()
-        setclipboard("https://discord.gg/sCMzRYSHVJ")
-        I:Notification({
-            Title = "Discord",
-            Description = "Link copiado!",
-            Duration = 5
-        })
-    end
-})
-
 b:AddToggle({
 	Title = "Auto Farm Level",
 	Description = "",
@@ -3186,7 +3022,7 @@ spawn(function()
 	end;
 end);
 b:AddToggle({
-	Title = "Auto Soul Reaper",
+	Title = "Auto Soul Reaper [Fully]",
 	Description = "",
 	Default = false,
 	Callback = function(I)
@@ -3283,7 +3119,7 @@ spawn(function()
 end);
 b:AddSeperator("Unlocked Dungeon");
 b:AddToggle({
-	Title = "Auto Desbloquear Raid Dough",
+	Title = "Auto Unlock Dough Dungeon",
 	Description = "",
 	Default = false,
 	Callback = function(I)
@@ -3349,7 +3185,7 @@ spawn(function()
 	end;
 end);
 b:AddToggle({
-	Title = "Auto Desbloquear Raid Phoenix",
+	Title = "Auto Unlock Phoenix Dungeon",
 	Description = "",
 	Default = false,
 	Callback = function(I)
@@ -3385,7 +3221,7 @@ spawn(function()
 end);
 b:AddSeperator("Buso/Aura Colours");
 b:AddToggle({
-	Title = "Teleport Barista Haki",
+	Title = "Auto Teleport Barista Cousin",
 	Description = "",
 	Default = false,
 	Callback = function(I)
@@ -3409,7 +3245,7 @@ b:AddButton({ Title = "Buy Buso Colors", Description = "", Callback = function()
 		replicated.Remotes.CommF_:InvokeServer("ColorsDealer", "2");
 	end });
 b:AddToggle({
-	Title = "Auto Rainbow Haki",
+	Title = "Auto Rainbow Colors",
 	Description = "",
 	Default = false,
 	Callback = function(I)
@@ -3501,7 +3337,7 @@ spawn(function()
 	end);
 end);
 b:AddToggle({
-	Title = "Accept Quest Bypass [Risk]",
+	Title = "Accept Rainbow Quest Faster",
 	Description = "",
 	Default = false,
 	Callback = function(I)
@@ -3691,7 +3527,7 @@ spawn(function()
 end);
 b:AddSeperator("Upgrade Races V3");
 b:AddToggle({
-	Title = "Auto Mink V2/V3",
+	Title = "Auto Upgrade Mink V3",
 	Description = "",
 	Default = false,
 	Callback = function(I)
@@ -3736,7 +3572,7 @@ spawn(function()
 	end;
 end);
 b:AddToggle({
-	Title = "Auto Human V2/V3",
+	Title = "Auto Upgrade Human V3",
 	Description = "",
 	Default = false,
 	Callback = function(I)
@@ -3805,7 +3641,7 @@ spawn(function()
 	end;
 end);
 b:AddToggle({
-	Title = "Auto Angel V2/V3",
+	Title = "Auto Upgrade Skypiea V3",
 	Description = "",
 	Default = false,
 	Callback = function(I)
@@ -3855,7 +3691,7 @@ spawn(function()
 	end;
 end);
 b:AddToggle({
-	Title = "Auto Shark V2/V3",
+	Title = "Auto Upgrade FishMan V3",
 	Description = "",
 	Default = false,
 	Callback = function(I)
@@ -3899,7 +3735,7 @@ spawn(function()
 end);
 b:AddSeperator("Dark Dragger + Valkyrie");
 b:AddToggle({
-	Title = "Auto Kill Rip Indra",
+	Title = "Auto Valkyrie",
 	Description = "",
 	Default = false,
 	Callback = function(I)
@@ -3926,7 +3762,7 @@ spawn(function()
 	end;
 end);
 b:AddToggle({
-	Title = "Auto Active Cores",
+	Title = "Auto Unlocked Puzzle",
 	Description = "",
 	Default = false,
 	Callback = function(I)
@@ -4027,8 +3863,8 @@ spawn(function()
 	end;
 end);
 T:AddToggle({
-	Title = "Auto Attack",
-	Description = "",
+	Title = "Initialize Attack [M1/Melee/Sword]",
+	Description = "[ Not Supported Gas M1 ]",
 	Default = true,
 	Callback = function(I)
 		_G.Seriality = I;
@@ -4063,7 +3899,7 @@ spawn(function()
 	end;
 end);
 T:AddToggle({
-	Title = "Auto Active V3",
+	Title = "Auto Turn on Race V3",
 	Description = "",
 	Default = false,
 	Callback = function(I)
@@ -4071,7 +3907,7 @@ T:AddToggle({
 	end,
 });
 T:AddToggle({
-	Title = "Auto Active V4",
+	Title = "Auto Turn on Race V4",
 	Description = "",
 	Default = false,
 	Callback = function(I)
@@ -4238,7 +4074,7 @@ T:AddSlider({
 	end,
 });
 T:AddToggle({
-	Title = "Melee",
+	Title = "Auto Melee",
 	Description = "",
 	Default = false,
 	Callback = function(I)
@@ -4246,7 +4082,7 @@ T:AddToggle({
 	end,
 });
 T:AddToggle({
-	Title = "Sword",
+	Title = "Auto Swords",
 	Description = "",
 	Default = false,
 	Callback = function(I)
@@ -4254,7 +4090,7 @@ T:AddToggle({
 	end,
 });
 T:AddToggle({
-	Title = "Gun",
+	Title = "Auto Gun",
 	Description = "",
 	Default = false,
 	Callback = function(I)
@@ -4262,7 +4098,7 @@ T:AddToggle({
 	end,
 });
 T:AddToggle({
-	Title = "Fruit",
+	Title = "Auto Blox Fruit",
 	Description = "",
 	Default = false,
 	Callback = function(I)
@@ -4270,7 +4106,7 @@ T:AddToggle({
 	end,
 });
 T:AddToggle({
-	Title = "Defense",
+	Title = "Auto Defense",
 	Description = "",
 	Default = false,
 	Callback = function(I)
@@ -4320,6 +4156,363 @@ spawn(function()
 				statsSetings("Defense", pSats);
 			end;
 		end);
+	end;
+end);
+U:AddSeperator("Fighting Melee Styles");
+U:AddToggle({
+	Title = "Auto Superhuman",
+	Description = "",
+	Default = false,
+	Callback = function(I)
+		_G.Auto_SuperHuman = I;
+	end,
+});
+spawn(function()
+	while wait(Sec) do
+		pcall(function()
+			if _G.Auto_SuperHuman then
+				local I = plr.Data.Beli.Value;
+				local e = plr.Data.Fragments.Value;
+				if plr:FindFirstChild("WeaponAssetCache") then
+					if not GetBP("Superhuman") then
+						if not GetBP("Black Leg") then
+							if I >= 150000 then
+								replicated.Remotes.CommF_:InvokeServer("BuyBlackLeg");
+							end;
+						elseif GetBP("Black Leg") and (GetBP("Black Leg")).Level.Value < 299 then
+							_G.Level = true;
+						elseif GetBP("Black Leg") and (GetBP("Black Leg")).Level.Value >= 300 then
+							_G.Level = false;
+						end;
+						if not GetBP("Electro") then
+							if I >= 500000 then
+								replicated.Remotes.CommF_:InvokeServer("BuyElectro");
+							end;
+						elseif GetBP("Electro") and (GetBP("Electro")).Level.Value < 299 then
+							_G.Level = true;
+						elseif GetBP("Electro") and (GetBP("Electro")).Level.Value >= 300 then
+							_G.Level = false;
+						end;
+						if not GetBP("Fishman Karate") then
+							if I >= 750000 then
+								replicated.Remotes.CommF_:InvokeServer("BuyFishmanKarate");
+							end;
+						elseif GetBP("Fishman Karate") and (GetBP("Fishman Karate")).Level.Value < 299 then
+							_G.Level = true;
+						elseif GetBP("Fishman Karate") and (GetBP("Fishman Karate")).Level.Value >= 300 then
+							_G.Level = false;
+						end;
+						if not GetBP("Dragon Claw") then
+							if e >= 1500 then
+								replicated.Remotes.CommF_:InvokeServer("BlackbeardReward", "DragonClaw", "2");
+							end;
+						elseif GetBP("Dragon Claw") and (GetBP("Dragon Claw")).Level.Value < 299 then
+							_G.Level = true;
+						elseif GetBP("Dragon Claw") and (GetBP("Dragon Claw")).Level.Value >= 300 then
+							_G.Level = false;
+						end;
+						replicated.Remotes.CommF_:InvokeServer("BuySuperhuman");
+					end;
+				end;
+			end;
+		end);
+	end;
+end);
+U:AddToggle({
+	Title = "Auto DeathStep",
+	Description = "",
+	Default = false,
+	Callback = function(I)
+		_G.AutoDeathStep = I;
+	end,
+});
+spawn(function()
+	while wait(Sec) do
+		if _G.AutoDeathStep then
+			pcall(function()
+				if plr:FindFirstChild("WeaponAssetCache") then
+					if not GetBP("Death Step") then
+						if not GetBP("Black Leg") then
+							replicated.Remotes.CommF_:InvokeServer("BuyBlackLeg");
+						end;
+						if GetBP("Black Leg") and (GetBP("Black Leg")).Level.Value >= 400 then
+							replicated.Remotes.CommF_:InvokeServer("BuyDeathStep");
+							_G.Level = false;
+						elseif GetBP("Black Leg") and (GetBP("Black Leg")).Level.Value < 399 then
+							_G.Level = true;
+						end;
+						if GetBP("Black Leg") or (GetBP("Black Leg")).Level.Value >= 400 then
+							if workspace.Map.IceCastle.Hall.LibraryDoor.PhoeyuDoor.Transparency == 0 then
+								if GetBP("Library Key") then
+									repeat
+										wait();
+										_tp(CFrame.new(6371.2001953125, 296.63433837891, -6841.1811523438));
+									until not _G.AutoDeathStep or Root.Position == (CFrame.new(6371.2001953125, 296.63433837891, -6841.1811523438)).Position;
+									if Root.CFrame == CFrame.new(6371.2001953125, 296.63433837891, -6841.1811523438) then
+										replicated.Remotes.CommF_:InvokeServer("BuyDeathStep");
+									end;
+								elseif not GetBP("Library Key") then
+									local I = GetConnectionEnemies("Awakened Ice Admiral");
+									if I then
+										repeat
+											wait();
+											G.Kill(I, _G.AutoDeathStep);
+										until not I.Parent or I.Humanoid.Health <= 0 or _G.AutoDeathStep == false or GetBP("Library Key") or GetBP("Death Step");
+									else
+										_tp(CFrame.new(5668.9780273438, 28.519989013672, -6483.3520507813));
+									end;
+								end;
+							end;
+						end;
+					end;
+				end;
+			end);
+		end;
+	end;
+end);
+U:AddToggle({
+	Title = "Auto Sharkman Karate",
+	Description = "",
+	Default = false,
+	Callback = function(I)
+		_G.Auto_SharkMan_Karate = I;
+	end,
+});
+spawn(function()
+	while wait(Sec) do
+		if _G.Auto_SharkMan_Karate then
+			pcall(function()
+				if plr:FindFirstChild("WeaponAssetCache") then
+					if not GetBP("Sharkman Karate") then
+						if not GetBP("Fishman Karate") then
+							replicated.Remotes.CommF_:InvokeServer("BuyFishmanKarate");
+						end;
+						if GetBP("Fishman Karate") and (GetBP("Fishman Karate")).Level.Value >= 400 then
+							replicated.Remotes.CommF_:InvokeServer("BuySharkmanKarate");
+							_G.Level = false;
+						elseif GetBP("Fishman Karate") and (GetBP("Fishman Karate")).Level.Value < 399 then
+							_G.Level = true;
+						end;
+						if GetBP("Fishman Karate") or (GetBP("Fishman Karate")).Level.Value >= 400 then
+							if GetBP("Water Key") then
+								if string.find(replicated.Remotes.CommF_:InvokeServer("BuySharkmanKarate"), "keys") then
+									if GetBP("Water Key") then
+										repeat
+											wait();
+											_tp(CFrame.new(-2604.6958, 239.432526, -10315.1982, .0425701365, 0, -0.999093413, 0, 1, 0, .999093413, 0, .0425701365));
+										until not _G.Auto_SharkMan_Karate or Root.Position == (CFrame.new(-2604.6958, 239.432526, -10315.1982, .0425701365, 0, -0.999093413, 0, 1, 0, .999093413, 0, .0425701365)).Position;
+										replicated.Remotes.CommF_:InvokeServer("BuySharkmanKarate");
+									end;
+								end;
+							elseif not GetBP("Water Key") then
+								local I = GetConnectionEnemies("Tide Keeper");
+								if I then
+									repeat
+										wait();
+										G.Kill(I, _G.Auto_SharkMan_Karate);
+									until not I.Parent or I.Humanoid.Health <= 0 or _G.Auto_SharkMan_Karate == false or GetBP("Water Key") or GetBP("Sharkman Karate");
+								else
+									_tp(CFrame.new(-3053.9814453125, 237.18954467773, -10145.0390625));
+								end;
+							end;
+						end;
+					end;
+				end;
+			end);
+		end;
+	end;
+end);
+U:AddToggle({
+	Title = "Auto ElectricClaw",
+	Description = "",
+	Default = false,
+	Callback = function(I)
+		_G.Auto_Electric_Claw = I;
+	end,
+});
+spawn(function()
+	while wait(Sec) do
+		if _G.Auto_Electric_Claw then
+			pcall(function()
+				if plr:FindFirstChild("WeaponAssetCache") then
+					if not GetBP("Electro") then
+						replicated.Remotes.CommF_:InvokeServer("BuyElectro");
+					end;
+					if GetBP("Electro") and (GetBP("Electro")).Level.Value >= 400 then
+						if replicated.Remotes.CommF_:InvokeServer("BuyElectricClaw", "Start") == nil then
+							notween(CFrame.new(-12548, 337, -7481));
+						end;
+						replicated.Remotes.CommF_:InvokeServer("BuyElectricClaw");
+					elseif GetBP("Electro") and (GetBP("Electro")).Level.Value < 400 then
+						repeat
+							_G.AutoFarm_Bone = true;
+							wait();
+						until not _G.Auto_Electric_Claw or GetBP("Electric Claw");
+						_G.AutoFarm_Bone = false;
+					end;
+				end;
+			end);
+		end;
+	end;
+end);
+U:AddToggle({
+	Title = "Auto DragonTalon",
+	Description = "",
+	Default = false,
+	Callback = function(I)
+		_G.AutoDragonTalon = I;
+	end,
+});
+spawn(function()
+	while wait(Sec) do
+		if _G.AutoDragonTalon then
+			pcall(function()
+				if plr:FindFirstChild("WeaponAssetCache") then
+					if not GetBP("Dragon Claw") then
+						replicated.Remotes.CommF_:InvokeServer("BlackbeardReward", "DragonClaw", "2");
+					end;
+					if GetBP("Dragon Claw") and (GetBP("Dragon Claw")).Level.Value >= 400 then
+						replicated.Remotes.CommF_:InvokeServer("Bones", "Buy", 1, 1);
+						replicated.Remotes.CommF_:InvokeServer("BuyDragonTalon");
+					elseif GetBP("Dragon Claw") and (GetBP("Dragon Claw")).Level.Value < 400 then
+						repeat
+							_G.AutoFarm_Bone = true;
+							wait();
+						until not _G.AutoDragonTalon or GetBP("Dragon Talon");
+						_G.AutoFarm_Bone = false;
+					end;
+				end;
+			end);
+		end;
+	end;
+end);
+U:AddToggle({
+	Title = "Auto Godhuman",
+	Description = "",
+	Default = false,
+	Callback = function(I)
+		_G.Auto_God_Human = I;
+	end,
+});
+spawn(function()
+	while wait() do
+		pcall(function()
+			if _G.AutoGodHuman then
+				if replicated.Remotes.CommF_:InvokeServer("BuyGodhuman", true) == "Bring me 20 Fish Tails, 20 Magma Ore, 10 Dragon Scales and 10 Mystic Droplets." then
+					if GetM("Dragon Scale") == false or GetM("Dragon Scale") < 10 then
+						if World3 then
+							Lv = 1575;
+							_G.Level = true;
+						else
+							replicated.Remotes.CommF_:InvokeServer("TravelZou");
+						end;
+					elseif GetM("Fish Tail") == false or GetM("Fish Tail") < 20 then
+						if World3 then
+							Lv = 1775;
+							_G.Level = true;
+						else
+							replicated.Remotes.CommF_:InvokeServer("TravelZou");
+						end;
+					elseif GetM("Mystic Droplet") == false or GetM("Mystic Droplet") < 10 then
+						if World2 then
+							Lv = 1425;
+							_G.Level = true;
+						else
+							replicated.Remotes.CommF_:InvokeServer("TravelDressrosa");
+						end;
+					elseif GetM("Magma Ore") == false or GetM("Magma Ore") < 20 then
+						if World2 then
+							Lv = 1175;
+							_G.Level = true;
+						else
+							replicated.Remotes.CommF_:InvokeServer("TravelDressrosa");
+						end;
+					end;
+				elseif replicated.Remotes.CommF_:InvokeServer("BuyGodhuman", true) == 3 then
+					return nil;
+				else
+					replicated.Remotes.CommF_:InvokeServer("BuyGodhuman");
+				end;
+			end;
+		end);
+	end;
+end);
+U:AddToggle({
+	Title = "Auto SanguineArt",
+	Description = "",
+	Default = false,
+	Callback = function(I)
+		_G.snaguine = I;
+	end,
+});
+spawn(function()
+	while wait(Sec) do
+		if _G.snaguine then
+			pcall(function()
+				if not GetBP("Sanguine Art") then
+					replicated.Remotes.CommF_:InvokeServer("Sanguine Art");
+				end;
+				if not GetBP("Sanguine Art") then
+					if GetM("Leviathan Heart") >= 1 then
+						print("Completed!!");
+					else
+						if World3 then
+							_G.DangerSc = "Lv Infinite";
+							_G.SailBoats = true;
+						else
+							_G.SailBoats = false;
+						end;
+					end;
+					if GetM("Vampire Fang") <= 19 then
+						if World2 then
+							local I = GetConnectionEnemies("Vampire");
+							if I then
+								repeat
+									task.wait();
+									G.Kill(I, _G.snaguine);
+								until not _G.snaguine or I.Humanoid.Health <= 0 or not I.Parent;
+							else
+								_tp(CFrame.new(-6041.2924804688, 6.4027109146118, -1304.6333007812));
+							end;
+						else
+							replicated.Remotes.CommF_:InvokeServer("TravelDressrosa");
+						end;
+					end;
+					if GetM("Vampire Fang") >= 20 and GetM("Demonic Wisp") <= 19 then
+						if World3 then
+							local I = GetConnectionEnemies("Demonic Soul");
+							if I then
+								repeat
+									task.wait();
+									G.Kill(I, _G.snaguine);
+								until not _G.snaguine or I.Humanoid.Health <= 0 or not I.Parent;
+							else
+								_tp(CFrame.new(-9495.6806640625, 453.58624267578, 5977.3486328125));
+							end;
+						else
+							replicated.Remotes.CommF_:InvokeServer("TravelZou");
+						end;
+					end;
+					if GetM("Vampire Fang") >= 20 and (GetM("Demonic Wisp") >= 20 and GetM("Dark Fragment") <= 1) then
+						if World2 then
+							local I = GetConnectionEnemies("Darkbeard");
+							if I then
+								repeat
+									task.wait();
+									G.Kill(black, _G.snaguine);
+								until _G.snaguine or black.Humanoid.Health <= 0 or not black.Parent;
+							else
+								_tp(CFrame.new(3798.4575195313, 13.826690673828, -3399.806640625));
+							end;
+						else
+							replicated.Remotes.CommF_:InvokeServer("TravelDressrosa");
+						end;
+					end;
+				else
+					replicated.Remotes.CommF_:InvokeServer("BuySanguineArt");
+				end;
+			end);
+		end;
 	end;
 end);
 j:AddSeperator("Tushita + Yama");
@@ -9785,7 +9978,7 @@ Z:AddButton({ Title = "Remove Sky Fog", Description = "", Callback = function()
 	end });
 Z:AddSeperator("Configure - God");
 Z:AddButton({ Title = "Rain Fruits (Client)", Description = "", Callback = function()
-		for I, e in pairs((game:GetObjects("rbxassetid://4911164158"))[1]:GetChildren()) do
+		for I, e in pairs((game:GetObjects("rbxassetid://14759368201"))[1]:GetChildren()) do
 			e.Parent = game.Workspace.Map;
 			e:MoveTo(plr.Character.PrimaryPart.Position + Vector3.new(math.random(-50, 50), 100, math.random(-50, 50)));
 			if e.Fruit:FindFirstChild("AnimationController") then
