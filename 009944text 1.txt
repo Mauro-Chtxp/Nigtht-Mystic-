@@ -4048,97 +4048,102 @@ end)
 -- 5. LÓGICA TYRANT OF THE SKIES (ADAPTADA)
 ----------------------------------------------------------------------
 
+local HighYOffset = CFrame.new(0, 15, 0) -- altura do player sobre os mobs
+
 spawn(function()
     while task.wait(3) do
         pcall(function()
-            local model = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("TikiOutpost") and workspace.Map.TikiOutpost:FindFirstChild("IslandModel")
+            local model = workspace:FindFirstChild("Map") 
+                and workspace.Map:FindFirstChild("TikiOutpost") 
+                and workspace.Map.TikiOutpost:FindFirstChild("IslandModel")
+
             local visibleCount = 0
 
-            if model then
-                local eye1 = model:FindFirstChild("Eye1")
-                local eye2 = model:FindFirstChild("Eye2")
-                local chunks = model:FindFirstChild("IslandChunks")
-                local eye3 = chunks and chunks:FindFirstChild("E") and chunks.E:FindFirstChild("Eye3")
-                local eye4 = chunks and chunks:FindFirstChild("E") and chunks.E:FindFirstChild("Eye4")
+            if model then  
+                local eye1 = model:FindFirstChild("Eye1")  
+                local eye2 = model:FindFirstChild("Eye2")  
+                local chunks = model:FindFirstChild("IslandChunks")  
+                local eye3 = chunks and chunks:FindFirstChild("E") and chunks.E:FindFirstChild("Eye3")  
+                local eye4 = chunks and chunks:FindFirstChild("E") and chunks.E:FindFirstChild("Eye4")  
 
-                if eye1 and eye1:IsA("BasePart") and eye1.Transparency == 0 then visibleCount += 1 end
-                if eye2 and eye2:IsA("BasePart") and eye2.Transparency == 0 then visibleCount += 1 end
-                if eye3 and eye3:IsA("BasePart") and eye3.Transparency == 0 then visibleCount += 1 end
-                if eye4 and eye4:IsA("BasePart") and eye4.Transparency == 0 then visibleCount += 1 end
-            end
+                if eye1 and eye1:IsA("BasePart") and eye1.Transparency == 0 then visibleCount += 1 end  
+                if eye2 and eye2:IsA("BasePart") and eye2.Transparency == 0 then visibleCount += 1 end  
+                if eye3 and eye3:IsA("BasePart") and eye3.Transparency == 0 then visibleCount += 1 end  
+                if eye4 and eye4:IsA("BasePart") and eye4.Transparency == 0 then visibleCount += 1 end  
+            end  
 
-            _G.EyesCount = visibleCount
-        end)
+            _G.EyesCount = visibleCount  
+        end)  
     end
 end)
 
-local FarmTiki1 = CFrame.new(-16423.8047, 146.953003, -123.602005, -0.999392033, 8.7369628e-08, -0.0348646119, 8.43748182e-08, 1, 8.7369628e-08, 0.0348646119, 8.43748182e-08, -0.999392033)
-local FarmTiki2 = CFrame.new(-16593.5996, 155.350998, 1130.48096, 0.0870701671, 0.0561700463, -0.994617403, -0.542416334, 0.840109825, -3.94880772e-05, 0.835585654, 0.539500117, 0.103616059)
+local FarmTiki1 = CFrame.new(-16423.8047, 146.953003, -123.602005, -0.999392033, 0, -0.0348646119, 0, 1, 0, 0.0348646119, 0, -0.999392033)
+local FarmTiki2 = CFrame.new(-16593.5996, 155.350998, 1130.48096, 0.0870701671, 0.0561700463, -0.994617403, -0.542416334, 0.840109825, 0, 0.835585654, 0.539500117, 0.103616059)
 
 -- Farm de NPCs para abrir o Boss
-spawn(function() 
+spawn(function()
     local CurrentFarm = 1
-    while task.wait() do 
-        if _G.AutoFarm_Tyrant and _G.StartFarm and _G.EyesCount ~= 4 and World3 then 
-            pcall(function() 
+    while task.wait() do
+        if _G.AutoFarm_Tyrant and _G.StartFarm and _G.EyesCount ~= 4 and World3 then
+            pcall(function()
+
                 local enemyFolder = workspace.Enemies
-                local targetList = { 
-                    ["Isle Champion"] = true, 
-                    ["Sun-kissed Warrior"] = true, 
-                    ["Island Boy"] = true, 
-                    ["Isle Outlaw"] = true 
+                local targetList = {
+                    ["Isle Champion"] = true,
+                    ["Serpent Hunter"] = true,
+                    ["Sun-kissed Warrior"] = true,
+                    ["Island Boy"] = true,
+                    ["Isle Outlaw"] = true
                 }
 
-                local foundEnemy = false
+                local foundEnemy = false  
 
-                for _, v in pairs(enemyFolder:GetChildren()) do
-                    if targetList[v.Name] 
-                    and v:FindFirstChild("Humanoid") 
-                    and v:FindFirstChild("HumanoidRootPart") 
-                    and v.Humanoid.Health > 0 then
-                        
-                        foundEnemy = true
-                        repeat task.wait()
-                            -- AutoHaki() REMOVIDO
+                for _, v in pairs(enemyFolder:GetChildren()) do  
+                    if targetList[v.Name] and v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then  
+                        foundEnemy = true  
+
+                        repeat task.wait()  
                             EquipWeapon(_G.SelectWeapon)
 
-                            v.HumanoidRootPart.CanCollide = false
-                            v.Head.CanCollide = false
-                            v.Humanoid.WalkSpeed = 0
+                            v.HumanoidRootPart.CanCollide = false  
+                            v.Head.CanCollide = false  
+                            v.Humanoid.WalkSpeed = 0  
 
-                            _tp(v.HumanoidRootPart.CFrame * Pos) -- topos SUBSTITUÍDO POR _tp
+                            -- Player fica 15 studs acima do mob
+                            _tp(v.HumanoidRootPart.CFrame * HighYOffset * Pos)
 
-                            -- Assumindo que a função G.Kill é chamada em outro lugar para o ataque, ou é necessária aqui
-                            -- Se você precisar chamar G.Kill(v, true) aqui, adicione a linha.
-
-                        until not _G.AutoFarm_Tyrant or not _G.StartFarm or _G.EyesCount == 4 or not v.Parent or v.Humanoid.Health <= 0
-                    end
-                end
-                
-                if not foundEnemy then
-                    local char = game.Players.LocalPlayer.Character
-                    if char and char:FindFirstChild("HumanoidRootPart") then
-                        if CurrentFarm == 1 then
-                            if (char.HumanoidRootPart.Position - FarmTiki1.Position).Magnitude > 5 then
-                                _tp(FarmTiki1) -- topos SUBSTITUÍDO POR _tp
-                            else
-                                task.wait(2)
-                                CurrentFarm = 2
-                            end
-                        else
-                            if (char.HumanoidRootPart.Position - FarmTiki2.Position).Magnitude > 5 then
-                                _tp(FarmTiki2) -- topos SUBSTITUÍDO POR _tp
-                            else
-                                task.wait(2)
-                                CurrentFarm = 1
-                            end
-                        end
-                    end
-                    UnEquipWeapon(_G.SelectWeapon)
-                end
-            end)
-        end
-    end
+                        until not _G.AutoFarm_Tyrant 
+                            or not _G.StartFarm 
+                            or _G.EyesCount == 4 
+                            or not v.Parent 
+                            or v.Humanoid.Health <= 0  
+                    end  
+                end  
+                  
+                if not foundEnemy then  
+                    local char = game.Players.LocalPlayer.Character  
+                    if char and char:FindFirstChild("HumanoidRootPart") then  
+                        if CurrentFarm == 1 then  
+                            if (char.HumanoidRootPart.Position - FarmTiki1.Position).Magnitude > 5 then  
+                                _tp(FarmTiki1)
+                            else  
+                                task.wait(2)  
+                                CurrentFarm = 2  
+                            end  
+                        else  
+                            if (char.HumanoidRootPart.Position - FarmTiki2.Position).Magnitude > 5 then  
+                                _tp(FarmTiki2)
+                            else  
+                                task.wait(2)  
+                                CurrentFarm = 1  
+                            end  
+                        end  
+                    end  
+                    UnEquipWeapon(_G.SelectWeapon)  
+                end  
+            end)  
+        end  
+    end  
 end)
 
 function isSkyBossAlive()
@@ -4150,20 +4155,24 @@ end
 
 function attackSkyBoss()
     local enemyFolder = workspace:FindFirstChild("Enemies")
-    for i, v in pairs(enemyFolder:GetChildren()) do
-        if v.Name == "Tyrant of the Skies" and v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
+    for _, v in pairs(enemyFolder:GetChildren()) do
+        if v.Name == "Tyrant of the Skies" 
+            and v:FindFirstChild("Humanoid") 
+            and v:FindFirstChild("HumanoidRootPart") 
+            and v.Humanoid.Health > 0 then
+
             repeat task.wait()
                 EquipWeapon(_G.SelectWeapon)
-                -- AutoHaki() REMOVIDO
-                _tp(v.HumanoidRootPart.CFrame * Pos) -- topos SUBSTITUÍDO POR _tp
-                
-                v.HumanoidRootPart.Transparency = 1
-                sethiddenproperty(game.Players.LocalPlayer, "SimulationRadius", math.huge)
-                
-                -- Assumindo que a função G.Kill(v, true) será chamada para atacar
-                -- Se você precisar atacar aqui, adicione a chamada G.Kill(v, true)
-                
-            until v.Humanoid.Health <= 0 or not _G.AutoFarm_Tyrant or not _G.StartFarm or _G.EyesCount == 4
+
+                _tp(v.HumanoidRootPart.CFrame * Pos)
+
+                v.HumanoidRootPart.Transparency = 1  
+                sethiddenproperty(game.Players.LocalPlayer, "SimulationRadius", math.huge)  
+                  
+            until v.Humanoid.Health <= 0 
+                or not _G.AutoFarm_Tyrant 
+                or not _G.StartFarm 
+                or _G.EyesCount == 4
         end
     end
 end
@@ -4177,13 +4186,16 @@ end
 function equipAndUseSkill(toolType)
     local player = game.Players.LocalPlayer
     local backpack = player.Backpack
+
     for _, item in pairs(backpack:GetChildren()) do
         if item:IsA("Tool") and item.ToolTip == toolType then
-            item.Parent = player.Character  
+            item.Parent = player.Character
+
             for _, skill in ipairs({"Z", "X", "C", "V", "F"}) do
-                wait() 
-                pcall(function() sendSkillKey(skill) end) 
+                task.wait()
+                pcall(function() sendSkillKey(skill) end)
             end
+
             item.Parent = backpack
             break
         end
@@ -4191,60 +4203,59 @@ function equipAndUseSkill(toolType)
 end
 
 local targetsty = {
-    CFrame.new(-16335.1641, 158.167007, 1465.64404, 0.999388874, 0, 0.0349550731, 0, 1, 0, -0.0349550731, 0, 0.999388874),
-    CFrame.new(-16288.6094, 158.167007, 1470.36804, 0.999388874, 0, 0.0349550731, 0, 1, 0, -0.0349550731, 0, 0.999388874),
-    CFrame.new(-16258.001, 156.761002, 1461.40405, 0.999388874, 0, 0.0349550731, 0, 1, 0, -0.0349550731, 0, 0.999388874),
-    CFrame.new(-16212.4688, 158.167007, 1466.34399, 0.999388874, 0, 0.0349550731, 0, 1, 0, -0.0349550731, 0, 0.999388874),
-    CFrame.new(-16335.0967, 159.334, 1324.88599, 0.999388874, 0, 0.0349550731, 0, 1, 0, -0.0349550731, 0, 0.999388874),
-    CFrame.new(-16286.0586, 155.949005, 1323.83801, 0.999388874, 0, 0.0349550731, 0, 1, 0, -0.0349550731, 0, 0.999388874),
-    CFrame.new(-16250.335, 159.334, 1316.38904, 0.999388874, 0, 0.0349550731, 0, 1, 0, -0.0349550731, 0, 0.999388874),
+    CFrame.new(-16335.1641, 158.167007, 1465.64404),
+    CFrame.new(-16288.6094, 158.167007, 1470.36804),
+    CFrame.new(-16258.001, 156.761002, 1461.40405),
+    CFrame.new(-16212.4688, 158.167007, 1466.34399),
+    CFrame.new(-16335.0967, 159.334, 1324.88599),
+    CFrame.new(-16286.0586, 155.949005, 1323.83801),
+    CFrame.new(-16250.335, 159.334, 1316.38904),
 }
 
 -- Farm do Boss
-spawn(function()  
-    while task.wait() do  
-        if _G.AutoFarm_Tyrant and _G.StartFarm and _G.EyesCount == 4 then -- Usando nova variável
-            -- AutoHaki() REMOVIDO
+spawn(function()
+    while task.wait() do
+        if _G.AutoFarm_Tyrant and _G.StartFarm and _G.EyesCount == 4 then
 
-            for _, target in ipairs(targetsty) do             
-                if not _G.AutoFarm_Tyrant or not _G.StartFarm or _G.EyesCount ~= 4 then break end  
+            for _, target in ipairs(targetsty) do               
+                if not _G.AutoFarm_Tyrant or not _G.StartFarm or _G.EyesCount ~= 4 then break end    
 
-                if isSkyBossAlive() then  
-                    attackSkyBoss()  
-                    break
-                else  
-                    _tp(target) -- topos SUBSTITUÍDO POR _tp
-                    task.wait(0.5)  
+                if isSkyBossAlive() then    
+                    attackSkyBoss()    
+                    break  
+                else    
+                    _tp(target)
+                    task.wait(0.5)    
 
-                    local char = game.Players.LocalPlayer.Character  
-                    if char and char:FindFirstChild("HumanoidRootPart") then  
-                        local distance = (char.HumanoidRootPart.Position - target.Position).Magnitude  
-                        if distance <= 1 then  
+                    local char = game.Players.LocalPlayer.Character    
+                    if char and char:FindFirstChild("HumanoidRootPart") then    
+                        local distance = (char.HumanoidRootPart.Position - target.Position).Magnitude    
+                        if distance <= 1 then    
 
-                            if _G.UseSkullSummon then      
-                                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("LoadItem", "Skull Guitar")  
-                                EquipWeapon("Skull Guitar")  
+                            if _G.UseSkullSummon then        
+                                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("LoadItem", "Skull Guitar")    
+                                EquipWeapon("Skull Guitar")    
 
-                                local guitar = char:FindFirstChild("Skull Guitar")  
-                                if guitar and guitar:FindFirstChild("RemoteEvent") then  
-                                    guitar.RemoteEvent:FireServer("TAP", target.Position)  
-                                    game:GetService("ReplicatedStorage").Remotes.Validator2:FireServer(8359618, 0)  
-                                end  
+                                local guitar = char:FindFirstChild("Skull Guitar")    
+                                if guitar and guitar:FindFirstChild("RemoteEvent") then    
+                                    guitar.RemoteEvent:FireServer("TAP", target.Position)    
+                                    game:GetService("ReplicatedStorage").Remotes.Validator2:FireServer(8359618, 0)    
+                                end    
 
-                            else                         
-                                equipAndUseSkill("Melee")  
-                                equipAndUseSkill("Sword")  
-                                equipAndUseSkill("Gun")  
-                                equipAndUseSkill("Blox Fruit")  
-                            end  
+                            else                           
+                                equipAndUseSkill("Melee")    
+                                equipAndUseSkill("Sword")    
+                                equipAndUseSkill("Gun")    
+                                equipAndUseSkill("Blox Fruit")    
+                            end    
 
-                            task.wait(2)  
-                        end  
-                    end  
-                end  
-            end  
-        end  
-    end  
+                            task.wait(2)    
+                        end    
+                    end    
+                end    
+            end    
+        end    
+    end
 end)
 
 
