@@ -484,7 +484,7 @@ BringEnemy = function()
                 local targetPos = PosMon or HRP_Player.Position 
                 local dist = (root.Position - targetPos).Magnitude
 
-                if dist <= 175 then -- Alcance do Bring (aumentei um pouco para garantir)
+                if dist <= 200 then -- Alcance do Bring (aumentei um pouco para garantir)
                     
                     -- Configurações Anti-Lag para o Mob
                     hum.AutoRotate = false
@@ -4049,6 +4049,7 @@ end)
 ----------------------------------------------------------------------
 
 local Pos = CFrame.new(0, 30, 0) 
+
 local FarmTiki1 = CFrame.new(-16423.8047, 146.953003, -123.602005, -0.999392033, 8.7369628e-08, -0.0348646119, 8.43748182e-08, 1, 8.7369628e-08, 0.0348646119, 8.43748182e-08, -0.999392033)
 local FarmTiki2 = CFrame.new(-16593.5996, 155.350998, 1130.48096, 0.0870701671, 0.0561700463, -0.994617403, -0.542416334, 0.840109825, -3.94880772e-05, 0.835585654, 0.539500117, 0.103616059)
 
@@ -4101,7 +4102,6 @@ local function GetClosestTyrantMob(hrp)
     return closestMob
 end
 
--- Farm de NPCs para abrir o Boss (USANDO BRING MOBS)
 spawn(function() 
     local CurrentFarm = 1
     local plr = game.Players.LocalPlayer
@@ -4114,8 +4114,6 @@ spawn(function()
                 local hrp = char and char:FindFirstChild("HumanoidRootPart")
                 if not hrp then return end
 
-                BringEnemy()
-
                 local mob = GetClosestTyrantMob(hrp)
 
                 if mob then
@@ -4123,7 +4121,13 @@ spawn(function()
                     repeat task.wait()
                         EquipWeapon(_G.SelectWeapon)
 
-                        G.Kill(mob, true)
+                        mob.HumanoidRootPart.CanCollide = false
+                        if mob:FindFirstChild("Head") then mob.Head.CanCollide = false end
+                        mob.Humanoid.WalkSpeed = 0
+
+                        _tp(mob.HumanoidRootPart.CFrame * Pos) 
+                        
+                        -- G.Kill(mob, true)
 
                     until not _G.AutoFarm_Tyrant or not _G.StartFarm or _G.EyesCount == 4 or not mob.Parent or mob.Humanoid.Health <= 0
                 
@@ -4134,14 +4138,14 @@ spawn(function()
                             if (hrp.Position - FarmTiki1.Position).Magnitude > 5 then
                                 _tp(FarmTiki1)
                             else
-                                task.wait(1)
+                                task.wait(2)
                                 CurrentFarm = 2
                             end
                         else
                             if (hrp.Position - FarmTiki2.Position).Magnitude > 5 then
                                 _tp(FarmTiki2)
                             else
-                                task.wait(1)
+                                task.wait(2)
                                 CurrentFarm = 1
                             end
                         end
@@ -4254,7 +4258,6 @@ spawn(function()
         end  
     end  
 end)
-
 
 
 b:AddSeperator("Other")
