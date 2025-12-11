@@ -2062,6 +2062,7 @@ QuestNeta = function()
 
 local V=I:NewWindow();
 local i=V:T("Info");
+local server=V:T("Server")
 local s=V:T("Stats");
 local g=V:T("Shop");
 local y=V:T("Main");
@@ -2080,6 +2081,7 @@ local u=V:T("Misc");
 local c=V:T("Settings");
 
 local b=y:AddSection("Farming");
+local serverSection=server:AddSection("Server")
 local T=c:AddSection("Setting");
 local j=x:AddSection("Other Farming");
 local MF=mf:AddSection("Fishing");
