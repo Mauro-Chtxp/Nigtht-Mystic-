@@ -3034,103 +3034,84 @@ VI_S:AddToggle({
 		_G.Safemode = I;
 	end,
 });
-VI_S:AddSlider({
-	Title = "Stats Value",
-	Description = "choose your point need to upgrade",
-	Min = 0,
-	Max = 1000,
-	Default = 10,
-	Rounding = 1,
-	Callback = function(I)
-		pSats = I;
-	end,
-});
-VI_S:AddToggle({
-	Title = "Melee",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.Auto_Melee = I;
-	end,
-});
-VI_S:AddToggle({
-	Title = "Sword",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.Auto_Sword = I;
-	end,
-});
-VI_S:AddToggle({
-	Title = "Gun",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.Auto_Gun = I;
-	end,
-});
-VI_S:AddToggle({
-	Title = "Fruit",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.Auto_Blox = I;
-	end,
-});
-VI_S:AddToggle({
-	Title = "Defense",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.Auto_Defense = I;
-	end,
-});
+-- pega os pontos disponíveis do player
+local function GetAvailablePoints()
+    local plr = game.Players.LocalPlayer
+    local stats = plr:WaitForChild("Data"):WaitForChild("Stats")
+    return stats.Points.Value
+end
 
-spawn(function()
-	while wait(Sec) do
-		pcall(function()
-			if _G.Auto_Melee then
-				statsSetings("Melee", pSats);
-			end;
-		end);
-	end;
-end);
-spawn(function()
-	while wait(Sec) do
-		pcall(function()
-			if _G.Auto_Sword then
-				statsSetings("Sword", pSats);
-			end;
-		end);
-	end;
-end);
-spawn(function()
-	while wait(Sec) do
-		pcall(function()
-			if _G.Auto_Gun then
-				statsSetings("Gun", pSats);
-			end;
-		end);
-	end;
-end);
-spawn(function()
-	while wait(Sec) do
-		pcall(function()
-			if _G.Auto_DevilFruit then
-				statsSetings("Devil", pSats);
-			end;
-		end);
-	end;
-end);
-spawn(function()
-	while wait(Sec) do
-		pcall(function()
-			if _G.Auto_Defense then
-				statsSetings("Defense", pSats);
-			end;
-		end);
-	end;
-end);
+-- função que adiciona TODOS pontos de uma vez
+local function AddAllPoints(stat)
+    local points = GetAvailablePoints()
+    if points > 0 then
+        statsSetings(stat, points)
+    end
+end
+
+-- ===== UI =====
+
+-- função para pegar pontos disponíveis
+local function GetAvailablePoints()
+    local plr = game.Players.LocalPlayer
+    local stats = plr:WaitForChild("Data"):WaitForChild("Stats")
+    return stats.Points.Value
+end
+
+-- função pra adicionar todos
+local function AddAllPoints(stat)
+    local points = GetAvailablePoints()
+    if points > 0 then
+        statsSetings(stat, points)
+    end
+end
+
+-- ===== UI (Agora em TOGGLE) =====
+
+VI_S:AddToggle({
+    Title = "Add Points Melee",
+    Description = "Coloca todos os pontos no Melee",
+    Default = false,
+    Callback = function(v)
+        if v then AddAllPoints("Melee") end
+    end
+})
+
+VI_S:AddToggle({
+    Title = "Add Points Sword",
+    Description = "Coloca todos os pontos na Sword",
+    Default = false,
+    Callback = function(v)
+        if v then AddAllPoints("Sword") end
+    end
+})
+
+VI_S:AddToggle({
+    Title = "Add Points Gun",
+    Description = "Coloca todos os pontos na Gun",
+    Default = false,
+    Callback = function(v)
+        if v then AddAllPoints("Gun") end
+    end
+})
+
+VI_S:AddToggle({
+    Title = "Add Points Fruit",
+    Description = "Coloca todos os pontos na Fruit",
+    Default = false,
+    Callback = function(v)
+        if v then AddAllPoints("Devil") end
+    end
+})
+
+VI_S:AddToggle({
+    Title = "Add Points Defense",
+    Description = "Coloca todos os pontos na Defense",
+    Default = false,
+    Callback = function(v)
+        if v then AddAllPoints("Defense") end
+    end
+})
 
 -- FUNÇÕES ADICIONADAS NA SEÇÃO 'Get and Upgrade Itens' (RR)
 
