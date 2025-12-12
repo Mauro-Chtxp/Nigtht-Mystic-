@@ -8193,19 +8193,9 @@ spawn(function()
 	end;
 end);
 f:AddSeperator("Prehistoric Island");
-local n5 = f:AddParagraph({ Title = " Prehistoric Island Status ", Content = "" });
-spawn(function()
-	while wait(.2) do
-		if workspace.Map:FindFirstChild("PrehistoricIsland") or workspace._WorldOrigin.Locations:FindFirstChild("Prehistoric Island") then
-			n5:SetDesc(" Prehistoric Island : True");
-		else
-			n5:SetDesc(" Prehistoric Island : False");
-		end;
-	end;
-end);
 f:AddToggle({
 	Title = "Auto Find Prehistoric Island",
-	Description = "turn on for finding & tween & start prehistoric island",
+	Description = "Procura a Prehistoric Island Automatic",
 	Default = false,
 	Callback = function(I)
 		_G.Prehis_Find = I;
@@ -8262,87 +8252,149 @@ spawn(function()
 	end;
 end);
 f:AddToggle({
-	Title = "Auto Patch Prehistoric Event",
-	Description = "turn on for auto patch volcano + kill aura lava golems + auto remove lava",
-	Default = false,
-	Callback = function(I)
-		_G.Prehis_Skills = I;
-	end,
+    Title = "Auto Event Prehistoric Island",
+    Description = "Faz a Prehistoric Automaticamente",
+    Default = false,
+    Callback = function(I)
+        _G.Prehis_Skills = I;
+
+        -- QUANDO ATIVAR → REMOVE LAVA AUTOMATICAMENTE
+        if I then
+            -- Remover lava no Workspace
+            for i, v in pairs(game.Workspace:GetDescendants()) do
+                if v.Name == "Lava" then
+                    v:Destroy()
+                end
+            end
+
+            -- Remover lava no ReplicatedStorage
+            for i, v in pairs(game.ReplicatedStorage:GetDescendants()) do
+                if v.Name == "Lava" then
+                    v:Destroy()
+                end
+            end
+        end
+    end,
 });
+
+--------------------------------------------------------------------
+-- SISTEMA DE LIMPAR LAVA DO MAPA ENQUANTO O EVENTO RODA
+--------------------------------------------------------------------
+
 spawn(function()
-	while wait() do
-		if _G.Prehis_Skills then
-			local I = game.Workspace.Map:FindFirstChild("PrehistoricIsland");
-			if I then
-				for I, e in pairs(I:GetDescendants()) do
-					if e:IsA("Part") and (e.Name:lower()):find("lava") then
-						e:Destroy();
-					end;
-					if e:IsA("MeshPart") and (e.Name:lower()):find("lava") then
-						e:Destroy();
-					end;
-				end;
-				local e = game.Workspace.Map.PrehistoricIsland.Core:FindFirstChild("InteriorLava");
-				if e and e:IsA("Model") then
-					e:Destroy();
-				end;
-				local K = workspace.Map:FindFirstChild("PrehistoricIsland");
-				if K then
-					local I = workspace.Map.PrehistoricIsland:FindFirstChild("TrialTeleport");
-					for e, K in pairs(K:GetDescendants()) do
-						if K.Name == "TouchInterest" then
-							if not (I and K:IsDescendantOf(I)) then
-								K.Parent:Destroy();
-							end;
-						end;
-					end;
-				end;
-			end;
-		end;
-	end;
-end);
+    while task.wait() do
+        if _G.Prehis_Skills then
+            local I = game.Workspace.Map:FindFirstChild("PrehistoricIsland")
+            if I then
+
+                -- Remover Lava por nome
+                for _, e in pairs(I:GetDescendants()) do
+                    if e:IsA("Part") and e.Name:lower():find("lava") then
+                        e:Destroy()
+                    end
+                    if e:IsA("MeshPart") and e.Name:lower():find("lava") then
+                        e:Destroy()
+                    end
+                end
+
+                -- Interior da lava
+                local coreLava = game.Workspace.Map.PrehistoricIsland.Core:FindFirstChild("InteriorLava")
+                if coreLava and coreLava:IsA("Model") then
+                    coreLava:Destroy()
+                end
+
+                -- Remover TouchInterest que mata
+                local K = workspace.Map:FindFirstChild("PrehistoricIsland")
+                if K then
+                    local trial = workspace.Map.PrehistoricIsland:FindFirstChild("TrialTeleport")
+                    for _, obj in pairs(K:GetDescendants()) do
+                        if obj.Name == "TouchInterest" then
+                            if not (trial and obj:IsDescendantOf(trial)) then
+                                obj.Parent:Destroy()
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+end)
+
+--------------------------------------------------------------------
+-- SISTEMA DE MATAR O GOLEM + QUEBRAR ROCHAS
+--------------------------------------------------------------------
+
 spawn(function()
-	while wait() do
-		pcall(function()
-			if _G.Prehis_Skills then
-				if workspace.Enemies:FindFirstChild("Lava Golem") then
-					local I = GetConnectionEnemies("Lava Golem");
-					if I then
-						repeat
-							wait();
-							G.Kill(I, _G.Prehis_Skills);
-							I.Humanoid:ChangeState(15);
-						until not _G.Prehis_Skills or not I.Parent or I.Humanoid.Health <= 0;
-					end;
-				end;
-				for I, e in pairs(game.Workspace.Map.PrehistoricIsland.Core.VolcanoRocks:GetChildren()) do
-					if e:FindFirstChild("VFXLayer") then
-						if (e:FindFirstChild("VFXLayer")).At0.Glow.Enabled == true or e.VFXLayer.At0.Glow.Enabled == true then
-							repeat
-								wait();
-								_tp(e.VFXLayer.CFrame);
-								if e.VFXLayer.At0.Glow.Enabled == true and plr:DistanceFromCharacter(e.VFXLayer.CFrame.Position) <= 150 then
-									MousePos = e.VFXLayer.CFrame.Position;
-									Useskills("Melee", "Z");
-									wait(.5);
-									Useskills("Melee", "X");
-									wait(.5);
-									Useskills("Melee", "C");
-									wait(.5);
-									Useskills("Blox Fruit", "Z");
-									wait(.5);
-									Useskills("Blox Fruit", "X");
-									wait(.5);
-									Useskills("Blox Fruit", "C");
-								end;
-							until not _G.Prehis_Skills or (e:FindFirstChild("VFXLayer")).At0.Glow.Enabled == false or e.VFXLayer.At0.Glow.Enabled == false;
-						end;
-					end;
-				end;
-			end;
-		end);
-	end;
-end);
+    while wait() do
+        pcall(function()
+            if _G.Prehis_Skills then
+
+                -- Matar Lava Golem
+                if workspace.Enemies:FindFirstChild("Lava Golem") then
+                    local enemy = GetConnectionEnemies("Lava Golem")
+                    if enemy then
+                        repeat
+                            task.wait()
+                            G.Kill(enemy, _G.Prehis_Skills)
+                            enemy.Humanoid:ChangeState(15)
+                        until not _G.Prehis_Skills or not enemy.Parent or enemy.Humanoid.Health <= 0
+                    end
+                end
+
+                -- Quebrar Rochas do Vulcão
+                for _, rock in pairs(game.Workspace.Map.PrehistoricIsland.Core.VolcanoRocks:GetChildren()) do
+                    if rock:FindFirstChild("VFXLayer") then
+                        local layer = rock.VFXLayer
+                        if layer.At0.Glow.Enabled == true then
+                            repeat
+                                wait()
+                                _tp(layer.CFrame)
+
+                                if layer.At0.Glow.Enabled == true and plr:DistanceFromCharacter(layer.CFrame.Position) <= 150 then
+                                    MousePos = layer.CFrame.Position
+
+                                    Useskills("Melee", "Z"); wait(.5)
+                                    Useskills("Melee", "X"); wait(.5)
+                                    Useskills("Melee", "C"); wait(.5)
+
+                                    Useskills("Blox Fruit", "Z"); wait(.5)
+                                    Useskills("Blox Fruit", "X"); wait(.5)
+                                    Useskills("Blox Fruit", "C");
+                                end
+
+                            until not _G.Prehis_Skills or layer.At0.Glow.Enabled == false
+                        end
+                    end
+                end
+            end
+        end)
+    end
+end)
+
+--------------------------------------------------------------------
+-- BOTÃO MANUAL DE APAGAR LAVA
+--------------------------------------------------------------------
+
+f:AddButton({
+    Title = "Remove Lava",
+    Description = "Remove toda Lava do mapa instantaneamente",
+    Callback = function()
+        -- Workspace
+        for _, v in pairs(game.Workspace:GetDescendants()) do
+            if v.Name == "Lava" then
+                v:Destroy()
+            end
+        end
+
+        -- ReplicatedStorage
+        for _, v in pairs(game.ReplicatedStorage:GetDescendants()) do
+            if v.Name == "Lava" then
+                v:Destroy()
+            end
+        end
+    end
+})
+
 f:AddToggle({
 	Title = "Auto Collect Dino Bones",
 	Description = "",
@@ -8831,20 +8883,6 @@ spawn(function()
 end);
 A:AddSeperator("Frozen Dimension");
 
-local F5 = A:AddParagraph({ Title = " Spy Status ", Content = "" });
-spawn(function()
-	while wait(.2) do
-		pcall(function()
-			local I = string.match(replicated.Remotes.CommF_:InvokeServer("InfoLeviathan", "1"), "%d+");
-			if I then
-				F5:SetDesc(" Spy Leviathan  : " .. tostring(I));
-				if tostring(I) == "5" then
-					F5:SetDesc(" Spy Leviathan : Already Done!!");
-				end;
-			end;
-		end);
-	end;
-end);
 
 A:AddButton({
 	Title = "Buy Spy",
@@ -8854,18 +8892,6 @@ A:AddButton({
 	end
 });
 
-local Q5 = A:AddParagraph({ Title = "Stats Frosen Dimension", Content = "" });
-spawn(function()
-	pcall(function()
-		while wait(.2) do
-			if workspace._WorldOrigin.Locations:FindFirstChild("Frozen Dimension") then
-				Q5:SetDesc(" Frozen Dimension : True");
-			else
-				Q5:SetDesc(" Frozen Dimension : False");
-			end;
-		end;
-	end);
-end);
 
 A:AddToggle({
 	Title = "Teleport Frozen Dimension",
