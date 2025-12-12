@@ -3765,6 +3765,19 @@ _G.AcceptQuest = false
 local CurrentMobLevel = nil
 local CurrentMobLevelSystem = nil
 
+-- Define o limite de distância para teleporte instantâneo (em studs)
+local TELEPORT_DISTANCE_THRESHOLD = 15 -- Ajustado para 15, um pouco mais seguro
+
+-- Função auxiliar para teleporte condicional
+local function TeleportConditional(hrp, targetCFrame, threshold)
+    if not hrp or not targetCFrame then return end
+    
+    local dist = (targetCFrame.Position - hrp.Position).Magnitude
+    if dist > threshold then
+        _tp(targetCFrame)
+    end
+end
+
 ----------------------------------------------------------------------
 -- 1. UI: DROPDOWN + TOGGLES
 ----------------------------------------------------------------------
@@ -3831,9 +3844,10 @@ spawn(function()
                     "Posessed Mummy",    
                 }    
 
+                -- ACCEPT QUEST: Aplicando teleporte condicional
                 if _G.AcceptQuest and not QuestUI.Visible then    
                     local npcPos = CFrame.new(-9516.99,172.01,6078.46)    
-                    _tp(npcPos)    
+                    TeleportConditional(hrp, npcPos, TELEPORT_DISTANCE_THRESHOLD)    
 
                     if (npcPos.Position - hrp.Position).Magnitude > 50 then   
                         task.wait(0.2)
@@ -3873,7 +3887,8 @@ spawn(function()
                 local mob = GetClosestMob()    
 
                 if mob then    
-                    _tp(mob.PrimaryPart.CFrame)    
+                    -- MOB: Aplicando teleporte condicional
+                    TeleportConditional(hrp, mob.PrimaryPart.CFrame, TELEPORT_DISTANCE_THRESHOLD)    
                     repeat task.wait()    
                         if mob.Parent and mob.Humanoid.Health > 0 then    
                             G.Kill(mob, _G.AutoFarm_Bone)    
@@ -3882,7 +3897,8 @@ spawn(function()
                         end    
                     until not _G.StartFarm or not _G.AutoFarm_Bone    
                 else    
-                    _tp(CFrame.new(-9495.68,453.58,5977.34))    
+                    -- DESTINO: Aplicando teleporte condicional
+                    TeleportConditional(hrp, CFrame.new(-9495.68,453.58,5977.34), TELEPORT_DISTANCE_THRESHOLD)    
                 end    
 
             end)
@@ -3931,7 +3947,8 @@ spawn(function()
                 end    
 
                 if not plr.PlayerGui.Main.Quest.Visible then    
-                    _tp(Q[6])    
+                    -- QUEST NPC: Aplicando teleporte condicional
+                    TeleportConditional(Root, Q[6], TELEPORT_DISTANCE_THRESHOLD)    
 
                     if (Root.Position - Q[6].Position).Magnitude <= 50 then    
                         task.wait(1.9)
@@ -3950,7 +3967,8 @@ spawn(function()
                 end    
 
                 if not Nearest then    
-                    _tp(Q[4])    
+                    -- DESTINO: Aplicando teleporte condicional
+                    TeleportConditional(Root, Q[4], TELEPORT_DISTANCE_THRESHOLD)    
                     return    
                 end    
 
@@ -3999,7 +4017,7 @@ spawn(function()
 
                 -- PARTE 1: Voltar para ilha se não tiver nada acontecendo
                 if not boss and not portalOpen and (hrp.Position - CakePos.Position).Magnitude > 3000 then
-                    _tp(CakePos)
+                    _tp(CakePos) -- Aqui a distância é grande, manter _tp direto
                     return
                 end
 
@@ -4016,13 +4034,13 @@ spawn(function()
 
                         if distToBoss > 350 then
                             -- SE ESTIVER LONGE: Apenas vai até ele (sem flutuar alto, sem atacar)
-                            -- Isso evita o bug de sair voando pra cima
-                            _tp(boss.PrimaryPart.CFrame * CFrame.new(0, 5, 0))
+                            local bossTarget = boss.PrimaryPart.CFrame * CFrame.new(0, 5, 0)
+                            TeleportConditional(hrp, bossTarget, TELEPORT_DISTANCE_THRESHOLD)
                             hrp.Velocity = Vector3.new(0,0,0)
                         else
                             -- SE ESTIVER PERTO: Posiciona em cima e ataca
                             local bossPos = boss.PrimaryPart.CFrame * CFrame.new(0, 25, 0) * CFrame.Angles(math.rad(-90), 0, 0)
-                            _tp(bossPos)
+                            TeleportConditional(hrp, bossPos, TELEPORT_DISTANCE_THRESHOLD)
                             
                             hrp.Velocity = Vector3.new(0,0,0)
                             if hrp:FindFirstChild("AssemblyLinearVelocity") then
@@ -4038,7 +4056,8 @@ spawn(function()
                     local distToEntrance = (hrp.Position - PortalEntrance.Position).Magnitude
                     
                     if distToEntrance < 500 then
-                        _tp(PortalEntrance)
+                        -- PORTAL: Aplicando teleporte condicional
+                        TeleportConditional(hrp, PortalEntrance, TELEPORT_DISTANCE_THRESHOLD)
                     else
                         hrp.Velocity = Vector3.new(0,0,0)
                     end
@@ -4054,7 +4073,8 @@ spawn(function()
                 local QuestUI = plr.PlayerGui.Main.Quest
                 if _G.AcceptQuest and not QuestUI.Visible then
                     local questPos = CFrame.new(-1927.92, 37.80, -12842.54)
-                    _tp(questPos)
+                    -- QUEST NPC: Aplicando teleporte condicional
+                    TeleportConditional(hrp, questPos, TELEPORT_DISTANCE_THRESHOLD)
                     if (hrp.Position - questPos.Position).Magnitude <= 40 then
                         local q = {
                             {"StartQuest", "CakeQuest2", 2},
@@ -4085,7 +4105,8 @@ spawn(function()
 
                 if not bestMob then
                     if (hrp.Position - CakePos.Position).Magnitude > 500 then
-                         _tp(CakePos)
+                         -- DESTINO: Aplicando teleporte condicional
+                         TeleportConditional(hrp, CakePos, TELEPORT_DISTANCE_THRESHOLD)
                     end
                     return
                 end
@@ -4106,7 +4127,8 @@ spawn(function()
 
                         if bestMob.Parent and bestMob.Humanoid.Health > 0 and bestMob:FindFirstChild("HumanoidRootPart") then
                             local farmPos = bestMob.HumanoidRootPart.CFrame * CFrame.new(0, 25, 0) * CFrame.Angles(math.rad(-90), 0, 0)
-                            _tp(farmPos)
+                            -- MOB: Aplicando teleporte condicional
+                            TeleportConditional(hrp, farmPos, TELEPORT_DISTANCE_THRESHOLD)
                             hrp.Velocity = Vector3.new(0, 0, 0)
                             if hrp:FindFirstChild("AssemblyLinearVelocity") then
                                 hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
