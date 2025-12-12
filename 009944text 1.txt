@@ -426,69 +426,70 @@ statsSetings = function(I, e)
 		end;
 	end;
 
-local TweenService = game:GetService("TweenService")
-local tweenInfo = TweenInfo.new(0.35, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
-
 local function IsRaidMob(mob)
     local n = mob.Name:lower()
+
     if n:find("raid") or n:find("microchip") or n:find("island") then
         return true
     end
     if mob:GetAttribute("IsRaid") or mob:GetAttribute("RaidMob") then
         return true
     end
+
     local hum = mob:FindFirstChild("Humanoid")
     if hum and hum.WalkSpeed == 0 then
         return true
     end
+
     if mob.Parent and tostring(mob.Parent):lower():find("_worldorigin") then
         return true
     end
+
     return false
 end
 
 BringEnemy = function()
     if not _B then return end
+
     local LocalPlayer = game.Players.LocalPlayer
-    local HRP_Player = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    local char = LocalPlayer.Character
+    if not char then return end
+
+    local HRP_Player = char:FindFirstChild("HumanoidRootPart")
     if not HRP_Player then return end
+
     if setscriptable then setscriptable(LocalPlayer, "SimulationRadius", true) end
     if sethiddenproperty then sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge) end
 
-    for _, mob in pairs(workspace.Enemies:GetChildren()) do
-        if mob:FindFirstChild("Humanoid") and mob:FindFirstChild("HumanoidRootPart") and mob.Humanoid.Health > 0 then
+    for _, mob in ipairs(workspace.Enemies:GetChildren()) do
+        local hum = mob:FindFirstChild("Humanoid")
+        local root = mob:FindFirstChild("HumanoidRootPart")
+
+        if hum and root and hum.Health > 0 then
             if not IsRaidMob(mob) and not mob:GetAttribute("IsBoss") then
-                local root = mob.HumanoidRootPart
-                local hum = mob.Humanoid
+                
+                -- Posição alvo (você ou PosMon)
                 local targetPos = PosMon or HRP_Player.Position
                 local dist = (root.Position - targetPos).Magnitude
-                if dist <= 350 then
-                    hum.AutoRotate = false
-                    hum:ChangeState(11)
-                    root.CanCollide = false
-                    root.Anchored = false
 
-                    if dist > 200 then
-                        root.CFrame = CFrame.new(targetPos)
-                    else
-                        root.CFrame = root.CFrame:Lerp(CFrame.new(targetPos), 0.5)
-                    end
-
-                    root.Velocity = Vector3.new(0,0,0)
+                if dist <= 210 then
+                    -- ❗ TP instantâneo (SEM tween, SEM ancoragem, SEM mexer animação)
+                    root.CFrame = CFrame.new(targetPos)
                 end
             end
         end
     end
 end
 
--- Loop automático: traz os mobs a cada 3 segundos, depois solta por 5 segundos
+-- Loop de puxar/soltar
 spawn(function()
     while true do
-        BringEnemy()        -- Puxa os mobs
-        task.wait(3)        -- Tempo de bring ativo
-        _B = false          -- Desativa o bring para soltar os mobs
-        task.wait(5)        -- Tempo de release
-        _B = true           -- Reativa o bring
+        _B = true           -- ativa bring
+        BringEnemy()
+        task.wait(3)        -- tempo puxando
+        
+        _B = false          -- solta
+        task.wait(5)        -- tempo solto
     end
 end)
 
@@ -4120,9 +4121,13 @@ end)
 
 b:AddSeperator("Other")
 
+-- Configuração da Distância Máxima (em studs)
+-- Aumente se quiser pegar mobs um pouco mais longe, diminua se quiser bem perto.
+_G.MaxFarmDistance = 400 
+
 b:AddToggle({
     Title = "Kill Mobs Nearest",
-    Description = "",
+    Description = "Foca mobs próximos (Raio de " .. _G.MaxFarmDistance .. ")",
     Default = false,
     Callback = function(I)
         _G.AutoFarmNear = I
@@ -4130,17 +4135,39 @@ b:AddToggle({
 })
 
 spawn(function()
-    while wait() do
+    while task.wait() do
         pcall(function()
             if _G.AutoFarmNear then
-                for _, e in pairs(workspace.Enemies:GetChildren()) do
-                    if e:FindFirstChild("Humanoid") and e:FindFirstChild("HumanoidRootPart") then
-                        if e.Humanoid.Health > 0 then
-                            repeat
-                                wait()
-                                G.Kill(e, _G.AutoFarmNear)
-                            until not _G.AutoFarmNear or not e.Parent or e.Humanoid.Health <= 0
+                local Plr = game.Players.LocalPlayer
+                local Char = Plr.Character or Plr.CharacterAdded:Wait()
+                local Root = Char:FindFirstChild("HumanoidRootPart")
+
+                if Root then
+                    local ClosestEnemy = nil
+                    local ShortestDistance = math.huge -- Começa infinito
+
+                    -- 1. Varre e calcula distâncias
+                    for _, e in pairs(workspace.Enemies:GetChildren()) do
+                        if e:FindFirstChild("Humanoid") and e:FindFirstChild("HumanoidRootPart") and e.Humanoid.Health > 0 then
+                            local Mag = (Root.Position - e.HumanoidRootPart.Position).Magnitude
+                            
+                            if Mag < ShortestDistance then
+                                ShortestDistance = Mag
+                                ClosestEnemy = e
+                            end
                         end
+                    end
+
+                    -- 2. Verifica se encontrou ALGUÉM e se ele está DENTRO do limite
+                    if ClosestEnemy and ShortestDistance <= _G.MaxFarmDistance then
+                        repeat
+                            task.wait()
+                            if G and G.Kill then
+                                -- Passa o alvo para a função de ataque
+                                G.Kill(ClosestEnemy, _G.AutoFarmNear)
+                            end
+                        -- Interrompe se: Farm desligado, Inimigo sumiu, Inimigo morreu ou Personagem morreu
+                        until not _G.AutoFarmNear or not ClosestEnemy.Parent or ClosestEnemy.Humanoid.Health <= 0 or not Root.Parent
                     end
                 end
             end
@@ -4148,29 +4175,61 @@ spawn(function()
     end
 end)
 
+-- Toggle (mantendo a variável _G.AutoFactory consistente)
 b:AddToggle({
     Title = "Auto Factory Raid",
     Description = "",
     Default = false,
-    Callback = function(I)
-        _G.FactoryRaids = I
+    Callback = function(Value)
+        _G.AutoFactory = Value -- Usa a mesma variável verificada no loop
     end,
 })
 
 spawn(function()
-    while wait(Sec) do
+    -- Coordenadas da Factory (meio)
+    local FactoryPos = CFrame.new(448.46756, 199.356781, -441.389252)
+
+    while task.wait(0.5) do -- task.wait é mais moderno e eficiente que 'wait'
         pcall(function()
+            -- 1. Verifica se o Auto Factory está ligado
             if _G.AutoFactory then
-                local I = GetConnectionEnemies("Core")
-                if I then
+                
+                -- 2. Tenta encontrar o "Core" (indicador de que a Factory está ativa)
+                -- Garanta que 'GetConnectionEnemies' retorna o objeto do Core.
+                local Core = GetConnectionEnemies("Core")
+
+                -- 3. Entra no ataque SOMENTE SE o Core for encontrado e estiver vivo
+                if Core and Core:FindFirstChild("Humanoid") and Core.Humanoid.Health > 0 then
+                    
+                    -- A Factory está ativa: inicia o loop de ataque
                     repeat
-                        wait()
-                        EquipWeapon(_G.SelectWeapon)
-                        _tp(CFrame.new(448.46756, 199.356781, -441.389252))
-                    until I.Humanoid.Health <= 0 or _G.AutoFactory == false
-                else
-                    _tp(CFrame.new(448.46756, 199.356781, -441.389252))
+                        task.wait()
+                        
+                        -- Verificações de segurança para sair do loop
+                        -- Se o Core morrer, o toggle for desligado, ou o Core for destruído
+                        if not _G.AutoFactory or not Core or not Core.Parent or Core.Humanoid.Health <= 0 then
+                            break
+                        end
+                        
+                        -- Equipa a arma (se _G.SelectWeapon estiver definida)
+                        if _G.SelectWeapon then
+                            EquipWeapon(_G.SelectWeapon)
+                        end
+                        
+                        -- Teleporta para o meio da Factory
+                        _tp(FactoryPos)
+                        
+                        -- (Opcional: Descomente se precisar de um clique automático para atacar)
+                        -- game:GetService("VirtualUser"):Button1Down(Vector2.new(1280, 672))
+                        
+                    until Core.Humanoid.Health <= 0 or _G.AutoFactory == false
+                    
+                    -- Quando o loop termina (Factory desativou), o script apenas encerra este bloco 
+                    -- de 'if', permitindo que o outro script de farm continue no local que estava.
                 end
+                
+                -- 4. Se a Factory não estiver ativa (Core = nil), o script faz NADA, 
+                -- e o jogador permanece onde estiver (farmando outra coisa).
             end
         end)
     end
