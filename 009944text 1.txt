@@ -2987,6 +2987,43 @@ VI_S:AddButton({
     end
 })
 
+VI_S:AddSeperator("Fps");
+
+VI_S:AddButton({
+    Title = "Stretch the screen",
+    Description = "",
+    Callback = function()
+        -- SETAR A RESOLUÇÃO
+        getgenv().Resolution = {
+            [".gg/scripters"] = 0.65
+        }
+
+        local Camera = workspace.CurrentCamera
+
+        -- SE O SCRIPT AINDA NÃO TÁ RODANDO
+        if getgenv().gg_scripters == nil then
+            game:GetService("RunService").RenderStepped:Connect(function()
+                pcall(function()
+                    Camera.CFrame =
+                        Camera.CFrame *
+                        CFrame.new(
+                            0, 0, 0,
+                            1, 0, 0,
+                            0, getgenv().Resolution[".gg/scripters"], 0,
+                            0, 0, 1
+                        )
+                end)
+            end)
+        end
+
+        -- FLAG PRA NÃO DUPLICAR
+        getgenv().gg_scripters = "Aori0001"
+    end
+})
+VI_S:AddButton({ Title = "Fps Boost", Description = "", Callback = function()
+		LowCpu();
+	end });
+
 VI_S:AddSeperator("Stats");
 
 VI_S:AddToggle({
@@ -10166,31 +10203,6 @@ Z:AddButton({ Title = "Set Pirate Team", Description = "", Callback = function()
 Z:AddButton({ Title = "Set Marine Team", Description = "", Callback = function()
 		Marines();
 	end });
-Z:AddToggle({
-	Title = "Unlock All Portals",
-	Description = "unlocked portal for who doesn\'t defeat rip_indra",
-	Default = false,
-	Callback = function(I)
-		_G.PortalUnLock = I;
-	end,
-});
-spawn(function()
-	while wait(Sec) do
-		pcall(function()
-			if _G.PortalUnLock then
-				if G.Pos(CstlePos_Miti, 8) then
-					replicated.Remotes.CommF_:InvokeServer("requestEntrance", Vector3.new(-12471.169921875, 374.94024658203, -7551.677734375));
-				elseif G.Pos(Man3Pos_Miti, 8) then
-					replicated.Remotes.CommF_:InvokeServer("requestEntrance", Vector3.new(-5072.08984375, 314.5412902832, -3151.1098632812));
-				elseif G.Pos(HydraPos_Miti, 8) then
-					replicated.Remotes.CommF_:InvokeServer("requestEntrance", Vector3.new(5748.7587890625, 610.44982910156, -267.81704711914));
-				elseif G.Pos(HydratoCastle, 8) then
-					replicated.Remotes.CommF_:InvokeServer("requestEntrance", Vector3.new(-5072.08984375, 314.5412902832, -3151.1098632812));
-				end;
-			end;
-		end);
-	end;
-end);
 Z:AddSeperator("Graphics / Haki Stats");
 HakiSt = {
 		"State 0",
@@ -10225,63 +10237,6 @@ Z:AddButton({ Title = "ChangeBusoStage", Description = "", Callback = function()
 			replicated.Remotes.CommF_:InvokeServer("ChangeBusoStage", 5);
 		end;
 	end });
-Z:AddToggle({
-	Title = "Turn on RTX Mode",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.RTXMode = I;
-		local e = game.Lighting;
-		local K = Instance.new("ColorCorrectionEffect", e);
-		local n = Instance.new("ColorCorrectionEffect", e);
-		local d = e.Ambient;
-		local z = e.Brightness;
-		local H = e.ColorShift_Top;
-		local F = K.Brightness;
-		local Q = K.Contrast;
-		local X = K.TintColor;
-		local P = n.TintColor;
-		spawn(function()
-			while _G.RTXMode do
-				wait();
-				e.Ambient = Color3.fromRGB(33, 33, 33);
-				e.Brightness = .3;
-				K.Brightness = .176;
-				K.Contrast = .39;
-				K.TintColor = Color3.fromRGB(217, 145, 57);
-				game.Lighting.FogEnd = 999;
-				if not plr.Character.HumanoidRootPart:FindFirstChild("PointLight") then
-					local I = Instance.new("PointLight");
-					I.Parent = plr.Character.HumanoidRootPart;
-					I.Range = 15;
-					I.Color = Color3.fromRGB(217, 145, 57);
-				end;
-			end;
-			e.Ambient = d;
-			e.Brightness = z;
-			e.ColorShift_Top = H;
-			K.Contrast = Q;
-			K.Brightness = F;
-			K.TintColor = X;
-			n.TintColor = P;
-			game.Lighting.FogEnd = 2500;
-			local I = plr.Character.HumanoidRootPart:FindFirstChild("PointLight");
-			if I then
-				I:Destroy();
-			end;
-		end);
-	end,
-});
-Z:AddButton({ Title = "Turn on Fast Mode", Description = "", Callback = function()
-		for I, e in next, workspace:GetDescendants() do
-			if table.find(d, e.ClassName) then
-				e.Material = "Plastic";
-			end;
-		end;
-	end });
-Z:AddButton({ Title = "Turn on Low CPU", Description = "", Callback = function()
-		LowCpu();
-	end });
 Z:AddButton({ Title = "Turn on increase Boats", Description = "", Callback = function()
 		for I, e in pairs(workspace.Boats:GetDescendants()) do
 			if table.find(z5, e.Name) and tostring(e.Owner.Value) == tostring(plr.Name) then
@@ -10304,21 +10259,6 @@ Z:AddButton({ Title = "Remove Sky Fog", Description = "", Callback = function()
 		end;
 	end });
 Z:AddSeperator("Configure - God");
-Z:AddButton({ Title = "Rain Fruits (Client)", Description = "", Callback = function()
-		for I, e in pairs((game:GetObjects("rbxassetid://4911164158"))[1]:GetChildren()) do
-			e.Parent = game.Workspace.Map;
-			e:MoveTo(plr.Character.PrimaryPart.Position + Vector3.new(math.random(-50, 50), 100, math.random(-50, 50)));
-			if e.Fruit:FindFirstChild("AnimationController") then
-				((e.Fruit:FindFirstChild("AnimationController")):LoadAnimation(e.Fruit:FindFirstChild("Idle"))):Play();
-			end;
-			e.Handle.Touched:Connect(function(I)
-				if I.Parent == plr.Character then
-					e.Parent = plr.Backpack;
-					plr.Character.Humanoid:EquipTool(e);
-				end;
-			end);
-		end;
-	end });
 Z:AddToggle({
 	Title = "Turn on Full Bright",
 	Description = "",
