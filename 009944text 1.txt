@@ -3034,84 +3034,98 @@ VI_S:AddToggle({
 		_G.Safemode = I;
 	end,
 });
--- pega os pontos disponíveis do player
-local function GetAvailablePoints()
-    local plr = game.Players.LocalPlayer
-    local stats = plr:WaitForChild("Data"):WaitForChild("Stats")
-    return stats.Points.Value
-end
-
--- função que adiciona TODOS pontos de uma vez
-local function AddAllPoints(stat)
-    local points = GetAvailablePoints()
-    if points > 0 then
-        statsSetings(stat, points)
-    end
-end
-
--- ===== UI =====
-
--- função para pegar pontos disponíveis
-local function GetAvailablePoints()
-    local plr = game.Players.LocalPlayer
-    local stats = plr:WaitForChild("Data"):WaitForChild("Stats")
-    return stats.Points.Value
-end
-
--- função pra adicionar todos
-local function AddAllPoints(stat)
-    local points = GetAvailablePoints()
-    if points > 0 then
-        statsSetings(stat, points)
-    end
-end
-
--- ===== UI (Agora em TOGGLE) =====
-
 VI_S:AddToggle({
-    Title = "Add Points Melee",
-    Description = "Coloca todos os pontos no Melee",
-    Default = false,
-    Callback = function(v)
-        if v then AddAllPoints("Melee") end
-    end
-})
-
+	Title = "Auto Stats (Melee)",
+	Description = "Automatically spend all available points on Melee.",
+	Default = false,
+	Callback = function(I)
+		_G.Auto_Melee = I;
+	end,
+});
 VI_S:AddToggle({
-    Title = "Add Points Sword",
-    Description = "Coloca todos os pontos na Sword",
-    Default = false,
-    Callback = function(v)
-        if v then AddAllPoints("Sword") end
-    end
-})
-
+	Title = "Auto Stats (Sword)",
+	Description = "Automatically spend all available points on Sword.",
+	Default = false,
+	Callback = function(I)
+		_G.Auto_Sword = I;
+	end,
+});
 VI_S:AddToggle({
-    Title = "Add Points Gun",
-    Description = "Coloca todos os pontos na Gun",
-    Default = false,
-    Callback = function(v)
-        if v then AddAllPoints("Gun") end
-    end
-})
-
+	Title = "Auto Stats (Gun)",
+	Description = "Automatically spend all available points on Gun.",
+	Default = false,
+	Callback = function(I)
+		_G.Auto_Gun = I;
+	end,
+});
 VI_S:AddToggle({
-    Title = "Add Points Fruit",
-    Description = "Coloca todos os pontos na Fruit",
-    Default = false,
-    Callback = function(v)
-        if v then AddAllPoints("Devil") end
-    end
-})
-
+	Title = "Auto Stats (Fruit)",
+	Description = "Automatically spend all available points on Fruit.",
+	Default = false,
+	Callback = function(I)
+		_G.Auto_Blox = I;
+	end,
+});
 VI_S:AddToggle({
-    Title = "Add Points Defense",
-    Description = "Coloca todos os pontos na Defense",
-    Default = false,
-    Callback = function(v)
-        if v then AddAllPoints("Defense") end
-    end
-})
+	Title = "Auto Stats (Defense)",
+	Description = "Automatically spend all available points on Defense.",
+	Default = false,
+	Callback = function(I)
+		_G.Auto_Defense = I;
+	end,
+});
+
+-- Usamos um valor grande (como 9999999) para simular o gasto de 'todos' os pontos disponíveis.
+-- Assumimos que a função 'statsSetings' irá apenas gastar o máximo de pontos que o jogador realmente tem.
+local AllAvailablePoints = 9999999; 
+
+spawn(function()
+	while wait(Sec) do
+		pcall(function()
+			if _G.Auto_Melee then
+				statsSetings("Melee", AllAvailablePoints);
+			end;
+		end);
+	end;
+end);
+spawn(function()
+	while wait(Sec) do
+		pcall(function()
+			if _G.Auto_Sword then
+				statsSetings("Sword", AllAvailablePoints);
+			end;
+		end);
+	end;
+end);
+spawn(function()
+	while wait(Sec) do
+		pcall(function()
+			if _G.Auto_Gun then
+				statsSetings("Gun", AllAvailablePoints);
+			end;
+		end);
+	end;
+end);
+spawn(function()
+	while wait(Sec) do
+		pcall(function()
+			-- Note: No seu código original era 'Auto_DevilFruit', mas no menu era 'Fruit'. Corrigi para usar a mesma variável do menu.
+			if _G.Auto_Blox then 
+				statsSetings("Devil", AllAvailablePoints);
+			end;
+		end);
+	end;
+end);
+spawn(function()
+	while wait(Sec) do
+		pcall(function()
+			if _G.Auto_Defense then
+				statsSetings("Defense", AllAvailablePoints);
+			end;
+		end);
+	end;
+end);
+
 
 -- FUNÇÕES ADICIONADAS NA SEÇÃO 'Get and Upgrade Itens' (RR)
 
