@@ -894,7 +894,7 @@ task.spawn(function()
 end);
 
 -- =======================
--- TWEEN CORRIGIDO
+-- TWEEN AJUSTADO POR DISTÂNCIA
 -- =======================
 
 _tp = function(I)
@@ -905,51 +905,55 @@ _tp = function(I)
 
 	local HRP = e.HumanoidRootPart;
 
-	--  Impedir que o sistema "C" puxe o player durante o tween
+	-- Desativar farm enquanto tweena
 	shouldTween = true
 	getgenv().OnFarm = false
 
-	--  Garantir que não esteja ancorado
+	-- Garantir que não está ancorado
 	if HRP.Anchored then
 		HRP.Anchored = false
 		task.wait()
 	end
 
-	local dist = (I.Position - HRP.Position).Magnitude;
-	local info = TweenInfo.new(dist / 300, Enum.EasingStyle.Linear);
-	local tween = game:GetService("TweenService"):Create(C, info, { CFrame = I });
+	local dist = (I.Position - HRP.Position).Magnitude
 
+	-- ===============================
+	-- 🔥 SE ESTIVER ATÉ 15 STUDS → SPEED 600
+	-- 🔥 CASO CONTRÁRIO → SPEED 300
+	-- ===============================
+	local speed = dist <= 15 and 600 or 300
+
+	local info = TweenInfo.new(dist / speed, Enum.EasingStyle.Linear)
+	local tween = game:GetService("TweenService"):Create(C, info, { CFrame = I })
+
+	-- Caso esteja sentado
 	if e.Humanoid.Sit == true then
-		C.CFrame = CFrame.new(C.Position.X, I.Y, C.Position.Z);
-	end;
+		C.CFrame = CFrame.new(C.Position.X, I.Y, C.Position.Z)
+	end
 
-	tween:Play();
+	tween:Play()
 
+	-- Anti travamento / controle
 	task.spawn(function()
 		while tween.PlaybackState == Enum.PlaybackState.Playing do
 			if not shouldTween then
-				tween:Cancel();
-				break;
-			end;
-			task.wait(.1);
+				tween:Cancel()
+				break
+			end
+			task.wait(.1)
 		end
 
-		-- 🔥 Reativar sistema após o tween
 		getgenv().OnFarm = true
-	end);
-end;
+	end)
+end
 
 TeleportToTarget = function(I)
-	if (I.Position - plr.Character.HumanoidRootPart.Position).Magnitude > 1000 then
-		_tp(I);
-	else
-		_tp(I);
-	end;
-end;
+	_tp(I)
+end
 
 notween = function(I)
-	plr.Character.HumanoidRootPart.CFrame = I;
-end;
+	plr.Character.HumanoidRootPart.CFrame = I
+end
 
 function BTP(I)
 	local e = game.Players.LocalPlayer;
