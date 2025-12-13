@@ -6,7 +6,6 @@ do
 	Lv = game.Players.LocalPlayer.Data.Level.Value;
 	TeleportService = game:GetService("TeleportService");
 	TW = game:GetService("TweenService");
-	Lighting = game:GetService("Lighting");
 	Enemies = workspace.Enemies;
 	vim1 = game:GetService("VirtualInputManager");
 	vim2 = game:GetService("VirtualUser");
@@ -599,7 +598,7 @@ LowCpu = function()
 		d.WaterTransparency = 0;
 		n.GlobalShadows = false;
 		n.FogEnd = 9000000000.0;
-		n.Brightness = 0;
+		n.Brightness = 2;
 		(settings()).Rendering.QualityLevel = "Level01";
 		for e, K in pairs(e:GetDescendants()) do
 			if K:IsA("Part") or K:IsA("Union") or K:IsA("CornerWedgePart") or K:IsA("TrussPart") then
@@ -6809,49 +6808,6 @@ spawn(function()
 	end;
 end);
 h:AddSeperator("Mystic Island / Full Moon");
-FullMOOn = h:AddParagraph({ Title = " FullMoon Status ", Content = "" });
-Ismirage = h:AddParagraph({ Title = " Mirage Island Status ", Content = "" });
-spawn(function()
-	while wait(.2) do
-		if workspace.Map:FindFirstChild("MysticIsland") or workspace._WorldOrigin.Locations:FindFirstChild("Mirage Island") then
-			Ismirage:SetDesc(" Mirage Island : True");
-		else
-			Ismirage:SetDesc(" Mirage Island : False");
-		end;
-	end;
-end);
-spawn(function()
-	while wait(.2) do
-		pcall(function()
-			moon8 = "http://www.roblox.com/asset/?id=9709150401";
-			moon7 = "http://www.roblox.com/asset/?id=9709150086";
-			moon6 = "http://www.roblox.com/asset/?id=9709149680";
-			moon5 = "http://www.roblox.com/asset/?id=9709149431";
-			moon4 = "http://www.roblox.com/asset/?id=9709149052";
-			moon3 = "http://www.roblox.com/asset/?id=9709143733";
-			moon2 = "http://www.roblox.com/asset/?id=9709139597";
-			moon1 = "http://www.roblox.com/asset/?id=9709135895";
-			moon = Getmoon();
-			if moon == moon1 then
-				FullMOOn:SetDesc("Moon : 0 / 8");
-			elseif moon == moon2 then
-				FullMOOn:SetDesc("Moon : 1 / 8");
-			elseif moon == moon3 then
-				FullMOOn:SetDesc("Moon : 2 / 8");
-			elseif moon == moon4 then
-				FullMOOn:SetDesc("Moon : 3 / 8 [ Next Night ]");
-			elseif moon == moon5 then
-				FullMOOn:SetDesc("Moon : 4 / 8 [ Full Moon ]");
-			elseif moon == moon6 then
-				FullMOOn:SetDesc("Moon : 5 / 8 [ Last Night ]");
-			elseif moon == moon7 then
-				FullMOOn:SetDesc("Moon : 6 / 8");
-			elseif moon == moon8 then
-				FullMOOn:SetDesc("Moon : 7 / 8");
-			end;
-		end);
-	end;
-end);
 h:AddToggle({
 	Title = "Auto Find Mirage Island",
 	Description = "turn on for finding & tween mirage island",
@@ -7024,26 +6980,6 @@ spawn(function()
 	end;
 end);
 h:AddSeperator("Skull Guitars / Misc");
-local e5 = h:AddParagraph({ Title = " Skull Guitar Quests ", Content = "" });
-spawn(function()
-	while wait(.2) do
-		pcall(function()
-			if Quest1 == true then
-				e5:SetDesc(" Quest Number : Quest1");
-			elseif Quest2 == true then
-				e5:SetDesc(" Quest Number : Quest2");
-			elseif Quest3 == true then
-				e5:SetDesc(" Quest Number : Quest3");
-			elseif Quest4 == true then
-				e5:SetDesc(" Quest Number : Quest4");
-			elseif GetWP("Skull Guitar") then
-				e5:SetDesc(" Quest Number : Collect!!");
-			else
-				e5:SetDesc(" Quest Number : No Quest!!");
-			end;
-		end);
-	end;
-end);
 h:AddToggle({
 	Title = "Auto Skull Guitar",
 	Description = "",
@@ -9068,16 +9004,7 @@ A:AddToggle({
 	end,
 });
 A:AddSeperator("Kitsune Island / Event");
-local X5 = A:AddParagraph({ Title = " Kitsune Island Status ", Content = "" });
-spawn(function()
-	while wait(.2) do
-		if workspace.Map:FindFirstChild("KitsuneIsland") or workspace._WorldOrigin.Locations:FindFirstChild("Kitsune Island") then
-			X5:SetDesc(" Kitsune Island : True");
-		else
-			X5:SetDesc(" Kitsune Island : False");
-		end;
-	end;
-end);
+
 A:AddToggle({
 	Title = "Auto Find Kitsune Island",
 	Description = "turn on for finding & tween kitsune island",
@@ -10311,7 +10238,7 @@ Z:AddButton({ Title = "Set Pirate Team", Description = "", Callback = function()
 Z:AddButton({ Title = "Set Marine Team", Description = "", Callback = function()
 		Marines();
 	end });
-Z:AddSeperator("Graphics / Haki Stats");
+Z:AddSeperator("Haki Stats");
 HakiSt = {
 		"State 0",
 		"State 1",
@@ -10345,17 +10272,7 @@ Z:AddButton({ Title = "ChangeBusoStage", Description = "", Callback = function()
 			replicated.Remotes.CommF_:InvokeServer("ChangeBusoStage", 5);
 		end;
 	end });
-Z:AddButton({ Title = "Turn on increase Boats", Description = "", Callback = function()
-		for I, e in pairs(workspace.Boats:GetDescendants()) do
-			if table.find(z5, e.Name) and tostring(e.Owner.Value) == tostring(plr.Name) then
-				e.VehicleSeat.MaxSpeed = 350;
-				e.VehicleSeat.Torque = .2;
-				e.VehicleSeat.TurnSpeed = 5;
-				e.VehicleSeat.HeadsUpDisplay = true;
-			end;
-		end;
-	end });
-Z:AddButton({ Title = "Remove Sky Fog", Description = "", Callback = function()
+Z:AddButton({ Title = "Nofog", Description = "", Callback = function()
 		if Lighting:FindFirstChild("LightingLayers") then
 			Lighting.LightingLayers:Destroy();
 		end;
@@ -10384,38 +10301,8 @@ Z:AddToggle({
 		end;
 	end,
 });
-Cheat_DayNight = { "Day", "Night" };
-Z:AddDropdown({
-	Title = "Select Time",
-	Description = "",
-	Values = Cheat_DayNight,
-	Default = false,
-	Multi = false,
-	Callback = function(I)
-		_G.SelectDN = I;
-	end,
-});
 Z:AddToggle({
-	Title = "Turn on Time",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.daylightN = I;
-	end,
-});
-task.spawn(function()
-	while task.wait() do
-		if _G.daylightN then
-			if _G.SelectDN == "Day" then
-				Lighting.ClockTime = 12;
-			elseif _G.SelectDN == "Night" then
-				Lighting.ClockTime = 0;
-			end;
-		end;
-	end;
-end);
-Z:AddToggle({
-	Title = "Turn on Walk on Water",
+	Title = "Walk on Water",
 	Description = "walk on water",
 	Default = true,
 	Callback = function(I)
@@ -10429,7 +10316,7 @@ Z:AddToggle({
 	end,
 });
 Z:AddToggle({
-	Title = "Turn on Ice Walk",
+	Title = "Ice Walk",
 	Description = "Ice walk just like walk on water but have ice effect",
 	Default = false,
 	Callback = function(I)
