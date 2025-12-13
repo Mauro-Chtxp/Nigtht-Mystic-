@@ -4946,16 +4946,75 @@ spawn(function()
 		end);
 	end;
 end);
--- =========================================
---          AUTO FARM BOSS (FULL)
+-- -- =========================================
+--          AUTO FARM BOSS (FULL FIX)
 -- =========================================
 
 -- =====================
--- VARIÁVEIS
+-- VARIÁVEIS GLOBAIS
 -- =====================
 _G.AutoBoss = false
 _G.AcceptQuestBoss = true
 _G.FindBoss = _G.FindBoss or (Boss and Boss[1])
+
+local Tweening = false
+local MIN_DIST = 6
+
+-- =====================
+-- FUNÇÕES DE MOVIMENTO
+-- =====================
+_tp = function(I)
+    local e = plr.Character
+    if not e or not e:FindFirstChild("HumanoidRootPart") then return end
+    if Tweening then return end
+
+    local HRP = e.HumanoidRootPart
+    Tweening = true
+    shouldTween = true
+    getgenv().OnFarm = false
+
+    if HRP.Anchored then
+        HRP.Anchored = false
+        task.wait()
+    end
+
+    local dist = (I.Position - HRP.Position).Magnitude
+    if dist < MIN_DIST then
+        Tweening = false
+        return
+    end
+
+    local speed = dist <= 15 and 600 or 300
+    local info = TweenInfo.new(dist / speed, Enum.EasingStyle.Linear)
+
+    local tween = game:GetService("TweenService"):Create(
+        HRP,
+        info,
+        { CFrame = I }
+    )
+
+    if e.Humanoid.Sit then
+        HRP.CFrame = CFrame.new(HRP.Position.X, I.Position.Y, HRP.Position.Z)
+    end
+
+    tween:Play()
+
+    tween.Completed:Once(function()
+        Tweening = false
+        getgenv().OnFarm = true
+    end)
+end
+
+TeleportToTarget = function(cf)
+    _tp(cf)
+end
+
+notween = function(cf)
+    local c = plr.Character
+    if c and c:FindFirstChild("HumanoidRootPart") then
+        c.HumanoidRootPart.CFrame = cf
+    end
+end
 
 -- =====================
 -- UI
@@ -4972,7 +5031,7 @@ j:AddDropdown({
     end
 })
 
-j:AddToggle({
+MF:AddToggle({
     Title = "Auto Farm Boss",
     Default = false,
     Callback = function(v)
@@ -4992,62 +5051,77 @@ j:AddToggle({
 -- LOOP AUTO FARM BOSS
 -- =====================
 task.spawn(function()
-    while task.wait() do
-        if _G.AutoBoss and _G.FindBoss then
-            pcall(function()
+    while task.wait(0.15) do
+        if not _G.AutoBoss or not _G.FindBoss then continue end
 
-                -- Configura boss atual
-                QuestB()
+        pcall(function()
 
-                -- ==========================
-                -- PEGAR QUEST (SE ATIVADO)
-                -- ==========================
-                if _G.AcceptQuestBoss and Qname and Qdata and PosQBoss then
-                    if not plr.PlayerGui.Main.Quest.Visible then
+            -- CONFIGURA BOSS
+            QuestB()
+
+            -- ==========================
+            -- PEGAR QUEST
+            -- ==========================
+            if _G.AcceptQuestBoss and Qname and Qdata and PosQBoss then
+                if not plr.PlayerGui.Main.Quest.Visible then
+                    if not Tweening then
                         TeleportToTarget(PosQBoss)
-                        task.wait(0.4)
+                    end
 
+                    if (plr.Character.HumanoidRootPart.Position - PosQBoss.Position).Magnitude < 6 then
                         game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(
                             "StartQuest",
                             Qname,
                             Qdata
                         )
+                        task.wait(0.5)
                     end
                 end
+            end
 
-                -- ==========================
-                -- PROCURAR BOSS
-                -- ==========================
-                local BossAlive = false
+            -- ==========================
+            -- PROCURAR BOSS
+            -- ==========================
+            local BossAlive = false
 
-                for _, v in pairs(workspace.Enemies:GetChildren()) do
-                    if v.Name == bMon
-                        and v:FindFirstChild("HumanoidRootPart")
-                        and v:FindFirstChild("Humanoid")
-                        and v.Humanoid.Health > 0 then
+            for _, v in pairs(workspace.Enemies:GetChildren()) do
+                if v.Name == bMon
+                and v:FindFirstChild("HumanoidRootPart")
+                and v:FindFirstChild("Humanoid")
+                and v.Humanoid.Health > 0 then
 
-                        BossAlive = true
+                    BossAlive = true
 
-                        repeat
-                            task.wait()
-                            TeleportToTarget(
-                                v.HumanoidRootPart.CFrame * CFrame.new(0, 0, 4)
-                            )
+                    repeat
+                        task.wait(0.2)
+                        if not _G.AutoBoss then break end
 
-                            -- SEU SISTEMA DE ATAQUE AQUI
+                        local HRP = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+                        if not HRP then break end
 
-                        until not _G.AutoBoss or v.Humanoid.Health <= 0
-                    end
+                        local targetCF = v.HumanoidRootPart.CFrame * CFrame.new(0, 0, 4)
+                        local dist = (HRP.Position - targetCF.Position).Magnitude
+
+                        if dist > 8 and not Tweening then
+                            TeleportToTarget(targetCF)
+                        end
+
+                        -- ======================
+                        -- ATAQUE AQUI
+                        -- ======================
+                        -- Attack()
+
+                    until v.Humanoid.Health <= 0 or not _G.AutoBoss
                 end
+            end
 
-                -- ==========================
-                -- SE NÃO ESTIVER SPAWNADO
-                -- ==========================
-                if not BossAlive and PosB then
-                    TeleportToTarget(PosB)
-                end
-            end)
-        end
+            -- ==========================
+            -- BOSS NÃO SPAWNADO
+            -- ==========================
+            if not BossAlive and PosB and not Tweening then
+                TeleportToTarget(PosB)
+            end
+        end)
     end
 end)
 
