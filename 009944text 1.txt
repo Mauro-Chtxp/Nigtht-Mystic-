@@ -4890,50 +4890,19 @@ spawn(function()
 	end;
 end);
 -- =========================================
---      AUTO FARM BOSS (WORKSPACE & RS)
+--      AUTO FARM BOSS (DIRECT & UPRIGHT)
+--      + ACCEPT QUEST BOSS
 -- =========================================
 
+-- =====================
+-- VARIÁVEIS GLOBAIS
+-- =====================
 _G.AutoBoss = false
--- Variável inicial vazia, será preenchida pelo Refresh
-_G.FindBoss = nil 
+_G.AcceptQuestBoss = false
+_G.FindBoss = _G.FindBoss or (Boss and Boss[1])
 
 local plr = game.Players.LocalPlayer
-
--- =====================
--- FUNÇÃO: PEGAR BOSSES DISPONÍVEIS (WORKSPACE E RS)
--- =====================
-local function GetAvailableBosses()
-    local list = {}
-    
-    -- Tabela de locais a serem verificados
-    local containers = {
-        workspace:FindFirstChild("Enemies"),
-        game:GetService("ReplicatedStorage"):FindFirstChild("Enemies") -- Assumindo que a pasta é "Enemies" em RS
-    }
-    
-    for _, container in ipairs(containers) do
-        if container then
-            for _, v in pairs(container:GetChildren()) do
-                -- Verifica se é um modelo de Boss
-                if v:IsA("Model") and v:FindFirstChildOfClass("Humanoid") then
-                    -- Evita nomes duplicados na lista
-                    if not table.find(list, v.Name) then
-                        table.insert(list, v.Name)
-                    end
-                end
-            end
-        end
-    end
-    
-    -- Se não encontrar nenhum Boss em nenhum lugar
-    if #list == 0 then
-        table.insert(list, "No Boss Found")
-    end
-    
-    table.sort(list) -- Ordena a lista para facilitar a visualização
-    
-    return list
-end
+local replicated = game:GetService("ReplicatedStorage")
 
 -- =====================
 -- EQUIPAR WEAPON
@@ -4956,35 +4925,49 @@ local function EquipWeapon()
 end
 
 -- =====================
+-- QUEST DO BOSS
+-- =====================
+local function HandleBossQuest()
+    if not _G.AcceptQuestBoss then return end
+    if not QuestBeta then return end
+
+    local q = QuestBeta()
+    if not q or not q[2] or not q[3] then return end
+
+    local gui = plr.PlayerGui.Main.Quest
+    local questVisible = gui.Visible
+    local questTitle = gui.Container.QuestTitle.Title.Text
+
+    -- Quest errada → abandona
+    if questVisible and not string.find(questTitle, q[0]) then
+        replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
+        return
+    end
+
+    -- Sem quest → pega
+    if not questVisible then
+        _tp(q[5])
+        if (plr.Character.HumanoidRootPart.Position - q[5].Position).Magnitude <= 5 then
+            replicated.Remotes.CommF_:InvokeServer(
+                "StartQuest",
+                q[3],
+                q[2]
+            )
+        end
+    end
+end
+
+-- =====================
 -- UI
 -- =====================
 j:AddSeperator("Boss Farm")
 
--- Cria o Dropdown (Salva ele numa variável 'BossDropdown' para podermos atualizar depois)
-local BossDropdown = j:AddDropdown({
-    Title = "Select Available Boss",
-    Values = GetAvailableBosses(), -- Já inicia pegando todos os Bosses
-    Default = "Select Boss",
+j:AddDropdown({
+    Title = "Select Boss",
+    Values = Boss,
+    Default = Boss[1],
     Callback = function(v)
         _G.FindBoss = v
-    end
-})
-
--- Botão para Atualizar a Lista Manualmente
-j:AddButton({
-    Title = "Refresh Boss List",
-    Callback = function()
-        local newBosses = GetAvailableBosses()
-        
-        -- Atualiza o dropdown com a nova lista (Verifica se sua Lib suporta Refresh)
-        if BossDropdown and BossDropdown.Refresh then
-            BossDropdown:Refresh(newBosses, true)
-        elseif BossDropdown and BossDropdown.SetOptions then
-             BossDropdown:SetOptions(newBosses)
-        else
-            print("Lista de Bosses (Use para copiar se o menu não atualizar):")
-            for _, b in pairs(newBosses) do print(b) end
-        end
     end
 })
 
@@ -4996,11 +4979,19 @@ j:AddToggle({
     end
 })
 
+j:AddToggle({
+    Title = "Accept Quest Boss",
+    Default = false,
+    Callback = function(v)
+        _G.AcceptQuestBoss = v
+    end
+})
+
 -- =====================
 -- AUTO SELECT WEAPON
 -- =====================
 spawn(function()
-    while task.wait(Sec or 1) do
+    while task.wait(Sec) do
         pcall(function()
             if plr.Backpack then
                 for _, e in pairs(plr.Backpack:GetChildren()) do
@@ -5014,12 +5005,11 @@ spawn(function()
 end)
 
 -- =====================
--- AUTO FARM BOSS LOGIC
+-- AUTO FARM BOSS
 -- =====================
 spawn(function()
     while task.wait() do
-        -- Ignora se não estiver ativo ou se a seleção for o aviso
-        if not _G.AutoBoss or not _G.FindBoss or _G.FindBoss == "No Boss Found" then
+        if not _G.AutoBoss or not _G.FindBoss then
             continue
         end
 
@@ -5035,12 +5025,15 @@ spawn(function()
             -- CONFIGURA BOSS
             QuestB()
 
+            -- QUEST (SE ATIVADO)
+            HandleBossQuest()
+
             -- ==========================
-            -- PROCURAR O BOSS NO WORKSPACE (SOMENTE AQUI ELE ESTÁ ATIVO PARA ATACAR)
+            -- PROCURAR BOSS
             -- ==========================
             local boss
             for _, v in pairs(enemies:GetChildren()) do
-                if v.Name == _G.FindBoss 
+                if v.Name == bMon
                 and v:FindFirstChild("Humanoid")
                 and v:FindFirstChild("HumanoidRootPart")
                 and v.Humanoid.Health > 0 then
@@ -5050,56 +5043,45 @@ spawn(function()
             end
 
             -- ==========================
-            -- BOSS ATIVO NO WORKSPACE
+            -- BOSS EXISTE
             -- ==========================
             if boss then
                 local bossHRP = boss.HumanoidRootPart
-                
-                -- PONTO SEGURO: 22 Studs ACIMA do Boss (Fixado em pé)
-                local safeHeight = 22 
+
+                local safeHeight = 22
                 local targetPos = bossHRP.Position + Vector3.new(0, safeHeight, 0)
                 local targetCFrame = CFrame.new(targetPos)
 
-                local distToSafeSpot = (hrp.Position - targetPos).Magnitude
+                local dist = (hrp.Position - targetPos).Magnitude
 
                 EquipWeapon()
 
-                if distToSafeSpot <= 4 then
-                    -- FIXA POSIÇÃO (No ar, parado)
+                if dist <= 3 then
                     hrp.CFrame = targetCFrame
-                    
-                    -- TRAVA FÍSICA
                     hrp.Velocity = Vector3.zero
                     hrp.AssemblyLinearVelocity = Vector3.zero
                     hrp.AssemblyAngularVelocity = Vector3.zero
-                    
-                    hum.AutoRotate = false 
+                    hum.AutoRotate = false
                 else
-                    -- VIAJA DIRETO PARA CIMA 
                     _tp(targetCFrame)
                 end
 
-                -- ATAQUE
+                -- ATAQUE (se quiser ativar)
                 -- G.Kill(boss, true)
 
                 return
             end
 
             -- ==========================
-            -- BOSS NÃO ENCONTRADO NO WORKSPACE (Ele pode estar no ReplicatedStorage)
+            -- BOSS NÃO SPAWNADO
             -- ==========================
-            -- Se o boss está selecionado mas não está no Workspace.Enemies,
-            -- o script assume que ele ainda não spawou ou está longe. 
-            -- Você pode adicionar aqui uma lógica para TPar para o local de spawn.
-            if PosB then -- Assumindo que PosB é a posição de spawn do boss selecionado
+            if PosB then
                 _tp(PosB)
                 return
             end
         end)
     end
 end)
-
-
 
 j:AddSeperator("Quests");
 j:AddToggle({
