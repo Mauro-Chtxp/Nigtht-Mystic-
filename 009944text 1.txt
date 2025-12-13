@@ -6,6 +6,7 @@ do
 	Lv = game.Players.LocalPlayer.Data.Level.Value;
 	TeleportService = game:GetService("TeleportService");
 	TW = game:GetService("TweenService");
+Lighting = game:GetService("Lighting");
 	Enemies = workspace.Enemies;
 	vim1 = game:GetService("VirtualInputManager");
 	vim2 = game:GetService("VirtualUser");
