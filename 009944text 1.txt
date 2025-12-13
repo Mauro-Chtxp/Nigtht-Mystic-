@@ -4890,7 +4890,7 @@ spawn(function()
 	end;
 end);
 -- =========================================
---          AUTO FARM BOSS (FULL)
+--      AUTO FARM BOSS (DIRECT & UPRIGHT)
 -- =========================================
 
 _G.AutoBoss = false
@@ -4921,9 +4921,9 @@ end
 -- =====================
 -- UI
 -- =====================
-j:AddSeperator("Boss Farm")
+MF:AddSeperator("Boss Farm")
 
-j:AddDropdown({
+MF:AddDropdown({
     Title = "Select Boss",
     Values = Boss,
     Default = Boss[1],
@@ -4932,7 +4932,7 @@ j:AddDropdown({
     end
 })
 
-j:AddToggle({
+MF:AddToggle({
     Title = "Auto Farm Boss",
     Default = false,
     Callback = function(v)
@@ -4941,14 +4941,16 @@ j:AddToggle({
 })
 
 -- =====================
--- AUTO SELECT WEAPON (SEU SISTEMA)
+-- AUTO SELECT WEAPON
 -- =====================
 spawn(function()
-    while wait(Sec) do
+    while task.wait(Sec) do
         pcall(function()
-            for _, e in pairs(plr.Backpack:GetChildren()) do
-                if e.ToolTip == _G.ChooseWP then
-                    _G.SelectWeapon = e.Name
+            if plr.Backpack then
+                for _, e in pairs(plr.Backpack:GetChildren()) do
+                    if e.ToolTip == _G.ChooseWP then
+                        _G.SelectWeapon = e.Name
+                    end
                 end
             end
         end)
@@ -4956,7 +4958,7 @@ spawn(function()
 end)
 
 -- =====================
--- AUTO FARM BOSS
+-- AUTO FARM BOSS LOGIC
 -- =====================
 spawn(function()
     while task.wait() do
@@ -4995,26 +4997,37 @@ spawn(function()
             -- ==========================
             if boss then
                 local bossHRP = boss.HumanoidRootPart
-                local dist = (hrp.Position - bossHRP.Position).Magnitude
+                
+                -- PONTO SEGURO: 22 Studs ACIMA do Boss
+                -- Usamos Vector3 puro no CFrame para ele ficar EM PÉ (sem LookAt)
+                local safeHeight = 22 
+                local targetPos = bossHRP.Position + Vector3.new(0, safeHeight, 0)
+                local targetCFrame = CFrame.new(targetPos)
+
+                -- Distância entre VOCÊ e o PONTO NO AR (não o boss)
+                local distToSafeSpot = (hrp.Position - targetPos).Magnitude
 
                 EquipWeapon()
 
-                -- SÓ FIXA EM CIMA QUANDO ESTIVER PERTO
-                if dist <= 4 then
-                    -- OFFSET FIXO (SEM LOOK AT)
-                    hrp.CFrame =
-                        bossHRP.CFrame *
-                        CFrame.new(0, 18, 0)
-
-                    -- TRAVA TOTAL DE FÍSICA
+                -- Se já estiver bem próximo do ponto no ar (<= 3 studs)
+                if distToSafeSpot <= 3 then
+                    -- FIXA POSIÇÃO (Hard Lock)
+                    hrp.CFrame = targetCFrame
+                    
+                    -- TRAVA FÍSICA PARA NÃO CAIR/REBATER
                     hrp.Velocity = Vector3.zero
                     hrp.AssemblyLinearVelocity = Vector3.zero
                     hrp.AssemblyAngularVelocity = Vector3.zero
-
-                    hum.AutoRotate = false
+                    
+                    -- Rotaciona o boneco levemente para olhar para baixo SEM DEITAR (opcional, ajusta o angulo X)
+                    -- Se quiser ele 100% reto igual poste, remova a linha abaixo.
+                    -- hrp.CFrame = CFrame.new(targetPos) * CFrame.Angles(math.rad(-90), 0, 0) -- ISSO FAZIA DEITAR
+                    
+                    hum.AutoRotate = false -- Desativa rotação do user
                 else
-                    -- APROXIMA SEM BUGAR
-                    _tp(bossHRP.CFrame * CFrame.new(0, 0, 8))
+                    -- VIAJA DIRETO PARA O PONTO NO AR
+                    -- O _tp vai te levar direto pra cima, sem passar pelo chão
+                    _tp(targetCFrame)
                 end
 
                 -- ATAQUE
@@ -5033,6 +5046,7 @@ spawn(function()
         end)
     end
 end)
+
 j:AddSeperator("Quests");
 j:AddToggle({
 	Title = "Auto Farm Observation",
