@@ -4925,39 +4925,6 @@ local function EquipWeapon()
 end
 
 -- =====================
--- QUEST DO BOSS
--- =====================
-local function HandleBossQuest()
-    if not _G.AcceptQuestBoss then return end
-    if not QuestBeta then return end
-
-    local q = QuestBeta()
-    if not q or not q[2] or not q[3] then return end
-
-    local gui = plr.PlayerGui.Main.Quest
-    local questVisible = gui.Visible
-    local questTitle = gui.Container.QuestTitle.Title.Text
-
-    -- Quest errada → abandona
-    if questVisible and not string.find(questTitle, q[0]) then
-        replicated.Remotes.CommF_:InvokeServer("AbandonQuest")
-        return
-    end
-
-    -- Sem quest → pega
-    if not questVisible then
-        _tp(q[5])
-        if (plr.Character.HumanoidRootPart.Position - q[5].Position).Magnitude <= 5 then
-            replicated.Remotes.CommF_:InvokeServer(
-                "StartQuest",
-                q[3],
-                q[2]
-            )
-        end
-    end
-end
-
--- =====================
 -- UI
 -- =====================
 j:AddSeperator("Boss Farm")
@@ -4979,13 +4946,6 @@ j:AddToggle({
     end
 })
 
-j:AddToggle({
-    Title = "Accept Quest Boss",
-    Default = false,
-    Callback = function(v)
-        _G.AcceptQuestBoss = v
-    end
-})
 
 -- =====================
 -- AUTO SELECT WEAPON
