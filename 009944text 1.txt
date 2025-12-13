@@ -4889,6 +4889,171 @@ spawn(function()
 		end);
 	end;
 end);
+-- =========================================
+--          AUTO FARM BOSS (FULL)
+--          (SEM RECRIAR TWEEN)
+-- =========================================
+
+-- =====================
+-- VARIÁVEIS
+-- =====================
+_G.AutoBoss = false
+_G.AcceptQuestBoss = true
+_G.FindBoss = _G.FindBoss or (Boss and Boss[1])
+
+local plr = game.Players.LocalPlayer
+
+-- =====================
+-- FUNÇÃO EQUIPAR WEAPON
+-- =====================
+local function EquipWeapon()
+    local char = plr.Character
+    if not char then return end
+
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    if not hum then return end
+
+    if _G.SelectWeapon then
+        local tool = plr.Backpack:FindFirstChild(_G.SelectWeapon)
+            or char:FindFirstChild(_G.SelectWeapon)
+
+        if tool and tool.Parent ~= char then
+            hum:EquipTool(tool)
+        end
+    end
+end
+
+-- =====================
+-- UI
+-- =====================
+j:AddSeperator("Boss Farm")
+
+j:AddDropdown({
+    Title = "Select Boss",
+    Description = "Escolha o boss para farmar",
+    Values = Boss,
+    Default = Boss[1],
+    Callback = function(v)
+        _G.FindBoss = v
+    end
+})
+
+j:AddToggle({
+    Title = "Auto Farm Boss",
+    Default = false,
+    Callback = function(v)
+        _G.AutoBoss = v
+    end
+})
+
+j:AddToggle({
+    Title = "Accept Quest Boss",
+    Default = true,
+    Callback = function(v)
+        _G.AcceptQuestBoss = v
+    end
+})
+
+-- =====================
+-- AUTO EQUIP (SEU SISTEMA)
+-- =====================
+spawn(function()
+    while wait(Sec) do
+        pcall(function()
+            for _, e in pairs(plr.Backpack:GetChildren()) do
+                if e.ToolTip == _G.ChooseWP then
+                    _G.SelectWeapon = e.Name
+                end
+            end
+        end)
+    end
+end)
+
+-- =====================
+-- SISTEMA AUTO FARM BOSS
+-- =====================
+spawn(function()
+    while task.wait() do
+        if not _G.AutoBoss or not _G.FindBoss then
+            continue
+        end
+
+        pcall(function()
+            local char = plr.Character
+            local hrp = char and char:FindFirstChild("HumanoidRootPart")
+            local hum = char and char:FindFirstChildOfClass("Humanoid")
+            if not hrp or not hum then return end
+
+            local enemies = workspace:FindFirstChild("Enemies")
+            if not enemies then return end
+
+            -- CONFIGURA QUEST / BOSS
+            QuestB()
+
+            -- ==========================
+            -- PEGAR QUEST DO BOSS
+            -- ==========================
+            if _G.AcceptQuestBoss and Qname and Qdata and PosQBoss then
+                if not plr.PlayerGui.Main.Quest.Visible then
+                    _tp(PosQBoss)
+                    return
+                end
+            end
+
+            -- ==========================
+            -- PROCURAR BOSS
+            -- ==========================
+            local boss
+            for _, v in pairs(enemies:GetChildren()) do
+                if v.Name == bMon
+                and v:FindFirstChild("Humanoid")
+                and v:FindFirstChild("HumanoidRootPart")
+                and v.Humanoid.Health > 0 then
+                    boss = v
+                    break
+                end
+            end
+
+            -- ==========================
+            -- CASO A: BOSS EXISTE
+            -- ==========================
+            if boss then
+                local bossHRP = boss.HumanoidRootPart
+
+                -- EQUIPAR WEAPON
+                EquipWeapon()
+
+                -- POSIÇÃO FIXA ACIMA DO BOSS
+                local pos = bossHRP.Position + Vector3.new(0, 18, 0)
+                hrp.CFrame = CFrame.new(pos, bossHRP.Position)
+
+                -- TRAVAR FÍSICA
+                hrp.Velocity = Vector3.zero
+                hrp.AssemblyLinearVelocity = Vector3.zero
+                hrp.AssemblyAngularVelocity = Vector3.zero
+
+                hum.AutoRotate = false
+
+                hrp.Anchored = true
+                task.wait()
+                hrp.Anchored = false
+
+                -- ATAQUE
+                -- G.Kill(boss, true)
+
+                return
+            end
+
+            -- ==========================
+            -- CASO B: BOSS NÃO SPAWNADO
+            -- ==========================
+            if PosB then
+                _tp(PosB)
+                return
+            end
+        end)
+    end
+end)
 
 j:AddSeperator("Quests");
 j:AddToggle({
