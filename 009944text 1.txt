@@ -1,9 +1,9 @@
 local Lighting = game:GetService("Lighting")
 
--- Full bright "suave"
-Lighting.Ambient = Color3.new(0.5, 0.5, 0.5)          -- luz ambiente
-Lighting.ColorShift_Bottom = Color3.new(0.6, 0.6, 0.6) -- cor das sombras
-Lighting.ColorShift_Top = Color3.new(0.7, 0.7, 0.7)    -- cor do céu/luz superior
+-- Full bright automático
+Lighting.Ambient = Color3.new(0.7, 0.7, 0.7)
+Lighting.ColorShift_Bottom = Color3.new(0.7, 0.7, 0.7)
+Lighting.ColorShift_Top = Color3.new(0.7, 0.7, 0.7)
 
  do
 	ply = game.Players;
