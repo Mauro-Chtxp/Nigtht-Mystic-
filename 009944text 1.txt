@@ -4890,7 +4890,7 @@ spawn(function()
 	end;
 end);
 -- =========================================
---          AUTO FARM BOSS (FIXED POS)
+--          AUTO FARM BOSS (FULL)
 -- =========================================
 
 _G.AutoBoss = false
@@ -4932,7 +4932,7 @@ j:AddDropdown({
     end
 })
 
-MF:AddToggle({
+j:AddToggle({
     Title = "Auto Farm Boss",
     Default = false,
     Callback = function(v)
@@ -4941,16 +4941,14 @@ MF:AddToggle({
 })
 
 -- =====================
--- AUTO SELECT WEAPON
+-- AUTO SELECT WEAPON (SEU SISTEMA)
 -- =====================
 spawn(function()
-    while task.wait(Sec) do -- Mudei pra task.wait que é mais otimizado
+    while wait(Sec) do
         pcall(function()
-            if plr.Backpack then
-                for _, e in pairs(plr.Backpack:GetChildren()) do
-                    if e.ToolTip == _G.ChooseWP then
-                        _G.SelectWeapon = e.Name
-                    end
+            for _, e in pairs(plr.Backpack:GetChildren()) do
+                if e.ToolTip == _G.ChooseWP then
+                    _G.SelectWeapon = e.Name
                 end
             end
         end)
@@ -4958,7 +4956,7 @@ spawn(function()
 end)
 
 -- =====================
--- AUTO FARM BOSS LOGIC
+-- AUTO FARM BOSS
 -- =====================
 spawn(function()
     while task.wait() do
@@ -4997,35 +4995,30 @@ spawn(function()
             -- ==========================
             if boss then
                 local bossHRP = boss.HumanoidRootPart
-                -- Verifica distancia
                 local dist = (hrp.Position - bossHRP.Position).Magnitude
 
                 EquipWeapon()
 
-                -- Se estiver perto o suficiente, fixa a posição
-                if dist <= 25 then -- Aumentei um pouco a distância de detecção
-                    
-                    -- === CORREÇÃO AQUI ===
-                    -- Usa Vector3 puro para não herdar a rotação do Boss
-                    -- CFrame.new(Posição, LookAt) -> Fica em cima, olhando para o Boss
-                    
-                    local fixedPos = CFrame.new(bossHRP.Position + Vector3.new(0, 20, 0), bossHRP.Position)
-                    hrp.CFrame = fixedPos
+                -- SÓ FIXA EM CIMA QUANDO ESTIVER PERTO
+                if dist <= 4 then
+                    -- OFFSET FIXO (SEM LOOK AT)
+                    hrp.CFrame =
+                        bossHRP.CFrame *
+                        CFrame.new(0, 18, 0)
 
                     -- TRAVA TOTAL DE FÍSICA
                     hrp.Velocity = Vector3.zero
                     hrp.AssemblyLinearVelocity = Vector3.zero
                     hrp.AssemblyAngularVelocity = Vector3.zero
-                    
-                    -- Desativa a rotação automática do boneco para não bugar a camera
-                    hum.AutoRotate = false 
+
+                    hum.AutoRotate = false
                 else
-                    -- APROXIMA (TP)
-                    -- Aqui mantemos o offset de aproximação
-                    _tp(bossHRP.CFrame * CFrame.new(0, 0, 5))
+                    -- APROXIMA SEM BUGAR
+                    _tp(bossHRP.CFrame * CFrame.new(0, 0, 8))
                 end
 
-                -- G.Kill(boss, true) -- Seu script de ataque
+                -- ATAQUE
+                -- G.Kill(boss, true)
 
                 return
             end
@@ -5034,14 +5027,12 @@ spawn(function()
             -- BOSS NÃO SPAWNADO
             -- ==========================
             if PosB then
-                -- Teleporta para o local de spawn se o boss não existir
                 _tp(PosB)
                 return
             end
         end)
     end
 end)
-
 j:AddSeperator("Quests");
 j:AddToggle({
 	Title = "Auto Farm Observation",
