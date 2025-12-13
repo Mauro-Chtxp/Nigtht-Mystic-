@@ -3041,15 +3041,7 @@ VI_S:AddButton({ Title = "Fps Boost", Description = "", Callback = function()
 VI_S:AddSeperator("Stats");
 
 VI_S:AddToggle({
-	Title = "Safe Mode",
-	Description = "turn on for safe ur health if low",
-	Default = false,
-	Callback = function(I)
-		_G.Safemode = I;
-	end,
-});
-VI_S:AddToggle({
-	Title = "Auto Stats (Melee)",
+	Title = "Add Points Melee",
 	Description = "Automatically spend all available points on Melee.",
 	Default = false,
 	Callback = function(I)
@@ -3057,7 +3049,7 @@ VI_S:AddToggle({
 	end,
 });
 VI_S:AddToggle({
-	Title = "Auto Stats (Sword)",
+	Title = "Add Points Sword",
 	Description = "Automatically spend all available points on Sword.",
 	Default = false,
 	Callback = function(I)
@@ -3065,7 +3057,7 @@ VI_S:AddToggle({
 	end,
 });
 VI_S:AddToggle({
-	Title = "Auto Stats (Gun)",
+	Title = "Add Points Gun",
 	Description = "Automatically spend all available points on Gun.",
 	Default = false,
 	Callback = function(I)
@@ -3073,7 +3065,7 @@ VI_S:AddToggle({
 	end,
 });
 VI_S:AddToggle({
-	Title = "Auto Stats (Fruit)",
+	Title = "Add Points Fruit",
 	Description = "Automatically spend all available points on Fruit.",
 	Default = false,
 	Callback = function(I)
@@ -3081,7 +3073,7 @@ VI_S:AddToggle({
 	end,
 });
 VI_S:AddToggle({
-	Title = "Auto Stats (Defense)",
+	Title = "Add Points Defense",
 	Description = "Automatically spend all available points on Defense.",
 	Default = false,
 	Callback = function(I)
@@ -4794,6 +4786,14 @@ T:AddToggle({
 		_B = I;
 	end,
 });
+VI_S:AddToggle({
+	Title = "Safe Mode",
+	Description = "turn on for safe ur health if low",
+	Default = false,
+	Callback = function(I)
+		_G.Safemode = I;
+	end,
+});
 T:AddToggle({
 	Title = "Auto Active Haki",
 	Description = "",
@@ -4889,126 +4889,6 @@ spawn(function()
 		end);
 	end;
 end);
--- =========================================
---          AUTO FARM BOSS (FULL)
---          (SEM RECRIAR TWEEN)
--- =========================================
-
--- =====================
--- VARIÁVEIS
--- =====================
-_G.AutoBoss = false
-_G.AcceptQuestBoss = true
-_G.FindBoss = _G.FindBoss or (Boss and Boss[1])
-
--- =====================
--- UI
--- =====================
-MF:AddSeperator("Boss Farm")
-
-MF:AddDropdown({
-    Title = "Select Boss",
-    Description = "Escolha o boss para farmar",
-    Values = Boss,
-    Default = Boss[1],
-    Callback = function(v)
-        _G.FindBoss = v
-    end
-})
-
-MF:AddToggle({
-    Title = "Auto Farm Boss",
-    Default = false,
-    Callback = function(v)
-        _G.AutoBoss = v
-    end
-})
-
-MF:AddToggle({
-    Title = "Accept Quest Boss",
-    Default = true,
-    Callback = function(v)
-        _G.AcceptQuestBoss = v
-    end
-})
-
--- =====================
--- SISTEMA AUTO FARM BOSS
--- =====================
-spawn(function()
-    while task.wait() do
-        if not _G.AutoBoss or not _G.FindBoss then
-            continue
-        end
-
-        pcall(function()
-            local plr = game.Players.LocalPlayer
-            local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
-            if not hrp then return end
-
-            local enemies = workspace:FindFirstChild("Enemies")
-            if not enemies then return end
-
-            -- Configura boss atual
-            QuestB()
-
-            -- ==========================
-            -- PEGAR QUEST DO BOSS
-            -- ==========================
-            if _G.AcceptQuestBoss and Qname and Qdata and PosQBoss then
-                if not plr.PlayerGui.Main.Quest.Visible then
-                    _tp(PosQBoss)
-                    return
-                end
-            end
-
-            -- ==========================
-            -- PROCURAR BOSS
-            -- ==========================
-            local boss
-
-            for _, v in pairs(enemies:GetChildren()) do
-                if v.Name == bMon
-                and v:FindFirstChild("Humanoid")
-                and v:FindFirstChild("HumanoidRootPart")
-                and v.Humanoid.Health > 0 then
-                    boss = v
-                    break
-                end
-            end
-
-            -- ==========================
-            -- CASO A: BOSS EXISTE
-            -- ==========================
-            if boss then
-                local bossPos = boss.HumanoidRootPart.CFrame
-                    * CFrame.new(0, 25, 0)
-                    * CFrame.Angles(math.rad(-90), 0, 0)
-
-                _tp(bossPos)
-
-                hrp.Velocity = Vector3.zero
-                if hrp:FindFirstChild("AssemblyLinearVelocity") then
-                    hrp.AssemblyLinearVelocity = Vector3.zero
-                end
-
-                -- ATAQUE
-                -- G.Kill(boss, true)
-
-                return
-            end
-
-            -- ==========================
-            -- CASO B: BOSS NÃO SPAWNADO
-            -- ==========================
-            if PosB then
-                _tp(PosB)
-                return
-            end
-        end)
-    end
-end)
-
 
 j:AddSeperator("Quests");
 j:AddToggle({
