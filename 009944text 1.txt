@@ -4890,7 +4890,7 @@ spawn(function()
 	end;
 end);
 -- =========================================
---          AUTO FARM BOSS (FIXED POS)
+--      AUTO FARM BOSS (DIRECT & UPRIGHT)
 -- =========================================
 
 _G.AutoBoss = false
@@ -4944,7 +4944,7 @@ MF:AddToggle({
 -- AUTO SELECT WEAPON
 -- =====================
 spawn(function()
-    while task.wait(Sec) do -- Mudei pra task.wait que é mais otimizado
+    while task.wait(Sec) do
         pcall(function()
             if plr.Backpack then
                 for _, e in pairs(plr.Backpack:GetChildren()) do
@@ -4997,35 +4997,41 @@ spawn(function()
             -- ==========================
             if boss then
                 local bossHRP = boss.HumanoidRootPart
-                -- Verifica distancia
-                local dist = (hrp.Position - bossHRP.Position).Magnitude
+                
+                -- PONTO SEGURO: 22 Studs ACIMA do Boss
+                -- Usamos Vector3 puro no CFrame para ele ficar EM PÉ (sem LookAt)
+                local safeHeight = 22 
+                local targetPos = bossHRP.Position + Vector3.new(0, safeHeight, 0)
+                local targetCFrame = CFrame.new(targetPos)
+
+                -- Distância entre VOCÊ e o PONTO NO AR (não o boss)
+                local distToSafeSpot = (hrp.Position - targetPos).Magnitude
 
                 EquipWeapon()
 
-                -- Se estiver perto o suficiente, fixa a posição
-                if dist <= 25 then -- Aumentei um pouco a distância de detecção
+                -- Se já estiver bem próximo do ponto no ar (<= 3 studs)
+                if distToSafeSpot <= 3 then
+                    -- FIXA POSIÇÃO (Hard Lock)
+                    hrp.CFrame = targetCFrame
                     
-                    -- === CORREÇÃO AQUI ===
-                    -- Usa Vector3 puro para não herdar a rotação do Boss
-                    -- CFrame.new(Posição, LookAt) -> Fica em cima, olhando para o Boss
-                    
-                    local fixedPos = CFrame.new(bossHRP.Position + Vector3.new(0, 20, 0), bossHRP.Position)
-                    hrp.CFrame = fixedPos
-
-                    -- TRAVA TOTAL DE FÍSICA
+                    -- TRAVA FÍSICA PARA NÃO CAIR/REBATER
                     hrp.Velocity = Vector3.zero
                     hrp.AssemblyLinearVelocity = Vector3.zero
                     hrp.AssemblyAngularVelocity = Vector3.zero
                     
-                    -- Desativa a rotação automática do boneco para não bugar a camera
-                    hum.AutoRotate = false 
+                    -- Rotaciona o boneco levemente para olhar para baixo SEM DEITAR (opcional, ajusta o angulo X)
+                    -- Se quiser ele 100% reto igual poste, remova a linha abaixo.
+                    -- hrp.CFrame = CFrame.new(targetPos) * CFrame.Angles(math.rad(-90), 0, 0) -- ISSO FAZIA DEITAR
+                    
+                    hum.AutoRotate = false -- Desativa rotação do user
                 else
-                    -- APROXIMA (TP)
-                    -- Aqui mantemos o offset de aproximação
-                    _tp(bossHRP.CFrame * CFrame.new(0, 0, 5))
+                    -- VIAJA DIRETO PARA O PONTO NO AR
+                    -- O _tp vai te levar direto pra cima, sem passar pelo chão
+                    _tp(targetCFrame)
                 end
 
-                -- G.Kill(boss, true) -- Seu script de ataque
+                -- ATAQUE
+                -- G.Kill(boss, true)
 
                 return
             end
@@ -5034,13 +5040,13 @@ spawn(function()
             -- BOSS NÃO SPAWNADO
             -- ==========================
             if PosB then
-                -- Teleporta para o local de spawn se o boss não existir
                 _tp(PosB)
                 return
             end
         end)
     end
 end)
+
 
 j:AddSeperator("Quests");
 j:AddToggle({
