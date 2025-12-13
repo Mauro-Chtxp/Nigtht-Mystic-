@@ -4894,7 +4894,6 @@ end);
 -- =========================================
 
 _G.AutoBoss = false
-_G.AcceptQuestBoss = true
 _G.FindBoss = _G.FindBoss or (Boss and Boss[1])
 
 local plr = game.Players.LocalPlayer
@@ -4905,12 +4904,14 @@ local plr = game.Players.LocalPlayer
 local function EquipWeapon()
     local char = plr.Character
     if not char then return end
+
     local hum = char:FindFirstChildOfClass("Humanoid")
     if not hum then return end
 
     if _G.SelectWeapon then
         local tool = plr.Backpack:FindFirstChild(_G.SelectWeapon)
             or char:FindFirstChild(_G.SelectWeapon)
+
         if tool and tool.Parent ~= char then
             hum:EquipTool(tool)
         end
@@ -4920,9 +4921,9 @@ end
 -- =====================
 -- UI
 -- =====================
-j:AddSeperator("Boss Farm")
+MF:AddSeperator("Boss Farm")
 
-j:AddDropdown({
+MF:AddDropdown({
     Title = "Select Boss",
     Values = Boss,
     Default = Boss[1],
@@ -4931,19 +4932,11 @@ j:AddDropdown({
     end
 })
 
-j:AddToggle({
+MF:AddToggle({
     Title = "Auto Farm Boss",
     Default = false,
     Callback = function(v)
         _G.AutoBoss = v
-    end
-})
-
-j:AddToggle({
-    Title = "Accept Quest Boss",
-    Default = true,
-    Callback = function(v)
-        _G.AcceptQuestBoss = v
     end
 })
 
@@ -4980,25 +4973,8 @@ spawn(function()
             local enemies = workspace:FindFirstChild("Enemies")
             if not enemies then return end
 
-            -- CONFIGURA QUEST
+            -- CONFIGURA BOSS
             QuestB()
-
-            -- ==========================
-            -- PEGAR QUEST DO BOSS (REMOTE)
-            -- ==========================
-            if _G.AcceptQuestBoss and Q and Q[2] and Q[3] then
-                if not plr.PlayerGui.Main.Quest.Visible then
-                    _tp(PosQBoss)
-                    task.wait(0.5)
-
-                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(
-                        "StartQuest",
-                        Q[3],
-                        Q[2]
-                    )
-                    return
-                end
-            end
 
             -- ==========================
             -- PROCURAR BOSS
@@ -5023,22 +4999,21 @@ spawn(function()
 
                 EquipWeapon()
 
-                -- SÓ TP INSTANTÂNEO QUANDO ESTIVER PERTO
+                -- SÓ FIXA EM CIMA QUANDO ESTIVER PERTO
                 if dist <= 4 then
-                    local pos = bossHRP.Position + Vector3.new(0, 18, 0)
-                    hrp.CFrame = CFrame.new(pos, bossHRP.Position)
+                    -- OFFSET FIXO (SEM LOOK AT)
+                    hrp.CFrame =
+                        bossHRP.CFrame *
+                        CFrame.new(0, 18, 0)
 
+                    -- TRAVA TOTAL DE FÍSICA
                     hrp.Velocity = Vector3.zero
                     hrp.AssemblyLinearVelocity = Vector3.zero
                     hrp.AssemblyAngularVelocity = Vector3.zero
 
                     hum.AutoRotate = false
-
-                    hrp.Anchored = true
-                    task.wait()
-                    hrp.Anchored = false
                 else
-                    -- APROXIMA SEM TELEPORT INSTANTÂNEO
+                    -- APROXIMA SEM BUGAR
                     _tp(bossHRP.CFrame * CFrame.new(0, 0, 8))
                 end
 
@@ -5058,7 +5033,6 @@ spawn(function()
         end)
     end
 end)
-
 j:AddSeperator("Quests");
 j:AddToggle({
 	Title = "Auto Farm Observation",
