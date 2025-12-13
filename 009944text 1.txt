@@ -5031,7 +5031,7 @@ j:AddDropdown({
     end
 })
 
-MF:AddToggle({
+j:AddToggle({
     Title = "Auto Farm Boss",
     Default = false,
     Callback = function(v)
