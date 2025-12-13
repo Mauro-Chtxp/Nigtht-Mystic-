@@ -235,19 +235,17 @@ if O then
 	O:Destroy();
 end;
 gay = (function()
-		local I = game:GetService("Lighting");
-		local e = I:FindFirstChild("LightingLayers");
-		if e and (game:GetService("Lighting") and game:GetService("Lighting")) then
-			local I = e:FindFirstChild("DarkFog");
-			if I then
-				I:Destroy();
-			end;
-		end;
-		local K = workspace._WorldOrigin["Foam;"];
-		if K and workspace._WorldOrigin["Foam;"] then
-			K:Destroy();
-		end;
-	end)();
+    local I = game:GetService("Lighting");
+    local e = I:FindFirstChild("LightingLayers");
+
+    -- NÃO remover DarkFog
+
+    local K = workspace._WorldOrigin["Foam;"];
+    if K and workspace._WorldOrigin["Foam;"] then
+        K:Destroy();
+    end;
+end)();
+
 local G = {};
 G.__index = G;
 G.Alive = function(I)
@@ -10747,3 +10745,9 @@ end)
 _ENV.rz_FastAttack = FastAttack
 FastAttackModule.FastAttack = FastAttack
 return FastAttackModule
+
+local L = game:GetService("Lighting")
+if L.Brightness < 1 then
+    L.Brightness = 2
+end
+L.GlobalShadows = true
