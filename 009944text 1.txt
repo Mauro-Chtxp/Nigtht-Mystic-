@@ -10745,9 +10745,3 @@ end)
 _ENV.rz_FastAttack = FastAttack
 FastAttackModule.FastAttack = FastAttack
 return FastAttackModule
-
-local L = game:GetService("Lighting")
-if L.Brightness < 1 then
-    L.Brightness = 2
-end
-L.GlobalShadows = true
