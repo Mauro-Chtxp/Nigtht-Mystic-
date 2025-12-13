@@ -1,3 +1,10 @@
+local Lighting = game:GetService("Lighting")
+
+-- Full bright automático
+Lighting.Ambient = Color3.new(0.7, 0.7, 0.7)
+Lighting.ColorShift_Bottom = Color3.new(0.7, 0.7, 0.7)
+Lighting.ColorShift_Top = Color3.new(0.7, 0.7, 0.7)
+
  do
 	ply = game.Players;
 	plr = ply.LocalPlayer;
@@ -10285,24 +10292,6 @@ Z:AddButton({ Title = "Nofog", Description = "", Callback = function()
 		end;
 	end });
 Z:AddSeperator("Configure - God");
-Z:AddToggle({
-	Title = "Turn on Full Bright",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		bright = I;
-		if I then
-			-- Um pouco menos claro
-			Lighting.Ambient = Color3.new(0.7, 0.7, 0.7)
-			Lighting.ColorShift_Bottom = Color3.new(0.7, 0.7, 0.7)
-			Lighting.ColorShift_Top = Color3.new(0.7, 0.7, 0.7)
-		else
-			Lighting.Ambient = Color3.new(0, 0, 0)
-			Lighting.ColorShift_Bottom = Color3.new(0, 0, 0)
-			Lighting.ColorShift_Top = Color3.new(0, 0, 0)
-		end;
-	end,
-});
 Z:AddToggle({
 	Title = "Walk on Water",
 	Description = "walk on water",
