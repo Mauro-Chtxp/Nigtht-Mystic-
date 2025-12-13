@@ -1,9 +1,10 @@
 local Lighting = game:GetService("Lighting")
 
--- Full bright automático
-Lighting.Ambient = Color3.new(0.7, 0.7, 0.7)
-Lighting.ColorShift_Bottom = Color3.new(0.7, 0.7, 0.7)
-Lighting.ColorShift_Top = Color3.new(0.7, 0.7, 0.7)
+
+-- Full bright automático um pouquinho mais escuro
+Lighting.Ambient = Color3.new(0.699, 0.699, 0.699)
+Lighting.ColorShift_Bottom = Color3.new(0.699, 0.699, 0.699)
+Lighting.ColorShift_Top = Color3.new(0.699, 0.699, 0.699)
 
  do
 	ply = game.Players;
@@ -487,7 +488,7 @@ BringEnemy = function()
         if hum and root and hum.Health > 0 and not IsRaidMob(mob) then
             local dist = (root.Position - targetPos).Magnitude
 
-            if dist <= 210 then
+            if dist <= 250 then  -- RANGE ATUALIZADO
                 root.CFrame = CFrame.new(targetPos)
             end
         end
@@ -496,17 +497,14 @@ end
 
 -- LOOP CONTROLADOR DE PUXAR / SOLTAR
 spawn(function()
-    while task.wait(1) do
+    while task.wait(1) do  -- espera 1 segundo antes de puxar
         if FarmAtivo() then
             _B = true
             BringEnemy()
-            task.wait(3)
-
-            _B = false
-            task.wait(5)
+            
+            _B = false  -- solta imediatamente
         else
             _B = false
-            task.wait(1)
         end
     end
 end)
