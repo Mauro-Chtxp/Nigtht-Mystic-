@@ -4891,12 +4891,8 @@ spawn(function()
 end);
 -- =========================================
 --          AUTO FARM BOSS (FULL)
---          (SEM RECRIAR TWEEN)
 -- =========================================
 
--- =====================
--- VARIÁVEIS
--- =====================
 _G.AutoBoss = false
 _G.AcceptQuestBoss = true
 _G.FindBoss = _G.FindBoss or (Boss and Boss[1])
@@ -4904,19 +4900,17 @@ _G.FindBoss = _G.FindBoss or (Boss and Boss[1])
 local plr = game.Players.LocalPlayer
 
 -- =====================
--- FUNÇÃO EQUIPAR WEAPON
+-- EQUIPAR WEAPON
 -- =====================
 local function EquipWeapon()
     local char = plr.Character
     if not char then return end
-
     local hum = char:FindFirstChildOfClass("Humanoid")
     if not hum then return end
 
     if _G.SelectWeapon then
         local tool = plr.Backpack:FindFirstChild(_G.SelectWeapon)
             or char:FindFirstChild(_G.SelectWeapon)
-
         if tool and tool.Parent ~= char then
             hum:EquipTool(tool)
         end
@@ -4930,7 +4924,6 @@ j:AddSeperator("Boss Farm")
 
 j:AddDropdown({
     Title = "Select Boss",
-    Description = "Escolha o boss para farmar",
     Values = Boss,
     Default = Boss[1],
     Callback = function(v)
@@ -4955,7 +4948,7 @@ j:AddToggle({
 })
 
 -- =====================
--- AUTO EQUIP (SEU SISTEMA)
+-- AUTO SELECT WEAPON (SEU SISTEMA)
 -- =====================
 spawn(function()
     while wait(Sec) do
@@ -4970,7 +4963,7 @@ spawn(function()
 end)
 
 -- =====================
--- SISTEMA AUTO FARM BOSS
+-- AUTO FARM BOSS
 -- =====================
 spawn(function()
     while task.wait() do
@@ -4987,15 +4980,22 @@ spawn(function()
             local enemies = workspace:FindFirstChild("Enemies")
             if not enemies then return end
 
-            -- CONFIGURA QUEST / BOSS
+            -- CONFIGURA QUEST
             QuestB()
 
             -- ==========================
-            -- PEGAR QUEST DO BOSS
+            -- PEGAR QUEST DO BOSS (REMOTE)
             -- ==========================
-            if _G.AcceptQuestBoss and Qname and Qdata and PosQBoss then
+            if _G.AcceptQuestBoss and Q and Q[2] and Q[3] then
                 if not plr.PlayerGui.Main.Quest.Visible then
                     _tp(PosQBoss)
+                    task.wait(0.5)
+
+                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(
+                        "StartQuest",
+                        Q[3],
+                        Q[2]
+                    )
                     return
                 end
             end
@@ -5015,28 +5015,32 @@ spawn(function()
             end
 
             -- ==========================
-            -- CASO A: BOSS EXISTE
+            -- BOSS EXISTE
             -- ==========================
             if boss then
                 local bossHRP = boss.HumanoidRootPart
+                local dist = (hrp.Position - bossHRP.Position).Magnitude
 
-                -- EQUIPAR WEAPON
                 EquipWeapon()
 
-                -- POSIÇÃO FIXA ACIMA DO BOSS
-                local pos = bossHRP.Position + Vector3.new(0, 18, 0)
-                hrp.CFrame = CFrame.new(pos, bossHRP.Position)
+                -- SÓ TP INSTANTÂNEO QUANDO ESTIVER PERTO
+                if dist <= 4 then
+                    local pos = bossHRP.Position + Vector3.new(0, 18, 0)
+                    hrp.CFrame = CFrame.new(pos, bossHRP.Position)
 
-                -- TRAVAR FÍSICA
-                hrp.Velocity = Vector3.zero
-                hrp.AssemblyLinearVelocity = Vector3.zero
-                hrp.AssemblyAngularVelocity = Vector3.zero
+                    hrp.Velocity = Vector3.zero
+                    hrp.AssemblyLinearVelocity = Vector3.zero
+                    hrp.AssemblyAngularVelocity = Vector3.zero
 
-                hum.AutoRotate = false
+                    hum.AutoRotate = false
 
-                hrp.Anchored = true
-                task.wait()
-                hrp.Anchored = false
+                    hrp.Anchored = true
+                    task.wait()
+                    hrp.Anchored = false
+                else
+                    -- APROXIMA SEM TELEPORT INSTANTÂNEO
+                    _tp(bossHRP.CFrame * CFrame.new(0, 0, 8))
+                end
 
                 -- ATAQUE
                 -- G.Kill(boss, true)
@@ -5045,7 +5049,7 @@ spawn(function()
             end
 
             -- ==========================
-            -- CASO B: BOSS NÃO SPAWNADO
+            -- BOSS NÃO SPAWNADO
             -- ==========================
             if PosB then
                 _tp(PosB)
