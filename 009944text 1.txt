@@ -488,7 +488,7 @@ BringEnemy = function()
         if hum and root and hum.Health > 0 and not IsRaidMob(mob) then
             local dist = (root.Position - targetPos).Magnitude
 
-            if dist <= 250 then  -- RANGE ATUALIZADO
+            if dist <= 225 then
                 root.CFrame = CFrame.new(targetPos)
             end
         end
@@ -497,14 +497,17 @@ end
 
 -- LOOP CONTROLADOR DE PUXAR / SOLTAR
 spawn(function()
-    while task.wait(1) do  -- espera 1 segundo antes de puxar
+    while task.wait(1) do
         if FarmAtivo() then
             _B = true
             BringEnemy()
-            
-            _B = false  -- solta imediatamente
+            task.wait(3)
+
+            _B = false
+            task.wait(5)
         else
             _B = false
+            task.wait(1)
         end
     end
 end)
@@ -4789,7 +4792,7 @@ T:AddToggle({
 		_B = I;
 	end,
 });
-VI_S:AddToggle({
+T:AddToggle({
 	Title = "Safe Mode",
 	Description = "turn on for safe ur health if low",
 	Default = false,
@@ -4924,9 +4927,9 @@ end
 -- =====================
 -- UI
 -- =====================
-MF:AddSeperator("Boss Farm")
+j:AddSeperator("Boss Farm")
 
-MF:AddDropdown({
+j:AddDropdown({
     Title = "Select Boss",
     Values = Boss,
     Default = Boss[1],
@@ -4935,7 +4938,7 @@ MF:AddDropdown({
     end
 })
 
-MF:AddToggle({
+j:AddToggle({
     Title = "Auto Farm Boss",
     Default = false,
     Callback = function(v)
