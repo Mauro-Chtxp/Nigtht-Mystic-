@@ -1,4 +1,4 @@
-do
+ do
 	ply = game.Players;
 	plr = ply.LocalPlayer;
 	Root = plr.Character.HumanoidRootPart;
@@ -10292,13 +10292,14 @@ Z:AddToggle({
 	Callback = function(I)
 		bright = I;
 		if I then
-			Lighting.Ambient = Color3.new(1, 1, 1);
-			Lighting.ColorShift_Bottom = Color3.new(1, 1, 1);
-			Lighting.ColorShift_Top = Color3.new(1, 1, 1);
+			-- Um pouco menos claro
+			Lighting.Ambient = Color3.new(0.7, 0.7, 0.7)
+			Lighting.ColorShift_Bottom = Color3.new(0.7, 0.7, 0.7)
+			Lighting.ColorShift_Top = Color3.new(0.7, 0.7, 0.7)
 		else
-			Lighting.Ambient = Color3.new(0, 0, 0);
-			Lighting.ColorShift_Bottom = Color3.new(0, 0, 0);
-			Lighting.ColorShift_Top = Color3.new(0, 0, 0);
+			Lighting.Ambient = Color3.new(0, 0, 0)
+			Lighting.ColorShift_Bottom = Color3.new(0, 0, 0)
+			Lighting.ColorShift_Top = Color3.new(0, 0, 0)
 		end;
 	end,
 });
