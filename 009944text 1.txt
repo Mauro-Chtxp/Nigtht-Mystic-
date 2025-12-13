@@ -426,18 +426,12 @@ statsSetings = function(I, e)
 		end;
 	end;
 
--- ==========================================
--- SISTEMA DE BRING INTELIGENTE (SEM DELAY FIXO)
--- ==========================================
-
--- VARIÁVEIS DE CONTROLE
+-- VARIAVEIS DE CONTROLE NECESSÁRIAS
 _G = _G or {}
 _B = false
 PosMon = nil
 
--- ==========================================
--- FUNÇÃO: Verifica se algum farm está ativo
--- ==========================================
+-- FUNÇÃO: Verifica se qualquer tipo de farm está ativo.
 local function FarmAtivo()
     return _G.StartFarm and (
         _G.Level or
@@ -445,68 +439,26 @@ local function FarmAtivo()
         _G.AutoFarm_Cake or
         _G.FarmMastery_Dev or
         _G.FarmMastery_G or
-        getgenv().AutoMaterial
+        (getgenv()).AutoMaterial
     )
 end
 
--- ==========================================
--- FUNÇÃO: Ignorar Raids / Boss / Mobs Fixos
--- ==========================================
+-- FUNÇÃO: Verifica se o mob deve ser ignorado (Raids, Bosses, Imóveis)
 local function IsRaidMob(mob)
     local n = mob.Name:lower()
 
-    if n:find("raid") or n:find("microchip") or n:find("island") then
-        return true
-    end
-
-    if mob:GetAttribute("IsRaid")
-    or mob:GetAttribute("RaidMob")
-    or mob:GetAttribute("IsBoss") then
-        return true
-    end
+    if n:find("raid") or n:find("microchip") or n:find("island") then return true end
+    if mob:GetAttribute("IsRaid") or mob:GetAttribute("RaidMob") or mob:GetAttribute("IsBoss") then return true end
 
     local hum = mob:FindFirstChild("Humanoid")
-    if hum and hum.WalkSpeed == 0 then
-        return true
-    end
+    if hum and hum.WalkSpeed == 0 then return true end
 
-    if mob.Parent and tostring(mob.Parent):lower():find("_worldorigin") then
-        return true
-    end
+    if mob.Parent and tostring(mob.Parent):lower():find("_worldorigin") then return true end
 
     return false
 end
 
--- ==========================================
--- FUNÇÃO: Verifica se ainda existe mob longe
--- ==========================================
-local function ExisteMobLonge()
-    local LocalPlayer = game.Players.LocalPlayer
-    local char = LocalPlayer.Character
-    if not char then return false end
-
-    local HRP_Player = char:FindFirstChild("HumanoidRootPart")
-    if not HRP_Player then return false end
-
-    local targetPos = PosMon or HRP_Player.Position
-
-    for _, mob in ipairs(workspace.Enemies:GetChildren()) do
-        local hum = mob:FindFirstChild("Humanoid")
-        local root = mob:FindFirstChild("HumanoidRootPart")
-
-        if hum and root and hum.Health > 0 and not IsRaidMob(mob) then
-            if (root.Position - targetPos).Magnitude > 15 then
-                return true -- ainda tem mob longe
-            end
-        end
-    end
-
-    return false
-end
-
--- ==========================================
--- FUNÇÃO PRINCIPAL: Bring Enemy
--- ==========================================
+-- FUNÇÃO PRINCIPAL: Puxa inimigos
 BringEnemy = function()
     if not FarmAtivo() or not _B then return end
 
@@ -517,52 +469,42 @@ BringEnemy = function()
     local HRP_Player = char:FindFirstChild("HumanoidRootPart")
     if not HRP_Player then return end
 
-    -- Simulation Radius
-    if setscriptable then
-        pcall(function()
-            setscriptable(LocalPlayer, "SimulationRadius", true)
-        end)
-    end
-
-    if sethiddenproperty then
-        pcall(function()
-            sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge)
-        end)
-    end
+    if setscriptable then pcall(function() setscriptable(LocalPlayer, "SimulationRadius", true) end) end
+    if sethiddenproperty then pcall(function() sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge) end) end
 
     local targetPos = PosMon or HRP_Player.Position
+    local enemies = workspace.Enemies:GetChildren()
 
-    for _, mob in ipairs(workspace.Enemies:GetChildren()) do
+    for _, mob in ipairs(enemies) do
         local hum = mob:FindFirstChild("Humanoid")
         local root = mob:FindFirstChild("HumanoidRootPart")
 
         if hum and root and hum.Health > 0 and not IsRaidMob(mob) then
-            if (root.Position - targetPos).Magnitude <= 210 then
+            local dist = (root.Position - targetPos).Magnitude
+
+            if dist <= 210 then
                 root.CFrame = CFrame.new(targetPos)
             end
         end
     end
 end
 
--- ==========================================
--- LOOP INTELIGENTE (LIBERA AUTOMÁTICO)
--- ==========================================
+-- LOOP CONTROLADOR DE PUXAR / SOLTAR
 spawn(function()
-    while task.wait(0.2) do
+    while task.wait(1) do
         if FarmAtivo() then
             _B = true
             BringEnemy()
+            task.wait(3)
 
-            -- Se todos já estiverem juntos → solta na hora
-            if not ExisteMobLonge() then
-                _B = false
-            end
+            _B = false
+            task.wait(5)
         else
             _B = false
+            task.wait(1)
         end
     end
 end)
-
 
 
 Useskills = function(I, e)
@@ -990,8 +932,8 @@ _tp = function(I)
 	local dist = (I.Position - HRP.Position).Magnitude
 
 	-- ===============================
-	-- 🔥 SE ESTIVER ATÉ 15 STUDS → SPEED 600
-	-- 🔥 CASO CONTRÁRIO → SPEED 300
+	--  SE ESTIVER ATÉ 15 STUDS → SPEED 600
+	--  CASO CONTRÁRIO → SPEED 300
 	-- ===============================
 	local speed = dist <= 15 and 600 or 300
 
@@ -5004,6 +4946,111 @@ spawn(function()
 		end);
 	end;
 end);
+-- =========================================
+--          AUTO FARM BOSS (FULL)
+-- =========================================
+
+-- =====================
+-- VARIÁVEIS
+-- =====================
+_G.AutoBoss = false
+_G.AcceptQuestBoss = true
+_G.FindBoss = _G.FindBoss or (Boss and Boss[1])
+
+-- =====================
+-- UI
+-- =====================
+j:AddSeperator("Boss Farm")
+
+j:AddDropdown({
+    Title = "Select Boss",
+    Description = "Escolha o boss para farmar",
+    Values = Boss,
+    Default = Boss[1],
+    Callback = function(v)
+        _G.FindBoss = v
+    end
+})
+
+j:AddToggle({
+    Title = "Auto Farm Boss",
+    Default = false,
+    Callback = function(v)
+        _G.AutoBoss = v
+    end
+})
+
+j:AddToggle({
+    Title = "Accept Quest Boss",
+    Default = true,
+    Callback = function(v)
+        _G.AcceptQuestBoss = v
+    end
+})
+
+-- =====================
+-- LOOP AUTO FARM BOSS
+-- =====================
+task.spawn(function()
+    while task.wait() do
+        if _G.AutoBoss and _G.FindBoss then
+            pcall(function()
+
+                -- Configura boss atual
+                QuestB()
+
+                -- ==========================
+                -- PEGAR QUEST (SE ATIVADO)
+                -- ==========================
+                if _G.AcceptQuestBoss and Qname and Qdata and PosQBoss then
+                    if not plr.PlayerGui.Main.Quest.Visible then
+                        TeleportToTarget(PosQBoss)
+                        task.wait(0.4)
+
+                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(
+                            "StartQuest",
+                            Qname,
+                            Qdata
+                        )
+                    end
+                end
+
+                -- ==========================
+                -- PROCURAR BOSS
+                -- ==========================
+                local BossAlive = false
+
+                for _, v in pairs(workspace.Enemies:GetChildren()) do
+                    if v.Name == bMon
+                        and v:FindFirstChild("HumanoidRootPart")
+                        and v:FindFirstChild("Humanoid")
+                        and v.Humanoid.Health > 0 then
+
+                        BossAlive = true
+
+                        repeat
+                            task.wait()
+                            TeleportToTarget(
+                                v.HumanoidRootPart.CFrame * CFrame.new(0, 0, 4)
+                            )
+
+                            -- SEU SISTEMA DE ATAQUE AQUI
+
+                        until not _G.AutoBoss or v.Humanoid.Health <= 0
+                    end
+                end
+
+                -- ==========================
+                -- SE NÃO ESTIVER SPAWNADO
+                -- ==========================
+                if not BossAlive and PosB then
+                    TeleportToTarget(PosB)
+                end
+            end)
+        end
+    end
+end)
+
 j:AddSeperator("Quests");
 j:AddToggle({
 	Title = "Auto Farm Observation",
