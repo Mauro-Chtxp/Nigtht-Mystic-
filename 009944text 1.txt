@@ -10183,7 +10183,7 @@ D:AddButton({ Title = "Buy Ghoul Race (2.5k)", Description = "", Callback = func
 D:AddButton({ Title = "Buy Cyborg Race (2.5k)", Description = "", Callback = function()
 		replicated.Remotes.CommF_:InvokeServer("CyborgTrainer", " Buy");
 	end });
-Z:AddSeperator("Player Gui / Others");
+Z:AddSeperator("Open");
 Z:AddButton({ Title = "Open Awakenings Expert", Description = "", Callback = function()
 		plr.PlayerGui.Main.AwakeningToggler.Visible = true;
 	end });
@@ -10191,6 +10191,7 @@ Z:AddButton({ Title = "Open Title Selection", Description = "", Callback = funct
 		replicated.Remotes.CommF_:InvokeServer("getTitles", true);
 		plr.PlayerGui.Main.Titles.Visible = true;
 	end });
+Z:AddSeperator("Codes");
 Z:AddButton({
 	Title = "Redeem All Codes",
 	Description = "",
@@ -10213,20 +10214,8 @@ Z:AddButton({
 	end,
 });
 
-Z:AddToggle({
-	Title = "Disable Chat GUI",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.Rechat = I;
-		local e = game:GetService("StarterGui");
-		if _G.Rechat then
-			e:SetCoreGuiEnabled(Enum.CoreGuiType.Chat, false);
-		else
-			e:SetCoreGuiEnabled(Enum.CoreGuiType.Chat, true);
-		end;
-	end,
-});
+Z:AddSeperator("Disable");
+
 Z:AddToggle({
 	Title = "Disable Leader Board GUI",
 	Description = "",
@@ -10241,13 +10230,14 @@ Z:AddToggle({
 		end;
 	end,
 });
+Z:AddSeperator("Team");
 Z:AddButton({ Title = "Set Pirate Team", Description = "", Callback = function()
 		Pirates();
 	end });
 Z:AddButton({ Title = "Set Marine Team", Description = "", Callback = function()
 		Marines();
 	end });
-Z:AddSeperator("Haki Stats");
+Z:AddSeperator("Others");
 HakiSt = {
 		"State 0",
 		"State 1",
@@ -10257,7 +10247,7 @@ HakiSt = {
 		"State 5",
 	};
 Z:AddDropdown({
-	Title = "Select Haki States",
+	Title = "Haki States",
 	Description = "",
 	Values = HakiSt,
 	Default = false,
@@ -10266,7 +10256,7 @@ Z:AddDropdown({
 		_G.SelectStateHaki = I;
 	end,
 });
-Z:AddButton({ Title = "ChangeBusoStage", Description = "", Callback = function()
+Z:AddButton({ Title = "Change Haki", Description = "", Callback = function()
 		if _G.SelectStateHaki == "State 0" then
 			replicated.Remotes.CommF_:InvokeServer("ChangeBusoStage", 0);
 		elseif _G.SelectStateHaki == "State 1" then
@@ -10307,36 +10297,6 @@ Z:AddToggle({
 		end;
 	end,
 });
-Z:AddToggle({
-	Title = "Ice Walk",
-	Description = "Ice walk just like walk on water but have ice effect",
-	Default = false,
-	Callback = function(I)
-		_G.WalkWater = I;
-	end,
-});
-spawn(function()
-	while task.wait() do
-		if _G.WalkWater then
-			pcall(function()
-				if plr.Character and plr.Character:FindFirstChild("LeftFoot") then
-					local I = replicated.Assets.Models.IceSpikes4:Clone();
-					I.Parent = workspace;
-					I.Size = Vector3.new(3 + math.random(10, 12), 1.7, 3 + math.random(10, 12));
-					I.Color = Color3.fromRGB(128, 187, 219);
-					I.CFrame = CFrame.new(plr.Character.Head.Position.X, -3.8, plr.Character.Head.Position.Z) * CFrame.Angles((math.random() - .5) * .06, math.random() * 7, (math.random() - .5) * .07);
-					local e = {};
-					e.Size = Vector3.new(0, .3, 0);
-					local K = TW:Create(I, TweenInfo.new(2, Enum.EasingStyle.Quad, Enum.EasingDirection.In), e);
-					K.Completed:Connect(function()
-						I:Destroy();
-					end);
-					K:Play();
-				end;
-			end);
-		end;
-	end;
-end);
 local V5 = game.Players.LocalPlayer;
 local function y5(I)
 	if not I then
