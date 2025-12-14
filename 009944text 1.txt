@@ -4480,9 +4480,12 @@ b:AddSeperator("Other")
 -- Aumente se quiser pegar mobs um pouco mais longe, diminua se quiser bem perto.
 _G.MaxFarmDistance = 400 
 
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
 b:AddToggle({
     Title = "Kill Mobs Nearest",
-    Description = "Foca mobs próximos (Raio de " .. _G.MaxFarmDistance .. ")",
+    Description = "",
     Default = false,
     Callback = function(I)
         _G.AutoFarmNear = I
@@ -4492,44 +4495,59 @@ b:AddToggle({
 spawn(function()
     while task.wait() do
         pcall(function()
-            if _G.AutoFarmNear then
-                local Plr = game.Players.LocalPlayer
-                local Char = Plr.Character or Plr.CharacterAdded:Wait()
-                local Root = Char:FindFirstChild("HumanoidRootPart")
+            if not _G.AutoFarmNear then return end
 
-                if Root then
-                    local ClosestEnemy = nil
-                    local ShortestDistance = math.huge -- Começa infinito
+            local Plr = Players.LocalPlayer
+            local Char = Plr.Character or Plr.CharacterAdded:Wait()
+            local Root = Char:FindFirstChild("HumanoidRootPart")
+            if not Root then return end
 
-                    -- 1. Varre e calcula distâncias
-                    for _, e in pairs(workspace.Enemies:GetChildren()) do
-                        if e:FindFirstChild("Humanoid") and e:FindFirstChild("HumanoidRootPart") and e.Humanoid.Health > 0 then
-                            local Mag = (Root.Position - e.HumanoidRootPart.Position).Magnitude
-                            
-                            if Mag < ShortestDistance then
-                                ShortestDistance = Mag
-                                ClosestEnemy = e
-                            end
+            local ClosestEnemy = nil
+            local ShortestDistance = math.huge
+
+            -- 🔍 1. Procurar inimigos no WORKSPACE
+            if workspace:FindFirstChild("Enemies") then
+                for _, e in pairs(workspace.Enemies:GetChildren()) do
+                    if e:FindFirstChild("Humanoid")
+                    and e:FindFirstChild("HumanoidRootPart")
+                    and e.Humanoid.Health > 0 then
+                        
+                        local dist = (Root.Position - e.HumanoidRootPart.Position).Magnitude
+                        if dist < ShortestDistance then
+                            ShortestDistance = dist
+                            ClosestEnemy = e
                         end
                     end
+                end
+            end
 
-                    -- 2. Verifica se encontrou ALGUÉM e se ele está DENTRO do limite
-                    if ClosestEnemy and ShortestDistance <= _G.MaxFarmDistance then
-                        repeat
-                            task.wait()
-                            if G and G.Kill then
-                                -- Passa o alvo para a função de ataque
-                                G.Kill(ClosestEnemy, _G.AutoFarmNear)
-                            end
-                        -- Interrompe se: Farm desligado, Inimigo sumiu, Inimigo morreu ou Personagem morreu
-                        until not _G.AutoFarmNear or not ClosestEnemy.Parent or ClosestEnemy.Humanoid.Health <= 0 or not Root.Parent
+            -- 🔍 2. Procurar inimigos no REPLICATEDSTORAGE
+            if ReplicatedStorage:FindFirstChild("Enemies") then
+                for _, e in pairs(ReplicatedStorage.Enemies:GetChildren()) do
+                    if e:IsA("Model") and e:FindFirstChild("Humanoid") then
+                        -- Se não achou nenhum no workspace ainda
+                        if not ClosestEnemy then
+                            ClosestEnemy = e
+                        end
                     end
                 end
+            end
+
+            -- ⚔️ 3. Atacar
+            if ClosestEnemy and (not _G.MaxFarmDistance or ShortestDistance <= _G.MaxFarmDistance) then
+                repeat
+                    task.wait()
+                    if G and G.Kill then
+                        G.Kill(ClosestEnemy, _G.AutoFarmNear)
+                    end
+                until not _G.AutoFarmNear
+                or not ClosestEnemy.Parent
+                or (ClosestEnemy:FindFirstChild("Humanoid") and ClosestEnemy.Humanoid.Health <= 0)
+                or not Root.Parent
             end
         end)
     end
 end)
-
 -- Toggle (mantendo a variável _G.AutoFactory consistente)
 b:AddToggle({
     Title = "Auto Factory Raid",
