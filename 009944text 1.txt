@@ -1,10 +1,10 @@
+
 local Lighting = game:GetService("Lighting")
 
-
--- Full bright automático um pouquinho mais escuro
-Lighting.Ambient = Color3.new(0.699, 0.699, 0.699)
-Lighting.ColorShift_Bottom = Color3.new(0.699, 0.699, 0.699)
-Lighting.ColorShift_Top = Color3.new(0.699, 0.699, 0.699)
+-- Full bright automático (bem pouquinho mais escuro)
+Lighting.Ambient = Color3.new(0.695, 0.695, 0.695)
+Lighting.ColorShift_Bottom = Color3.new(0.695, 0.695, 0.695)
+Lighting.ColorShift_Top = Color3.new(0.695, 0.695, 0.695)
 
  do
 	ply = game.Players;
@@ -607,7 +607,7 @@ LowCpu = function()
 		d.WaterTransparency = 0;
 		n.GlobalShadows = false;
 		n.FogEnd = 9000000000.0;
-		n.Brightness = 2;
+		n.Brightness = 1;
 		(settings()).Rendering.QualityLevel = "Level01";
 		for e, K in pairs(e:GetDescendants()) do
 			if K:IsA("Part") or K:IsA("Union") or K:IsA("CornerWedgePart") or K:IsA("TrussPart") then
