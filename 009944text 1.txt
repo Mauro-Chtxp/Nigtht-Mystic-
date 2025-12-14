@@ -4548,61 +4548,49 @@ spawn(function()
         end)
     end
 end)
--- Toggle (mantendo a variável _G.AutoFactory consistente)
+-- Delay do sistema (pode ajustar)
+local Sec = 0.5
+
+-- Toggle
 b:AddToggle({
     Title = "Auto Factory Raid",
     Description = "",
     Default = false,
     Callback = function(Value)
-        _G.AutoFactory = Value -- Usa a mesma variável verificada no loop
+        _G.AutoFactory = Value
     end,
 })
 
 spawn(function()
-    -- Coordenadas da Factory (meio)
     local FactoryPos = CFrame.new(448.46756, 199.356781, -441.389252)
 
-    while task.wait(0.5) do -- task.wait é mais moderno e eficiente que 'wait'
+    while task.wait(Sec) do
         pcall(function()
-            -- 1. Verifica se o Auto Factory está ligado
-            if _G.AutoFactory then
-                
-                -- 2. Tenta encontrar o "Core" (indicador de que a Factory está ativa)
-                -- Garanta que 'GetConnectionEnemies' retorna o objeto do Core.
-                local Core = GetConnectionEnemies("Core")
+            if not _G.AutoFactory then return end
 
-                -- 3. Entra no ataque SOMENTE SE o Core for encontrado e estiver vivo
-                if Core and Core:FindFirstChild("Humanoid") and Core.Humanoid.Health > 0 then
-                    
-                    -- A Factory está ativa: inicia o loop de ataque
-                    repeat
-                        task.wait()
-                        
-                        -- Verificações de segurança para sair do loop
-                        -- Se o Core morrer, o toggle for desligado, ou o Core for destruído
-                        if not _G.AutoFactory or not Core or not Core.Parent or Core.Humanoid.Health <= 0 then
-                            break
-                        end
-                        
-                        -- Equipa a arma (se _G.SelectWeapon estiver definida)
-                        if _G.SelectWeapon then
-                            EquipWeapon(_G.SelectWeapon)
-                        end
-                        
-                        -- Teleporta para o meio da Factory
-                        _tp(FactoryPos)
-                        
-                        -- (Opcional: Descomente se precisar de um clique automático para atacar)
-                        -- game:GetService("VirtualUser"):Button1Down(Vector2.new(1280, 672))
-                        
-                    until Core.Humanoid.Health <= 0 or _G.AutoFactory == false
-                    
-                    -- Quando o loop termina (Factory desativou), o script apenas encerra este bloco 
-                    -- de 'if', permitindo que o outro script de farm continue no local que estava.
-                end
-                
-                -- 4. Se a Factory não estiver ativa (Core = nil), o script faz NADA, 
-                -- e o jogador permanece onde estiver (farmando outra coisa).
+            -- Procura o Core
+            local Core = GetConnectionEnemies("Core")
+
+            if Core and Core:FindFirstChild("Humanoid") and Core.Humanoid.Health > 0 then
+                -- Factory ativa
+                repeat
+                    task.wait()
+
+                    if not _G.AutoFactory then break end
+                    if not Core or not Core.Parent then break end
+                    if Core.Humanoid.Health <= 0 then break end
+
+                    if _G.SelectWeapon then
+                        EquipWeapon(_G.SelectWeapon)
+                    end
+
+                    _tp(FactoryPos)
+
+                until Core.Humanoid.Health <= 0 or _G.AutoFactory == false
+
+            else
+                -- Core não encontrado → vai pro meio da factory
+                _tp(FactoryPos)
             end
         end)
     end
