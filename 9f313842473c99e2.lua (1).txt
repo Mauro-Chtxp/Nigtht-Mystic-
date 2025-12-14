@@ -10904,71 +10904,39 @@ v662:AddToggle({
         StopTween(_G.BringMonster)
     end
 })
-local TweenService = game:GetService("TweenService")
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-
--- CONFIG
-local BRING_TIME = 3      -- tempo puxando
-local RELEASE_TIME = 5    -- tempo solto
-local DISTANCE = 320
-local TWEEN_SPEED = 0.35  -- menor = mais rápido
-
--- Tween Function
-local function TweenToPos(hrp, cf)
-    local tweenInfo = TweenInfo.new(
-        TWEEN_SPEED,
-        Enum.EasingStyle.Linear,
-        Enum.EasingDirection.Out
-    )
-    local tween = TweenService:Create(hrp, tweenInfo, {CFrame = cf})
-    tween:Play()
-end
-
 spawn(function()
     while task.wait() do
         pcall(function()
-            if not _G.BringMonster then return end
-
             CheckQuest()
-            local Char = LocalPlayer.Character
-            if not Char or not Char:FindFirstChild("HumanoidRootPart") then return end
-
-            sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge)
-
-            local startTime = tick()
-
-            -- 🔹 BRING (3 segundos)
-            while tick() - startTime < BRING_TIME and _G.BringMonster do
-                for _, mob in pairs(workspace.Enemies:GetChildren()) do
-                    if mob:FindFirstChild("Humanoid")
-                    and mob:FindFirstChild("HumanoidRootPart")
-                    and mob.Humanoid.Health > 0 then
-
-                        if (mob.Name == MonFarm or mob.Name == Mon)
-                        and (mob.HumanoidRootPart.Position - Char.HumanoidRootPart.Position).Magnitude <= DISTANCE
-                        and mob.Name ~= "Factory Staff" then
-
-                            mob.HumanoidRootPart.CanCollide = false
-                            mob.Head.CanCollide = false
-
-                            if mob.Humanoid:FindFirstChild("Animator") then
-                                mob.Humanoid.Animator:Destroy()
+            local v1462, v1463, v1464 = pairs(game:GetService("Workspace").Enemies:GetChildren())
+            while true do
+                local v1465
+                v1464, v1465 = v1462(v1463, v1464)
+                if v1464 == nil then
+                    break
+                end
+                if _G.BringMonster and (StartBring and v1465.Name == MonFarm or v1465.Name == Mon and (v1465:FindFirstChild("Humanoid") and (v1465:FindFirstChild("HumanoidRootPart") and v1465.Humanoid.Health > 0)) and (v1465.HumanoidRootPart.Position - game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position).Magnitude <= 320) then
+                    if v1465.Name ~= "Factory Staff" then
+                        if (v1465.Name == MonFarm or v1465.Name == Mon) and (v1465.HumanoidRootPart.Position - PosMon.Position).Magnitude <= 320 then
+                            v1465.HumanoidRootPart.CFrame = PosMon
+                            v1465.HumanoidRootPart.CanCollide = false
+                            v1465.Head.CanCollide = false
+                            if v1465.Humanoid:FindFirstChild("Animator") then
+                                v1465.Humanoid.Animator:Destroy()
                             end
-
-                            TweenToPos(mob.HumanoidRootPart, PosMon)
+                            sethiddenproperty(game.Players.LocalPlayer, "SimulationRadius", math.huge)
                         end
+                    elseif (v1465.HumanoidRootPart.Position - PosMon.Position).Magnitude <= 250 then
+                        v1465.Head.CanCollide = false
+                        v1465.HumanoidRootPart.CanCollide = false
+                        v1465.HumanoidRootPart.CFrame = PosMon
+                        if v1465.Humanoid:FindFirstChild("Animator") then
+                            v1465.Humanoid.Animator:Destroy()
+                        end
+                        sethiddenproperty(game:GetService("Players").LocalPlayer, "SimulationRadius", math.huge)
                     end
                 end
-                task.wait(0.2)
             end
-
-            -- 🔹 RELEASE (5 segundos)
-            local releaseStart = tick()
-            while tick() - releaseStart < RELEASE_TIME do
-                task.wait(0.3)
-            end
-
         end)
     end
 end)
