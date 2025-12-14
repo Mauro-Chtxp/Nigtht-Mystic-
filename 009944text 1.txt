@@ -9972,23 +9972,52 @@ spawn(function()
 		end;
 	end;
 end);
+-- VARIÁVEIS
+_G.StoreF = false
+local Sec = Sec or 1
+local plr = game.Players.LocalPlayer
+
+-- TOGGLE
 p:AddToggle({
 	Title = "Auto Store Fruit",
 	Description = "Automatic store devil fruit",
 	Default = false,
 	Callback = function(I)
-		_G.StoreF = I;
+		_G.StoreF = I
 	end,
-});
+})
+
+-- LOOP DE STORE
 spawn(function()
-	while wait(Sec) do
+	while task.wait(Sec) do
 		if _G.StoreF then
 			pcall(function()
-				UpdStFruit();
-			end);
-		end;
-	end;
-end);
+				UpdStFruit()
+			end)
+		end
+	end
+end)
+
+-- REMOVER NOTIFICAÇÃO DE LIMITE DE FRUTA
+spawn(function()
+	while task.wait() do
+		if _G.StoreF then
+			pcall(function()
+				local gui = plr.PlayerGui:FindFirstChild("Notifications")
+				if gui then
+					for _,v in pairs(gui:GetDescendants()) do
+						if (v:IsA("TextLabel") or v:IsA("TextButton"))
+						and v.Text
+						and string.find(v.Text, "You can only store 1 of each Blox Fruit") then
+							v.Visible = false
+							v.Text = ""
+						end
+					end
+				end
+			end)
+		end
+	end
+end)
 p:AddToggle({
 	Title = "Auto Tween to Fruit",
 	Description = "Automatic tween to get devil fruit",
