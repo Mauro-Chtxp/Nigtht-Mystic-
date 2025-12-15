@@ -10104,156 +10104,104 @@ D:AddButton({ Title = "Buy Ken", Description = "", Callback = function()
 		replicated.Remotes.CommF_:InvokeServer("KenTalk", "Buy");
 	end });
 D:AddSeperator("Fighting - Style");
---========================================================--
---        BUY FIGHTING STYLES | SEA 3 ONLY (ANTI-SPAM)
---========================================================--
+-- =========================================================================================
+-- VARIÁVEIS DE CFRAME (Coordenadas de Destino)
+-- =========================================================================================
 
-if not World3 then return end
+-- Destino Padrão (Black Leg, Electro, Fishman Karate, Superhuman, Death Step, DragonTalon, Godhuman, Sharkman Karate)
+-- (-4964.26807, 314.545807, -3148.83179)
+local DEFAULT_FS_C0 = CFrame.new(-4964.26807, 314.545807, -3148.83179)
+local DEFAULT_FS_C1 = CFrame.Angles(-0.265332907, 5.66515155e-08, 0.964156866, 6.97216507e-09, 1, -5.6838536e-08, -0.964156866, -8.35895708e-09, -0.265332907)
+local DEFAULT_FS_TARGET = DEFAULT_FS_C0 * DEFAULT_FS_C1
 
---====================--
--- POSIÇÕES (CFRAME)
---====================--
+-- Destino ElectricClaw (Lei Elétrica)
+-- (-10371.5537, 331.684021, -10129.6494)
+local ELECTRICCLAW_C0 = CFrame.new(-10371.5537, 331.684021, -10129.6494)
+local ELECTRICCLAW_C1 = CFrame.Angles(0.863954961, -5.3535962e-08, 0.503569067, 4.09426981e-08, 1, 3.61240389e-08, -0.503569067, -1.0592065e-08, 0.863954961)
+local ELECTRICCLAW_TARGET = ELECTRICCLAW_C0 * ELECTRICCLAW_C1
 
-local DefaultStylePos = CFrame.new(
-	-4964.26807, 314.545807, -3148.83179,
-	-0.265332907, 5.66515155e-08, 0.964156866,
-	6.97216507e-09, 1, -5.6838536e-08,
-	-0.964156866, -8.35895708e-09, -0.265332907
-)
+-- Destino SanguineArt
+-- (-16517.3516, 23.1700592, -192.205185)
+local SANGUINEART_C0 = CFrame.new(-16517.3516, 23.1700592, -192.205185)
+local SANGUINEART_C1 = CFrame.Angles(-0.999545157, -4.49453141e-09, -0.0301583, -4.18832213e-09, 1, -1.02165716e-08, 0.0301583, -1.00856123e-08, -0.999545157)
+local SANGUINEART_TARGET = SANGUINEART_C0 * SANGUINEART_C1
 
-local ElectricClawPos = CFrame.new(
-	-10371.5537, 331.684021, -10129.6494,
-	0.863954961, -5.3535962e-08, 0.503569067,
-	4.09426981e-08, 1, 3.61240389e-08,
-	-0.503569067, -1.0592065e-08, 0.863954961
-)
+-- =========================================================================================
+-- FUNÇÃO AUXILIAR DE COMPRA (usa TeleportToTarget já existente)
+-- =========================================================================================
 
-local SanguineArtPos = CFrame.new(
-	-16517.3516, 23.1700592, -192.205185,
-	-0.999545157, -4.49453141e-09, -0.0301583,
-	-4.18832213e-09, 1, -1.02165716e-08,
-	0.0301583, -1.00856123e-08, -0.999545157
-)
+local function BuyFightingStyle(styleName, targetCFrame, remoteArgs)
+    local plr = game.Players.LocalPlayer
+    -- Assumindo que 'World' global existe para verificar o mundo atual (World 3)
+    local World3 = getgenv().World == 3 
 
---====================--
--- FUNÇÃO ÚNICA (ANTI SPAM)
---====================--
+    if not World3 then
+        print("A compra de Estilos de Luta avançados só está disponível no Sea 3.")
+        return
+    end
 
-local BuyingStyle = false
+    -- 1. Teleporta para o NPC, usando a sua função TeleportToTarget (que usa _tp internamente)
+    TeleportToTarget(targetCFrame)
 
-local function BuyStyle(remoteData, tpCFrame)
-	if BuyingStyle then return end
-	BuyingStyle = true
+    -- 2. Aguarda um pequeno momento para o teleporte terminar antes de comprar
+    task.wait(1) 
 
-	pcall(function()
-		-- Teleporta UMA ÚNICA VEZ
-		_tp(tpCFrame)
-		task.wait(1.2)
-
-		-- Invoca o Remote
-		if type(remoteData) == "table" then
-			replicated.Remotes.CommF_:InvokeServer(unpack(remoteData))
-		else
-			replicated.Remotes.CommF_:InvokeServer(remoteData)
-		end
-	end)
-
-	task.delay(2, function()
-		BuyingStyle = false
-	end)
+    -- 3. Invoca o Remote para a compra
+    -- A invocação do remote só ocorre UMA VEZ após o teleporte
+    replicated.Remotes.CommF_:InvokeServer(unpack(remoteArgs))
+    
+    print("Tentativa de compra de Estilo de Luta: " .. styleName)
 end
 
---====================--
--- BOTÕES
---====================--
+-- =========================================================================================
+-- BOTÕES DE COMPRA (Substitua seus botões antigos por estes)
+-- =========================================================================================
 
-D:AddButton({
-	Title = "Buy Black Leg",
-	Description = "",
-	Callback = function()
-		BuyStyle("BuyBlackLeg", DefaultStylePos)
-	end
-})
+D:AddButton({ Title = "Buy Black Leg", Description = "Teleporta para o NPC (Sea 3) e Compra", Callback = function()
+    BuyFightingStyle("Black Leg", DEFAULT_FS_TARGET, {"BuyBlackLeg"})
+end });
 
-D:AddButton({
-	Title = "Buy Electro",
-	Description = "",
-	Callback = function()
-		BuyStyle("BuyElectro", DefaultStylePos)
-	end
-})
+D:AddButton({ Title = "Buy Electro", Description = "Teleporta para o NPC (Sea 3) e Compra", Callback = function()
+    BuyFightingStyle("Electro", DEFAULT_FS_TARGET, {"BuyElectro"})
+end });
 
-D:AddButton({
-	Title = "Buy Fishman Karate",
-	Description = "",
-	Callback = function()
-		BuyStyle("BuyFishmanKarate", DefaultStylePos)
-	end
-})
+D:AddButton({ Title = "Buy Fishman Karate", Description = "Teleporta para o NPC (Sea 3) e Compra", Callback = function()
+    BuyFightingStyle("Fishman Karate", DEFAULT_FS_TARGET, {"BuyFishmanKarate"})
+end });
 
-D:AddButton({
-	Title = "Buy Dragon Claw",
-	Description = "",
-	Callback = function()
-		BuyStyle({"BlackbeardReward","DragonClaw","2"}, DefaultStylePos)
-	end
-})
+D:AddButton({ Title = "Buy DragonClaw", Description = "Teleporta para o NPC (Sea 3) e Compra", Callback = function()
+    -- Remote específico para DragonClaw, conforme seu exemplo
+    BuyFightingStyle("DragonClaw", DEFAULT_FS_TARGET, {"BlackbeardReward", "DragonClaw", "2"})
+end });
 
-D:AddButton({
-	Title = "Buy Superhuman",
-	Description = "",
-	Callback = function()
-		BuyStyle("BuySuperhuman", DefaultStylePos)
-	end
-})
+D:AddButton({ Title = "Buy Superhuman", Description = "Teleporta para o NPC (Sea 3) e Compra", Callback = function()
+    BuyFightingStyle("Superhuman", DEFAULT_FS_TARGET, {"BuySuperhuman"})
+end });
 
-D:AddButton({
-	Title = "Buy Death Step",
-	Description = "",
-	Callback = function()
-		BuyStyle("BuyDeathStep", DefaultStylePos)
-	end
-})
+D:AddButton({ Title = "Buy Death Step", Description = "Teleporta para o NPC (Sea 3) e Compra", Callback = function()
+    BuyFightingStyle("Death Step", DEFAULT_FS_TARGET, {"BuyDeathStep"})
+end });
 
-D:AddButton({
-	Title = "Buy Sharkman Karate",
-	Description = "",
-	Callback = function()
-		BuyStyle("BuySharkmanKarate", DefaultStylePos)
-	end
-})
+D:AddButton({ Title = "Buy Sharkman Karate", Description = "Teleporta para o NPC (Sea 3) e Compra", Callback = function()
+    BuyFightingStyle("Sharkman Karate", DEFAULT_FS_TARGET, {"BuySharkmanKarate"})
+end });
 
-D:AddButton({
-	Title = "Buy Electric Claw",
-	Description = "",
-	Callback = function()
-		BuyStyle("BuyElectricClaw", ElectricClawPos)
-	end
-})
+D:AddButton({ Title = "Buy ElectricClaw", Description = "Teleporta para o NPC (Sea 3) e Compra", Callback = function()
+    BuyFightingStyle("ElectricClaw", ELECTRICCLAW_TARGET, {"BuyElectricClaw"})
+end });
 
-D:AddButton({
-	Title = "Buy Dragon Talon",
-	Description = "",
-	Callback = function()
-		BuyStyle("BuyDragonTalon", DefaultStylePos)
-	end
-})
+D:AddButton({ Title = "Buy DragonTalon", Description = "Teleporta para o NPC (Sea 3) e Compra", Callback = function()
+    BuyFightingStyle("DragonTalon", DEFAULT_FS_TARGET, {"BuyDragonTalon"})
+end });
 
-D:AddButton({
-	Title = "Buy Godhuman",
-	Description = "",
-	Callback = function()
-		BuyStyle("BuyGodhuman", DefaultStylePos)
-	end
-})
+D:AddButton({ Title = "Buy Godhuman", Description = "Teleporta para o NPC (Sea 3) e Compra", Callback = function()
+    BuyFightingStyle("Godhuman", DEFAULT_FS_TARGET, {"BuyGodhuman"})
+end });
 
-D:AddButton({
-	Title = "Buy Sanguine Art",
-	Description = "",
-	Callback = function()
-		BuyStyle("BuySanguineArt", SanguineArtPos)
-	end
-})
+D:AddButton({ Title = "Buy SanguineArt", Description = "Teleporta para o NPC (Sea 3) e Compra", Callback = function()
+    BuyFightingStyle("SanguineArt", SANGUINEART_TARGET, {"BuySanguineArt"})
+end });
+
 D:AddSeperator("Accessory");
 D:AddButton({ Title = "Buy Tomoe Ring", Description = "", Callback = function()
 		replicated.Remotes.CommF_:InvokeServer("BuyItem", "Tomoe Ring");
