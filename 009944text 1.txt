@@ -4474,19 +4474,14 @@ spawn(function()
 end)
 
 --============================--
--- SISTEMA TYRANT OF THE SKIES
---============================--
-
---====================================================--
 -- CONTADOR DE OLHOS (TIKI)
---====================================================--
+--============================--
 spawn(function()
 	while task.wait(3) do
 		pcall(function()
-			local model =
-				workspace:FindFirstChild("Map")
-				and workspace.Map:FindFirstChild("TikiOutpost")
-				and workspace.Map.TikiOutpost:FindFirstChild("IslandModel")
+			local map = workspace:FindFirstChild("Map")
+			local tiki = map and map:FindFirstChild("TikiOutpost")
+			local model = tiki and tiki:FindFirstChild("IslandModel")
 
 			local count = 0
 			if model then
@@ -4507,21 +4502,23 @@ spawn(function()
 	end
 end)
 
---====================================================--
--- POSIÇÕES DE FARM
---====================================================--
+--============================--
+-- POSIÇÕES DE FARM (MOBS)
+--============================--
 local FarmTiki1 = CFrame.new(-16423.8047,146.953003,-123.602005)
 local FarmTiki2 = CFrame.new(-16593.5996,155.350998,1130.48096)
 
---====================================================--
+--============================--
 -- FARM DOS MOBS (ATÉ 4 OLHOS)
---====================================================--
+--============================--
 spawn(function()
 	local CurrentFarm = 1
 	while task.wait() do
-		if _G.FullyTyrant and World3 and _G.EyesCount ~= 4 then
+		if _G.FullyTyrant and _G.EyesCount ~= 4 then
 			pcall(function()
-				local enemies = workspace.Enemies
+				local enemies = workspace:FindFirstChild("Enemies")
+				if not enemies then return end
+
 				local targets = {
 					["Isle Champion"] = true,
 					["Sun-kissed Warrior"] = true,
@@ -4532,70 +4529,70 @@ spawn(function()
 				local found = false
 
 				for _, v in pairs(enemies:GetChildren()) do
-					if targets[v.Name]
-						and v:FindFirstChild("Humanoid")
-						and v:FindFirstChild("HumanoidRootPart")
-						and v.Humanoid.Health > 0 then
+					local hum = v:FindFirstChild("Humanoid")
+					local hrp = v:FindFirstChild("HumanoidRootPart")
 
+					if targets[v.Name] and hum and hrp and hum.Health > 0 then
 						found = true
 						repeat task.wait()
-							v.HumanoidRootPart.CanCollide = false
-							if v:FindFirstChild("Head") then
-								v.Head.CanCollide = false
-							end
-							v.Humanoid.WalkSpeed = 0
-
-							_tp(v.HumanoidRootPart.CFrame * Pos)
+							hrp.CanCollide = false
+							local head = v:FindFirstChild("Head")
+							if head then head.CanCollide = false end
+							hum.WalkSpeed = 0
+							_tp(hrp.CFrame * Pos)
 						until not _G.FullyTyrant
 							or _G.EyesCount == 4
 							or not v.Parent
-							or v.Humanoid.Health <= 0
+							or hum.Health <= 0
 					end
 				end
 
 				if not found then
-					if CurrentFarm == 1 then
-						_tp(FarmTiki1)
-						task.wait(2)
-						CurrentFarm = 2
-					else
-						_tp(FarmTiki2)
-						task.wait(2)
-						CurrentFarm = 1
-					end
+					_tp(CurrentFarm == 1 and FarmTiki1 or FarmTiki2)
+					CurrentFarm = CurrentFarm == 1 and 2 or 1
+					task.wait(2)
 				end
 			end)
 		end
 	end
 end)
 
---====================================================--
--- SKY BOSS
---====================================================--
-function isSkyBossAlive()
-	local e = workspace:FindFirstChild("Enemies")
-	local b = e and e:FindFirstChild("Tyrant of the Skies")
-	return b and b:FindFirstChild("Humanoid") and b.Humanoid.Health > 0
+--============================--
+-- SKY BOSS CHECK
+--============================--
+local function isSkyBossAlive()
+	local enemies = workspace:FindFirstChild("Enemies")
+	if not enemies then return false end
+
+	local boss = enemies:FindFirstChild("Tyrant of the Skies")
+	return boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0
 end
 
-function attackSkyBoss()
-	for _, v in pairs(workspace.Enemies:GetChildren()) do
-		if v.Name == "Tyrant of the Skies"
-			and v:FindFirstChild("HumanoidRootPart")
-			and v.Humanoid.Health > 0 then
+--============================--
+-- SKY BOSS ATTACK
+--============================--
+local function attackSkyBoss()
+	local enemies = workspace:FindFirstChild("Enemies")
+	if not enemies then return end
 
-			repeat task.wait()
-				_tp(v.HumanoidRootPart.CFrame * Pos)
-				sethiddenproperty(game.Players.LocalPlayer,"SimulationRadius",math.huge)
-			until v.Humanoid.Health <= 0
-				or not _G.FullyTyrant
+	for _, v in pairs(enemies:GetChildren()) do
+		if v.Name == "Tyrant of the Skies" then
+			local hum = v:FindFirstChild("Humanoid")
+			local hrp = v:FindFirstChild("HumanoidRootPart")
+			if hum and hrp and hum.Health > 0 then
+				repeat task.wait()
+					_tp(hrp.CFrame * Pos)
+					sethiddenproperty(game.Players.LocalPlayer,"SimulationRadius",math.huge)
+				until hum.Health <= 0
+					or not _G.FullyTyrant
+			end
 		end
 	end
 end
 
---====================================================--
--- PHA BINH (VASOS) – USANDO SEU Useskills
---====================================================--
+--============================--
+-- PHA BINH (VASOS)
+--============================--
 local PhaBinhPoints = {
 	CFrame.new(-16332.526,158.072,1440.324),
 	CFrame.new(-16288.609,158.167,1470.368),
@@ -4608,11 +4605,11 @@ local PhaBinhPoints = {
 }
 
 spawn(function()
-	while wait(Sec) do
-		if _G.FarmPhaBinh and _G.EyesCount == 4 then
+	while task.wait(Sec) do
+		if _G.FullyTyrant and _G.EyesCount == 4 then
 			pcall(function()
 				for _, point in ipairs(PhaBinhPoints) do
-					if not _G.FarmPhaBinh or _G.EyesCount ~= 4 then break end
+					if not _G.FullyTyrant or _G.EyesCount ~= 4 then break end
 
 					if isSkyBossAlive() then
 						attackSkyBoss()
@@ -4620,7 +4617,7 @@ spawn(function()
 					end
 
 					_tp(point)
-					wait(0.4)
+					task.wait(0.4)
 
 					-- Melee
 					Useskills("Melee","Z")
@@ -4635,13 +4632,12 @@ spawn(function()
 					Useskills("Gun","Z")
 					Useskills("Gun","X")
 
-					wait(0.4)
+					task.wait(0.4)
 				end
 			end)
 		end
 	end
 end)
-
 
 
 b:AddSeperator("Other")
