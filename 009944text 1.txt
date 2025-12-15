@@ -4477,43 +4477,49 @@ end)
 -- SISTEMA TYRANT OF THE SKIES
 --============================--
 
+--====================================================--
 -- CONTADOR DE OLHOS (TIKI)
+--====================================================--
 spawn(function()
 	while task.wait(3) do
 		pcall(function()
-			local model = workspace:FindFirstChild("Map")
+			local model =
+				workspace:FindFirstChild("Map")
 				and workspace.Map:FindFirstChild("TikiOutpost")
 				and workspace.Map.TikiOutpost:FindFirstChild("IslandModel")
 
-			local visibleCount = 0
-
+			local count = 0
 			if model then
+				local chunks = model:FindFirstChild("IslandChunks")
 				local eye1 = model:FindFirstChild("Eye1")
 				local eye2 = model:FindFirstChild("Eye2")
-				local chunks = model:FindFirstChild("IslandChunks")
 				local eye3 = chunks and chunks:FindFirstChild("E") and chunks.E:FindFirstChild("Eye3")
 				local eye4 = chunks and chunks:FindFirstChild("E") and chunks.E:FindFirstChild("Eye4")
 
-				if eye1 and eye1:IsA("BasePart") and eye1.Transparency == 0 then visibleCount += 1 end
-				if eye2 and eye2:IsA("BasePart") and eye2.Transparency == 0 then visibleCount += 1 end
-				if eye3 and eye3:IsA("BasePart") and eye3.Transparency == 0 then visibleCount += 1 end
-				if eye4 and eye4:IsA("BasePart") and eye4.Transparency == 0 then visibleCount += 1 end
+				if eye1 and eye1.Transparency == 0 then count += 1 end
+				if eye2 and eye2.Transparency == 0 then count += 1 end
+				if eye3 and eye3.Transparency == 0 then count += 1 end
+				if eye4 and eye4.Transparency == 0 then count += 1 end
 			end
 
-			_G.EyesCount = visibleCount
+			_G.EyesCount = count
 		end)
 	end
 end)
 
--- POSIÇÕES FARM
+--====================================================--
+-- POSIÇÕES DE FARM
+--====================================================--
 local FarmTiki1 = CFrame.new(-16423.8047,146.953003,-123.602005)
 local FarmTiki2 = CFrame.new(-16593.5996,155.350998,1130.48096)
 
--- FARM INIMIGOS TIKI (OLHOS)
+--====================================================--
+-- FARM DOS MOBS (ATÉ 4 OLHOS)
+--====================================================--
 spawn(function()
 	local CurrentFarm = 1
 	while task.wait() do
-		if _G.FullyTyrant and _G.EyesCount ~= 4 and World3 then
+		if _G.FullyTyrant and World3 and _G.EyesCount ~= 4 then
 			pcall(function()
 				local enemies = workspace.Enemies
 				local targets = {
@@ -4533,10 +4539,10 @@ spawn(function()
 
 						found = true
 						repeat task.wait()
-							EquipWeapon(_G.SelectWeapon)
-
 							v.HumanoidRootPart.CanCollide = false
-							v.Head.CanCollide = false
+							if v:FindFirstChild("Head") then
+								v.Head.CanCollide = false
+							end
 							v.Humanoid.WalkSpeed = 0
 
 							_tp(v.HumanoidRootPart.CFrame * Pos)
@@ -4548,26 +4554,24 @@ spawn(function()
 				end
 
 				if not found then
-					local char = game.Players.LocalPlayer.Character
-					if char and char:FindFirstChild("HumanoidRootPart") then
-						if CurrentFarm == 1 then
-							_tp(FarmTiki1)
-							task.wait(2)
-							CurrentFarm = 2
-						else
-							_tp(FarmTiki2)
-							task.wait(2)
-							CurrentFarm = 1
-						end
+					if CurrentFarm == 1 then
+						_tp(FarmTiki1)
+						task.wait(2)
+						CurrentFarm = 2
+					else
+						_tp(FarmTiki2)
+						task.wait(2)
+						CurrentFarm = 1
 					end
-					UnEquipWeapon(_G.SelectWeapon)
 				end
 			end)
 		end
 	end
 end)
 
+--====================================================--
 -- SKY BOSS
+--====================================================--
 function isSkyBossAlive()
 	local e = workspace:FindFirstChild("Enemies")
 	local b = e and e:FindFirstChild("Tyrant of the Skies")
@@ -4581,7 +4585,6 @@ function attackSkyBoss()
 			and v.Humanoid.Health > 0 then
 
 			repeat task.wait()
-				EquipWeapon(_G.SelectWeapon)
 				_tp(v.HumanoidRootPart.CFrame * Pos)
 				sethiddenproperty(game.Players.LocalPlayer,"SimulationRadius",math.huge)
 			until v.Humanoid.Health <= 0
@@ -4590,35 +4593,9 @@ function attackSkyBoss()
 	end
 end
 
--- SKILLS
-local function sendSkillKey(key)
-	local vim = game:GetService("VirtualInputManager")
-	vim:SendKeyEvent(true, key, false, game)
-	wait(0.05)
-	vim:SendKeyEvent(false, key, false, game)
-end
-
-local function equipAndUseSkill(toolType)
-	local plr = game.Players.LocalPlayer
-	local char = plr.Character
-	local backpack = plr.Backpack
-	if not (char and char:FindFirstChild("Humanoid") and char.Humanoid.Health > 0) then return end
-
-	for _, item in pairs(backpack:GetChildren()) do
-		if item:IsA("Tool") and item.ToolTip == toolType then
-			item.Parent = char
-			wait(0.12)
-			for _, key in ipairs({"Z","X","C","F"}) do
-				pcall(function() sendSkillKey(key) end)
-				wait(0.12)
-			end
-			item.Parent = backpack
-			break
-		end
-	end
-end
-
--- FARM PHA BINH (VASOS)
+--====================================================--
+-- PHA BINH (VASOS) – USANDO SEU Useskills
+--====================================================--
 local PhaBinhPoints = {
 	CFrame.new(-16332.526,158.072,1440.324),
 	CFrame.new(-16288.609,158.167,1470.368),
@@ -4632,10 +4609,10 @@ local PhaBinhPoints = {
 
 spawn(function()
 	while wait(Sec) do
-		if _G.FullyTyrant and _G.EyesCount == 4 then
+		if _G.FarmPhaBinh and _G.EyesCount == 4 then
 			pcall(function()
 				for _, point in ipairs(PhaBinhPoints) do
-					if not _G.FullyTyrant or _G.EyesCount ~= 4 then break end
+					if not _G.FarmPhaBinh or _G.EyesCount ~= 4 then break end
 
 					if isSkyBossAlive() then
 						attackSkyBoss()
@@ -4643,11 +4620,22 @@ spawn(function()
 					end
 
 					_tp(point)
-					wait(0.5)
+					wait(0.4)
 
-					equipAndUseSkill("Melee")
-					equipAndUseSkill("Sword")
-					equipAndUseSkill("Gun")
+					-- Melee
+					Useskills("Melee","Z")
+					Useskills("Melee","X")
+					Useskills("Melee","C")
+
+					-- Sword
+					Useskills("Sword","Z")
+					Useskills("Sword","X")
+
+					-- Gun
+					Useskills("Gun","Z")
+					Useskills("Gun","X")
+
+					wait(0.4)
 				end
 			end)
 		end
