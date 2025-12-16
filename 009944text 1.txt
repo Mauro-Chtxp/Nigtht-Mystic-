@@ -409,41 +409,63 @@ G.Sword = function(I, e)
 			end;
 		end;
 	end;
+-- Tabela de skills Blox Fruit com status (true = usar, false = não usar)
+BloxSkillsStatus = {
+    Z = true,
+    X = true,
+    C = true,
+    V = false, -- exemplo, V desativado por padrão
+    F = false, -- exemplo, F desativado por padrão
+}
+
 G.Mas = function(I, e)
-		if I and e then
-			if not I:GetAttribute("Locked") then
-				I:SetAttribute("Locked", I.HumanoidRootPart.CFrame);
-			end;
-			PosMon = (I:GetAttribute("Locked")).Position;
-			BringEnemy();
-			if I.Humanoid.Health <= HealthM then
-				_tp(I.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0));
-				Useskills("Blox Fruit", "Z");
-				Useskills("Blox Fruit", "X");
-				Useskills("Blox Fruit", "C");
-			else
-				weaponSc("Melee");
-				_tp(I.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0));
-			end;
-		end;
-	end;
+	if I and e then
+		if not I:GetAttribute("Locked") then
+			I:SetAttribute("Locked", I.HumanoidRootPart.CFrame)
+		end
+		PosMon = (I:GetAttribute("Locked")).Position
+		BringEnemy()
+		if I.Humanoid.Health <= HealthM then
+			_tp(I.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0))
+			-- Executa apenas as skills ativadas
+			for skill, status in pairs(BloxSkillsStatus) do
+				if status then
+					Useskills("Blox Fruit", skill)
+				end
+			end
+		else
+			weaponSc("Melee")
+			_tp(I.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
+		end
+	end
+end
+-- Tabela de skills Gun com status (true = usar, false = não usar)
+GunSkillsStatus = {
+    Z = true,
+    X = true,
+}
+
 G.Masgun = function(I, e)
-		if I and e then
-			if not I:GetAttribute("Locked") then
-				I:SetAttribute("Locked", I.HumanoidRootPart.CFrame);
-			end;
-			PosMon = (I:GetAttribute("Locked")).Position;
-			BringEnemy();
-			if I.Humanoid.Health <= HealthM then
-				_tp(I.HumanoidRootPart.CFrame * CFrame.new(0, 35, 8));
-				Useskills("Gun", "Z");
-				Useskills("Gun", "X");
-			else
-				weaponSc("Melee");
-				_tp(I.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0));
-			end;
-		end;
-	end;
+	if I and e then
+		if not I:GetAttribute("Locked") then
+			I:SetAttribute("Locked", I.HumanoidRootPart.CFrame)
+		end
+		PosMon = (I:GetAttribute("Locked")).Position
+		BringEnemy()
+		if I.Humanoid.Health <= HealthM then
+			_tp(I.HumanoidRootPart.CFrame * CFrame.new(0, 35, 8))
+			-- Executa apenas as skills ativadas
+			for skill, status in pairs(GunSkillsStatus) do
+				if status then
+					Useskills("Gun", skill)
+				end
+			end
+		else
+			weaponSc("Melee")
+			_tp(I.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
+		end
+	end
+end
 statsSetings = function(I, e)
 		if I == "Melee" then
 			if plr.Data.Points.Value ~= 0 then
@@ -2124,12 +2146,13 @@ QuestNeta = function()
 
 local V=I:NewWindow();
 local i=V:T("Info");
-local server=V:T("Server")
+local server=V:T("Server");
 local s=V:T("Stats");
 local g=V:T("Shop");
 local y=V:T("Main");
 local x=V:T("Farming Other");
 local mf=V:T("Misc Farming");
+local skill=V:T("Settings Skill");
 local t=V:T("Sea Events");
 local m=V:T("Race");
 local v=V:T("Drago Dojo");
@@ -2143,10 +2166,11 @@ local u=V:T("Misc");
 local c=V:T("Settings");
 
 local b=y:AddSection("Farming");
-local serverSection=server:AddSection("Server")
+local serverSection=server:AddSection("Server");
 local T=c:AddSection("Setting");
 local j=x:AddSection("Other Farming");
 local MF=mf:AddSection("Fishing");
+local SkillSettings=skill:AddSection("Settings Skill");
 local A=t:AddSection("Sea Events");
 local h=m:AddSection("Race");
 local W=v:AddSection("Drago Dojo");
@@ -2159,6 +2183,78 @@ local p=B:AddSection("Fruits");
 local D=g:AddSection("Shop");
 local Z=u:AddSection("Misc");
 local SS=s:AddSection("Stats");
+
+SkillSettings:AddSeperator("Farm Mastery Fruit");
+
+SkillSettings:AddToggle({
+    Title = "Skill Z",
+    Description = "",
+    Default = BloxSkillsStatus.Z,
+    Callback = function(value)
+        BloxSkillsStatus.Z = value
+        spawn(function()
+            while BloxSkillsStatus.Z do
+                wait()
+            end
+        end)
+    end,
+});
+
+SkillSettings:AddToggle({
+    Title = "Skill X",
+    Description = "",
+    Default = BloxSkillsStatus.X,
+    Callback = function(value)
+        BloxSkillsStatus.X = value
+        spawn(function()
+            while BloxSkillsStatus.X do
+                wait()
+            end
+        end)
+    end,
+});
+
+SkillSettings:AddToggle({
+    Title = "Skill C",
+    Description = "",
+    Default = BloxSkillsStatus.C,
+    Callback = function(value)
+        BloxSkillsStatus.C = value
+        spawn(function()
+            while BloxSkillsStatus.C do
+                wait()
+            end
+        end)
+    end,
+});
+
+SkillSettings:AddToggle({
+    Title = "Skill V",
+    Description = "",
+    Default = BloxSkillsStatus.V,
+    Callback = function(value)
+        BloxSkillsStatus.V = value
+        spawn(function()
+            while BloxSkillsStatus.V do
+                wait()
+            end
+        end)
+    end,
+});
+
+SkillSettings:AddToggle({
+    Title = "Skill F",
+    Description = "",
+    Default = BloxSkillsStatus.F,
+    Callback = function(value)
+        BloxSkillsStatus.F = value
+        spawn(function()
+            while BloxSkillsStatus.F do
+                wait()
+            end
+        end)
+    end,
+});
 serverSection:AddSeperator("Server - Function");
 
 serverSection:AddButton({ Title = "Rejoin Server", Description = "", Callback = function()
