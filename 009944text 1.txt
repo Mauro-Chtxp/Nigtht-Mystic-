@@ -2255,6 +2255,35 @@ SkillSettings:AddToggle({
         end)
     end,
 });
+SkillSettings:AddSeperator("Farm Mastery Gun");
+
+SkillSettings:AddToggle({
+    Title = "Skill Z",
+    Description = "",
+    Default = GunSkillsStatus.Z,
+    Callback = function(value)
+        GunSkillsStatus.Z = value
+        spawn(function()
+            while GunSkillsStatus.Z do
+                wait()
+            end
+        end)
+    end,
+});
+
+SkillSettings:AddToggle({
+    Title = "Skill X",
+    Description = "",
+    Default = GunSkillsStatus.X,
+    Callback = function(value)
+        GunSkillsStatus.X = value
+        spawn(function()
+            while GunSkillsStatus.X do
+                wait()
+            end
+        end)
+    end,
+});
 serverSection:AddSeperator("Server - Function");
 
 serverSection:AddButton({ Title = "Rejoin Server", Description = "", Callback = function()
