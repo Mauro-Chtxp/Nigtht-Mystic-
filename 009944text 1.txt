@@ -27,8 +27,13 @@ task.spawn(function()
     end
 end)
 
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
 local desiredTeam = "Marines"
-game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("SetTeam", desiredTeam)
+
+if player.Team == nil or player.Team.Name ~= desiredTeam then
+    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("SetTeam", desiredTeam)
+end
 
 local Lighting = game:GetService("Lighting")
 
@@ -9418,181 +9423,145 @@ spawn(function()
 		end);
 	end;
 end);
-E:AddSeperator("Combat / Aimbot");
-__indexPlayer = E:AddParagraph({ Title = "All Players On Server :", Content = "" });
-spawn(function()
-	while wait(Sec) do
-		pcall(function()
-			for I, e in pairs((game:GetService("Players")):GetPlayers()) do
-				if I == 12 then
-					__indexPlayer:SetDesc("All Players :" .. (" " .. (I .. " / 12 [Max]")));
-				elseif I == 1 then
-					__indexPlayer:SetDesc("All Players  :" .. (" " .. (I .. " / 12")));
-				else
-					__indexPlayer:SetDesc("All Players  :" .. (" " .. (I .. " / 12")));
-				end;
-			end;
-		end);
-	end;
-end);
-__AimBotTurn = E:AddParagraph({ Title = "Aimbot Status :", Content = "" });
-local w5 = { "AimBots Skill", "Auto Aimbots" };
-Checking_AimStatus = function()
-		if _G.AimCam then
-			return "Aimbot Camera";
-		else
-			return "";
-		end;
-		if _G.AimbotGun then
-			return "Aimbot Guns";
-		else
-			return "";
-		end;
-	end;
-spawn(function()
-	while wait(.2) do
-		pcall(function()
-			if _G.AimMethod then
-				__AimBotTurn:SetDesc("Aimbot - Skills : True");
-			elseif (_G.AimCam or _G.AimbotGun) and _G.AimMethod then
-				__AimBotTurn:SetDesc("Aimbot - Skills |" .. (Checking_AimStatus() .. " :True"));
-			else
-				__AimBotTurn:SetDesc("Aimbot - Skills : False");
-			end;
-		end);
-	end;
-end);
-local O5 = {};
-for I, e in pairs((game:GetService("Players")):GetChildren()) do
-	table.insert(O5, e.Name);
-end;
+--// Services
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local plr = Players.LocalPlayer
+local cam = workspace.CurrentCamera
+
+--// Globals
+_G.AimCam = false
+_G.TpPly = false
+_G.SpectatePlys = false
+_G.SelectedPlayer = nil
+
+
+
+
+
+--// ===== Players =====
+E:AddSeperator("Players")
+
+local PlayerList = {}
+
+local function RefreshPlayers()
+    table.clear(PlayerList)
+    for _,v in pairs(Players:GetPlayers()) do
+        if v ~= plr then
+            table.insert(PlayerList, v.Name)
+        end
+    end
+end
+
+RefreshPlayers()
+
 E:AddDropdown({
-	Title = "Choose Players",
-	Description = "",
-	Values = O5,
-	Default = false,
-	Multi = false,
-	Callback = function(I)
-		_G.PlayersList = I;
-	end,
-});
+    Title = "Select Player",
+    Values = PlayerList,
+    Multi = false,
+    Callback = function(v)
+        _G.SelectedPlayer = v
+    end
+})
+
+E:AddButton({
+    Title = "Refresh Players",
+    Callback = function()
+        RefreshPlayers()
+    end
+})
+
+--// ===== AimBots =====
+E:AddSeperator("AimBots")
+
 E:AddToggle({
-	Title = "Teleport to choose players",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.TpPly = I;
-		spawn(function()
-			pcall(function()
-				while _G.TpPly do
-					wait();
-					_tp((game:GetService("Players"))[_G.PlayersList].Character.HumanoidRootPart.CFrame);
-				end;
-			end);
-		end);
-	end,
-});
+    Title = "Aimbot Cam Player",
+    Default = false,
+    Callback = function(v)
+        _G.AimCam = v
+    end
+})
+
+--// ===== Player =====
+E:AddSeperator("Player")
+
+-- Spectate
 E:AddToggle({
-	Title = "Spectate Choose Players",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		SpectatePlys = I;
-		spawn(function()
-			repeat
-				task.wait(.1);
-				workspace.Camera.CameraSubject = ((game:GetService("Players")):FindFirstChild(_G.PlayersList)).Character.Humanoid;
-			until not SpectatePlys;
-			workspace.Camera.CameraSubject = plr.Character.Humanoid;
-		end);
-	end,
-});
-E:AddDropdown({
-	Title = "Choose Aim Method",
-	Description = "",
-	Values = w5,
-	Default = false,
-	Multi = false,
-	Callback = function(I)
-		ABmethod = I;
-	end,
-});
+    Title = "Spectate Player",
+    Default = false,
+    Callback = function(v)
+        _G.SpectatePlys = v
+
+        task.spawn(function()
+            while _G.SpectatePlys do
+                task.wait(0.1)
+                pcall(function()
+                    local tgt = Players:FindFirstChild(_G.SelectedPlayer)
+                    if tgt and tgt.Character and tgt.Character:FindFirstChild("Humanoid") then
+                        cam.CameraSubject = tgt.Character.Humanoid
+                    end
+                end)
+            end
+            cam.CameraSubject = plr.Character:FindFirstChild("Humanoid")
+        end)
+    end
+})
+
+-- Teleport
 E:AddToggle({
-	Title = "Aimbot Method Skills",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.AimMethod = I;
-	end,
-});
-task.spawn(function()
-	while task.wait() do
-		pcall(function()
-			if _G.AimMethod and ABmethod == "AimBots Skill" then
-				for I, e in pairs((game:GetService("Players")):GetPlayers()) do
-					if e.Name == _G.PlayersList and e.Team ~= game.Players.LocalPlayer.Team then
-						MousePos = (e.Character:FindFirstChild("HumanoidRootPart")).Position;
-					end;
-				end;
-			end;
-		end);
-	end;
-end);
-task.spawn(function()
-	while task.wait() do
-		pcall(function()
-			if _G.AimMethod and ABmethod == "Auto Aimbots" then
-				local I = math.huge;
-				for e, K in pairs((game:GetService("Players")):GetPlayers()) do
-					if K.Name ~= plr.Name and K.Team ~= game.Players.LocalPlayer.Team then
-						local e = K:DistanceFromCharacter(plr.Character.HumanoidRootPart.Position);
-						if e < I then
-							I = e;
-							MousePos = (K.Character:FindFirstChild("HumanoidRootPart")).Position;
-						end;
-					end;
-				end;
-			end;
-		end);
-	end;
-end);
-E:AddToggle({
-	Title = "Aimbot Camera Closet Players",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.AimCam = I;
-	end,
-});
-task.spawn(function()
-	while task.wait(Sec) do
-		pcall(function()
-			if _G.AimCam then
-				local I = workspace.CurrentCamera;
-				closestplayer = function()
-						local I = math.huge;
-						local e = nil;
-						for K, n in next, ply:GetPlayers() do
-							if n ~= plr then
-								if n.Character and (n.Character:FindFirstChild("Head") and (_G.AimCam and n.Character.Humanoid.Health > 0)) then
-									local K = (n.Character.Head.Position - plr.Character.Head.Position).Magnitude;
-									if K < I then
-										I = K;
-										e = n;
-									end;
-								end;
-							end;
-						end;
-						return e;
-					end;
-				repeat
-					task.wait();
-					I.CFrame = CFrame.new(I.CFrame.Position, (closestplayer()).Character.HumanoidRootPart.Position);
-				until _G.AimCam == false or Mag > dist;
-			end;
-		end);
-	end;
-end);
+    Title = "Teleport Player",
+    Default = false,
+    Callback = function(v)
+        _G.TpPly = v
+
+        task.spawn(function()
+            while _G.TpPly do
+                task.wait()
+                pcall(function()
+                    local tgt = Players:FindFirstChild(_G.SelectedPlayer)
+                    if tgt and tgt.Character and tgt.Character:FindFirstChild("HumanoidRootPart") then
+                        plr.Character.HumanoidRootPart.CFrame =
+                            tgt.Character.HumanoidRootPart.CFrame * CFrame.new(0,0,2)
+                    end
+                end)
+            end
+        end)
+    end
+})
+
+--// ===== Aimbot Camera System =====
+local function GetClosestPlayer()
+    local closest, dist = nil, math.huge
+
+    for _,v in pairs(Players:GetPlayers()) do
+        if v ~= plr and v.Character
+        and v.Character:FindFirstChild("Head")
+        and v.Character:FindFirstChild("Humanoid")
+        and v.Character.Humanoid.Health > 0 then
+
+            local mag = (v.Character.Head.Position - plr.Character.Head.Position).Magnitude
+            if mag < dist then
+                dist = mag
+                closest = v
+            end
+        end
+    end
+    return closest
+end
+
+RunService.RenderStepped:Connect(function()
+    if _G.AimCam then
+        pcall(function()
+            local tgt = GetClosestPlayer()
+            if tgt and tgt.Character and tgt.Character:FindFirstChild("HumanoidRootPart") then
+                cam.CFrame = CFrame.new(
+                    cam.CFrame.Position,
+                    tgt.Character.HumanoidRootPart.Position
+                )
+            end
+        end)
+    end
+end)
 E:AddSeperator("Speed/Jump");
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
