@@ -2288,8 +2288,7 @@ SkillSettings:AddToggle({
     end,
 });
 
--- Separador e toggles para Sea Event
-SkillSettings:AddSeperator("Skill Sea Event");
+SkillSettings:AddSeperator("Skill Sea Event")
 
 SkillSettings:AddToggle({
     Title = "Skill Z",
@@ -2297,13 +2296,8 @@ SkillSettings:AddToggle({
     Default = SeaEventSkillsStatus.Z,
     Callback = function(value)
         SeaEventSkillsStatus.Z = value
-        spawn(function()
-            while SeaEventSkillsStatus.Z do
-                wait()
-            end
-        end)
     end,
-});
+})
 
 SkillSettings:AddToggle({
     Title = "Skill X",
@@ -2311,13 +2305,8 @@ SkillSettings:AddToggle({
     Default = SeaEventSkillsStatus.X,
     Callback = function(value)
         SeaEventSkillsStatus.X = value
-        spawn(function()
-            while SeaEventSkillsStatus.X do
-                wait()
-            end
-        end)
     end,
-});
+})
 
 SkillSettings:AddToggle({
     Title = "Skill C",
@@ -2325,13 +2314,8 @@ SkillSettings:AddToggle({
     Default = SeaEventSkillsStatus.C,
     Callback = function(value)
         SeaEventSkillsStatus.C = value
-        spawn(function()
-            while SeaEventSkillsStatus.C do
-                wait()
-            end
-        end)
     end,
-});
+})
 
 SkillSettings:AddToggle({
     Title = "Skill V",
@@ -2339,13 +2323,8 @@ SkillSettings:AddToggle({
     Default = SeaEventSkillsStatus.V,
     Callback = function(value)
         SeaEventSkillsStatus.V = value
-        spawn(function()
-            while SeaEventSkillsStatus.V do
-                wait()
-            end
-        end)
     end,
-});
+})
 
 SkillSettings:AddToggle({
     Title = "Skill F",
@@ -2353,13 +2332,8 @@ SkillSettings:AddToggle({
     Default = SeaEventSkillsStatus.F,
     Callback = function(value)
         SeaEventSkillsStatus.F = value
-        spawn(function()
-            while SeaEventSkillsStatus.F do
-                wait()
-            end
-        end)
     end,
-});
+})
 serverSection:AddSeperator("Server - Function");
 
 serverSection:AddButton({ Title = "Rejoin Server", Description = "", Callback = function()
