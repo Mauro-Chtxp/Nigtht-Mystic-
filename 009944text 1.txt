@@ -4306,11 +4306,16 @@ spawn(function()
 
                 -- Accept Quest específico
                 if _G.AcceptQuest and not QuestUI.Visible then
-                    local npcPos = CFrame.new(-9516.99316, 172.017181, 6078.46533)
+                    local npcPos = CFrame.new(
+                        -9514.88867, 172.134674, 6078.83105,
+                        0.0388139971, 3.72675496e-08, 0.999246478,
+                        3.67279895e-08, 1, -3.87157293e-08,
+                        -0.999246478, 3.82030265e-08, 0.0388139971
+                    )
                     TeleportConditional(hrp, npcPos, TELEPORT_DISTANCE_THRESHOLD)
 
                     if (npcPos.Position - hrp.Position).Magnitude <= 50 then
-                        task.wait(1)  -- espera 1 segundo antes de aceitar
+                        task.wait(1)
                         pcall(function()
                             game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", "HauntedQuest2", 1)
                         end)
@@ -4357,82 +4362,6 @@ spawn(function()
 end)
 
 -- =====================================
--- SISTEMA LEVEL FARM
--- =====================================
-local CurrentMob = nil
-local function GetNearestMob(TargetName)
-    local plr = game.Players.LocalPlayer
-    local Root = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
-    if not Root then return nil end
-
-    local Closest, Dist = nil, math.huge
-    for _, Mob in pairs(workspace.Enemies:GetChildren()) do
-        if G.Alive(Mob) and Mob.Name == TargetName and Mob:FindFirstChild("HumanoidRootPart") then
-            local d = (Mob.HumanoidRootPart.Position - Root.Position).Magnitude
-            if d < Dist then
-                Dist = d
-                Closest = Mob
-            end
-        end
-    end
-    return Closest
-end
-
-spawn(function()
-    while task.wait() do
-        if _G.Level and _G.StartFarm then
-            pcall(function()
-                local plr = game.Players.LocalPlayer
-                local Root = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
-                if not Root then return end
-
-                local QuestTitle = plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text
-                local Q = QuestNeta()
-
-                if not string.find(QuestTitle, Q[5]) then
-                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AbandonQuest")
-                end
-
-                if not plr.PlayerGui.Main.Quest.Visible then
-                    TeleportConditional(Root, Q[6], TELEPORT_DISTANCE_THRESHOLD)
-                    if (Root.Position - Q[6].Position).Magnitude <= 50 then
-                        task.wait(1.9)
-                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", Q[3], Q[2])
-                    end
-                    return
-                end
-
-                local Nearest = GetNearestMob(Q[1])
-
-                if CurrentMob and G.Alive(CurrentMob) and CurrentMob.Parent then
-                    G.Kill(CurrentMob, true)
-                    return
-                else
-                    CurrentMob = nil
-                end
-
-                if not Nearest then
-                    TeleportConditional(Root, Q[4], TELEPORT_DISTANCE_THRESHOLD)
-                    return
-                end
-
-                CurrentMob = Nearest
-                if CurrentMob and CurrentMob:FindFirstChild("HumanoidRootPart") then
-                    _tp(CurrentMob.HumanoidRootPart.CFrame)
-                end
-
-                repeat
-                    task.wait()
-                    G.Kill(CurrentMob, true)
-                until not _G.StartFarm or not _G.Level or not CurrentMob.Parent or CurrentMob.Humanoid.Health <= 0
-
-                CurrentMob = nil
-            end)
-        end
-    end
-end)
-
--- =====================================
 -- SISTEMA CAKE PRINCE FARM
 -- =====================================
 spawn(function()
@@ -4447,23 +4376,20 @@ spawn(function()
                 if not enemies then return end
 
                 local CakePos = CFrame.new(-2091.91, 70.00, -12142.83)
-                local PortalEntrance = CFrame.new(-2151.82, 149.32, -12404.91)
-
-                local mirror = workspace.Map:FindFirstChild("CakeLoaf")
-                mirror = mirror and mirror:FindFirstChild("BigMirror")
-                local other = mirror and mirror:FindFirstChild("Other")
-                local portalOpen = other and other.Transparency == 0
-
-                local boss = enemies:FindFirstChild("Cake Prince") or enemies:FindFirstChild("Dough King")
 
                 -- Quest específico
                 local QuestUI = plr.PlayerGui.Main.Quest
                 if _G.AcceptQuest and not QuestUI.Visible then
-                    local questPos = CFrame.new(-1927.91602, 37.7981339, -12842.5391)
+                    local questPos = CFrame.new(
+                        -1928.13989, 37.8279877, -12842.7715,
+                        -0.996700227, -6.51075496e-08, 0.0811707973,
+                        -6.88857682e-08, 1, -4.37461267e-08,
+                        0.0811707973, -4.919332859e-08, -0.996700227
+                    )
                     TeleportConditional(hrp, questPos, TELEPORT_DISTANCE_THRESHOLD)
 
                     if (hrp.Position - questPos.Position).Magnitude <= 40 then
-                        task.wait(1)  -- espera 1 segundo antes de aceitar
+                        task.wait(1)
                         pcall(function()
                             game.ReplicatedStorage.Remotes.CommF_:InvokeServer("StartQuest", "CakeQuest2", 1)
                         end)
