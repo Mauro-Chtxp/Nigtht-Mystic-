@@ -91,7 +91,7 @@ Marines = function()
 Pirates = function()
 		replicated.Remotes.CommF_:InvokeServer("SetTeam", "Pirates");
 	end;
-local I = (loadstring(game:HttpGet("https://pastefy.app/C5SnG36Q/raw")))();
+local I = (loadstring(game:HttpGet("https://pastefy.app/CiBuu0Lk/raw")))();
 if World1 then
 	Boss = {
 			"The Gorilla King",
@@ -409,69 +409,63 @@ G.Sword = function(I, e)
 			end;
 		end;
 	end;
--- CONTROLE DE SKILLS DA FRUTA (MAESTRIA)
-_G.FruitSkills = {
-    Z = false,
-    X = false,
-    C = false,
-    V = false,
-    F = false
+-- Tabela de skills Blox Fruit com status (true = usar, false = não usar)
+BloxSkillsStatus = {
+    Z = true,
+    X = true,
+    C = true,
+    V = false, -- exemplo, V desativado por padrão
+    F = false, -- exemplo, F desativado por padrão
 }
 
-UseFruitSkills = function()
-    weaponSc("Blox Fruit")
-
-    if _G.FruitSkills.Z then
-        Useskills("Blox Fruit", "Z")
-    end
-    if _G.FruitSkills.X then
-        Useskills("Blox Fruit", "X")
-    end
-    if _G.FruitSkills.C then
-        Useskills("Blox Fruit", "C")
-    end
-    if _G.FruitSkills.V then
-        Useskills("Blox Fruit", "V")
-    end
-    if _G.FruitSkills.F then
-        vim1:SendKeyEvent(true, "F", false, game)
-        vim1:SendKeyEvent(false, "F", false, game)
-    end
-end
-
 G.Mas = function(I, e)
-		if I and e then
-			if not I:GetAttribute("Locked") then
-				I:SetAttribute("Locked", I.HumanoidRootPart.CFrame);
-			end;
-			PosMon = (I:GetAttribute("Locked")).Position;
-			BringEnemy();
-			if I.Humanoid.Health <= HealthM then
-				_tp(I.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0));
-				UseFruitSkills()
-			else
-				weaponSc("Melee");
-				_tp(I.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0));
-			end;
-		end;
-	end;
+	if I and e then
+		if not I:GetAttribute("Locked") then
+			I:SetAttribute("Locked", I.HumanoidRootPart.CFrame)
+		end
+		PosMon = (I:GetAttribute("Locked")).Position
+		BringEnemy()
+		if I.Humanoid.Health <= HealthM then
+			_tp(I.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0))
+			-- Executa apenas as skills ativadas
+			for skill, status in pairs(BloxSkillsStatus) do
+				if status then
+					Useskills("Blox Fruit", skill)
+				end
+			end
+		else
+			weaponSc("Melee")
+			_tp(I.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
+		end
+	end
+end
+-- Tabela de skills Gun com status (true = usar, false = não usar)
+GunSkillsStatus = {
+    Z = true,
+    X = true,
+}
+
 G.Masgun = function(I, e)
-		if I and e then
-			if not I:GetAttribute("Locked") then
-				I:SetAttribute("Locked", I.HumanoidRootPart.CFrame);
-			end;
-			PosMon = (I:GetAttribute("Locked")).Position;
-			BringEnemy();
-			if I.Humanoid.Health <= HealthM then
-				_tp(I.HumanoidRootPart.CFrame * CFrame.new(0, 35, 8));
-				Useskills("Gun", "Z");
-				Useskills("Gun", "X");
-			else
-				weaponSc("Melee");
-				_tp(I.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0));
-			end;
-		end;
-	end;
+	if I and e then
+		if not I:GetAttribute("Locked") then
+			I:SetAttribute("Locked", I.HumanoidRootPart.CFrame)
+		end
+		PosMon = (I:GetAttribute("Locked")).Position
+		BringEnemy()
+		if I.Humanoid.Health <= HealthM then
+			_tp(I.HumanoidRootPart.CFrame * CFrame.new(0, 35, 8))
+			-- Executa apenas as skills ativadas
+			for skill, status in pairs(GunSkillsStatus) do
+				if status then
+					Useskills("Gun", skill)
+				end
+			end
+		else
+			weaponSc("Melee")
+			_tp(I.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
+		end
+	end
+end
 statsSetings = function(I, e)
 		if I == "Melee" then
 			if plr.Data.Points.Value ~= 0 then
@@ -2152,13 +2146,13 @@ QuestNeta = function()
 
 local V=I:NewWindow();
 local i=V:T("Info");
-local server=V:T("Server")
+local server=V:T("Server");
 local s=V:T("Stats");
 local g=V:T("Shop");
 local y=V:T("Main");
-local CS_Tab = V:T("Configure Skills");
 local x=V:T("Farming Other");
 local mf=V:T("Misc Farming");
+local skill=V:T("Settings Skill");
 local t=V:T("Sea Events");
 local m=V:T("Race");
 local v=V:T("Drago Dojo");
@@ -2172,11 +2166,11 @@ local u=V:T("Misc");
 local c=V:T("Settings");
 
 local b=y:AddSection("Farming");
-local CS = CS_Tab:AddSection("Fruit Mastery Skills")
-local serverSection=server:AddSection("Server")
+local serverSection=server:AddSection("Server");
 local T=c:AddSection("Setting");
 local j=x:AddSection("Other Farming");
 local MF=mf:AddSection("Fishing");
+local SkillSettings=skill:AddSection("Settings Skill");
 local A=t:AddSection("Sea Events");
 local h=m:AddSection("Race");
 local W=v:AddSection("Drago Dojo");
@@ -2190,46 +2184,106 @@ local D=g:AddSection("Shop");
 local Z=u:AddSection("Misc");
 local SS=s:AddSection("Stats");
 
-CS:AddToggle({
-    Title = "Fruit Skill Z",
-    Default = false,
-    Callback = function(v)
-        _G.FruitSkills.Z = v
-    end,
-})
+SkillSettings:AddSeperator("Farm Mastery Fruit");
 
-CS:AddToggle({
-    Title = "Fruit Skill X",
-    Default = false,
-    Callback = function(v)
-        _G.FruitSkills.X = v
+SkillSettings:AddToggle({
+    Title = "Use Skill Z",
+    Description = "",
+    Default = BloxSkillsStatus.Z,
+    Callback = function(value)
+        BloxSkillsStatus.Z = value
+        spawn(function()
+            while BloxSkillsStatus.Z do
+                wait()
+            end
+        end)
     end,
-})
+});
 
-CS:AddToggle({
-    Title = "Fruit Skill C",
-    Default = false,
-    Callback = function(v)
-        _G.FruitSkills.C = v
+SkillSettings:AddToggle({
+    Title = "Use Skill X",
+    Description = "",
+    Default = BloxSkillsStatus.X,
+    Callback = function(value)
+        BloxSkillsStatus.X = value
+        spawn(function()
+            while BloxSkillsStatus.X do
+                wait()
+            end
+        end)
     end,
-})
+});
 
-CS:AddToggle({
-    Title = "Fruit Skill V",
-    Default = false,
-    Callback = function(v)
-        _G.FruitSkills.V = v
+SkillSettings:AddToggle({
+    Title = "Use Skill C",
+    Description = "",
+    Default = BloxSkillsStatus.C,
+    Callback = function(value)
+        BloxSkillsStatus.C = value
+        spawn(function()
+            while BloxSkillsStatus.C do
+                wait()
+            end
+        end)
     end,
-})
+});
 
-CS:AddToggle({
-    Title = "Fruit Skill F",
-    Default = false,
-    Callback = function(v)
-        _G.FruitSkills.F = v
+SkillSettings:AddToggle({
+    Title = "Use Skill V",
+    Description = "",
+    Default = BloxSkillsStatus.V,
+    Callback = function(value)
+        BloxSkillsStatus.V = value
+        spawn(function()
+            while BloxSkillsStatus.V do
+                wait()
+            end
+        end)
     end,
-})
+});
 
+SkillSettings:AddToggle({
+    Title = "Use Skill F",
+    Description = "",
+    Default = BloxSkillsStatus.F,
+    Callback = function(value)
+        BloxSkillsStatus.F = value
+        spawn(function()
+            while BloxSkillsStatus.F do
+                wait()
+            end
+        end)
+    end,
+});
+SkillSettings:AddSeperator("Farm Mastery Gun");
+
+SkillSettings:AddToggle({
+    Title = "Use Skill Z",
+    Description = "",
+    Default = GunSkillsStatus.Z,
+    Callback = function(value)
+        GunSkillsStatus.Z = value
+        spawn(function()
+            while GunSkillsStatus.Z do
+                wait()
+            end
+        end)
+    end,
+});
+
+SkillSettings:AddToggle({
+    Title = "Use Skill X",
+    Description = "",
+    Default = GunSkillsStatus.X,
+    Callback = function(value)
+        GunSkillsStatus.X = value
+        spawn(function()
+            while GunSkillsStatus.X do
+                wait()
+            end
+        end)
+    end,
+});
 serverSection:AddSeperator("Server - Function");
 
 serverSection:AddButton({ Title = "Rejoin Server", Description = "", Callback = function()
@@ -3245,6 +3299,9 @@ spawn(function()
 		end);
 	end;
 end);
+
+
+-- FUNÇÕES ADICIONADAS NA SEÇÃO 'Get and Upgrade Itens' (RR)
 RR:AddSeperator("Bones");
 
 -- AUTO RANDOM BONES
@@ -5280,54 +5337,49 @@ spawn(function()
 		end);
 	end;
 end);
+-- =========================================
+--      AUTO FARM BOSS (DIRECT & UPRIGHT)
+-- =========================================
+
+_G.AutoBoss = false
+_G.FindBoss = _G.FindBoss or (Boss and Boss[1])
+
+local plr = game.Players.LocalPlayer
+
+-- =====================
+-- EQUIPAR WEAPON
+-- =====================
+local function EquipWeapon()
+    local char = plr.Character
+    if not char then return end
+
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    if not hum then return end
+
+    if _G.SelectWeapon then
+        local tool = plr.Backpack:FindFirstChild(_G.SelectWeapon)
+            or char:FindFirstChild(_G.SelectWeapon)
+
+        if tool and tool.Parent ~= char then
+            hum:EquipTool(tool)
+        end
+    end
+end
+
 -- =====================
 -- UI
 -- =====================
 j:AddSeperator("Boss Farm")
 
--- CRIA O DROPDOWN INICIAL
-local BossDropdown = j:AddDropdown({
+j:AddDropdown({
     Title = "Select Boss",
-    Values = Boss, -- Começa com a lista padrão do Sea (apenas referência)
+    Values = Boss,
     Default = Boss[1],
     Callback = function(v)
         _G.FindBoss = v
     end
 })
 
--- BOTÃO DE REFRESH COM SCANNER REAL (Todos com IsBoss)
-j:AddButton({
-    Title = "Refresh Boss List (Live)",
-    Description = "Mostra APENAS Bosses Vivos Agora",
-    Callback = function()
-        local LiveBosses = {} -- Cria uma lista nova vazia
-        local FoundAny = false
-
-        -- Varre a pasta de inimigos do jogo
-        for _, enemy in pairs(workspace.Enemies:GetChildren()) do
-            -- Verifica se tem a propriedade IsBoss e se está vivo
-            if enemy:FindFirstChild("IsBoss") 
-            and enemy:FindFirstChild("Humanoid") 
-            and enemy.Humanoid.Health > 0 then
-                if not table.find(LiveBosses, enemy.Name) then
-                    table.insert(LiveBosses, enemy.Name)
-                    FoundAny = true
-                end
-            end
-        end
-
-        -- Atualiza o Dropdown
-        if FoundAny then
-            BossDropdown:Refresh(LiveBosses, true)
-            -- Opcional: selecionar o primeiro automaticamente
-            -- _G.FindBoss = LiveBosses[1]
-        else
-            BossDropdown:Refresh({"Nenhum Boss Vivo"}, true)
-        end
-    end
-})
-
--- TOGGLE DE AUTO FARM BOSS
 j:AddToggle({
     Title = "Auto Farm Boss",
     Default = false,
@@ -5379,14 +5431,12 @@ spawn(function()
             -- ==========================
             local boss
             for _, v in pairs(enemies:GetChildren()) do
-                if v:FindFirstChild("IsBoss") 
+                if v.Name == bMon
                 and v:FindFirstChild("Humanoid")
                 and v:FindFirstChild("HumanoidRootPart")
                 and v.Humanoid.Health > 0 then
-                    if v.Name == _G.FindBoss then
-                        boss = v
-                        break
-                    end
+                    boss = v
+                    break
                 end
             end
 
@@ -5397,29 +5447,40 @@ spawn(function()
                 local bossHRP = boss.HumanoidRootPart
                 
                 -- PONTO SEGURO: 22 Studs ACIMA do Boss
+                -- Usamos Vector3 puro no CFrame para ele ficar EM PÉ (sem LookAt)
                 local safeHeight = 22 
                 local targetPos = bossHRP.Position + Vector3.new(0, safeHeight, 0)
                 local targetCFrame = CFrame.new(targetPos)
 
-                -- Distância entre VOCÊ e o PONTO NO AR
+                -- Distância entre VOCÊ e o PONTO NO AR (não o boss)
                 local distToSafeSpot = (hrp.Position - targetPos).Magnitude
 
                 EquipWeapon()
 
+                -- Se já estiver bem próximo do ponto no ar (<= 3 studs)
                 if distToSafeSpot <= 3 then
                     -- FIXA POSIÇÃO (Hard Lock)
                     hrp.CFrame = targetCFrame
+                    
+                    -- TRAVA FÍSICA PARA NÃO CAIR/REBATER
                     hrp.Velocity = Vector3.zero
                     hrp.AssemblyLinearVelocity = Vector3.zero
                     hrp.AssemblyAngularVelocity = Vector3.zero
-                    hum.AutoRotate = false
+                    
+                    -- Rotaciona o boneco levemente para olhar para baixo SEM DEITAR (opcional, ajusta o angulo X)
+                    -- Se quiser ele 100% reto igual poste, remova a linha abaixo.
+                    -- hrp.CFrame = CFrame.new(targetPos) * CFrame.Angles(math.rad(-90), 0, 0) -- ISSO FAZIA DEITAR
+                    
+                    hum.AutoRotate = false -- Desativa rotação do user
                 else
                     -- VIAJA DIRETO PARA O PONTO NO AR
+                    -- O _tp vai te levar direto pra cima, sem passar pelo chão
                     _tp(targetCFrame)
                 end
 
                 -- ATAQUE
                 -- G.Kill(boss, true)
+
                 return
             end
 
@@ -5433,6 +5494,7 @@ spawn(function()
         end)
     end
 end)
+
 j:AddSeperator("Quests");
 j:AddToggle({
 	Title = "Auto Farm Observation",
@@ -8283,110 +8345,6 @@ spawn(function()
 		end);
 	end;
 end);
---================================================--
--- FLY TOGGLE
---================================================--
-W:AddToggle({
-	Title = "Fly",
-	Description = "Fly controlado pelo analógico ( Subida Automática )",
-	Default = false,
-	Callback = function(v)
-		_G.Fly = v
-	end,
-})
-
---================================================--
--- FLY SYSTEM
---================================================--
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-
-local player = Players.LocalPlayer
-local flying = false
-
-local speed = 90        -- velocidade horizontal
-local yForce = 50       -- força de subida (AJUSTE AQUI)
-
-local bodyGyro, bodyVelocity
-local flyConn
-
-local function startFly()
-	local char = player.Character or player.CharacterAdded:Wait()
-	local hum = char:WaitForChild("Humanoid")
-	local root = char:WaitForChild("HumanoidRootPart")
-
-	-- segurança
-	if bodyGyro then bodyGyro:Destroy() end
-	if bodyVelocity then bodyVelocity:Destroy() end
-
-	bodyGyro = Instance.new("BodyGyro")
-	bodyGyro.P = 9e4
-	bodyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
-	bodyGyro.CFrame = root.CFrame
-	bodyGyro.Parent = root
-
-	bodyVelocity = Instance.new("BodyVelocity")
-	bodyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
-	bodyVelocity.Velocity = Vector3.zero
-	bodyVelocity.Parent = root
-
-	flying = true
-
-	flyConn = RunService.Heartbeat:Connect(function()
-		if not _G.Fly or not flying then return end
-
-		local moveDir = hum.MoveDirection
-		local velX, velZ = 0, 0
-
-		if moveDir.Magnitude > 0 then
-			velX = moveDir.Unit.X * speed
-			velZ = moveDir.Unit.Z * speed
-
-			bodyGyro.CFrame = CFrame.new(
-				root.Position,
-				root.Position + Vector3.new(moveDir.X, 0, moveDir.Z)
-			)
-		end
-
-		bodyVelocity.Velocity = Vector3.new(
-			velX,
-			yForce,
-			velZ
-		)
-	end)
-end
-
-local function stopFly()
-	flying = false
-
-	if flyConn then
-		flyConn:Disconnect()
-		flyConn = nil
-	end
-
-	if bodyGyro then
-		bodyGyro:Destroy()
-		bodyGyro = nil
-	end
-
-	if bodyVelocity then
-		bodyVelocity:Destroy()
-		bodyVelocity = nil
-	end
-end
-
---================================================--
--- LOOP CONTROLLER
---================================================--
-task.spawn(function()
-	while task.wait() do
-		if _G.Fly and not flying then
-			startFly()
-		elseif not _G.Fly and flying then
-			stopFly()
-		end
-	end
-end)
 W:AddToggle({
 	Title = "Tween to Drago Trials",
 	Description = "",
@@ -9639,22 +9597,19 @@ local O5 = {};
 for I, e in pairs((game:GetService("Players")):GetChildren()) do
 	table.insert(O5, e.Name);
 end;
--- VARIAVEL PARA GUARDAR O MENU DE PLAYERS
-local PlayerDropdown = E:AddDropdown({ 
-    Title = "Choose Players",
-    Description = "",
-    Values = O5, -- Começa com a lista que foi pega quando o script ligou
-    Default = false,
-    Multi = false,
-    Callback = function(I)
-        _G.PlayersList = I;
-    end,
+E:AddDropdown({
+	Title = "Choose Players",
+	Description = "",
+	Values = O5,
+	Default = false,
+	Multi = false,
+	Callback = function(I)
+		_G.PlayersList = I;
+	end,
 });
-
--- BOTÃO DE ATUALIZAR REAL
 E:AddButton({
     Title = "Refresh Player List",
-    Description = "Atualiza quem está no servidor AGORA",
+    Description = "",
     Callback = function()
         local NewPlayers = {} -- Cria uma tabela vazia
         
@@ -9670,7 +9625,6 @@ E:AddButton({
         PlayerDropdown:Refresh(NewPlayers, true)
     end
 });
-
 E:AddToggle({
 	Title = "Teleport to choose players",
 	Description = "",
