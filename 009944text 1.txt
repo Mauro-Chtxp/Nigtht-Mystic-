@@ -4233,7 +4233,7 @@ spawn(function()
 end)
 
 
--- VARIÁVEIS GLOBAIS
+-- VARIAVEIS GLOBAIS
 _G.SelectedFarmMode = "Level"
 _G.StartFarm = false
 _G.Level = false
@@ -4241,23 +4241,29 @@ _G.AutoFarm_Bone = false
 _G.AutoFarm_Cake = false
 _G.AcceptQuest = false
 
--- Limite de distância para teleporte condicional
-local TELEPORT_DISTANCE_THRESHOLD = 15
+-- Variável para guardar o mob de Level Farm
+local CurrentMobLevel = nil
+local CurrentMobLevelSystem = nil
 
--- Função de Teleporte Instantâneo quando próximo (<=10 studs)
-local function TeleportNear(hrp, targetCFrame)
+-- Define o limite de distância para teleporte condicional (em studs)
+local TELEPORT_DISTANCE_THRESHOLD = 15 
+
+-- Função auxiliar para teleporte condicional
+local function TeleportConditional(hrp, targetCFrame, threshold)
     if not hrp or not targetCFrame then return end
-    local dist = (hrp.Position - targetCFrame.Position).Magnitude
-    if dist <= 10 then
-        hrp.CFrame = targetCFrame
-        hrp.Velocity = Vector3.new(0,0,0)
-        if hrp:FindFirstChild("AssemblyLinearVelocity") then
-            hrp.AssemblyLinearVelocity = Vector3.new(0,0,0)
-        end
+    
+    local dist = (targetCFrame.Position - hrp.Position).Magnitude  
+    if dist > threshold then  
+        _tp(targetCFrame)  
     end
+    
 end
 
--- UI: DROPDOWN + TOGGLES
+
+---
+
+-- 1. UI: DROPDOWN + TOGGLES
+
 b:AddDropdown({
     Title = "Select Farm Mode",
     Values = {"Level", "Bone", "Cake Prince"},
@@ -4272,20 +4278,23 @@ b:AddToggle({
     Default = false,
     Callback = function(v)
         _G.StartFarm = v
-        _G.Level = false
-        _G.AutoFarm_Bone = false
-        _G.AutoFarm_Cake = false
 
-        if v then
-            if _G.SelectedFarmMode == "Level" then
-                _G.Level = true
-            elseif _G.SelectedFarmMode == "Bone" then
-                _G.AutoFarm_Bone = true
-            elseif _G.SelectedFarmMode == "Cake Prince" then
-                _G.AutoFarm_Cake = true
-            end
-        end
+        -- Reset total  
+        _G.Level = false  
+        _G.AutoFarm_Bone = false  
+        _G.AutoFarm_Cake = false  
+
+        if v then  
+            if _G.SelectedFarmMode == "Level" then  
+                _G.Level = true  
+            elseif _G.SelectedFarmMode == "Bone" then  
+                _G.AutoFarm_Bone = true  
+            elseif _G.SelectedFarmMode == "Cake Prince" then  
+                _G.AutoFarm_Cake = true  
+            end  
+        end  
     end
+
 })
 
 b:AddToggle({
@@ -4296,75 +4305,184 @@ b:AddToggle({
     end
 })
 
--- =====================================
--- SISTEMA BONE FARM
--- =====================================
+
+---
+
+-- 2. SISTEMA BONE FARM (MODIFICADO PARA TELEPORTE INSTANTÂNEO NO MOB)
+
 spawn(function()
     while task.wait() do
         if _G.AutoFarm_Bone and _G.StartFarm then
             pcall(function()
-                local plr = game.Players.LocalPlayer
-                local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
-                if not hrp then return end
-                local QuestUI = plr.PlayerGui.Main.Quest
 
-                -- Accept Quest específico
-                if _G.AcceptQuest and not QuestUI.Visible then
-                    local npcPos = CFrame.new(
-                        -9514.88867, 172.134674, 6078.83105,
-                        0.0388139971, 3.72675496e-08, 0.999246478,
-                        3.67279895e-08, 1, -3.87157293e-08,
-                        -0.999246478, 3.82030265e-08, 0.0388139971
-                    )
-                    TeleportNear(hrp, npcPos)
-                    task.wait(1)
-                    pcall(function()
-                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", "HauntedQuest2", 1)
-                    end)
-                end
+                local plr = game.Players.LocalPlayer  
+                local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")  
+                if not hrp then return end  
 
-                -- Mobs
-                local MOBS = {"Reborn Skeleton", "Living Zombie", "Demonic Soul", "Posessed Mummy"}
+                local QuestUI = plr.PlayerGui.Main.Quest      
 
-                local function GetClosestMob()
-                    local closest
-                    local shortest = math.huge
-                    for _, mobName in pairs(MOBS) do
-                        for _, mob in pairs(workspace.Enemies:GetChildren()) do
-                            if mob.Name == mobName and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
-                                local dist = (mob.PrimaryPart.Position - hrp.Position).Magnitude
-                                if dist < shortest then
-                                    shortest = dist
-                                    closest = mob
-                                end
-                            end
-                        end
-                    end
-                    return closest
-                end
+                local MOBS = {      
+                    "Reborn Skeleton",      
+                    "Living Zombie",      
+                    "Demonic Soul",      
+                    "Posessed Mummy",      
+                }      
 
-                local mob = GetClosestMob()
+                -- ACCEPT QUEST: Aplicando teleporte condicional  
+                if _G.AcceptQuest and not QuestUI.Visible then      
+                    local npcPos = CFrame.new(-9516.99,172.01,6078.46)      
+                    TeleportConditional(hrp, npcPos, TELEPORT_DISTANCE_THRESHOLD)      
 
-                if mob then
-                    repeat task.wait()
-                        if mob.Parent and mob.Humanoid.Health > 0 then
-                            _tp(mob.PrimaryPart.CFrame)
-                            G.Kill(mob, _G.AutoFarm_Bone)
-                        else
-                            break
-                        end
-                    until not _G.StartFarm or not _G.AutoFarm_Bone
-                else
-                    TeleportNear(hrp, CFrame.new(-9495.68, 453.58, 5977.34))
-                end
-            end)
-        end
+                    if (npcPos.Position - hrp.Position).Magnitude > 50 then     
+                        task.wait(0.2)  
+                        return     
+                    end      
+
+                    local choose = math.random(1,4)      
+                    local q = {      
+                        { "StartQuest","HauntedQuest2",2 },      
+                        { "StartQuest","HauntedQuest2",1 },      
+                        { "StartQuest","HauntedQuest1",1 },      
+                        { "StartQuest","HauntedQuest1",2 },      
+                    }      
+
+                    pcall(function()      
+                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(q[choose]))      
+                    end)      
+                end      
+
+                local function GetClosestMob()      
+                    local closest      
+                    local shortest = math.huge      
+                    for _, mobName in pairs(MOBS) do      
+                        for _, mob in pairs(workspace.Enemies:GetChildren()) do      
+                            if mob.Name == mobName and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then      
+                                local dist = (mob.PrimaryPart.Position - hrp.Position).Magnitude      
+                                if dist < shortest then      
+                                    shortest = dist      
+                                    closest = mob      
+                                end      
+                            end      
+                        end      
+                    end      
+                    return closest      
+                end      
+
+                local mob = GetClosestMob()      
+
+                if mob then      
+                    -- **MOB: USANDO TELEPORTE INSTANTÂNEO (_tp)** _tp(mob.PrimaryPart.CFrame)      
+                    repeat task.wait()      
+                        if mob.Parent and mob.Humanoid.Health > 0 then      
+                            G.Kill(mob, _G.AutoFarm_Bone)      
+                        else      
+                            break      
+                        end      
+                    until not _G.StartFarm or not _G.AutoFarm_Bone      
+                else      
+                    -- DESTINO: Aplicando teleporte condicional  
+                    TeleportConditional(hrp, CFrame.new(-9495.68,453.58,5977.34), TELEPORT_DISTANCE_THRESHOLD)      
+                end      
+
+            end)  
+        end  
     end
+    
 end)
 
--- =====================================
--- SISTEMA CAKE PRINCE FARM
--- =====================================
+
+---
+
+-- 3. SISTEMA LEVEL FARM (MODIFICADO PARA TELEPORTE INSTANTÂNEO NO MOB)
+
+local CurrentMob = nil
+
+local function GetNearestMob(TargetName)
+    local plr = game.Players.LocalPlayer
+    local Root = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+    if not Root then return nil end
+
+    local Closest, Dist = nil, math.huge    
+    for _, Mob in pairs(workspace.Enemies:GetChildren()) do    
+        if G.Alive(Mob) and Mob.Name == TargetName and Mob:FindFirstChild("HumanoidRootPart") then    
+            local d = (Mob.HumanoidRootPart.Position - Root.Position).Magnitude    
+            if d < Dist then    
+                Dist = d    
+                Closest = Mob    
+            end    
+        end    
+    end  
+    return Closest
+
+end
+
+spawn(function()
+    while task.wait() do
+        if _G.Level and _G.StartFarm then
+            pcall(function()
+
+                local plr = game.Players.LocalPlayer  
+                local Root = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")  
+                if not Root then return end  
+
+                local QuestTitle = plr.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text      
+                local Q = QuestNeta()  
+
+                if not string.find(QuestTitle, Q[5]) then      
+                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AbandonQuest")      
+                end      
+
+                if not plr.PlayerGui.Main.Quest.Visible then      
+                    -- QUEST NPC: Aplicando teleporte condicional  
+                    TeleportConditional(Root, Q[6], TELEPORT_DISTANCE_THRESHOLD)      
+
+                    if (Root.Position - Q[6].Position).Magnitude <= 50 then      
+                        task.wait(1.9)  
+                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", Q[3], Q[2])      
+                    end      
+                    return      
+                end      
+
+                local Nearest = GetNearestMob(Q[1])  
+
+                if CurrentMob and G.Alive(CurrentMob) and CurrentMob.Parent then      
+                    G.Kill(CurrentMob, true)      
+                    return      
+                else      
+                    CurrentMob = nil      
+                end      
+
+                if not Nearest then      
+                    -- DESTINO: Aplicando teleporte condicional  
+                    TeleportConditional(Root, Q[4], TELEPORT_DISTANCE_THRESHOLD)      
+                    return      
+                end      
+
+                CurrentMob = Nearest      
+
+                -- **MOB: USANDO TELEPORTE INSTANTÂNEO (_tp) ANTES DE ATACAR**
+                if CurrentMob and CurrentMob:FindFirstChild("HumanoidRootPart") then
+                    _tp(CurrentMob.HumanoidRootPart.CFrame)
+                end
+
+                repeat      
+                    task.wait()      
+                    G.Kill(CurrentMob, true)      
+                until not _G.StartFarm   
+                    or not _G.Level   
+                    or not CurrentMob.Parent   
+                    or CurrentMob.Humanoid.Health <= 0      
+
+                CurrentMob = nil      
+
+            end)  
+        end  
+    end
+
+end)
+
+-- 4. SISTEMA CAKE PRINCE FARM (MODIFICADO PARA TELEPORTE INSTANTÂNEO NO BOSS E MOB)
+
 spawn(function()
     while task.wait() do
         if _G.AutoFarm_Cake and _G.StartFarm then
@@ -4373,69 +4491,151 @@ spawn(function()
                 local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
                 if not hrp then return end
 
-                local enemies = workspace:FindFirstChild("Enemies")
-                if not enemies then return end
+                local enemies = workspace:FindFirstChild("Enemies")  
+                if not enemies then return end  
 
-                local CakePos = CFrame.new(-2091.91, 70.00, -12142.83)
+                local CakePos = CFrame.new(-2091.91, 70.00, -12142.83)  
+                local PortalEntrance = CFrame.new(-2151.82, 149.32, -12404.91)  
 
-                -- Quest específico
-                local QuestUI = plr.PlayerGui.Main.Quest
-                if _G.AcceptQuest and not QuestUI.Visible then
-                    local questPos = CFrame.new(
-                        -1928.13989, 37.8279877, -12842.7715,
-                        -0.996700227, -6.51075496e-08, 0.0811707973,
-                        -6.88857682e-08, 1, -4.37461267e-08,
-                        0.0811707973, -4.919332859e-08, -0.996700227
-                    )
-                    TeleportNear(hrp, questPos)
-                    task.wait(1)
-                    pcall(function()
-                        game.ReplicatedStorage.Remotes.CommF_:InvokeServer("StartQuest", "CakeQuest2", 1)
-                    end)
-                    return
-                end
+                -- Verifica portal  
+                local mirror = workspace.Map:FindFirstChild("CakeLoaf")  
+                mirror = mirror and mirror:FindFirstChild("BigMirror")  
+                local other = mirror and mirror:FindFirstChild("Other")  
+                local portalOpen = other and other.Transparency == 0  
+              
+                -- Verifica Boss  
+                local boss = enemies:FindFirstChild("Cake Prince") or enemies:FindFirstChild("Dough King")  
 
-                local CAKE_MOBS = {"Cookie Crafter", "Cake Guard", "Baking Staff", "Head Baker"}
-                local bestMob
-                local bestDist = math.huge
+                -- PARTE 1: Voltar para ilha se não tiver nada acontecendo  
+                if not boss and not portalOpen and (hrp.Position - CakePos.Position).Magnitude > 3000 then  
+                    _tp(CakePos) -- Distância grande, mantém _tp direto  
+                    return  
+                end  
 
-                for _, mob in ipairs(enemies:GetChildren()) do
-                    if table.find(CAKE_MOBS, mob.Name) and mob:FindFirstChild("Humanoid") and mob:FindFirstChild("HumanoidRootPart") and mob.Humanoid.Health > 0 then
-                        local dist = (mob.HumanoidRootPart.Position - hrp.Position).Magnitude
-                        if dist < bestDist then
-                            bestDist = dist
-                            bestMob = mob
-                        end
-                    end
-                end
+                -- =================================================================  
+                -- PARTE 2: Lógica do Boss (CORRIGIDA)  
+                -- =================================================================  
+                if boss or portalOpen then  
+                  
+                    -- CASO A: O Boss já existe  
+                    if boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 and boss.PrimaryPart then  
+                      
+                        -- O Boss usa _tp direto
+                        local bossTarget = boss.PrimaryPart.CFrame * CFrame.new(0, 5, 0)  
+                        
+                        -- **BOSS: USANDO TELEPORTE INSTANTÂNEO (_tp)**
+                        _tp(bossTarget)  
+                        hrp.Velocity = Vector3.new(0,0,0)  
+                        
+                        -- Posiciona em cima e ataca  
+                        local bossPos = boss.PrimaryPart.CFrame * CFrame.new(0, 25, 0) * CFrame.Angles(math.rad(-90), 0, 0)  
+                        
+                        -- **BOSS: USANDO TELEPORTE INSTANTÂNEO (_tp) PARA POSIÇÃO DE ATAQUE**
+                        _tp(bossPos)  
+                          
+                        hrp.Velocity = Vector3.new(0,0,0)  
+                        if hrp:FindFirstChild("AssemblyLinearVelocity") then  
+                            hrp.AssemblyLinearVelocity = Vector3.new(0,0,0)  
+                        end  
+                          
+                        G.Kill(boss, true)  
+                        return  
+                    end  
 
-                if not bestMob then
-                    if (hrp.Position - CakePos.Position).Magnitude > 500 then
-                        TeleportNear(hrp, CakePos)
-                    end
-                    return
-                end
+                    -- CASO B: Portal aberto, mas Boss não spawnou (Entrando na dimensão)  
+                    local distToEntrance = (hrp.Position - PortalEntrance.Position).Magnitude  
+                  
+                    if distToEntrance < 500 then  
+                        -- PORTAL: Aplicando teleporte condicional (Pode manter condicional para evitar ser jogado para o portal se estiver ao lado dele)
+                        TeleportConditional(hrp, PortalEntrance, TELEPORT_DISTANCE_THRESHOLD)  
+                    else  
+                        hrp.Velocity = Vector3.new(0,0,0)  
+                    end  
+                    return  
+                end  
 
-                if bestMob and bestMob:FindFirstChild("HumanoidRootPart") then
-                    repeat
-                        task.wait()
-                        if bestMob.Parent and bestMob.Humanoid.Health > 0 then
-                            local farmPos = bestMob.HumanoidRootPart.CFrame * CFrame.new(0, 25, 0) * CFrame.Angles(math.rad(-90), 0, 0)
-                            _tp(farmPos)
-                            hrp.Velocity = Vector3.new(0, 0, 0)
-                            if hrp:FindFirstChild("AssemblyLinearVelocity") then
-                                hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-                            end
-                            G.Kill(bestMob, true)
-                        else
-                            break
-                        end
-                    until not _G.StartFarm or not _G.AutoFarm_Cake or not bestMob.Parent or bestMob.Humanoid.Health <= 0
-                end
-            end)
-        end
+                -- =================================================================  
+                -- PARTE 3: Farmar NPCs (Modificado para usar _tp)  
+                -- =================================================================  
+                local CAKE_MOBS = {"Cookie Crafter", "Cake Guard", "Baking Staff", "Head Baker"}  
+
+                -- Quest  
+                local QuestUI = plr.PlayerGui.Main.Quest  
+                if _G.AcceptQuest and not QuestUI.Visible then  
+                    local questPos = CFrame.new(-1927.92, 37.80, -12842.54)  
+                    -- QUEST NPC: Aplicando teleporte condicional  
+                    TeleportConditional(hrp, questPos, TELEPORT_DISTANCE_THRESHOLD)  
+                    if (hrp.Position - questPos.Position).Magnitude <= 40 then  
+                        local q = {  
+                            {"StartQuest", "CakeQuest2", 2},  
+                            {"StartQuest", "CakeQuest2", 1},  
+                            {"StartQuest", "CakeQuest1", 1},  
+                            {"StartQuest", "CakeQuest1", 2}  
+                        }  
+                        game.ReplicatedStorage.Remotes.CommF_:InvokeServer(unpack(q[math.random(1, 4)]))  
+                    end  
+                    return  
+                end  
+
+                -- Busca Mob  
+                local bestMob  
+                local bestDist = math.huge  
+
+                for _, mob in ipairs(enemies:GetChildren()) do  
+                    if table.find(CAKE_MOBS, mob.Name) and mob:FindFirstChild("Humanoid")  
+                        and mob:FindFirstChild("HumanoidRootPart") and mob.Humanoid.Health > 0 then  
+
+                        local dist = (mob.HumanoidRootPart.Position - hrp.Position).Magnitude  
+                        if dist < bestDist then  
+                            bestDist = dist  
+                            bestMob = mob  
+                        end  
+                    end  
+                end  
+
+                if not bestMob then  
+                    if (hrp.Position - CakePos.Position).Magnitude > 500 then  
+                        -- DESTINO: Aplicando teleporte condicional  
+                        TeleportConditional(hrp, CakePos, TELEPORT_DISTANCE_THRESHOLD)  
+                    end  
+                    return  
+                end  
+
+                -- Ataque NPC  
+                if bestMob and bestMob:FindFirstChild("HumanoidRootPart") then  
+                    repeat  
+                        task.wait()  
+                        -- Checa portal  
+                        local checkMirror = workspace.Map:FindFirstChild("CakeLoaf")  
+                        checkMirror = checkMirror and checkMirror:FindFirstChild("BigMirror")  
+                        local checkOther = checkMirror and checkMirror:FindFirstChild("Other")  
+                        if checkOther and checkOther.Transparency == 0 then break end  
+
+                        -- Checa Boss spawnando enquanto farma  
+                        local checkBoss = enemies:FindFirstChild("Cake Prince") or enemies:FindFirstChild("Dough King")  
+                        if checkBoss then break end  
+
+                        if bestMob.Parent and bestMob.Humanoid.Health > 0 and bestMob:FindFirstChild("HumanoidRootPart") then  
+                            local farmPos = bestMob.HumanoidRootPart.CFrame * CFrame.new(0, 25, 0) * CFrame.Angles(math.rad(-90), 0, 0)  
+                            -- **MOB: USANDO TELEPORTE INSTANTÂNEO (_tp)** _tp(farmPos)  
+                            hrp.Velocity = Vector3.new(0, 0, 0)  
+                            if hrp:FindFirstChild("AssemblyLinearVelocity") then  
+                                hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)  
+                            end  
+                            G.Kill(bestMob, true)  
+                        else  
+                            break  
+                        end  
+                    until not _G.StartFarm or not _G.AutoFarm_Cake or not bestMob.Parent or bestMob.Humanoid.Health <= 0  
+                end  
+
+            end)  
+        end  
     end
+    
 end)
+
+
 b:AddSeperator("Other")
 
 -- Configuração da Distância Máxima (em studs)
