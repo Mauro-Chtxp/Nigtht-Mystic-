@@ -9510,23 +9510,22 @@ E:AddToggle({
 -- Teleport
 E:AddToggle({
     Title = "Teleport Player",
+    Description = "",
     Default = false,
-    Callback = function(v)
-        _G.TpPly = v
-
-        task.spawn(function()
-            while _G.TpPly do
-                task.wait()
-                pcall(function()
-                    local tgt = Players:FindFirstChild(_G.SelectedPlayer)
-                    if tgt and tgt.Character and tgt.Character:FindFirstChild("HumanoidRootPart") then
-                        plr.Character.HumanoidRootPart.CFrame =
-                            tgt.Character.HumanoidRootPart.CFrame * CFrame.new(0,0,2)
-                    end
-                end)
-            end
+    Callback = function(I)
+        _G.TpPly = I
+        spawn(function()
+            pcall(function()
+                while _G.TpPly do
+                    wait()
+                    _tp(
+                        game:GetService("Players")[_G.PlayersList]
+                        .Character.HumanoidRootPart.CFrame
+                    )
+                end
+            end)
         end)
-    end
+    end,
 })
 
 --// ===== Aimbot Camera System =====
