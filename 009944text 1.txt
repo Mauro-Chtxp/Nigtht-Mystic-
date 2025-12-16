@@ -5280,53 +5280,22 @@ spawn(function()
 		end);
 	end;
 end);
--- =========================================
---      AUTO FARM BOSS (DIRECT & UPRIGHT)
--- =========================================
-
-_G.AutoBoss = false
-_G.FindBoss = _G.FindBoss or (Boss and Boss[1])
-
-local plr = game.Players.LocalPlayer
-
--- =====================
--- EQUIPAR WEAPON
--- =====================
-local function EquipWeapon()
-    local char = plr.Character
-    if not char then return end
-
-    local hum = char:FindFirstChildOfClass("Humanoid")
-    if not hum then return end
-
-    if _G.SelectWeapon then
-        local tool = plr.Backpack:FindFirstChild(_G.SelectWeapon)
-            or char:FindFirstChild(_G.SelectWeapon)
-
-        if tool and tool.Parent ~= char then
-            hum:EquipTool(tool)
-        end
-    end
-end
-
 -- =====================
 -- UI
 -- =====================
 j:AddSeperator("Boss Farm")
--- TABELA DE BOSSES FIXA (Para referência, caso não tenha nenhum boss vivo)
--- (Esta parte usa a lista 'Boss' que já existe no seu script lá no começo)
 
 -- CRIA O DROPDOWN INICIAL
 local BossDropdown = j:AddDropdown({
     Title = "Select Boss",
-    Values = Boss, -- Começa com a lista padrão do Sea
+    Values = Boss, -- Começa com a lista padrão do Sea (apenas referência)
     Default = Boss[1],
     Callback = function(v)
         _G.FindBoss = v
     end
 })
 
--- BOTÃO DE REFRESH COM SCANNER REAL
+-- BOTÃO DE REFRESH COM SCANNER REAL (Todos com IsBoss)
 j:AddButton({
     Title = "Refresh Boss List (Live)",
     Description = "Mostra APENAS Bosses Vivos Agora",
@@ -5334,38 +5303,31 @@ j:AddButton({
         local LiveBosses = {} -- Cria uma lista nova vazia
         local FoundAny = false
 
-        -- 1. Varre a pasta de inimigos do jogo
+        -- Varre a pasta de inimigos do jogo
         for _, enemy in pairs(workspace.Enemies:GetChildren()) do
-            -- Verifica se é um Boss (compara o nome dele com a sua lista fixa de Bosses)
-            if table.find(Boss, enemy.Name) then
-                -- Verifica se ele está vivo (tem vida > 0)
-                if enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then
-                    -- Evita nomes duplicados na lista
-                    if not table.find(LiveBosses, enemy.Name) then
-                        table.insert(LiveBosses, enemy.Name)
-                        FoundAny = true
-                    end
+            -- Verifica se tem a propriedade IsBoss e se está vivo
+            if enemy:FindFirstChild("IsBoss") 
+            and enemy:FindFirstChild("Humanoid") 
+            and enemy.Humanoid.Health > 0 then
+                if not table.find(LiveBosses, enemy.Name) then
+                    table.insert(LiveBosses, enemy.Name)
+                    FoundAny = true
                 end
             end
         end
 
-        -- 2. Atualiza o Dropdown
+        -- Atualiza o Dropdown
         if FoundAny then
-            -- Se achou bosses vivos, mostra só eles
             BossDropdown:Refresh(LiveBosses, true)
-            -- Opcional: Seleciona o primeiro da lista automaticamente
-            -- _G.FindBoss = LiveBosses[1] 
+            -- Opcional: selecionar o primeiro automaticamente
+            -- _G.FindBoss = LiveBosses[1]
         else
-            -- Se não tiver NINGUÉM vivo, avisa ou volta pra lista padrão
-            -- Opção A: Mostrar lista vazia com aviso
             BossDropdown:Refresh({"Nenhum Boss Vivo"}, true)
-            
-            -- Opção B (Se preferir): Voltar a lista completa padrão
-            -- BossDropdown:Refresh(Boss, true) 
         end
     end
 })
 
+-- TOGGLE DE AUTO FARM BOSS
 j:AddToggle({
     Title = "Auto Farm Boss",
     Default = false,
@@ -5373,6 +5335,7 @@ j:AddToggle({
         _G.AutoBoss = v
     end
 })
+
 -- =====================
 -- AUTO SELECT WEAPON
 -- =====================
@@ -5416,12 +5379,14 @@ spawn(function()
             -- ==========================
             local boss
             for _, v in pairs(enemies:GetChildren()) do
-                if v.Name == bMon
+                if v:FindFirstChild("IsBoss") 
                 and v:FindFirstChild("Humanoid")
                 and v:FindFirstChild("HumanoidRootPart")
                 and v.Humanoid.Health > 0 then
-                    boss = v
-                    break
+                    if v.Name == _G.FindBoss then
+                        boss = v
+                        break
+                    end
                 end
             end
 
@@ -5432,40 +5397,29 @@ spawn(function()
                 local bossHRP = boss.HumanoidRootPart
                 
                 -- PONTO SEGURO: 22 Studs ACIMA do Boss
-                -- Usamos Vector3 puro no CFrame para ele ficar EM PÉ (sem LookAt)
                 local safeHeight = 22 
                 local targetPos = bossHRP.Position + Vector3.new(0, safeHeight, 0)
                 local targetCFrame = CFrame.new(targetPos)
 
-                -- Distância entre VOCÊ e o PONTO NO AR (não o boss)
+                -- Distância entre VOCÊ e o PONTO NO AR
                 local distToSafeSpot = (hrp.Position - targetPos).Magnitude
 
                 EquipWeapon()
 
-                -- Se já estiver bem próximo do ponto no ar (<= 3 studs)
                 if distToSafeSpot <= 3 then
                     -- FIXA POSIÇÃO (Hard Lock)
                     hrp.CFrame = targetCFrame
-                    
-                    -- TRAVA FÍSICA PARA NÃO CAIR/REBATER
                     hrp.Velocity = Vector3.zero
                     hrp.AssemblyLinearVelocity = Vector3.zero
                     hrp.AssemblyAngularVelocity = Vector3.zero
-                    
-                    -- Rotaciona o boneco levemente para olhar para baixo SEM DEITAR (opcional, ajusta o angulo X)
-                    -- Se quiser ele 100% reto igual poste, remova a linha abaixo.
-                    -- hrp.CFrame = CFrame.new(targetPos) * CFrame.Angles(math.rad(-90), 0, 0) -- ISSO FAZIA DEITAR
-                    
-                    hum.AutoRotate = false -- Desativa rotação do user
+                    hum.AutoRotate = false
                 else
                     -- VIAJA DIRETO PARA O PONTO NO AR
-                    -- O _tp vai te levar direto pra cima, sem passar pelo chão
                     _tp(targetCFrame)
                 end
 
                 -- ATAQUE
                 -- G.Kill(boss, true)
-
                 return
             end
 
@@ -5479,7 +5433,6 @@ spawn(function()
         end)
     end
 end)
-
 j:AddSeperator("Quests");
 j:AddToggle({
 	Title = "Auto Farm Observation",
