@@ -2184,7 +2184,6 @@ local D=g:AddSection("Shop");
 local Z=u:AddSection("Misc");
 local SS=s:AddSection("Stats");
 
--- Separador e toggles para Blox Fruit
 SkillSettings:AddSeperator("Farm Mastery Fruit");
 
 SkillSettings:AddToggle({
@@ -2256,8 +2255,6 @@ SkillSettings:AddToggle({
         end)
     end,
 });
-
--- Separador e toggles para Gun
 SkillSettings:AddSeperator("Farm Mastery Gun");
 
 SkillSettings:AddToggle({
@@ -2287,53 +2284,6 @@ SkillSettings:AddToggle({
         end)
     end,
 });
-
-SkillSettings:AddSeperator("Skill Sea Event")
-
-SkillSettings:AddToggle({
-    Title = "Skill Z",
-    Description = "",
-    Default = SeaEventSkillsStatus.Z,
-    Callback = function(value)
-        SeaEventSkillsStatus.Z = value
-    end,
-})
-
-SkillSettings:AddToggle({
-    Title = "Skill X",
-    Description = "",
-    Default = SeaEventSkillsStatus.X,
-    Callback = function(value)
-        SeaEventSkillsStatus.X = value
-    end,
-})
-
-SkillSettings:AddToggle({
-    Title = "Skill C",
-    Description = "",
-    Default = SeaEventSkillsStatus.C,
-    Callback = function(value)
-        SeaEventSkillsStatus.C = value
-    end,
-})
-
-SkillSettings:AddToggle({
-    Title = "Skill V",
-    Description = "",
-    Default = SeaEventSkillsStatus.V,
-    Callback = function(value)
-        SeaEventSkillsStatus.V = value
-    end,
-})
-
-SkillSettings:AddToggle({
-    Title = "Skill F",
-    Description = "",
-    Default = SeaEventSkillsStatus.F,
-    Callback = function(value)
-        SeaEventSkillsStatus.F = value
-    end,
-})
 serverSection:AddSeperator("Server - Function");
 
 serverSection:AddButton({ Title = "Rejoin Server", Description = "", Callback = function()
