@@ -4244,12 +4244,16 @@ _G.AcceptQuest = false
 -- Limite de distância para teleporte condicional
 local TELEPORT_DISTANCE_THRESHOLD = 15
 
--- Função auxiliar de teleporte condicional
-local function TeleportConditional(hrp, targetCFrame, threshold)
+-- Função de Teleporte Instantâneo quando próximo (<=10 studs)
+local function TeleportNear(hrp, targetCFrame)
     if not hrp or not targetCFrame then return end
-    local dist = (targetCFrame.Position - hrp.Position).Magnitude
-    if dist > threshold then
-        _tp(targetCFrame)
+    local dist = (hrp.Position - targetCFrame.Position).Magnitude
+    if dist <= 10 then
+        hrp.CFrame = targetCFrame
+        hrp.Velocity = Vector3.new(0,0,0)
+        if hrp:FindFirstChild("AssemblyLinearVelocity") then
+            hrp.AssemblyLinearVelocity = Vector3.new(0,0,0)
+        end
     end
 end
 
@@ -4312,14 +4316,11 @@ spawn(function()
                         3.67279895e-08, 1, -3.87157293e-08,
                         -0.999246478, 3.82030265e-08, 0.0388139971
                     )
-                    TeleportConditional(hrp, npcPos, TELEPORT_DISTANCE_THRESHOLD)
-
-                    if (npcPos.Position - hrp.Position).Magnitude <= 50 then
-                        task.wait(1)
-                        pcall(function()
-                            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", "HauntedQuest2", 1)
-                        end)
-                    end
+                    TeleportNear(hrp, npcPos)
+                    task.wait(1)
+                    pcall(function()
+                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", "HauntedQuest2", 1)
+                    end)
                 end
 
                 -- Mobs
@@ -4354,7 +4355,7 @@ spawn(function()
                         end
                     until not _G.StartFarm or not _G.AutoFarm_Bone
                 else
-                    TeleportConditional(hrp, CFrame.new(-9495.68, 453.58, 5977.34), TELEPORT_DISTANCE_THRESHOLD)
+                    TeleportNear(hrp, CFrame.new(-9495.68, 453.58, 5977.34))
                 end
             end)
         end
@@ -4386,14 +4387,11 @@ spawn(function()
                         -6.88857682e-08, 1, -4.37461267e-08,
                         0.0811707973, -4.919332859e-08, -0.996700227
                     )
-                    TeleportConditional(hrp, questPos, TELEPORT_DISTANCE_THRESHOLD)
-
-                    if (hrp.Position - questPos.Position).Magnitude <= 40 then
-                        task.wait(1)
-                        pcall(function()
-                            game.ReplicatedStorage.Remotes.CommF_:InvokeServer("StartQuest", "CakeQuest2", 1)
-                        end)
-                    end
+                    TeleportNear(hrp, questPos)
+                    task.wait(1)
+                    pcall(function()
+                        game.ReplicatedStorage.Remotes.CommF_:InvokeServer("StartQuest", "CakeQuest2", 1)
+                    end)
                     return
                 end
 
@@ -4413,7 +4411,7 @@ spawn(function()
 
                 if not bestMob then
                     if (hrp.Position - CakePos.Position).Magnitude > 500 then
-                        TeleportConditional(hrp, CakePos, TELEPORT_DISTANCE_THRESHOLD)
+                        TeleportNear(hrp, CakePos)
                     end
                     return
                 end
@@ -4438,7 +4436,6 @@ spawn(function()
         end
     end
 end)
-
 b:AddSeperator("Other")
 
 -- Configuração da Distância Máxima (em studs)
