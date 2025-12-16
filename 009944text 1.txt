@@ -4314,6 +4314,7 @@ spawn(function()
                         return
                     end
 
+                    task.wait(1.5) -- Espera 1 segundo em cima do NPC
                     pcall(function()
                         game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", "HauntedQuest2", 1)
                     end)
@@ -4398,7 +4399,7 @@ spawn(function()
                 if not plr.PlayerGui.Main.Quest.Visible then
                     TeleportConditional(Root, Q[6], TELEPORT_DISTANCE_THRESHOLD)
                     if (Root.Position - Q[6].Position).Magnitude <= 50 then
-                        task.wait(1.9)
+                        task.wait(1.5) -- Espera 1 segundo em cima do NPC
                         game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", Q[3], Q[2])
                     end
                     return
@@ -4465,6 +4466,7 @@ spawn(function()
                     TeleportConditional(hrp, questPos, TELEPORT_DISTANCE_THRESHOLD)
 
                     if (hrp.Position - questPos.Position).Magnitude <= 40 then
+                        task.wait(1.5) -- Espera 1 segundo em cima do NPC
                         pcall(function()
                             game.ReplicatedStorage.Remotes.CommF_:InvokeServer("StartQuest", "CakeQuest2", 1)
                         end)
