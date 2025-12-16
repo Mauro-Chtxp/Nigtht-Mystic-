@@ -2184,6 +2184,7 @@ local D=g:AddSection("Shop");
 local Z=u:AddSection("Misc");
 local SS=s:AddSection("Stats");
 
+-- Separador e toggles para Blox Fruit
 SkillSettings:AddSeperator("Farm Mastery Fruit");
 
 SkillSettings:AddToggle({
@@ -2255,6 +2256,8 @@ SkillSettings:AddToggle({
         end)
     end,
 });
+
+-- Separador e toggles para Gun
 SkillSettings:AddSeperator("Farm Mastery Gun");
 
 SkillSettings:AddToggle({
@@ -2284,6 +2287,8 @@ SkillSettings:AddToggle({
         end)
     end,
 });
+
+-- Separador e toggles para Sea Event
 SkillSettings:AddSeperator("Skill Sea Event");
 
 SkillSettings:AddToggle({
@@ -8813,7 +8818,7 @@ local H5 = {
 		"Lv Infinite",
 	};
 A:AddDropdown({
-	Title = "Select Boats",
+	Title = "Choose Boats",
 	Description = "",
 	Values = z5,
 	Default = "Guardian",
