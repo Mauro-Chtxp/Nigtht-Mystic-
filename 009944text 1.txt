@@ -9423,113 +9423,182 @@ spawn(function()
 		end);
 	end;
 end);
--- ===============================================
--- ESTRUTURA REVISADA: SOMENTE OS 7 ELEMENTOS SOLICITADOS
--- ===============================================
 
--- Separator
-E:AddSeperator("Select");
-
--- Dropdown de selecionar Players
+E:AddSeperator("Combat / Aimbot");
+__indexPlayer = E:AddParagraph({ Title = "All Players On Server :", Content = "" });
+spawn(function()
+	while wait(Sec) do
+		pcall(function()
+			for I, e in pairs((game:GetService("Players")):GetPlayers()) do
+				if I == 12 then
+					__indexPlayer:SetDesc("All Players :" .. (" " .. (I .. " / 12 [Max]")));
+				elseif I == 1 then
+					__indexPlayer:SetDesc("All Players  :" .. (" " .. (I .. " / 12")));
+				else
+					__indexPlayer:SetDesc("All Players  :" .. (" " .. (I .. " / 12")));
+				end;
+			end;
+		end);
+	end;
+end);
+__AimBotTurn = E:AddParagraph({ Title = "Aimbot Status :", Content = "" });
+local w5 = { "AimBots Skill", "Auto Aimbots" };
+Checking_AimStatus = function()
+		if _G.AimCam then
+			return "Aimbot Camera";
+		else
+			return "";
+		end;
+		if _G.AimbotGun then
+			return "Aimbot Guns";
+		else
+			return "";
+		end;
+	end;
+spawn(function()
+	while wait(.2) do
+		pcall(function()
+			if _G.AimMethod then
+				__AimBotTurn:SetDesc("Aimbot - Skills : True");
+			elseif (_G.AimCam or _G.AimbotGun) and _G.AimMethod then
+				__AimBotTurn:SetDesc("Aimbot - Skills |" .. (Checking_AimStatus() .. " :True"));
+			else
+				__AimBotTurn:SetDesc("Aimbot - Skills : False");
+			end;
+		end);
+	end;
+end);
 local O5 = {};
--- Preenche a lista de jogadores
 for I, e in pairs((game:GetService("Players")):GetChildren()) do
-    table.insert(O5, e.Name);
+	table.insert(O5, e.Name);
 end;
 E:AddDropdown({
-    Title = "Selecionar Jogador",
-    Description = "Escolha um jogador para interagir",
-    Values = O5,
-    Default = false,
-    Multi = false,
-    Callback = function(I)
-        _G.PlayersList = I;
-    end,
+	Title = "Choose Players",
+	Description = "",
+	Values = O5,
+	Default = false,
+	Multi = false,
+	Callback = function(I)
+		_G.PlayersList = I;
+	end,
 });
-
--- Button de Refresh Players
-E:AddButton({
-    Title = "Atualizar Jogadores",
-    Description = "Recarrega a lista de jogadores no servidor",
-    Callback = function()
-        O5 = {};
-        for I, e in pairs((game:GetService("Players")):GetChildren()) do
-            table.insert(O5, e.Name);
-        end;
-        print("Lista de Jogadores Atualizada!");
-    end,
-});
-
--- Separator "AimBots"
-E:AddSeperator("AimBots");
-
--- La colocar o toggle de Aimbot Cam (Aimbot Camera Closet Players)
 E:AddToggle({
-    Title = "Aimbot Câmera",
-    Description = "A câmera foca automaticamente no inimigo mais próximo.",
-    Default = false,
-    Callback = function(I)
-        _G.AimCam = I;
-        -- Lógica de execução do AimCam (movida para cá, mas simplificada para a GUI)
-        task.spawn(function()
-            while task.wait(Sec) do
-                pcall(function()
-                    if _G.AimCam then
-                        local I = workspace.CurrentCamera;
-                        -- (Função closestplayer não incluída para manter o código leve e focado na GUI)
-                        -- Lógica de CFrame.new(I.CFrame.Position, target.Position)
-                    end;
-                end);
-            end;
-        end);
-    end,
+	Title = "Teleport to choose players",
+	Description = "",
+	Default = false,
+	Callback = function(I)
+		_G.TpPly = I;
+		spawn(function()
+			pcall(function()
+				while _G.TpPly do
+					wait();
+					_tp((game:GetService("Players"))[_G.PlayersList].Character.HumanoidRootPart.CFrame);
+				end;
+			end);
+		end);
+	end,
 });
-
--- Separator Player
-E:AddSeperator("Jogador Selecionado");
-
--- Toggle Spectrar player (Spectate Choose Players)
 E:AddToggle({
-    Title = "Espectar Jogador",
-    Description = "Muda a câmera para o jogador selecionado.",
-    Default = false,
-    Callback = function(I)
-        SpectatePlys = I;
-        spawn(function()
-            repeat
-                task.wait(.1);
-                local target = (game:GetService("Players")):FindFirstChild(_G.PlayersList);
-                if target and target.Character and target.Character:FindFirstChild("Humanoid") then
-                    workspace.Camera.CameraSubject = target.Character.Humanoid;
-                end
-            until not SpectatePlys;
-            -- Assumindo que 'plr' é o jogador local:
-            -- workspace.Camera.CameraSubject = plr.Character.Humanoid;
-        end);
-    end,
+	Title = "Spectate Choose Players",
+	Description = "",
+	Default = false,
+	Callback = function(I)
+		SpectatePlys = I;
+		spawn(function()
+			repeat
+				task.wait(.1);
+				workspace.Camera.CameraSubject = ((game:GetService("Players")):FindFirstChild(_G.PlayersList)).Character.Humanoid;
+			until not SpectatePlys;
+			workspace.Camera.CameraSubject = plr.Character.Humanoid;
+		end);
+	end,
 });
-
--- Toggle Teleport Player (Teleport to choose players)
+E:AddDropdown({
+	Title = "Choose Aim Method",
+	Description = "",
+	Values = w5,
+	Default = false,
+	Multi = false,
+	Callback = function(I)
+		ABmethod = I;
+	end,
+});
 E:AddToggle({
-    Title = "Teleportar ao Jogador",
-    Description = "Teleporta para a posição do jogador selecionado.",
-    Default = false,
-    Callback = function(I)
-        _G.TpPly = I;
-        spawn(function()
-            pcall(function()
-                while _G.TpPly do
-                    wait();
-                    local target = (game:GetService("Players"))[_G.PlayersList];
-                    if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
-                        -- _tp(target.Character.HumanoidRootPart.CFrame);
-                    end
-                end;
-            end);
-        end);
-    end,
+	Title = "Aimbot Method Skills",
+	Description = "",
+	Default = false,
+	Callback = function(I)
+		_G.AimMethod = I;
+	end,
 });
-
+task.spawn(function()
+	while task.wait() do
+		pcall(function()
+			if _G.AimMethod and ABmethod == "AimBots Skill" then
+				for I, e in pairs((game:GetService("Players")):GetPlayers()) do
+					if e.Name == _G.PlayersList and e.Team ~= game.Players.LocalPlayer.Team then
+						MousePos = (e.Character:FindFirstChild("HumanoidRootPart")).Position;
+					end;
+				end;
+			end;
+		end);
+	end;
+end);
+task.spawn(function()
+	while task.wait() do
+		pcall(function()
+			if _G.AimMethod and ABmethod == "Auto Aimbots" then
+				local I = math.huge;
+				for e, K in pairs((game:GetService("Players")):GetPlayers()) do
+					if K.Name ~= plr.Name and K.Team ~= game.Players.LocalPlayer.Team then
+						local e = K:DistanceFromCharacter(plr.Character.HumanoidRootPart.Position);
+						if e < I then
+							I = e;
+							MousePos = (K.Character:FindFirstChild("HumanoidRootPart")).Position;
+						end;
+					end;
+				end;
+			end;
+		end);
+	end;
+end);
+E:AddToggle({
+	Title = "Aimbot Camera Closet Players",
+	Description = "",
+	Default = false,
+	Callback = function(I)
+		_G.AimCam = I;
+	end,
+});
+task.spawn(function()
+	while task.wait(Sec) do
+		pcall(function()
+			if _G.AimCam then
+				local I = workspace.CurrentCamera;
+				closestplayer = function()
+						local I = math.huge;
+						local e = nil;
+						for K, n in next, ply:GetPlayers() do
+							if n ~= plr then
+								if n.Character and (n.Character:FindFirstChild("Head") and (_G.AimCam and n.Character.Humanoid.Health > 0)) then
+									local K = (n.Character.Head.Position - plr.Character.Head.Position).Magnitude;
+									if K < I then
+										I = K;
+										e = n;
+									end;
+								end;
+							end;
+						end;
+						return e;
+					end;
+				repeat
+					task.wait();
+					I.CFrame = CFrame.new(I.CFrame.Position, (closestplayer()).Character.HumanoidRootPart.Position);
+				until _G.AimCam == false or Mag > dist;
+			end;
+		end);
+	end;
+end);
 E:AddSeperator("Speed/Jump");
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
