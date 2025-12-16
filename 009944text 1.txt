@@ -2284,6 +2284,77 @@ SkillSettings:AddToggle({
         end)
     end,
 });
+SkillSettings:AddSeperator("Skill Sea Event");
+
+SkillSettings:AddToggle({
+    Title = "Skill Z",
+    Description = "",
+    Default = SeaEventSkillsStatus.Z,
+    Callback = function(value)
+        SeaEventSkillsStatus.Z = value
+        spawn(function()
+            while SeaEventSkillsStatus.Z do
+                wait()
+            end
+        end)
+    end,
+});
+
+SkillSettings:AddToggle({
+    Title = "Skill X",
+    Description = "",
+    Default = SeaEventSkillsStatus.X,
+    Callback = function(value)
+        SeaEventSkillsStatus.X = value
+        spawn(function()
+            while SeaEventSkillsStatus.X do
+                wait()
+            end
+        end)
+    end,
+});
+
+SkillSettings:AddToggle({
+    Title = "Skill C",
+    Description = "",
+    Default = SeaEventSkillsStatus.C,
+    Callback = function(value)
+        SeaEventSkillsStatus.C = value
+        spawn(function()
+            while SeaEventSkillsStatus.C do
+                wait()
+            end
+        end)
+    end,
+});
+
+SkillSettings:AddToggle({
+    Title = "Skill V",
+    Description = "",
+    Default = SeaEventSkillsStatus.V,
+    Callback = function(value)
+        SeaEventSkillsStatus.V = value
+        spawn(function()
+            while SeaEventSkillsStatus.V do
+                wait()
+            end
+        end)
+    end,
+});
+
+SkillSettings:AddToggle({
+    Title = "Skill F",
+    Description = "",
+    Default = SeaEventSkillsStatus.F,
+    Callback = function(value)
+        SeaEventSkillsStatus.F = value
+        spawn(function()
+            while SeaEventSkillsStatus.F do
+                wait()
+            end
+        end)
+    end,
+});
 serverSection:AddSeperator("Server - Function");
 
 serverSection:AddButton({ Title = "Rejoin Server", Description = "", Callback = function()
@@ -8742,7 +8813,7 @@ local H5 = {
 		"Lv Infinite",
 	};
 A:AddDropdown({
-	Title = "Choose Boats",
+	Title = "Select Boats",
 	Description = "",
 	Values = z5,
 	Default = "Guardian",
