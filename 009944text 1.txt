@@ -1615,34 +1615,35 @@ elseif I == 1375 or I <= 1424 then
 			PosM = CFrame.new(-3352.9013671875, 285.01556396484, -10534.841796875)
 		end
 	elseif World3 then
-		if I == 1500 or I <= 1524 then
-			Mon = "Pirate Millionaire"
-			Qdata = 1
-			Qname = "PiratePortQuest"
-			NameMon = "Pirate Millionaire"
-			PosQ = CFrame.new(-712.82727050781, 98.577049255371, 5711.9541015625)
-			PosM = CFrame.new(-712.82727050781, 98.577049255371, 5711.9541015625)
-		elseif I == 1525 or I <= 1574 then
-			Mon = "Pistol Billionaire"
-			Qdata = 2
-			Qname = "PiratePortQuest"
-			NameMon = "Pistol Billionaire"
-			PosQ = CFrame.new(-723.43316650391, 147.42906188965, 5931.9931640625)
-			PosM = CFrame.new(-723.43316650391, 147.42906188965, 5931.9931640625)
+		
+if I == 1500 or I <= 1524 then
+Mon = "Pirate Millionaire"
+Qdata = 1
+Qname = "PiratePortQuest"
+NameMon = "Pirate Millionaire"
+PosQ = CFrame.new(-290.07, 42.90, 5581.59)
+PosM = CFrame.new(-246.00, 47.31, 5584.10)
+elseif I == 1525 or I <= 1574 then
+Mon = "Pistol Billionaire"
+Qdata = 2
+Qname = "PiratePortQuest"
+NameMon = "Pistol Billionaire"
+PosQ = CFrame.new(-290.07, 42.90, 5581.59)
+PosM = CFrame.new(-187.33, 86.24, 6013.51)
 		elseif I == 1575 or I <= 1599 then
     Mon = "Dragon Crew Warrior"
     Qdata = 1
     Qname = "DragonCrewQuest"
     NameMon = "Dragon Crew Warrior"
-    PosQ = CFrame.new(6750.4931640625, 127.44916534423828, -711.0308837890625)
-    PosM = CFrame.new(6709.76367, 52.3442993, -1139.02966, -0.763515472, 0, 0.645789504, 0, 1, 0, -0.645789504, 0, -0.763515472)
+    PosQ = CFrame.new(6737.06055,127.417763,-712.300659,-0.463954359,-7.19574755e-09,0.885859072,7.69187665e-08,1,4.84078626e-08,-0.885859072,9.05982276e-08,-0.463954359)
+    PosM = CFrame.new(6709.76367,52.3442993,-1139.02966,-0.763515472,0,0.645789504,0,1,0,-0.645789504,0,-0.763515472)
 elseif I == 1600 or I <= 1624 then
     Mon = "Dragon Crew Archer"
-    Qname = "DragonCrewQuest"
     Qdata = 2
+    Qname = "DragonCrewQuest"
     NameMon = "Dragon Crew Archer"
-    PosQ = CFrame.new(6750.4931640625, 127.44916534423828, -711.0308837890625)
-    PosM = CFrame.new(6668.76172, 481.376923, 329.12207, -0.121787429, 0, -0.992556155, 0, 1, 0, 0.992556155, 0, -0.121787429)
+    PosQ = CFrame.new(6737.06055,127.417763,-712.300659,-0.463954359,-7.19574755e-09,0.885859072,7.69187665e-08,1,4.84078626e-08,-0.885859072,9.05982276e-08,-0.463954359)
+    PosM = CFrame.new(6668.76172,481.376923,329.12207,-0.121787429,0,-0.992556155,0,1,0,0.992556155,0,-0.121787429)
 elseif I == 1625 or I <= 1649 then
     Mon = "Hydra Enforcer"
     Qname = "VenomCrewQuest"
@@ -1865,15 +1866,15 @@ elseif I == 1650 or I <= 1699 then
 			Qdata = 1
 			Qname = "TikiQuest3"
 			NameMon = "Serpent Hunter"
-			PosQ = CFrame.new(-16679.478515625, 176.74737548828, 1474.3995361328)
-			PosM = CFrame.new(-16679.478515625, 176.74737548828, 1474.3995361328)
+			PosQ = CFrame.new(-16668.03,105.32,1568.60)
+			PosM = CFrame.new(-16645.64,163.09,1352.87)
 		elseif I >= 2575 and I <= 2599 then 
 			Mon = "Skull Slayer"
 			Qdata = 2
 			Qname = "TikiQuest3"
 			NameMon = "Skull Slayer"
-			PosQ = CFrame.new(-16759.58984375, 71.283767700195, 1595.3399658203)
-			PosM = CFrame.new(-16759.58984375, 71.283767700195, 1595.3399658203)
+			PosQ = CFrame.new(-16668.03,105.32,1568.60)
+			PosM = CFrame.new(-16709.49,419.68,1751.09)
 		elseif I >= 2600 and I <= 2624 then
 			PosQ = CFrame.new(10778.875, -2087.72437, 9265.18359, 0.934615612, -9.33109447e-08, -0.355659455, 9.17655143e-08, 1, -2.12154276e-08, 0.355659455, -1.28090019e-08, 0.934615612)
 			if (getgenv().AutoFarm or _G.Level) and (PosQ.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude > 10000 then
@@ -4045,8 +4046,7 @@ end
 
 b:AddSeperator("Farming")
 
-b:Add
-({
+b:AddDropdown({
     Title = "Select Weapon",
     Description = "",
     Values = {"Melee","Sword","Blox Fruit","Gun"},
@@ -4072,17 +4072,13 @@ spawn(function()
 end)
 
 
---============================--
 -- VARIAVEIS GLOBAIS
---============================--
 _G.SelectedFarmMode = "Level"
 _G.StartFarm = false
 _G.Level = false
 _G.AutoFarm_Bone = false
 _G.AutoFarm_Cake = false
-_G.FullyTyrant = false
 _G.AcceptQuest = false
-_G.EyesCount = 0
 
 -- Variável para guardar o mob de Level Farm
 local CurrentMobLevel = nil
@@ -4099,15 +4095,17 @@ local function TeleportConditional(hrp, targetCFrame, threshold)
     if dist > threshold then  
         _tp(targetCFrame)  
     end
+    
 end
 
---============================--
--- UI: DROPDOWN + TOGGLES
---============================--
+
+---
+
+-- 1. UI: DROPDOWN + TOGGLES
 
 b:AddDropdown({
     Title = "Select Farm Mode",
-    Values = {"Level", "Bone", "Cake Prince", "Tyrant Of The Skies"},
+    Values = {"Level", "Bone", "Cake Prince"},
     Default = "Level",
     Callback = function(v)
         _G.SelectedFarmMode = v
@@ -4123,8 +4121,7 @@ b:AddToggle({
         -- Reset total  
         _G.Level = false  
         _G.AutoFarm_Bone = false  
-        _G.AutoFarm_Cake = false 
-        _G.FullyTyrant = false
+        _G.AutoFarm_Cake = false  
 
         if v then  
             if _G.SelectedFarmMode == "Level" then  
@@ -4132,12 +4129,11 @@ b:AddToggle({
             elseif _G.SelectedFarmMode == "Bone" then  
                 _G.AutoFarm_Bone = true  
             elseif _G.SelectedFarmMode == "Cake Prince" then  
-                _G.AutoFarm_Cake = true 
-            elseif _G.SelectedFarmMode == "Tyrant Of The Skies" then
-                _G.FullyTyrant = true
+                _G.AutoFarm_Cake = true  
             end  
         end  
     end
+
 })
 
 b:AddToggle({
@@ -4148,9 +4144,11 @@ b:AddToggle({
     end
 })
 
---============================--
--- SISTEMA BONE FARM
---============================--
+
+---
+
+-- 2. SISTEMA BONE FARM (MODIFICADO PARA TELEPORTE INSTANTÂNEO NO MOB)
+
 spawn(function()
     while task.wait() do
         if _G.AutoFarm_Bone and _G.StartFarm then
@@ -4228,11 +4226,14 @@ spawn(function()
             end)  
         end  
     end
+    
 end)
 
---============================--
--- SISTEMA LEVEL FARM
---============================--
+
+---
+
+-- 3. SISTEMA LEVEL FARM (MODIFICADO PARA TELEPORTE INSTANTÂNEO NO MOB)
+
 local CurrentMob = nil
 
 local function GetNearestMob(TargetName)
@@ -4319,9 +4320,8 @@ spawn(function()
 
 end)
 
---============================--
--- SISTEMA CAKE PRINCE FARM
---============================--
+-- 4. SISTEMA CAKE PRINCE FARM (MODIFICADO PARA TELEPORTE INSTANTÂNEO NO BOSS E MOB)
+
 spawn(function()
     while task.wait() do
         if _G.AutoFarm_Cake and _G.StartFarm then
@@ -4471,172 +4471,7 @@ spawn(function()
             end)  
         end  
     end
-end)
-
---============================--
--- CONTADOR DE OLHOS (TIKI)
---============================--
-spawn(function()
-	while task.wait(3) do
-		pcall(function()
-			local map = workspace:FindFirstChild("Map")
-			local tiki = map and map:FindFirstChild("TikiOutpost")
-			local model = tiki and tiki:FindFirstChild("IslandModel")
-
-			local count = 0
-			if model then
-				local chunks = model:FindFirstChild("IslandChunks")
-				local eye1 = model:FindFirstChild("Eye1")
-				local eye2 = model:FindFirstChild("Eye2")
-				local eye3 = chunks and chunks:FindFirstChild("E") and chunks.E:FindFirstChild("Eye3")
-				local eye4 = chunks and chunks:FindFirstChild("E") and chunks.E:FindFirstChild("Eye4")
-
-				if eye1 and eye1.Transparency == 0 then count += 1 end
-				if eye2 and eye2.Transparency == 0 then count += 1 end
-				if eye3 and eye3.Transparency == 0 then count += 1 end
-				if eye4 and eye4.Transparency == 0 then count += 1 end
-			end
-
-			_G.EyesCount = count
-		end)
-	end
-end)
-
---============================--
--- POSIÇÕES DE FARM (MOBS)
---============================--
-local FarmTiki1 = CFrame.new(-16423.8047,146.953003,-123.602005)
-local FarmTiki2 = CFrame.new(-16593.5996,155.350998,1130.48096)
-
---============================--
--- FARM DOS MOBS (ATÉ 4 OLHOS)
---============================--
-spawn(function()
-	local CurrentFarm = 1
-	while task.wait() do
-		if _G.FullyTyrant and _G.EyesCount ~= 4 then
-			pcall(function()
-				local enemies = workspace:FindFirstChild("Enemies")
-				if not enemies then return end
-
-				local targets = {
-					["Isle Champion"] = true,
-					["Sun-kissed Warrior"] = true,
-					["Island Boy"] = true,
-					["Isle Outlaw"] = true
-				}
-
-				local found = false
-
-				for _, v in pairs(enemies:GetChildren()) do
-					local hum = v:FindFirstChild("Humanoid")
-					local hrp = v:FindFirstChild("HumanoidRootPart")
-
-					if targets[v.Name] and hum and hrp and hum.Health > 0 then
-						found = true
-						repeat task.wait()
-							hrp.CanCollide = false
-							local head = v:FindFirstChild("Head")
-							if head then head.CanCollide = false end
-							hum.WalkSpeed = 0
-							_tp(hrp.CFrame * Pos)
-						until not _G.FullyTyrant
-							or _G.EyesCount == 4
-							or not v.Parent
-							or hum.Health <= 0
-					end
-				end
-
-				if not found then
-					_tp(CurrentFarm == 1 and FarmTiki1 or FarmTiki2)
-					CurrentFarm = CurrentFarm == 1 and 2 or 1
-					task.wait(2)
-				end
-			end)
-		end
-	end
-end)
-
---============================--
--- SKY BOSS CHECK
---============================--
-local function isSkyBossAlive()
-	local enemies = workspace:FindFirstChild("Enemies")
-	if not enemies then return false end
-
-	local boss = enemies:FindFirstChild("Tyrant of the Skies")
-	return boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0
-end
-
---============================--
--- SKY BOSS ATTACK
---============================--
-local function attackSkyBoss()
-	local enemies = workspace:FindFirstChild("Enemies")
-	if not enemies then return end
-
-	for _, v in pairs(enemies:GetChildren()) do
-		if v.Name == "Tyrant of the Skies" then
-			local hum = v:FindFirstChild("Humanoid")
-			local hrp = v:FindFirstChild("HumanoidRootPart")
-			if hum and hrp and hum.Health > 0 then
-				repeat task.wait()
-					_tp(hrp.CFrame * Pos)
-					sethiddenproperty(game.Players.LocalPlayer,"SimulationRadius",math.huge)
-				until hum.Health <= 0
-					or not _G.FullyTyrant
-			end
-		end
-	end
-end
-
---============================--
--- PHA BINH (VASOS)
---============================--
-local PhaBinhPoints = {
-	CFrame.new(-16332.526,158.072,1440.324),
-	CFrame.new(-16288.609,158.167,1470.368),
-	CFrame.new(-16245.412,158.437,1463.366),
-	CFrame.new(-16212.468,158.167,1466.344),
-	CFrame.new(-16211.946,158.072,1322.398),
-	CFrame.new(-16260.921,154.921,1323.616),
-	CFrame.new(-16297.059,159.323,1317.224),
-	CFrame.new(-16335.096,159.334,1324.886),
-}
-
-spawn(function()
-	while task.wait(Sec) do
-		if _G.FullyTyrant and _G.EyesCount == 4 then
-			pcall(function()
-				for _, point in ipairs(PhaBinhPoints) do
-					if not _G.FullyTyrant or _G.EyesCount ~= 4 then break end
-
-					if isSkyBossAlive() then
-						attackSkyBoss()
-						break
-					end
-
-					_tp(point)
-					task.wait(0.4)
-
-					-- Melee
-					Useskills("Melee","Z")
-					Useskills("Melee","X")
-					Useskills("Melee","C")
-
-					-- Sword
-					Useskills("Sword","Z")
-					Useskills("Sword","X")
-
-					-- Gun
-					Useskills("Gun","Z")
-					Useskills("Gun","X")
-
-					task.wait(0.4)
-				end
-			end)
-		end
-	end
+    
 end)
 
 
