@@ -4681,10 +4681,12 @@ end)
 
 ---
 
--- 5. SISTEMA TYRANT OF THE SKIES
+-- ===============================
+-- 5. SISTEMA TYRANT OF THE SKIES (FIXED: MOB DETECTION)
+-- ===============================
 spawn(function()
     while task.wait() do
-        if _G.FullyTyrant and World3 and _G.StartFarm then -- Adicionado _G.StartFarm para consistência
+        if _G.FullyTyrant and World3 and _G.StartFarm then
             pcall(function()
                 local plr = game.Players.LocalPlayer
                 local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
@@ -4693,73 +4695,106 @@ spawn(function()
                 local enemies = workspace:FindFirstChild("Enemies")
                 if not enemies then return end
 
-                if _G.EyesCount ~= 4 then
-                    local MOBS = {["Isle Champion"] = true, ["Sun-kissed Warrior"] = true, ["Island Boy"] = true, ["Isle Outlaw"] = true}
-                    local closest, shortest = nil, math.huge
+                -- 1. CHECAGEM DE MOBS PARA SPAWNAR (EYES < 4)
+                if tonumber(_G.EyesCount) ~= 4 then
+                    local targetMob = nil
+                    local shortestDist = math.huge
+                    
+                    -- Lista exata dos nomes dos mobs necessários
+                    local validMobs = {"Isle Champion", "Sun-kissed Warrior", "Island Boy", "Isle Outlaw"}
+
+                    -- Busca robusta em todos os inimigos
                     for _, mob in pairs(enemies:GetChildren()) do
-                        if MOBS[mob.Name] and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 and mob.PrimaryPart then
-                            local dist = (mob.PrimaryPart.Position - hrp.Position).Magnitude
-                            if dist < shortest then
-                                shortest = dist
-                                closest = mob
+                        local isValidName = false
+                        for _, name in ipairs(validMobs) do
+                            if mob.Name == name then
+                                isValidName = true
+                                break
+                            end
+                        end
+
+                        if isValidName and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 and mob:FindFirstChild("HumanoidRootPart") then
+                            local dist = (mob.HumanoidRootPart.Position - hrp.Position).Magnitude
+                            if dist < shortestDist then
+                                shortestDist = dist
+                                targetMob = mob
                             end
                         end
                     end
 
-                    if closest then
+                    -- AÇÃO: Atacar ou Navegar
+                    if targetMob then
+                        -- Se achou o mob, foca nele até morrer
                         repeat task.wait()
-                            if closest.Parent and closest.Humanoid.Health > 0 then
-                                _tp(closest.PrimaryPart.CFrame * Pos)
-                                G.Kill(closest, true)
-                            else break end
-                        until not _G.FullyTyrant or _G.EyesCount == 4
+                            if targetMob.Parent and targetMob.Humanoid.Health > 0 and _G.FullyTyrant then
+                                -- Teleporte colado no mob
+                                _tp(targetMob.HumanoidRootPart.CFrame * (Pos or CFrame.new(0, 20, 0)))
+                                G.Kill(targetMob, true)
+                            else
+                                break
+                            end
+                        until not _G.FullyTyrant or tonumber(_G.EyesCount) == 4 or not targetMob.Parent
                     else
-                        local farmPos = math.random(1,2) == 1 and CFrame.new(-16423.8047,146.953003,-123.602005) or CFrame.new(-16593.5996,155.350998,1130.48096)
-                        TeleportConditional(hrp, farmPos, TELEPORT_DISTANCE_THRESHOLD)
+                        -- Se NÃO tem nenhum mob no workspace, vai para o spot de farm
+                        -- Usei uma posição central da ilha de farm
+                        local spawnSpot = CFrame.new(-16423.8, 147.0, -123.6)
+                        if (hrp.Position - spawnSpot.Position).Magnitude > 20 then
+                            _tp(spawnSpot)
+                        end
                     end
-                    return
+                    return -- Sai do loop atual para recomeçar a checagem
                 end
 
+                -- 2. SE EYES = 4: BOSS OU EVENTO
                 local tyrant = enemies:FindFirstChild("Tyrant of the Skies")
-                if tyrant and tyrant:FindFirstChild("Humanoid") and tyrant.Humanoid.Health > 0 then
+
+                if tyrant and tyrant:FindFirstChild("Humanoid") and tyrant.Humanoid.Health > 0 and tyrant:FindFirstChild("HumanoidRootPart") then
+                    -- Matar o Boss Tyrant
                     repeat task.wait()
-                        if tyrant.Parent and tyrant.Humanoid.Health > 0 then
-                            _tp(tyrant.PrimaryPart.CFrame * Pos)
+                        if tyrant.Parent and tyrant.Humanoid.Health > 0 and _G.FullyTyrant then
+                            _tp(tyrant.HumanoidRootPart.CFrame * (Pos or CFrame.new(0, 25, 0)))
                             G.Kill(tyrant, true)
-                        else break end
+                        else
+                            break
+                        end
                     until not _G.FullyTyrant or tyrant.Humanoid.Health <= 0
                 else
+                    -- Ativar os Tochas/Pontos do evento
                     local targets = {
-                        CFrame.new(-16335.1641,158.167007,1465.64404),
-                        CFrame.new(-16288.6094,158.167007,1470.36804),
-                        CFrame.new(-16258.001,156.761002,1461.40405),
-                        CFrame.new(-16212.4688,158.167007,1466.34399),
-                        CFrame.new(-16335.0967,159.334,1324.88599),
-                        CFrame.new(-16286.0586,155.949005,1323.83801),
-                        CFrame.new(-16250.335,159.334,1316.38904),
+                        CFrame.new(-16335.16, 158.16, 1465.64),
+                        CFrame.new(-16288.60, 158.16, 1470.36),
+                        CFrame.new(-16258.00, 156.76, 1461.40),
+                        CFrame.new(-16212.46, 158.16, 1466.34),
+                        CFrame.new(-16335.09, 159.33, 1324.88),
+                        CFrame.new(-16286.05, 155.94, 1323.83),
+                        CFrame.new(-16250.33, 159.33, 1316.38),
                     }
+
                     for _, cf in ipairs(targets) do
-                        if not _G.FullyTyrant or _G.EyesCount ~= 4 then break end
-                        TeleportConditional(hrp, cf, TELEPORT_DISTANCE_THRESHOLD)
+                        -- Se o Boss aparecer ou o StartFarm desligar, para imediatamente
+                        if not _G.FullyTyrant or enemies:FindFirstChild("Tyrant of the Skies") then break end
+
+                        _tp(cf)
                         task.wait(0.5)
+
+                        -- Dispara ataques para garantir a ativação do ponto
                         if _G.UseSkullSummon then
                             game.ReplicatedStorage.Remotes.CommF_:InvokeServer("LoadItem","Skull Guitar")
-                            weaponSc("Gun")
-                        else
-                            Useskills("Melee","Z")
-                            Useskills("Melee","X")
-                            Useskills("Sword","Z")
-                            Useskills("Blox Fruit","Z")
-                            Useskills("Blox Fruit","X")
-                            Useskills("Blox Fruit","C")
                         end
-                        task.wait(2)
+                        
+                        -- Tenta usar habilidades básicas se disponíveis
+                        pcall(function()
+                            Useskills("Melee", "Z")
+                            Useskills("Melee", "X")
+                        end)
+                        task.wait(0.8)
                     end
                 end
             end)
         end
     end
 end)
+
 
 
 b:AddSeperator("Other")
