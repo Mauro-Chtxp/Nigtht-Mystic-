@@ -4609,19 +4609,17 @@ b:AddToggle({
 
 ---
 
--- 2. SISTEMA TYRANT OF THE SKIES (ATUALIZADO: Coordenadas Exatas + Delay 1.5s)
+-- 2. SISTEMA TYRANT OF THE SKIES (ATUALIZADO: CFrame Exato + Delay 1.5s)
 
--- Tabela de Configuração das Quests do Tiki
+-- Tabela de Configuração das Quests do Tiki com seu CFrame fornecido
 local TikiQuestData = {
     ["Serpent Hunter"] = {
         QuestArgs = {"StartQuest", "TikiQuest3", 1},
-        -- Coordenada atualizada conforme seu pedido
-        NPC_Pos = CFrame.new(-16665.5684, 105.27478, 1578.12476)
+        NPC_Pos = CFrame.new(-16665.1719, 105.27478, 1577.85071, -0.999501228, 5.66187488e-08, -0.0315799415, 5.45234258e-08, 1, 6.72109977e-08, 0.0315799415, 6.54556231e-08, -0.999501228)
     },
     ["Skull Slayer"] = {
         QuestArgs = {"StartQuest", "TikiQuest3", 2},
-        -- Coordenada atualizada conforme seu pedido
-        NPC_Pos = CFrame.new(-16665.5684, 105.27478, 1578.12476)
+        NPC_Pos = CFrame.new(-16665.1719, 105.27478, 1577.85071, -0.999501228, 5.66187488e-08, -0.0315799415, 5.45234258e-08, 1, 6.72109977e-08, 0.0315799415, 6.54556231e-08, -0.999501228)
     }
 }
 
@@ -4726,7 +4724,7 @@ spawn(function()
                     EquipWeapon(_G.SelectWeapon)  
                     G.Kill(boss, true)  
                 elseif eyes == 4 then  
-                    -- LÓGICA DO PUZZLE (MANTER IGUAL)
+                    -- LÓGICA DO PUZZLE (Tyrant)
                     local targetsty = {  
                         CFrame.new(-16335.1, 158.1, 1465.6), CFrame.new(-16288.6, 158.1, 1470.3),  
                         CFrame.new(-16258.0, 156.7, 1461.4), CFrame.new(-16212.4, 158.1, 1466.3),  
@@ -4752,28 +4750,28 @@ spawn(function()
                     end
                     SetNoclip(false)
                 else  
-                    -- MODO FARM NORMAL
+                    -- MODO FARM NORMAL / PEGAR QUEST
                     SetNoclip(false)
                     if root.Anchored then root.Anchored = false end
                     
-                    -- >> LÓGICA DE QUEST PRIORITÁRIA <<
+                    -- LÓGICA DE QUEST (Prioritária quando está sem quest ativa)
                     if _G.AcceptQuest and not QuestUI.Visible then
-                        -- Usa a coordenada atualizada para o NPC
+                        -- Usando o CFrame que você forneceu
                         local data = TikiQuestData["Skull Slayer"]
                         
                         if data then
-                            TeleportConditional(root, data.NPC_Pos, TELEPORT_DISTANCE_THRESHOLD)
+                            _tp(data.NPC_Pos)
                             
-                            -- Se chegou perto do NPC (distância 15 studs)
+                            -- Se chegou no CFrame do NPC (distância curta)
                             if (root.Position - data.NPC_Pos.Position).Magnitude <= 15 then
-                                task.wait(1.5) -- Espera 1.5s antes de pegar
+                                task.wait(1.5) -- Delay de segurança para o servidor processar
                                 game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(data.QuestArgs))
                             end
-                            return 
+                            return -- Interrompe o loop para garantir que pegou a quest antes de ir farmar
                         end
                     end
-                    -- >> FIM LÓGICA DE QUEST <<
 
+                    -- LOCALIZAR INIMIGO MAIS PRÓXIMO
                     local targetList = {
                         ["Isle Champion"] = true, ["Sun-kissed Warrior"] = true, 
                         ["Island Boy"] = true, ["Isle Outlaw"] = true,
@@ -4796,6 +4794,7 @@ spawn(function()
                         EquipWeapon(_G.SelectWeapon)  
                         G.Kill(closestEnemy, true)  
                     else  
+                        -- Teleporte entre spots se não houver inimigos vivos
                         local dest = (currentSpot == 1 and FarmTiki1 or FarmTiki2)  
                         _tp(dest)  
                         if (root.Position - dest.Position).Magnitude < 20 then  
