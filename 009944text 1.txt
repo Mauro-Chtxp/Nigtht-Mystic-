@@ -554,20 +554,21 @@ local function IsRaidMob(mob)
     if mob:GetAttribute("IsRaid") or mob:GetAttribute("RaidMob") or mob:GetAttribute("IsBoss") then return true end  
     
     local hum = mob:FindFirstChild("Humanoid")  
-    if hum and hum.WalkSpeed == 0 and not _B then return true end -- Só ignora se não estivermos no processo de puxar
+    -- Se _B for false (tempo de descanso), não mexemos no WalkSpeed aqui
+    if hum and hum.WalkSpeed == 0 and not _B then return true end 
 
     return false
 end
 
--- FUNÇÃO PRINCIPAL: Puxa inimigos com o sistema Vu32 integrado
+-- FUNÇÃO PRINCIPAL: Puxa inimigos
 BringEnemy = function()
+    -- Se _B for falso, o ciclo está no tempo de descanso (5s), então não faz nada
     if not FarmAtivo() or not _B then return end
 
     local LocalPlayer = game.Players.LocalPlayer  
     local char = LocalPlayer.Character  
     if not char or not char:FindFirstChild("HumanoidRootPart") then return end  
 
-    -- Expande o raio de simulação para o jogo "entender" que você manda nos mobs próximos
     if sethiddenproperty then 
         pcall(function() sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge) end) 
     end  
@@ -579,51 +580,68 @@ BringEnemy = function()
         local hum = mob:FindFirstChild("Humanoid")  
         local root = mob:FindFirstChild("HumanoidRootPart")  
 
-        -- Verifica se é um mob válido e vivo
         if hum and root and hum.Health > 0 and not IsRaidMob(mob) then  
             local dist = (root.Position - targetCFrame.Position).Magnitude  
 
-            -- Se estiver no range de 500 (conforme o sistema vu32)
             if dist <= 250 then  
-                
-                -- 1. Remove Colisões (vu32 style)
+                -- Remove Colisões
                 for _, part in ipairs(mob:GetChildren()) do
-                    if part:IsA("BasePart") then
-                        part.CanCollide = false
-                    end
+                    if part:IsA("BasePart") then part.CanCollide = false end
                 end
 
-                -- 2. Aplica a trava (BodyVelocity) para o mob não fugir
+                -- Aplica a trava
                 if not root:FindFirstChild("Lock") then
                     local lock = Instance.new("BodyVelocity")
                     lock.Name = "Lock"
                     lock.Parent = root
                     lock.Velocity = Vector3.new(0, 0, 0)
-                    lock.MaxForce = Vector3.new(10000, 10000, 10000)
+                    lock.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
                 end
 
-                -- 3. Paralisa o Humanoide
                 hum.WalkSpeed = 0
-                
-                -- 4. Teleporta para o alvo
                 root.CFrame = targetCFrame
             end
         end
     end
 end
 
--- LOOP CONTROLADOR
+-- FUNÇÃO DE LIMPEZA: Restaura os mobs quando o traga termina
+local function LiberarMobs()
+    local enemies = workspace.Enemies:GetChildren()
+    for _, mob in ipairs(enemies) do
+        local hum = mob:FindFirstChild("Humanoid")
+        local root = mob:FindFirstChild("HumanoidRootPart")
+        if hum then hum.WalkSpeed = 16 end -- Velocidade padrão
+        if root and root:FindFirstChild("Lock") then
+            root.Lock:Destroy() -- Remove a trava de movimento
+        end
+    end
+end
+
+-- LOOP CONTROLADOR COM TIMING (3s ON / 5s OFF)
 spawn(function()
-    while task.wait() do -- Removi o delay alto para o bring ser mais responsivo
+    while true do
+        task.wait(0.1)
         if FarmAtivo() then
+            -- FASE 1: TRAZER (3 Segundos)
             _B = true
-            BringEnemy()
+            local startTime = tick()
+            while tick() - startTime < 3 do
+                BringEnemy()
+                task.wait(0.1) -- Frequência do teleporte durante os 3s
+            end
+            
+            -- FASE 2: LIBERAR (5 Segundos)
+            _B = false
+            LiberarMobs() -- Destrava os mobs para o jogo respirar
+            task.wait(5)
         else
             _B = false
-            -- Limpeza opcional: Você pode adicionar um código aqui para devolver o WalkSpeed se o farm desligar
+            task.wait(1)
         end
     end
 end)
+
 
 
 
