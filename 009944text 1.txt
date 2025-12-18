@@ -4265,7 +4265,8 @@ function StartFishingLoop()
 	end)
 end
 
-MF:AddDropdown({
+MF:Add
+({
     Title = "Select Fishing Rod",
     Values = {"Fishing Rod", "Gold Rod", "Shark Rod", "Shell Rod", "Treasure Rod"},
     Default = "Fishing Rod",
@@ -4825,12 +4826,10 @@ local function UseAllCategorySkills(targetCFrame)
     local VirtualInputManager = game:GetService("VirtualInputManager")
     local VirtualUser = game:GetService("VirtualUser")
     local categories = {"Melee", "Blox Fruit", "Sword", "Gun"}
-    local skills = {"Z", "X", "C", "V", "F"}
+    local skills = {"Z", "X", "C", "F"} -- REMOVIDO O "V"
 
-    -- Olhar para baixo (alvo)
-    pcall(function()  
-        workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, targetCFrame.Position)  
-    end)  
+    -- Offset para ficar levemente acima do vaso (3 studs)
+    local attackPos = targetCFrame * CFrame.new(0, 3, 0)
 
     for _, toolType in ipairs(categories) do  
         local tool = nil  
@@ -4851,9 +4850,9 @@ local function UseAllCategorySkills(targetCFrame)
         if tool then  
             game.Players.LocalPlayer.Character.Humanoid:EquipTool(tool)  
             
-            for i = 1, 5 do
-                -- Trava de posição durante a skill para evitar recuo (Knockback)
-                if targetCFrame then _tp(targetCFrame) end
+            for i = 1, #skills do
+                -- Mantém o player suspenso acima do vaso para evitar bugs de colisão
+                _tp(attackPos)
                 
                 VirtualUser:CaptureController()  
                 VirtualUser:ClickButton1(Vector2.new(851, 158))  
@@ -4861,7 +4860,7 @@ local function UseAllCategorySkills(targetCFrame)
                 local skillKey = skills[i]  
                 if skillKey then  
                     VirtualInputManager:SendKeyEvent(true, skillKey, false, game)  
-                    task.wait(0.02) -- Reduzi para ser mais fluido
+                    task.wait(0.02)
                     VirtualInputManager:SendKeyEvent(false, skillKey, false, game)  
                 end  
                 task.wait(0.08)   
@@ -4904,28 +4903,28 @@ spawn(function()
                           
                         local char = game.Players.LocalPlayer.Character
                         local startTime = tick()
+                        -- Define a posição de destino levemente acima
+                        local hoverPos = pos * CFrame.new(0, 3, 0)
                         
-                        -- Movimentação mais limpa
                         repeat 
-                            _tp(pos)
+                            _tp(hoverPos)
                             task.wait()
-                            -- Se estiver a menos de 7 studs, já considera que chegou
-                        until (char.HumanoidRootPart.Position - pos.Position).Magnitude < 7 or tick() - startTime > 2
+                        until (char.HumanoidRootPart.Position - hoverPos.Position).Magnitude < 5 or tick() - startTime > 1.5
                         
-                        if (char.HumanoidRootPart.Position - pos.Position).Magnitude < 10 then  
+                        if (char.HumanoidRootPart.Position - hoverPos.Position).Magnitude < 8 then  
                             UseAllCategorySkills(pos)
                         end  
                     end  
 
-                -- FASE 3: MOBS (Adicionado Serpent Hunter e Skull Slayer)
+                -- FASE 3: MOBS
                 else  
                     local targetList = {
                         ["Isle Champion"] = true, 
                         ["Sun-kissed Warrior"] = true, 
                         ["Island Boy"] = true, 
                         ["Isle Outlaw"] = true,
-                        ["Serpent Hunter"] = true, -- Novo Mob
-                        ["Skull Slayer"] = true    -- Novo Mob
+                        ["Serpent Hunter"] = true,
+                        ["Skull Slayer"] = true
                     }  
                     
                     local enemy = nil  
@@ -4945,7 +4944,7 @@ spawn(function()
                         _tp(dest)  
                         if (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - dest.Position).Magnitude < 20 then  
                             currentSpot = (currentSpot == 1 and 2 or 1)  
-                            task.wait(1) -- Reduzi o tempo de espera no spot
+                            task.wait(1)
                         end  
                     end  
                 end  
