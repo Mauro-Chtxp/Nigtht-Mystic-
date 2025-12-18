@@ -4555,11 +4555,13 @@ end
 
 ---
 
--- 1. UI: DROPDOWN + TOGGLES
+----------------------------------------------------------------------------
+-- 1. UI: DROPDOWN + TOGGLES (Coloque isso na seção da sua UI)
+----------------------------------------------------------------------------
 
 b:AddDropdown({
     Title = "Select Farm Mode",
-    Values = {"Level", "Bone", "Cake Prince", "Tyrant Of The Skies"}, -- Adicionado aqui
+    Values = {"Level", "Bone", "Cake Prince", "Tyrant Of The Skies"},
     Default = GetSetting("SelectedFarmMode_Save", "Level"),
     Callback = function(v)
         _G.SelectedFarmMode = v
@@ -4574,11 +4576,11 @@ b:AddToggle({
     Callback = function(v)
         _G.StartFarm = v
 
-        -- Reset total das variáveis de controle
+        -- Reset total das variáveis de controle para evitar conflitos
         _G.Level = false  
         _G.AutoFarm_Bone = false  
         _G.AutoFarm_Cake = false  
-        _G.AutoTyrant = false -- Reset adicionado
+        _G.AutoTyrant = false 
 
         if v then  
             if _G.SelectedFarmMode == "Level" then  
@@ -4588,7 +4590,7 @@ b:AddToggle({
             elseif _G.SelectedFarmMode == "Cake Prince" then  
                 _G.AutoFarm_Cake = true  
             elseif _G.SelectedFarmMode == "Tyrant Of The Skies" then  
-                _G.AutoTyrant = true -- Ativação adicionada
+                _G.AutoTyrant = true -- Ativa a lógica do Tyrant
             end  
         end
 
@@ -4607,16 +4609,14 @@ b:AddToggle({
     end
 })
 
----
+----------------------------------------------------------------------------
+-- 2. LÓGICA DO TYRANT (FARM, QUESTS E BOSS)
+----------------------------------------------------------------------------
 
--- 2. SISTEMA TYRANT OF THE SKIES (ATUALIZADO: CFrame Exato + Delay 1.5s)
+-- Configurações
+local FarmHeight = 45 -- Altura segura para não bugar no mob
 
--- VARIAVEIS GLOBAIS
--- (Certifique-se de que _tp, EquipWeapon e G.Kill já estejam definidos no seu script base)
-
--- ==========================================
--- 1. FUNÇÃO NOCLIP (NOVA)
--- ==========================================
+-- NoClip Reforçado (Para não travar nas paredes/mobs)
 spawn(function()
     game:GetService("RunService").Stepped:Connect(function()
         if _G.AutoTyrant and _G.StartFarm then
@@ -4627,15 +4627,76 @@ spawn(function()
                         part.CanCollide = false
                     end
                 end
+                if char:FindFirstChild("Humanoid") then
+                    char.Humanoid.AutoRotate = true 
+                    char.Humanoid:ChangeState(11) 
+                end
             end
         end
     end)
 end)
 
--- ==========================================
--- 2. FUNÇÕES UTILITÁRIAS
--- ==========================================
+-- Função Mágica: Seleciona o Mob/Quest exato pelo Nível
+local function GetTargetByLevel()
+    local myLevel = game.Players.LocalPlayer.Data.Level.Value
+    
+    -- [LEVEL 2575+] SKULL SLAYER
+    if myLevel >= 2575 then
+        return {
+            Name = "Skull Slayer",
+            QuestArgs = {"StartQuest", "TikiQuest3", 2},
+            QuestPos = CFrame.new(-16668.03, 105.32, 1568.60),
+            FarmPos = CFrame.new(-16709.49, 419.68, 1751.09)
+        }
+    
+    -- [LEVEL 2551 - 2574] SERPENT HUNTER
+    elseif myLevel > 2550 then
+        return {
+            Name = "Serpent Hunter",
+            QuestArgs = {"StartQuest", "TikiQuest3", 1},
+            QuestPos = CFrame.new(-16668.03, 105.32, 1568.60),
+            FarmPos = CFrame.new(-16645.64, 163.09, 1352.87)
+        }
 
+    -- [LEVEL 2525 - 2550] ISLE CHAMPION (Coordenadas Exatas que você pediu)
+    elseif myLevel >= 2525 then
+        return {
+            Name = "Isle Champion",
+            QuestArgs = {"StartQuest", "TikiQuest2", 2},
+            QuestPos = CFrame.new(-16541.0215, 57.3082275, 1051.46118), 
+            FarmPos = CFrame.new(-16602.1015625, 130.38734436035, 1087.2456054688) 
+        }
+
+    -- [LEVEL 2500 - 2524] SUN-KISSED WARRIOR (Coordenadas Exatas que você pediu)
+    elseif myLevel >= 2500 then
+        return {
+            Name = "Sun-kissed Warrior",
+            QuestArgs = {"StartQuest", "TikiQuest2", 1},
+            QuestPos = CFrame.new(-16538, 55, 1049), 
+            FarmPos = CFrame.new(-16347, 64, 984)
+        }
+
+    -- [LEVEL 2475 - 2499] ISLAND BOY
+    elseif myLevel >= 2475 then
+        return {
+            Name = "Island Boy",
+            QuestArgs = {"StartQuest", "TikiQuest1", 2},
+            QuestPos = CFrame.new(-16548.8164, 55.6059914, -172.8125),
+            FarmPos = CFrame.new(-16670, 43, -270)
+        }
+
+    -- [LEVEL < 2475] ISLE OUTLAW (Fallback para leveis baixos)
+    else
+        return {
+            Name = "Isle Outlaw",
+            QuestArgs = {"StartQuest", "TikiQuest1", 1},
+            QuestPos = CFrame.new(-16548.8164, 55.6059914, -172.8125),
+            FarmPos = CFrame.new(-16350, 45, -180)
+        }
+    end
+end
+
+-- Verifica quantos "Olhos" (Vasos) foram quebrados
 local function GetEyesCount()
     local model = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("TikiOutpost") and workspace.Map.TikiOutpost:FindFirstChild("IslandModel")
     local count = 0
@@ -4645,14 +4706,15 @@ local function GetEyesCount()
         local chunks = model:FindFirstChild("IslandChunks")
         local eye3 = chunks and chunks:FindFirstChild("E") and chunks.E:FindFirstChild("Eye3")
         local eye4 = chunks and chunks:FindFirstChild("E") and chunks.E:FindFirstChild("Eye4")
-        if eye1 and eye1:IsA("BasePart") and eye1.Transparency == 0 then count = count + 1 end
-        if eye2 and eye2:IsA("BasePart") and eye2.Transparency == 0 then count = count + 1 end
-        if eye3 and eye3:IsA("BasePart") and eye3.Transparency == 0 then count = count + 1 end
-        if eye4 and eye4:IsA("BasePart") and eye4.Transparency == 0 then count = count + 1 end
+        if eye1 and eye1.Transparency == 0 then count = count + 1 end
+        if eye2 and eye2.Transparency == 0 then count = count + 1 end
+        if eye3 and eye3.Transparency == 0 then count = count + 1 end
+        if eye4 and eye4.Transparency == 0 then count = count + 1 end
     end
     return count
 end
 
+-- Usa skills para quebrar os vasos
 local function UseAllCategorySkills()
     local VirtualInputManager = game:GetService("VirtualInputManager")
     local VirtualUser = game:GetService("VirtualUser")
@@ -4667,23 +4729,16 @@ local function UseAllCategorySkills()
     for _, toolType in ipairs(categories) do
         local tool = nil
         for _, v in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
-            if v:IsA("Tool") and v.ToolTip == toolType then
-                tool = v
-                break
-            end
+            if v:IsA("Tool") and v.ToolTip == toolType then tool = v break end
         end
-        
         if not tool then
             local charTool = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
-            if charTool and charTool.ToolTip == toolType then
-                tool = charTool
-            end
+            if charTool and charTool.ToolTip == toolType then tool = charTool end
         end
-
         if tool then
             game.Players.LocalPlayer.Character.Humanoid:EquipTool(tool)
             task.wait(0.1)
-            for i = 1, 5 do
+            for i = 1, 3 do
                 VirtualUser:CaptureController()
                 VirtualUser:ClickButton1(Vector2.new(851, 158))
                 local skillKey = skills[i]
@@ -4698,56 +4753,30 @@ local function UseAllCategorySkills()
     end
 end
 
--- Tabela de Quests (Levels Baixos - Fallback)
-local LowLevelQuestData = {
-    ["Isle Outlaw"] = {
-        QuestArgs = {"StartQuest", "TikiQuest1", 1},
-        NPC_Pos = CFrame.new(-16548.8, 55.6, -172.8)
-    },
-    ["Island Boy"] = {
-        QuestArgs = {"StartQuest", "TikiQuest1", 2},
-        NPC_Pos = CFrame.new(-16548.8, 55.6, -172.8)
-    },
-    ["Sun-kissed Warrior"] = {
-        QuestArgs = {"StartQuest", "TikiQuest2", 1},
-        NPC_Pos = CFrame.new(-16524, 149, 1177) 
-    },
-    ["Isle Champion"] = {
-        QuestArgs = {"StartQuest", "TikiQuest2", 2},
-        NPC_Pos = CFrame.new(-16524, 149, 1177)
-    }
-}
-
--- ==========================================
--- 3. LOOP PRINCIPAL (ATUALIZADO)
--- ==========================================
-
+-- LOOP PRINCIPAL DO FARM
 spawn(function()
-    local FarmTiki1 = CFrame.new(-16423.8, 146.9, -123.6)
-    local FarmTiki2 = CFrame.new(-16593.6, 155.3, 1130.5)
-    local currentSpot = 1
-
     while task.wait() do
+        -- Só roda se a toggle estiver ativada E o modo for Tyrant
         if _G.AutoTyrant and _G.StartFarm then
             pcall(function()
-                local eyes = GetEyesCount()
-                local boss = workspace.Enemies:FindFirstChild("Tyrant of the Skies")
                 local plr = game.Players.LocalPlayer
-                local myLevel = plr.Data.Level.Value -- Pega o nível atual
+                local boss = workspace.Enemies:FindFirstChild("Tyrant of the Skies")
+                local eyes = GetEyesCount()
 
-                -- ===========================
-                -- FASE 1: BOSS (Prioridade)
-                -- ===========================
-                if boss and G.Alive(boss) then
-                    _tp(boss.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
+                -- [PRIORIDADE 1] MATAR BOSS
+                if boss and boss.Humanoid.Health > 0 then
+                    _tp(boss.HumanoidRootPart.CFrame * CFrame.new(0, FarmHeight, 0))
                     repeat task.wait()
-                        EquipWeapon(_G.SelectWeapon)
-                        G.Kill(boss, true)
-                    until not boss.Parent or not _G.StartFarm or not _G.AutoTyrant
-                
-                -- ===========================
-                -- FASE 2: QUEBRAR VASOS (4 Olhos)
-                -- ===========================
+                        if boss and boss:FindFirstChild("HumanoidRootPart") then
+                            _tp(boss.HumanoidRootPart.CFrame * CFrame.new(0, FarmHeight, 0))
+                            EquipWeapon(_G.SelectWeapon)
+                            G.Kill(boss, true)
+                        else
+                            break
+                        end
+                    until not boss.Parent or boss.Humanoid.Health <= 0 or not _G.StartFarm or not _G.AutoTyrant
+
+                -- [PRIORIDADE 2] QUEBRAR 4 VASOS PARA INVOCAR
                 elseif eyes == 4 then
                     local targetsty = {
                         CFrame.new(-16335.1, 158.1, 1465.6), CFrame.new(-16288.6, 158.1, 1470.3),
@@ -4756,11 +4785,10 @@ spawn(function()
                         CFrame.new(-16250.3, 159.3, 1316.3)
                     }
                     for _, pos in ipairs(targetsty) do
-                        if not _G.StartFarm or not _G.AutoTyrant or GetEyesCount() ~= 4 then break end
-                        if workspace.Enemies:FindFirstChild("Tyrant of the Skies") then break end
+                        if not _G.StartFarm or not _G.AutoTyrant or GetEyesCount() ~= 4 or workspace.Enemies:FindFirstChild("Tyrant of the Skies") then break end
                         
                         _tp(pos)
-                        local char = game.Players.LocalPlayer.Character
+                        local char = plr.Character
                         if char and char:FindFirstChild("HumanoidRootPart") then
                             if (char.HumanoidRootPart.Position - pos.Position).Magnitude < 15 then
                                 UseAllCategorySkills()
@@ -4769,93 +4797,48 @@ spawn(function()
                         end
                     end
 
-                -- ===========================
-                -- FASE 3: MOBS + AUTO QUEST (Lógica de Nível)
-                -- ===========================
+                -- [PRIORIDADE 3] FARM NORMAL (MOB + QUEST)
                 else
-                    local targetName = nil
-                    local questArgs = nil
-                    local questPos = nil
-                    local farmPos = nil
+                    local TargetData = GetTargetByLevel() -- Pega info atualizada do level
+                    local QuestUI = plr.PlayerGui.Main.Quest
+                    local hasQuest = QuestUI.Visible
 
-                    -- >>>>> SELETOR DE QUEST POR LEVEL <<<<<
-                    if myLevel >= 2575 then
-                        -- SKULL SLAYER
-                        targetName = "Skull Slayer"
-                        questArgs = {"StartQuest", "TikiQuest3", 2}
-                        questPos = CFrame.new(-16668.03, 105.32, 1568.60)
-                        farmPos = CFrame.new(-16709.49, 419.68, 1751.09)
-                        
-                    elseif myLevel >= 2551 then
-                        -- SERPENT HUNTER
-                        targetName = "Serpent Hunter"
-                        questArgs = {"StartQuest", "TikiQuest3", 1}
-                        questPos = CFrame.new(-16668.03, 105.32, 1568.60)
-                        farmPos = CFrame.new(-16645.64, 163.09, 1352.87)
-                        
+                    -- A. PEGAR QUEST (Se ativado na UI)
+                    if _G.AcceptQuest and not hasQuest then
+                        local char = plr.Character
+                        if char and char:FindFirstChild("HumanoidRootPart") then
+                            local distToNPC = (char.HumanoidRootPart.Position - TargetData.QuestPos.Position).Magnitude
+                            
+                            -- Se longe, teleporta. Se perto, pega quest.
+                            if distToNPC > 15 then
+                                _tp(TargetData.QuestPos)
+                            else
+                                task.wait(0.2)
+                                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(TargetData.QuestArgs))
+                                task.wait(0.5)
+                            end
+                        end
+                    
+                    -- B. MATAR MOBS
                     else
-                        -- NÍVEIS BAIXOS (Fallback)
-                        local targetList = {["Isle Champion"]=true, ["Sun-kissed Warrior"]=true, ["Island Boy"]=true, ["Isle Outlaw"]=true}
+                        local enemy = nil
                         for _, v in pairs(workspace.Enemies:GetChildren()) do
-                            if targetList[v.Name] and G.Alive(v) then
-                                targetName = v.Name
-                                local qInfo = LowLevelQuestData[targetName]
-                                if qInfo then
-                                    questArgs = qInfo.QuestArgs
-                                    questPos = qInfo.NPC_Pos
-                                end
+                            if v.Name == TargetData.Name and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+                                enemy = v
                                 break
                             end
                         end
-                        -- Se não achar mob vivo, define Isle Champion como padrão para não bugar
-                        if not targetName then
-                            targetName = "Isle Champion"
-                            questArgs = {"StartQuest", "TikiQuest2", 2}
-                            questPos = CFrame.new(-16524, 149, 1177)
-                            farmPos = FarmTiki2
-                        end
-                    end
 
-                    local enemy = workspace.Enemies:FindFirstChild(targetName)
-                    local QuestUI = plr.PlayerGui.Main.Quest
-
-                    -- 1. PEGAR QUEST
-                    if _G.AcceptQuest and not QuestUI.Visible and questPos then
-                        local char = plr.Character
-                        local hrp = char and char:FindFirstChild("HumanoidRootPart")
-                        if hrp then
-                            local distToNPC = (hrp.Position - questPos.Position).Magnitude
-                            if distToNPC > 15 then
-                                _tp(questPos)
-                                return 
-                            else
-                                task.wait(0.2)
-                                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(questArgs))
-                                task.wait(0.3)
-                            end
-                        end
-                    end
-
-                    -- 2. MATAR OU ESPERAR SPAWN
-                    if not _G.AcceptQuest or QuestUI.Visible then
-                        if enemy and G.Alive(enemy) then
+                        if enemy then
                             -- Atacar Inimigo
-                            _tp(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
+                            local enemyPos = enemy.HumanoidRootPart.CFrame
+                            _tp(enemyPos * CFrame.new(0, FarmHeight, 0)) 
+                            
                             EquipWeapon(_G.SelectWeapon)
                             G.Kill(enemy, true)
                         else
-                            -- Aguardar Spawn no local correto
-                            if farmPos then
-                                _tp(farmPos)
-                            elseif myLevel < 2551 then
-                                -- Sistema rotativo antigo apenas para levels baixos
-                                local dest = (currentSpot == 1 and FarmTiki1 or FarmTiki2)
-                                _tp(dest)
-                                if (plr.Character.HumanoidRootPart.Position - dest.Position).Magnitude < 20 then
-                                    currentSpot = (currentSpot == 1 and 2 or 1)
-                                    task.wait(2)
-                                end
-                            end
+                            -- Esperar Spawn no local correto
+                            _tp(TargetData.FarmPos)
                         end
                     end
                 end
@@ -4863,8 +4846,6 @@ spawn(function()
         end
     end
 end)
----
-
 -- 3. SISTEMA BONE FARM
 
 spawn(function()
