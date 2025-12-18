@@ -124,7 +124,7 @@ Marines = function()
 Pirates = function()
 		replicated.Remotes.CommF_:InvokeServer("SetTeam", "Pirates");
 	end;
-local I = (loadstring(game:HttpGet("https://pastefy.app/C5SnG36Q/raw")))();
+local I = (loadstring(game:HttpGet("https://pastefy.app/B1iFhr5b/raw")))();
 if World1 then
 	Boss = {
 			"The Gorilla King",
@@ -2223,6 +2223,14 @@ local p=B:AddSection("Fruits");
 local D=g:AddSection("Shop");
 local Z=u:AddSection("Misc");
 local SS=s:AddSection("Stats");
+
+-- Exemplo de uso:
+Library:Notify({
+    Title = "Night Mystic",
+    Content = "Script Loaded",
+    Duration = 5 -- Tempo em segundos para sumir
+})
+
 
 -- Secção de Configurações manuais
 local ConfigSection = c:AddSection("Manual Save")
