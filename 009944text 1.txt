@@ -4265,8 +4265,7 @@ function StartFishingLoop()
 	end)
 end
 
-MF:Add
-({
+MF:AddDropdown({
     Title = "Select Fishing Rod",
     Values = {"Fishing Rod", "Gold Rod", "Shark Rod", "Shell Rod", "Treasure Rod"},
     Default = "Fishing Rod",
@@ -4827,20 +4826,29 @@ local function UseAllCategorySkills(targetCFrame)
     local VirtualUser = game:GetService("VirtualUser")
     local categories = {"Melee", "Blox Fruit", "Sword", "Gun"}
     
-    -- REMOVIDO O "V" DA LISTA
+    -- REMOVIDO O "V" DA LISTA ABAIXO
     local skills = {"Z", "X", "C", "F"} 
 
-    -- Define uma posição um pouco acima (5 studs) para evitar colisão com o chão (os "pulinhos")
-    local hoverCFrame = targetCFrame * CFrame.new(0, 5, 0)
+    local player = game.Players.LocalPlayer
+    local char = player.Character or player.CharacterAdded:Wait()
+    local root = char:FindFirstChild("HumanoidRootPart")
 
-    -- Olhar para baixo (alvo original no chão)
+    -- Lógica de Ancorar para evitar pulos/recuo
+    if root then
+        if targetCFrame then _tp(targetCFrame) end -- Garante posição final
+        task.wait(0.1)
+        root.Anchored = true -- TRAVA O PERSONAGEM
+        root.Velocity = Vector3.new(0,0,0) -- Zera velocidade residual
+    end
+
+    -- Olhar para baixo (alvo)
     pcall(function()  
-        workspace.CurrentCamera.CFrame = CFrame.new(hoverCFrame.Position, targetCFrame.Position)  
+        workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, targetCFrame.Position)  
     end)  
 
     for _, toolType in ipairs(categories) do  
         local tool = nil  
-        for _, v in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do  
+        for _, v in pairs(player.Backpack:GetChildren()) do  
             if v:IsA("Tool") and v.ToolTip == toolType then  
                 tool = v  
                 break  
@@ -4848,19 +4856,18 @@ local function UseAllCategorySkills(targetCFrame)
         end  
           
         if not tool then  
-            local charTool = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")  
+            local charTool = char:FindFirstChildOfClass("Tool")  
             if charTool and charTool.ToolTip == toolType then  
                 tool = charTool  
             end  
         end  
 
         if tool then  
-            game.Players.LocalPlayer.Character.Humanoid:EquipTool(tool)(tool)  
+            char.Humanoid:EquipTool(tool)  
             
-            -- Ajustado para percorrer apenas a quantidade de skills que existem na lista
+            -- Loop das Skills (Z, X, C, F)
             for i = 1, #skills do
-                -- Trava de posição AGORA USANDO O HOVER (flutuando um pouco)
-                if hoverCFrame then _tp(hoverCFrame) end
+                -- Não precisamos mais de _tp aqui dentro pois ele está Ancorado
                 
                 VirtualUser:CaptureController()  
                 VirtualUser:ClickButton1(Vector2.new(851, 158))  
@@ -4868,12 +4875,17 @@ local function UseAllCategorySkills(targetCFrame)
                 local skillKey = skills[i]  
                 if skillKey then  
                     VirtualInputManager:SendKeyEvent(true, skillKey, false, game)  
-                    task.wait(0.02)
+                    task.wait(0.05) 
                     VirtualInputManager:SendKeyEvent(false, skillKey, false, game)  
                 end  
-                task.wait(0.08)   
+                task.wait(0.1)   
             end  
         end  
+    end
+
+    -- Destrava o personagem ao terminar os ataques
+    if root then
+        root.Anchored = false
     end
 end
 
@@ -4890,6 +4902,11 @@ spawn(function()
 
                 -- FASE 1: BOSS  
                 if boss and G.Alive(boss) then  
+                    -- Garante que está desancorado ao lutar com o boss
+                    if game.Players.LocalPlayer.Character.HumanoidRootPart.Anchored then
+                        game.Players.LocalPlayer.Character.HumanoidRootPart.Anchored = false
+                    end
+
                     _tp(boss.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))  
                     repeat task.wait()  
                         EquipWeapon(_G.SelectWeapon)  
@@ -4912,30 +4929,33 @@ spawn(function()
                         local char = game.Players.LocalPlayer.Character
                         local startTime = tick()
                         
-                        -- Movimentação até o vaso
-                        -- Adicionei um pequeno offset aqui também para ele não chegar "enterrado" no chão
-                        local movePos = pos * CFrame.new(0, 5, 0)
+                        -- Garante que está solto para viajar até o vaso
+                        char.HumanoidRootPart.Anchored = false 
 
                         repeat 
-                            _tp(movePos)
+                            _tp(pos)
                             task.wait()
-                        until (char.HumanoidRootPart.Position - movePos.Position).Magnitude < 7 or tick() - startTime > 2
+                        until (char.HumanoidRootPart.Position - pos.Position).Magnitude < 5 or tick() - startTime > 2
                         
-                        -- Verifica se está perto o suficiente (usando a posição original do vaso como referência)
-                        if (char.HumanoidRootPart.Position - pos.Position).Magnitude < 15 then  
-                            UseAllCategorySkills(pos)
+                        if (char.HumanoidRootPart.Position - pos.Position).Magnitude < 10 then  
+                            UseAllCategorySkills(pos) -- A ancoragem acontece DENTRO dessa função agora
                         end  
                     end  
 
                 -- FASE 3: MOBS
                 else  
+                    -- Garante que está desancorado para farmar mobs
+                    if game.Players.LocalPlayer.Character.HumanoidRootPart.Anchored then
+                        game.Players.LocalPlayer.Character.HumanoidRootPart.Anchored = false
+                    end
+
                     local targetList = {
                         ["Isle Champion"] = true, 
                         ["Sun-kissed Warrior"] = true, 
                         ["Island Boy"] = true, 
                         ["Isle Outlaw"] = true,
-                        ["Serpent Hunter"] = true, 
-                        ["Skull Slayer"] = true    
+                        ["Serpent Hunter"] = true,
+                        ["Skull Slayer"] = true
                     }  
                     
                     local enemy = nil  
@@ -4955,7 +4975,7 @@ spawn(function()
                         _tp(dest)  
                         if (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - dest.Position).Magnitude < 20 then  
                             currentSpot = (currentSpot == 1 and 2 or 1)  
-                            task.wait(1) 
+                            task.wait(1)
                         end  
                     end  
                 end  
@@ -4963,7 +4983,6 @@ spawn(function()
         end  
     end
 end)
-
 
 
 -- 4. SISTEMA CAKE PRINCE FARM (MODIFICADO PARA TELEPORTE INSTANTÂNEO NO BOSS E MOB)
