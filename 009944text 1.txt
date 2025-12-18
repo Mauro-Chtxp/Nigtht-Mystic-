@@ -543,72 +543,88 @@ local function FarmAtivo()
         _G.FarmMastery_Dev or
         _G.FarmMastery_G or
         (getgenv()).AutoMaterial or
-        _G.AutoTyrant -- ÚNICA ADIÇÃO (Para ativar no Tyrant)
+        _G.AutoTyrant
     )
 end
 
--- FUNÇÃO: Verifica se o mob deve ser ignorado (Raids, Bosses, Imóveis)
+-- FUNÇÃO: Verifica se o mob deve ser ignorado
 local function IsRaidMob(mob)
     local n = mob.Name:lower()
-
     if n:find("raid") or n:find("microchip") or n:find("island") then return true end  
     if mob:GetAttribute("IsRaid") or mob:GetAttribute("RaidMob") or mob:GetAttribute("IsBoss") then return true end  
-
+    
     local hum = mob:FindFirstChild("Humanoid")  
-    if hum and hum.WalkSpeed == 0 then return true end  
-
-    if mob.Parent and tostring(mob.Parent):lower():find("_worldorigin") then return true end  
+    if hum and hum.WalkSpeed == 0 and not _B then return true end -- Só ignora se não estivermos no processo de puxar
 
     return false
 end
 
--- FUNÇÃO PRINCIPAL: Puxa inimigos
+-- FUNÇÃO PRINCIPAL: Puxa inimigos com o sistema Vu32 integrado
 BringEnemy = function()
     if not FarmAtivo() or not _B then return end
 
     local LocalPlayer = game.Players.LocalPlayer  
     local char = LocalPlayer.Character  
-    if not char then return end  
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return end  
 
-    local HRP_Player = char:FindFirstChild("HumanoidRootPart")  
-    if not HRP_Player then return end  
+    -- Expande o raio de simulação para o jogo "entender" que você manda nos mobs próximos
+    if sethiddenproperty then 
+        pcall(function() sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge) end) 
+    end  
 
-    if setscriptable then pcall(function() setscriptable(LocalPlayer, "SimulationRadius", true) end) end  
-    if sethiddenproperty then pcall(function() sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge) end) end  
-
-    local targetPos = PosMon or HRP_Player.Position  
+    local targetCFrame = PosMon and CFrame.new(PosMon) or char.HumanoidRootPart.CFrame
     local enemies = workspace.Enemies:GetChildren()  
 
     for _, mob in ipairs(enemies) do  
         local hum = mob:FindFirstChild("Humanoid")  
         local root = mob:FindFirstChild("HumanoidRootPart")  
 
+        -- Verifica se é um mob válido e vivo
         if hum and root and hum.Health > 0 and not IsRaidMob(mob) then  
-            local dist = (root.Position - targetPos).Magnitude  
+            local dist = (root.Position - targetCFrame.Position).Magnitude  
 
-            if dist <= 225 then  
-                root.CFrame = CFrame.new(targetPos)  
-            end  
-        end  
+            -- Se estiver no range de 500 (conforme o sistema vu32)
+            if dist <= 250 then  
+                
+                -- 1. Remove Colisões (vu32 style)
+                for _, part in ipairs(mob:GetChildren()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = false
+                    end
+                end
+
+                -- 2. Aplica a trava (BodyVelocity) para o mob não fugir
+                if not root:FindFirstChild("Lock") then
+                    local lock = Instance.new("BodyVelocity")
+                    lock.Name = "Lock"
+                    lock.Parent = root
+                    lock.Velocity = Vector3.new(0, 0, 0)
+                    lock.MaxForce = Vector3.new(10000, 10000, 10000)
+                end
+
+                -- 3. Paralisa o Humanoide
+                hum.WalkSpeed = 0
+                
+                -- 4. Teleporta para o alvo
+                root.CFrame = targetCFrame
+            end
+        end
     end
 end
 
--- LOOP CONTROLADOR DE PUXAR / SOLTAR
+-- LOOP CONTROLADOR
 spawn(function()
-    while task.wait(1) do
+    while task.wait() do -- Removi o delay alto para o bring ser mais responsivo
         if FarmAtivo() then
             _B = true
             BringEnemy()
-            task.wait(3)
-
-            _B = false  
-            task.wait(5)  
-        else  
-            _B = false  
-            task.wait(1)  
-        end  
+        else
+            _B = false
+            -- Limpeza opcional: Você pode adicionar um código aqui para devolver o WalkSpeed se o farm desligar
+        end
     end
 end)
+
 
 
 Useskills = function(I, e)
