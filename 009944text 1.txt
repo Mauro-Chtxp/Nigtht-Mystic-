@@ -4608,7 +4608,7 @@ b:AddToggle({
 
 ---
 
--- 2. SISTEMA TYRANT OF THE SKIES (ADICIONADO DEPOIS DA UI)
+-- 2. SISTEMA TYRANT OF THE SKIES (ATUALIZADO COM QUEST)
 
 local function SetNoclip(state)
     local char = game.Players.LocalPlayer.Character
@@ -4697,12 +4697,32 @@ spawn(function()
     while task.wait() do 
         if _G.AutoTyrant and _G.StartFarm then  
             pcall(function()  
-                local eyes = GetEyesCount()  
-                local boss = workspace.Enemies:FindFirstChild("Tyrant of the Skies")  
                 local player = game.Players.LocalPlayer
                 local char = player.Character
                 local root = char.HumanoidRootPart
+                local eyes = GetEyesCount()  
+                local boss = workspace.Enemies:FindFirstChild("Tyrant of the Skies")  
+                
+                -- LÓGICA DE ACEITAR QUEST (TIKI OUTPOST)
+                if _G.AcceptQuest and not player.PlayerGui.Main.Quest.Visible then
+                    local myLevel = player.Data.Level.Value
+                    local questNPC达成 = CFrame.new(-16668.03, 105.32, 1568.60)
+                    
+                    if myLevel >= 2551 then
+                        TeleportConditional(root, questNPC达成, TELEPORT_DISTANCE_THRESHOLD)
+                        if (root.Position - questNPC达成.Position).Magnitude <= 50 then
+                            task.wait(0.3)
+                            if myLevel >= 2551 and myLevel <= 2574 then
+                                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", "TikiQuest3", 1)
+                            elseif myLevel >= 2575 then
+                                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", "TikiQuest3", 2)
+                            end
+                        end
+                        return -- Retorna para esperar a quest atualizar na UI
+                    end
+                end
 
+                -- LÓGICA DE ATAQUE
                 if boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then  
                     SetNoclip(false)
                     if root.Anchored then root.Anchored = false end
