@@ -542,6 +542,7 @@ local function FarmAtivo()
         _G.AutoFarm_Cake or
         _G.FarmMastery_Dev or
         _G.FarmMastery_G or
+        _G.AutoTyrant or -- ADICIONADO: Agora o Bring Mobs funciona no Farm do Boss/Vasos
         (getgenv()).AutoMaterial
     )
 end
@@ -550,6 +551,9 @@ end
 local function IsRaidMob(mob)
     local n = mob.Name:lower()
 
+    -- Bloqueia puxar o Boss (Tyrant of the Skies), senão o farm de boss buga
+    if n:find("tyrant") then return true end 
+    
     if n:find("raid") or n:find("microchip") or n:find("island") then return true end
     if mob:GetAttribute("IsRaid") or mob:GetAttribute("RaidMob") or mob:GetAttribute("IsBoss") then return true end
 
@@ -572,21 +576,32 @@ BringEnemy = function()
     local HRP_Player = char:FindFirstChild("HumanoidRootPart")
     if not HRP_Player then return end
 
+    -- Melhora a detecção de rede para puxar os mobs
     if setscriptable then pcall(function() setscriptable(LocalPlayer, "SimulationRadius", true) end) end
     if sethiddenproperty then pcall(function() sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge) end) end
 
-    local targetPos = PosMon or HRP_Player.Position
+    -- Se PosMon não estiver definido pelo script principal, usa a posição do Player
+    local targetPos = PosMon
+    if not targetPos and HRP_Player then
+        targetPos = HRP_Player.Position
+    elseif typeof(targetPos) == "CFrame" then
+        targetPos = targetPos.Position
+    end
+
     local enemies = workspace.Enemies:GetChildren()
 
     for _, mob in ipairs(enemies) do
         local hum = mob:FindFirstChild("Humanoid")
         local root = mob:FindFirstChild("HumanoidRootPart")
 
+        -- Só puxa se for um mob válido e não for o Boss
         if hum and root and hum.Health > 0 and not IsRaidMob(mob) then
-            local dist = (root.Position - targetPos).Magnitude
+            local dist = (root.Position - HRP_Player.Position).Magnitude
 
-            if dist <= 225 then
-                root.CFrame = CFrame.new(targetPos)
+            -- Raio de puxada (ajustado para 300 para pegar mobs ao redor da ilha)
+            if dist <= 300 then
+                root.CanCollide = false -- Evita o mob te empurrar
+                root.CFrame = HRP_Player.CFrame * CFrame.new(0, 0, -5) -- Puxa para a frente do player
             end
         end
     end
@@ -594,14 +609,14 @@ end
 
 -- LOOP CONTROLADOR DE PUXAR / SOLTAR
 spawn(function()
-    while task.wait(1) do
+    while task.wait() do -- Diminuído o wait para ser mais responsivo
         if FarmAtivo() then
+            -- Verifica se não é a fase dos vasos (opcional, para não atrapalhar a quebra)
+            local eyes = workspace.Map:FindFirstChild("TikiOutpost") and 4 -- (Simplificado para o exemplo)
+            
             _B = true
             BringEnemy()
-            task.wait(3)
-
-            _B = false
-            task.wait(5)
+            task.wait(0.1) -- Puxa continuamente enquanto ativo
         else
             _B = false
             task.wait(1)
@@ -4782,6 +4797,8 @@ spawn(function()
 
 end)
 
+-- 4. SISTEMA AUTO TYRANT (TIKI OUTPOST) - FINAL COM CLIQUES E TODAS AS SKILLS
+
 local function GetEyesCount()
     local model = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("TikiOutpost") and workspace.Map.TikiOutpost:FindFirstChild("IslandModel")
     local count = 0
@@ -4799,58 +4816,53 @@ local function GetEyesCount()
     return count
 end
 
--- Função modificada para aceitar um alvo e manter o player lá usando _tp
-local function UseAllCategorySkills(targetCFrame)
+-- Função para usar habilidades e cliques de todas as armas nos vasos
+local function UseAllCategorySkills()
     local VirtualInputManager = game:GetService("VirtualInputManager")
     local VirtualUser = game:GetService("VirtualUser")
     local categories = {"Melee", "Blox Fruit", "Sword", "Gun"}
     local skills = {"Z", "X", "C", "V", "F"}
 
-    -- Faz o personagem olhar para o vaso (baixo) para garantir que a skill pegue  
-    pcall(function()  
-        game:GetService("VirtualInputManager"):SendKeyEvent(true, "RightControl", false, game) 
-        workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, workspace.CurrentCamera.CFrame.Position + Vector3.new(0,-1,0))  
-    end)  
+    -- Faz o personagem olhar para o vaso (baixo) para garantir que a skill pegue
+    pcall(function()
+        game:GetService("VirtualInputManager"):SendKeyEvent(true, "RightControl", false, game) -- Opcional: Trava o mouse se necessário
+        workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, workspace.CurrentCamera.CFrame.Position + Vector3.new(0,-1,0))
+    end)
 
-    for _, toolType in ipairs(categories) do  
-        local tool = nil  
-        for _, v in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do  
-            if v:IsA("Tool") and v.ToolTip == toolType then  
-                tool = v  
-                break  
-            end  
-        end  
-          
-        if not tool then  
-            local charTool = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")  
-            if charTool and charTool.ToolTip == toolType then  
-                tool = charTool  
-            end  
-        end  
+    for _, toolType in ipairs(categories) do
+        local tool = nil
+        for _, v in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
+            if v:IsA("Tool") and v.ToolTip == toolType then
+                tool = v
+                break
+            end
+        end
+        
+        if not tool then
+            local charTool = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
+            if charTool and charTool.ToolTip == toolType then
+                tool = charTool
+            end
+        end
 
-        if tool then  
-            game.Players.LocalPlayer.Character.Humanoid:EquipTool(tool)  
-            task.wait(0.1)  
+        if tool then
+            game.Players.LocalPlayer.Character.Humanoid:EquipTool(tool)
+            task.wait(0.1)
 
-            -- 5 Cliques + Skills por categoria  
+            -- 5 Cliques + Skills por categoria
             for i = 1, 5 do
-                -- CORREÇÃO 2: Força o TP de volta para o vaso se uma skill te jogar longe
-                if targetCFrame then
-                    _tp(targetCFrame) 
-                end
+                VirtualUser:CaptureController()
+                VirtualUser:ClickButton1(Vector2.new(851, 158))
                 
-                VirtualUser:CaptureController()  
-                VirtualUser:ClickButton1(Vector2.new(851, 158))  
-                  
-                local skillKey = skills[i]  
-                if skillKey then  
-                    VirtualInputManager:SendKeyEvent(true, skillKey, false, game)  
-                    task.wait(0.05)  
-                    VirtualInputManager:SendKeyEvent(false, skillKey, false, game)  
-                end  
-                task.wait(0.1)   
-            end  
-        end  
+                local skillKey = skills[i]
+                if skillKey then
+                    VirtualInputManager:SendKeyEvent(true, skillKey, false, game)
+                    task.wait(0.05)
+                    VirtualInputManager:SendKeyEvent(false, skillKey, false, game)
+                end
+                task.wait(0.1) 
+            end
+        end
     end
 end
 
@@ -4859,87 +4871,70 @@ spawn(function()
     local FarmTiki2 = CFrame.new(-16593.6, 155.3, 1130.5)
     local currentSpot = 1
 
-    while task.wait() do  
-        if _G.AutoTyrant and _G.StartFarm then  
-            pcall(function()  
-                local eyes = GetEyesCount()  
-                local boss = workspace.Enemies:FindFirstChild("Tyrant of the Skies")  
+    while task.wait() do
+        if _G.AutoTyrant and _G.StartFarm then
+            pcall(function()
+                local eyes = GetEyesCount()
+                local boss = workspace.Enemies:FindFirstChild("Tyrant of the Skies")
 
-                -- FASE 1: BOSS  
-                if boss and G.Alive(boss) then  
-                    _tp(boss.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))  
-                    repeat task.wait()  
-                        EquipWeapon(_G.SelectWeapon)  
-                        G.Kill(boss, true)  
-                    until not boss.Parent or not _G.StartFarm or not _G.AutoTyrant  
-                  
-                -- FASE 2: QUEBRAR VASOS  
-                elseif eyes == 4 then  
-                    local targetsty = {  
-                        CFrame.new(-16335.1, 158.1, 1465.6), CFrame.new(-16288.6, 158.1, 1470.3),  
-                        CFrame.new(-16258.0, 156.7, 1461.4), CFrame.new(-16212.4, 158.1, 1466.3),  
-                        CFrame.new(-16335.0, 159.3, 1324.8), CFrame.new(-16286.0, 155.9, 1323.8),  
-                        CFrame.new(-16250.3, 159.3, 1316.3)  
-                    }  
-                    
-                    for _, pos in ipairs(targetsty) do  
-                        -- Verificações de segurança para parar o loop
-                        if not _G.StartFarm or not _G.AutoTyrant or GetEyesCount() ~= 4 then break end  
-                        if workspace.Enemies:FindFirstChild("Tyrant of the Skies") then break end  
-                          
+                -- FASE 1: BOSS
+                if boss and G.Alive(boss) then
+                    _tp(boss.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
+                    repeat task.wait()
+                        EquipWeapon(_G.SelectWeapon)
+                        G.Kill(boss, true)
+                    until not boss.Parent or not _G.StartFarm or not _G.AutoTyrant
+                
+                -- FASE 2: QUEBRAR VASOS (AGORA CHAMANDO A FUNÇÃO CORRETA)
+                elseif eyes == 4 then
+                    local targetsty = {
+                        CFrame.new(-16335.1, 158.1, 1465.6), CFrame.new(-16288.6, 158.1, 1470.3),
+                        CFrame.new(-16258.0, 156.7, 1461.4), CFrame.new(-16212.4, 158.1, 1466.3),
+                        CFrame.new(-16335.0, 159.3, 1324.8), CFrame.new(-16286.0, 155.9, 1323.8),
+                        CFrame.new(-16250.3, 159.3, 1316.3)
+                    }
+                    for _, pos in ipairs(targetsty) do
+                        if not _G.StartFarm or not _G.AutoTyrant or GetEyesCount() ~= 4 then break end
+                        if workspace.Enemies:FindFirstChild("Tyrant of the Skies") then break end
+                        
+                        _tp(pos)
+                        
                         local char = game.Players.LocalPlayer.Character
-                        
-                        -- CORREÇÃO 1: Garante que chegou no vaso antes de atacar
-                        local arrived = false
-                        local startTime = tick()
-                        
-                        repeat 
-                            _tp(pos)
-                            task.wait()
-                            if char and char:FindFirstChild("HumanoidRootPart") then
-                                if (char.HumanoidRootPart.Position - pos.Position).Magnitude < 10 then
-                                    arrived = true
-                                end
+                        if char and char:FindFirstChild("HumanoidRootPart") then
+                            if (char.HumanoidRootPart.Position - pos.Position).Magnitude < 10 then
+                                -- CHAMA A FUNÇÃO QUE VOCÊ CRIOU
+                                UseAllCategorySkills()
+                                task.wait(0.5) 
                             end
-                            -- Timeout de 3 segundos para não travar num vaso bugado
-                            if tick() - startTime > 3 then arrived = true end 
-                        until arrived or not _G.StartFarm
-                        
-                        -- Só ataca se tiver chegado
-                        if char and char:FindFirstChild("HumanoidRootPart") then  
-                            if (char.HumanoidRootPart.Position - pos.Position).Magnitude < 15 then  
-                                UseAllCategorySkills(pos) -- Passa a posição para corrigir o recuo
-                                task.wait(0.1)   
-                            end  
-                        end  
-                    end  
+                        end
+                    end
 
-                -- FASE 3: MOBS  
-                else  
-                    local targetList = {["Isle Champion"]=true, ["Sun-kissed Warrior"]=true, ["Island Boy"]=true, ["Isle Outlaw"]=true}  
-                    local enemy = nil  
-                    for _, v in pairs(workspace.Enemies:GetChildren()) do  
-                        if targetList[v.Name] and G.Alive(v) then  
-                            enemy = v  
-                            break  
-                        end  
-                    end  
+                -- FASE 3: MOBS
+                else
+                    local targetList = {["Isle Champion"]=true, ["Sun-kissed Warrior"]=true, ["Island Boy"]=true, ["Isle Outlaw"]=true}
+                    local enemy = nil
+                    for _, v in pairs(workspace.Enemies:GetChildren()) do
+                        if targetList[v.Name] and G.Alive(v) then
+                            enemy = v
+                            break
+                        end
+                    end
 
-                    if enemy then  
-                        _tp(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))  
-                        EquipWeapon(_G.SelectWeapon)  
-                        G.Kill(enemy, true)  
-                    else  
-                        local dest = (currentSpot == 1 and FarmTiki1 or FarmTiki2)  
-                        _tp(dest)  
-                        if (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - dest.Position).Magnitude < 20 then  
-                            currentSpot = (currentSpot == 1 and 2 or 1)  
-                            task.wait(2)  
-                        end  
-                    end  
-                end  
-            end)  
-        end  
+                    if enemy then
+                        _tp(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
+                        EquipWeapon(_G.SelectWeapon)
+                        G.Kill(enemy, true)
+                    else
+                        local dest = (currentSpot == 1 and FarmTiki1 or FarmTiki2)
+                        _tp(dest)
+                        if (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - dest.Position).Magnitude < 20 then
+                            currentSpot = (currentSpot == 1 and 2 or 1)
+                            task.wait(2)
+                        end
+                    end
+                end
+            end)
+        end
     end
 end)
 
