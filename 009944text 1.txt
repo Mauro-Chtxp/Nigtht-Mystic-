@@ -4782,10 +4782,14 @@ spawn(function()
 
 end)
 
--- 4. SISTEMA AUTO TYRANT (TIKI OUTPOST) - ATUALIZADO COM SKILLS
-
+--------------------------------------------------
+-- CONTADOR DE OLHOS
+--------------------------------------------------
 local function GetEyesCount()
-    local model = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("TikiOutpost") and workspace.Map.TikiOutpost:FindFirstChild("IslandModel")
+    local model = workspace:FindFirstChild("Map")
+        and workspace.Map:FindFirstChild("TikiOutpost")
+        and workspace.Map.TikiOutpost:FindFirstChild("IslandModel")
+
     local count = 0
     if model then
         local eye1 = model:FindFirstChild("Eye1")
@@ -4793,95 +4797,154 @@ local function GetEyesCount()
         local chunks = model:FindFirstChild("IslandChunks")
         local eye3 = chunks and chunks:FindFirstChild("E") and chunks.E:FindFirstChild("Eye3")
         local eye4 = chunks and chunks:FindFirstChild("E") and chunks.E:FindFirstChild("Eye4")
-        if eye1 and eye1:IsA("BasePart") and eye1.Transparency == 0 then count = count + 1 end
-        if eye2 and eye2:IsA("BasePart") and eye2.Transparency == 0 then count = count + 1 end
-        if eye3 and eye3:IsA("BasePart") and eye3.Transparency == 0 then count = count + 1 end
-        if eye4 and eye4:IsA("BasePart") and eye4.Transparency == 0 then count = count + 1 end
+
+        if eye1 and eye1:IsA("BasePart") and eye1.Transparency == 0 then count += 1 end
+        if eye2 and eye2:IsA("BasePart") and eye2.Transparency == 0 then count += 1 end
+        if eye3 and eye3:IsA("BasePart") and eye3.Transparency == 0 then count += 1 end
+        if eye4 and eye4:IsA("BasePart") and eye4.Transparency == 0 then count += 1 end
     end
     return count
 end
 
--- Função para usar habilidades nos vasos
-local function UseSkillsOnVase()
-    local VirtualInputManager = game:GetService("VirtualInputManager")
-    local skills = {"Z", "X", "C", "V"}
+--------------------------------------------------
+-- SKILLS ULTRA RÁPIDAS
+--------------------------------------------------
+local VirtualInputManager = game:GetService("VirtualInputManager")
+
+local function FastSkills()
+    local skills = {"Z","X","C","V"}
     for _, key in ipairs(skills) do
         VirtualInputManager:SendKeyEvent(true, key, false, game)
-        task.wait(0.1)
         VirtualInputManager:SendKeyEvent(false, key, false, game)
-        task.wait(0.2)
+        task.wait(0.05) -- EXTREMAMENTE RÁPIDO
     end
 end
 
+--------------------------------------------------
+-- EQUIPAR TOOL CORRETAMENTE
+--------------------------------------------------
+local function EquipTool(toolName)
+    local plr = game.Players.LocalPlayer
+    local char = plr.Character
+    local hum = char and char:FindFirstChildOfClass("Humanoid")
+    local bp = plr:FindFirstChild("Backpack")
+    if not hum or not bp then return end
+
+    hum:UnequipTools()
+    task.wait(0.1)
+
+    local tool = bp:FindFirstChild(toolName)
+    if tool then
+        hum:EquipTool(tool)
+        task.wait(0.1)
+    end
+end
+
+--------------------------------------------------
+-- MOB MAIS PRÓXIMO
+--------------------------------------------------
+local function GetNearestMob(targetList)
+    local plr = game.Players.LocalPlayer
+    local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+    if not hrp then return nil end
+
+    local nearest, dist = nil, math.huge
+    for _, v in pairs(workspace.Enemies:GetChildren()) do
+        if targetList[v.Name] and G.Alive(v) and v:FindFirstChild("HumanoidRootPart") then
+            local d = (hrp.Position - v.HumanoidRootPart.Position).Magnitude
+            if d < dist then
+                dist = d
+                nearest = v
+            end
+        end
+    end
+    return nearest
+end
+
+--------------------------------------------------
+-- LOOP PRINCIPAL
+--------------------------------------------------
 spawn(function()
     local FarmTiki1 = CFrame.new(-16423.8, 146.9, -123.6)
     local FarmTiki2 = CFrame.new(-16593.6, 155.3, 1130.5)
     local currentSpot = 1
 
-    while task.wait() do
+    while task.wait(0.2) do
         if _G.AutoTyrant and _G.StartFarm then
             pcall(function()
                 local eyes = GetEyesCount()
                 local boss = workspace.Enemies:FindFirstChild("Tyrant of the Skies")
 
+                --------------------------------------------------
                 -- FASE 1: BOSS
+                --------------------------------------------------
                 if boss and G.Alive(boss) then
-                    _tp(boss.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
-                    repeat task.wait()
-                        EquipWeapon(_G.SelectWeapon)
+                    _tp(boss.HumanoidRootPart.CFrame * CFrame.new(0,30,0))
+                    EquipTool(_G.SelectWeapon)
+                    repeat
                         G.Kill(boss, true)
-                    until not boss.Parent or not _G.StartFarm or not _G.AutoTyrant
-                
-                -- FASE 2: QUEBRAR VASOS (COM SKILLS)
+                        task.wait()
+                    until not boss.Parent or not _G.AutoTyrant or not _G.StartFarm
+
+                --------------------------------------------------
+                -- FASE 2: QUEBRAR VASOS
+                --------------------------------------------------
                 elseif eyes == 4 then
-                    local targetsty = {
-                        CFrame.new(-16335.1, 158.1, 1465.6), CFrame.new(-16288.6, 158.1, 1470.3),
-                        CFrame.new(-16258.0, 156.7, 1461.4), CFrame.new(-16212.4, 158.1, 1466.3),
-                        CFrame.new(-16335.0, 159.3, 1324.8), CFrame.new(-16286.0, 155.9, 1323.8),
-                        CFrame.new(-16250.3, 159.3, 1316.3)
+                    local vasePositions = {
+                        CFrame.new(-16335.1,158.1,1465.6),
+                        CFrame.new(-16288.6,158.1,1470.3),
+                        CFrame.new(-16258.0,156.7,1461.4),
+                        CFrame.new(-16212.4,158.1,1466.3),
+                        CFrame.new(-16335.0,159.3,1324.8),
+                        CFrame.new(-16286.0,155.9,1323.8),
+                        CFrame.new(-16250.3,159.3,1316.3)
                     }
-                    for _, pos in ipairs(targetsty) do
-                        if not _G.StartFarm or not _G.AutoTyrant or GetEyesCount() ~= 4 then break end
+
+                    local tools = {
+                        _G.SelectWeapon,
+                        "Guitar" -- altera se o nome for outro
+                    }
+
+                    for _, pos in ipairs(vasePositions) do
+                        if not _G.AutoTyrant or not _G.StartFarm then break end
+                        if GetEyesCount() ~= 4 then break end
                         if workspace.Enemies:FindFirstChild("Tyrant of the Skies") then break end
-                        
+
                         _tp(pos)
-                        
-                        local char = game.Players.LocalPlayer.Character
-                        if char and (char.HumanoidRootPart.Position - pos.Position).Magnitude < 10 then
-                            -- Tenta equipar a arma principal ou guitarra
-                            EquipWeapon(_G.SelectWeapon) 
-                            task.wait(0.3)
-                            
-                            -- Usa as Skills no Vaso
-                            UseSkillsOnVase()
-                            
-                            -- Clique normal de garantia
+                        task.wait(0.4)
+
+                        for _, tool in ipairs(tools) do
+                            EquipTool(tool)
+                            FastSkills()
                             game:GetService("VirtualUser"):ClickButton1(Vector2.new(0,0))
-                            task.wait(1) 
+                            task.wait(0.4)
                         end
+
+                        task.wait(1) -- tempo curto entre vasos
                     end
 
-                -- FASE 3: MOBS
+                --------------------------------------------------
+                -- FASE 3: MOBS MAIS PRÓXIMOS
+                --------------------------------------------------
                 else
-                    local targetList = {["Isle Champion"]=true, ["Sun-kissed Warrior"]=true, ["Island Boy"]=true, ["Isle Outlaw"]=true}
-                    local enemy = nil
-                    for _, v in pairs(workspace.Enemies:GetChildren()) do
-                        if targetList[v.Name] and G.Alive(v) then
-                            enemy = v
-                            break
-                        end
-                    end
+                    local targetList = {
+                        ["Isle Champion"] = true,
+                        ["Sun-kissed Warrior"] = true,
+                        ["Island Boy"] = true,
+                        ["Isle Outlaw"] = true
+                    }
 
+                    local enemy = GetNearestMob(targetList)
                     if enemy then
-                        _tp(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
-                        EquipWeapon(_G.SelectWeapon)
+                        _tp(enemy.HumanoidRootPart.CFrame * CFrame.new(0,30,0))
+                        EquipTool(_G.SelectWeapon)
                         G.Kill(enemy, true)
                     else
                         local dest = (currentSpot == 1 and FarmTiki1 or FarmTiki2)
                         _tp(dest)
                         if (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - dest.Position).Magnitude < 20 then
                             currentSpot = (currentSpot == 1 and 2 or 1)
-                            task.wait(2)
+                            task.wait(1.5)
                         end
                     end
                 end
