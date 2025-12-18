@@ -4826,22 +4826,20 @@ local function UseAllCategorySkills(targetCFrame)
     local VirtualUser = game:GetService("VirtualUser")
     local categories = {"Melee", "Blox Fruit", "Sword", "Gun"}
     
-    -- REMOVIDO O "V" DA LISTA ABAIXO
+    -- "V" removido conforme solicitado
     local skills = {"Z", "X", "C", "F"} 
 
     local player = game.Players.LocalPlayer
     local char = player.Character or player.CharacterAdded:Wait()
     local root = char:FindFirstChild("HumanoidRootPart")
 
-    -- Lógica de Ancorar para evitar pulos/recuo
     if root then
-        if targetCFrame then _tp(targetCFrame) end -- Garante posição final
+        if targetCFrame then _tp(targetCFrame) end 
         task.wait(0.1)
-        root.Anchored = true -- TRAVA O PERSONAGEM
-        root.Velocity = Vector3.new(0,0,0) -- Zera velocidade residual
+        root.Anchored = true -- TRAVA O PERSONAGEM (Evita pulinhos)
+        root.Velocity = Vector3.new(0,0,0) 
     end
 
-    -- Olhar para baixo (alvo)
     pcall(function()  
         workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, targetCFrame.Position)  
     end)  
@@ -4865,10 +4863,7 @@ local function UseAllCategorySkills(targetCFrame)
         if tool then  
             char.Humanoid:EquipTool(tool)  
             
-            -- Loop das Skills (Z, X, C, F)
             for i = 1, #skills do
-                -- Não precisamos mais de _tp aqui dentro pois ele está Ancorado
-                
                 VirtualUser:CaptureController()  
                 VirtualUser:ClickButton1(Vector2.new(851, 158))  
                   
@@ -4883,9 +4878,8 @@ local function UseAllCategorySkills(targetCFrame)
         end  
     end
 
-    -- Destrava o personagem ao terminar os ataques
     if root then
-        root.Anchored = false
+        root.Anchored = false -- DESTRAVA O PERSONAGEM
     end
 end
 
@@ -4899,12 +4893,13 @@ spawn(function()
             pcall(function()  
                 local eyes = GetEyesCount()  
                 local boss = workspace.Enemies:FindFirstChild("Tyrant of the Skies")  
+                local player = game.Players.LocalPlayer
+                local char = player.Character
 
                 -- FASE 1: BOSS  
                 if boss and G.Alive(boss) then  
-                    -- Garante que está desancorado ao lutar com o boss
-                    if game.Players.LocalPlayer.Character.HumanoidRootPart.Anchored then
-                        game.Players.LocalPlayer.Character.HumanoidRootPart.Anchored = false
+                    if char and char:FindFirstChild("HumanoidRootPart") and char.HumanoidRootPart.Anchored then
+                        char.HumanoidRootPart.Anchored = false
                     end
 
                     _tp(boss.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))  
@@ -4926,10 +4921,7 @@ spawn(function()
                         if not _G.StartFarm or not _G.AutoTyrant or GetEyesCount() ~= 4 then break end  
                         if workspace.Enemies:FindFirstChild("Tyrant of the Skies") then break end  
                           
-                        local char = game.Players.LocalPlayer.Character
                         local startTime = tick()
-                        
-                        -- Garante que está solto para viajar até o vaso
                         char.HumanoidRootPart.Anchored = false 
 
                         repeat 
@@ -4938,15 +4930,14 @@ spawn(function()
                         until (char.HumanoidRootPart.Position - pos.Position).Magnitude < 5 or tick() - startTime > 2
                         
                         if (char.HumanoidRootPart.Position - pos.Position).Magnitude < 10 then  
-                            UseAllCategorySkills(pos) -- A ancoragem acontece DENTRO dessa função agora
+                            UseAllCategorySkills(pos) 
                         end  
                     end  
 
-                -- FASE 3: MOBS
+                -- FASE 3: MOBS (LÓGICA DO MAIS PRÓXIMO)
                 else  
-                    -- Garante que está desancorado para farmar mobs
-                    if game.Players.LocalPlayer.Character.HumanoidRootPart.Anchored then
-                        game.Players.LocalPlayer.Character.HumanoidRootPart.Anchored = false
+                    if char and char:FindFirstChild("HumanoidRootPart") and char.HumanoidRootPart.Anchored then
+                        char.HumanoidRootPart.Anchored = false
                     end
 
                     local targetList = {
@@ -4958,24 +4949,32 @@ spawn(function()
                         ["Skull Slayer"] = true
                     }  
                     
-                    local enemy = nil  
-                    for _, v in pairs(workspace.Enemies:GetChildren()) do  
-                        if targetList[v.Name] and G.Alive(v) then  
-                            enemy = v  
-                            break  
-                        end  
-                    end  
+                    local closestEnemy = nil
+                    local shortestDistance = math.huge -- Começa com um valor infinito
+                    local myPos = char.HumanoidRootPart.Position
 
-                    if enemy then  
-                        _tp(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))  
+                    -- Loop para encontrar o mob mais próximo da lista
+                    for _, v in pairs(workspace.Enemies:GetChildren()) do
+                        if targetList[v.Name] and G.Alive(v) then
+                            local dist = (v.HumanoidRootPart.Position - myPos).Magnitude
+                            if dist < shortestDistance then
+                                shortestDistance = dist
+                                closestEnemy = v
+                            end
+                        end
+                    end
+
+                    if closestEnemy then  
+                        _tp(closestEnemy.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))  
                         EquipWeapon(_G.SelectWeapon)  
-                        G.Kill(enemy, true)  
+                        G.Kill(closestEnemy, true)  
                     else  
+                        -- Se não achar mob perto, vai para os spots padrão
                         local dest = (currentSpot == 1 and FarmTiki1 or FarmTiki2)  
                         _tp(dest)  
-                        if (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - dest.Position).Magnitude < 20 then  
+                        if (char.HumanoidRootPart.Position - dest.Position).Magnitude < 20 then  
                             currentSpot = (currentSpot == 1 and 2 or 1)  
-                            task.wait(1)
+                            task.wait(1) 
                         end  
                     end  
                 end  
@@ -4983,6 +4982,7 @@ spawn(function()
         end  
     end
 end)
+
 
 
 -- 4. SISTEMA CAKE PRINCE FARM (MODIFICADO PARA TELEPORTE INSTANTÂNEO NO BOSS E MOB)
