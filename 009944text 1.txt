@@ -4799,63 +4799,56 @@ local function GetEyesCount()
     return count
 end
 
--- Função para usar habilidades (Z, X, C, V)
+-- Função SUPER RÁPIDA para usar habilidades
 local function UseSkillsOnVase()
     local VirtualInputManager = game:GetService("VirtualInputManager")
     local skills = {"Z", "X", "C", "V"}
+    
+    -- Dispara todas as teclas quase ao mesmo tempo
     for _, key in ipairs(skills) do
         VirtualInputManager:SendKeyEvent(true, key, false, game)
-        task.wait(0.05) -- Ficou um pouco mais rápido para agilizar a troca
         VirtualInputManager:SendKeyEvent(false, key, false, game)
-        task.wait(0.1)
     end
+    -- Clique normal rápido para garantir (caso alguma skill precise de clique)
+    game:GetService("VirtualUser"):ClickButton1(Vector2.new(0,0))
 end
 
--- Função NOVA: Ciclar ferramentas (Desequipa -> Espera -> Equipa Próxima)
+-- Função Otimizada: Ciclar ferramentas (Equipa -> Ataca -> Desequipa)
 local function CycleWeaponsAndAttack()
     local Player = game.Players.LocalPlayer
     local Backpack = Player.Backpack
     local Character = Player.Character or Player.CharacterAdded:Wait()
     local Humanoid = Character:WaitForChild("Humanoid")
 
-    -- Pega todas as ferramentas úteis na mochila (Melee, Sword, Gun, Fruit)
+    -- Pega as ferramentas da mochila
     local toolsToUse = {}
     for _, tool in pairs(Backpack:GetChildren()) do
         if tool:IsA("Tool") and tool:FindFirstChild("Handle") then
-            -- Opcional: Filtra por tipo se necessário, aqui pega tudo que é tool válida
             table.insert(toolsToUse, tool)
         end
     end
 
-    -- Se não tiver nada na backpack (tudo equipado), verifica o char
-    for _, tool in pairs(Character:GetChildren()) do
-        if tool:IsA("Tool") then
-            table.insert(toolsToUse, tool)
-        end
-    end
-
-    -- Ciclo de ataque
+    -- Ciclo de ataque rápido
     for _, tool in pairs(toolsToUse) do
-        -- 1. Tira a tool equipada (Regra solicitada)
-        Humanoid:UnequipTools()
+        -- 1. Equipa a ferramenta
+        Humanoid:EquipTool(tool)
+        
+        -- Pequeno delay OBRIGATÓRIO para o servidor reconhecer que equipou
+        -- Se tirar isso, as skills falham. 0.15 é muito rápido.
         task.wait(0.15) 
 
-        -- 2. Equipa a nova tool
-        tool.Parent = Character
-        task.wait(0.3) -- Espera equipar
-
-        -- 3. Usa as skills
+        -- 2. Usa as skills instantaneamente
         UseSkillsOnVase()
         
-        -- Clique de garantia
-        game:GetService("VirtualUser"):ClickButton1(Vector2.new(0,0))
+        -- Pequeno delay para a skill sair antes de desequipar
+        task.wait(0.1)
+
+        -- 3. Desequipa para preparar a próxima
+        Humanoid:UnequipTools()
     end
-    
-    -- Limpa a mão no final do ciclo para garantir o próximo unequip limpo
-    Humanoid:UnequipTools()
 end
 
--- Função NOVA: Pegar o inimigo mais próximo da lista
+-- Função para pegar o inimigo mais próximo
 local function GetClosestEnemy(targetList)
     local closestEnemy = nil
     local shortestDistance = math.huge
@@ -4892,7 +4885,7 @@ spawn(function()
                         G.Kill(boss, true)  
                     until not boss.Parent or not _G.StartFarm or not _G.AutoTyrant  
                 
-                -- FASE 2: QUEBRAR VASOS (Lógica Melhorada)
+                -- FASE 2: QUEBRAR VASOS (Rápido)
                 elseif eyes == 4 then  
                     local targetsty = {  
                         CFrame.new(-16335.1, 158.1, 1465.6), CFrame.new(-16288.6, 158.1, 1470.3),  
@@ -4902,29 +4895,26 @@ spawn(function()
                     }  
                     
                     for _, pos in ipairs(targetsty) do  
-                        -- Verificações de segurança
                         if not _G.StartFarm or not _G.AutoTyrant or GetEyesCount() ~= 4 then break end  
                         if workspace.Enemies:FindFirstChild("Tyrant of the Skies") then break end  
                         
-                        -- Teleporta para o vaso
                         _tp(pos)  
                         
                         local char = game.Players.LocalPlayer.Character  
                         if char and (char.HumanoidRootPart.Position - pos.Position).Magnitude < 15 then  
                             
-                            -- Cicla as armas (Desequipa -> Equipa -> Skill)
+                            -- Cicla todas as armas e ataca
                             CycleWeaponsAndAttack()
                             
-                            -- Espera curto tempo antes de ir para o próximo (solicitado)
-                            task.wait(0.5) 
+                            -- Vai para o próximo vaso quase imediatamente
+                            task.wait() 
                         end  
                     end  
 
-                -- FASE 3: MOBS (Lógica de Proximidade)
+                -- FASE 3: MOBS (Inimigo mais próximo)
                 else  
                     local targetList = {["Isle Champion"]=true, ["Sun-kissed Warrior"]=true, ["Island Boy"]=true, ["Isle Outlaw"]=true}  
                     
-                    -- Usa a nova função para pegar o mob mais perto
                     local enemy = GetClosestEnemy(targetList)
 
                     if enemy then  
@@ -4932,7 +4922,6 @@ spawn(function()
                         EquipWeapon(_G.SelectWeapon)  
                         G.Kill(enemy, true)  
                     else  
-                        -- Se não achar mob perto, vai para os spots de espera
                         local dest = (currentSpot == 1 and FarmTiki1 or FarmTiki2)  
                         _tp(dest)  
                         if (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - dest.Position).Magnitude < 20 then  
@@ -4945,6 +4934,7 @@ spawn(function()
         end  
     end
 end)
+
 
 -- 4. SISTEMA CAKE PRINCE FARM (MODIFICADO PARA TELEPORTE INSTANTÂNEO NO BOSS E MOB)
 
