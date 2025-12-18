@@ -4825,8 +4825,6 @@ local function UseAllCategorySkills(targetCFrame)
     local VirtualInputManager = game:GetService("VirtualInputManager")
     local VirtualUser = game:GetService("VirtualUser")
     local categories = {"Melee", "Blox Fruit", "Sword", "Gun"}
-    
-    -- "V" removido conforme solicitado
     local skills = {"Z", "X", "C", "F"} 
 
     local player = game.Players.LocalPlayer
@@ -4835,8 +4833,7 @@ local function UseAllCategorySkills(targetCFrame)
 
     if root then
         if targetCFrame then _tp(targetCFrame) end 
-        task.wait(0.1)
-        root.Anchored = true -- TRAVA O PERSONAGEM (Evita pulinhos)
+        root.Anchored = true 
         root.Velocity = Vector3.new(0,0,0) 
     end
 
@@ -4852,35 +4849,27 @@ local function UseAllCategorySkills(targetCFrame)
                 break  
             end  
         end  
-          
         if not tool then  
             local charTool = char:FindFirstChildOfClass("Tool")  
-            if charTool and charTool.ToolTip == toolType then  
-                tool = charTool  
-            end  
+            if charTool and charTool.ToolTip == toolType then tool = charTool end  
         end  
 
         if tool then  
             char.Humanoid:EquipTool(tool)  
-            
             for i = 1, #skills do
                 VirtualUser:CaptureController()  
                 VirtualUser:ClickButton1(Vector2.new(851, 158))  
-                  
                 local skillKey = skills[i]  
                 if skillKey then  
                     VirtualInputManager:SendKeyEvent(true, skillKey, false, game)  
-                    task.wait(0.05) 
+                    task.wait(0.02) -- Velocidade máxima de skill
                     VirtualInputManager:SendKeyEvent(false, skillKey, false, game)  
                 end  
-                task.wait(0.1)   
+                task.wait(0.05)   
             end  
         end  
     end
-
-    if root then
-        root.Anchored = false -- DESTRAVA O PERSONAGEM
-    end
+    if root then root.Anchored = false end
 end
 
 spawn(function()
@@ -4888,7 +4877,7 @@ spawn(function()
     local FarmTiki2 = CFrame.new(-16593.6, 155.3, 1130.5)
     local currentSpot = 1
 
-    while task.wait() do  
+    while task.wait() do  -- Loop rodando o mais rápido possível
         if _G.AutoTyrant and _G.StartFarm then  
             pcall(function()  
                 local eyes = GetEyesCount()  
@@ -4896,17 +4885,13 @@ spawn(function()
                 local player = game.Players.LocalPlayer
                 local char = player.Character
 
-                -- FASE 1: BOSS  
-                if boss and G.Alive(boss) then  
-                    if char and char:FindFirstChild("HumanoidRootPart") and char.HumanoidRootPart.Anchored then
-                        char.HumanoidRootPart.Anchored = false
-                    end
+                -- FASE 1: BOSS (Lógica de saída instantânea)
+                if boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then  
+                    if char.HumanoidRootPart.Anchored then char.HumanoidRootPart.Anchored = false end
 
                     _tp(boss.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))  
-                    repeat task.wait()  
-                        EquipWeapon(_G.SelectWeapon)  
-                        G.Kill(boss, true)  
-                    until not boss.Parent or not _G.StartFarm or not _G.AutoTyrant  
+                    EquipWeapon(_G.SelectWeapon)  
+                    G.Kill(boss, true)  
                   
                 -- FASE 2: QUEBRAR VASOS  
                 elseif eyes == 4 then  
@@ -4918,44 +4903,40 @@ spawn(function()
                     }  
                     
                     for _, pos in ipairs(targetsty) do  
-                        if not _G.StartFarm or not _G.AutoTyrant or GetEyesCount() ~= 4 then break end  
-                        if workspace.Enemies:FindFirstChild("Tyrant of the Skies") then break end  
+                        -- Verifica se o boss spawnou no meio da quebra de vasos para ir nele na hora
+                        local checkBoss = workspace.Enemies:FindFirstChild("Tyrant of the Skies")
+                        if (checkBoss and checkBoss:FindFirstChild("Humanoid") and checkBoss.Humanoid.Health > 0) or not _G.StartFarm or GetEyesCount() ~= 4 then 
+                            break 
+                        end  
                           
                         local startTime = tick()
                         char.HumanoidRootPart.Anchored = false 
-
                         repeat 
                             _tp(pos)
                             task.wait()
-                        until (char.HumanoidRootPart.Position - pos.Position).Magnitude < 5 or tick() - startTime > 2
+                        until (char.HumanoidRootPart.Position - pos.Position).Magnitude < 5 or tick() - startTime > 1.5
                         
                         if (char.HumanoidRootPart.Position - pos.Position).Magnitude < 10 then  
                             UseAllCategorySkills(pos) 
                         end  
                     end  
 
-                -- FASE 3: MOBS (LÓGICA DO MAIS PRÓXIMO)
+                -- FASE 3: MOBS (Mais Próximo)
                 else  
-                    if char and char:FindFirstChild("HumanoidRootPart") and char.HumanoidRootPart.Anchored then
-                        char.HumanoidRootPart.Anchored = false
-                    end
+                    if char.HumanoidRootPart.Anchored then char.HumanoidRootPart.Anchored = false end
 
                     local targetList = {
-                        ["Isle Champion"] = true, 
-                        ["Sun-kissed Warrior"] = true, 
-                        ["Island Boy"] = true, 
-                        ["Isle Outlaw"] = true,
-                        ["Serpent Hunter"] = true,
-                        ["Skull Slayer"] = true
+                        ["Isle Champion"] = true, ["Sun-kissed Warrior"] = true, 
+                        ["Island Boy"] = true, ["Isle Outlaw"] = true,
+                        ["Serpent Hunter"] = true, ["Skull Slayer"] = true
                     }  
                     
                     local closestEnemy = nil
-                    local shortestDistance = math.huge -- Começa com um valor infinito
+                    local shortestDistance = math.huge
                     local myPos = char.HumanoidRootPart.Position
 
-                    -- Loop para encontrar o mob mais próximo da lista
                     for _, v in pairs(workspace.Enemies:GetChildren()) do
-                        if targetList[v.Name] and G.Alive(v) then
+                        if targetList[v.Name] and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
                             local dist = (v.HumanoidRootPart.Position - myPos).Magnitude
                             if dist < shortestDistance then
                                 shortestDistance = dist
@@ -4969,12 +4950,10 @@ spawn(function()
                         EquipWeapon(_G.SelectWeapon)  
                         G.Kill(closestEnemy, true)  
                     else  
-                        -- Se não achar mob perto, vai para os spots padrão
                         local dest = (currentSpot == 1 and FarmTiki1 or FarmTiki2)  
                         _tp(dest)  
                         if (char.HumanoidRootPart.Position - dest.Position).Magnitude < 20 then  
-                            currentSpot = (currentSpot == 1 and 2 or 1)  
-                            task.wait(1) 
+                            currentSpot = (currentSpot == 1 and 2 or 1)
                         end  
                     end  
                 end  
@@ -4982,6 +4961,7 @@ spawn(function()
         end  
     end
 end)
+
 
 
 
