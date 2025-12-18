@@ -4609,10 +4609,11 @@ b:AddToggle({
 
 ---
 
--- 2. SISTEMA TYRANT OF THE SKIES (ATUALIZADO: Level Check + CFrame Exato + Delay 1.5s)
+-- 2. SISTEMA TYRANT OF THE SKIES (ATUALIZADO: Level System + Quests Dinâmicas)
 
--- Tabela de Configuração das Quests (Unificada com as que você enviou)
+-- Tabela de Configuração das Quests (Unificada)
 local TikiQuestData = {
+    -- Level 2575 - 2599
     ["Serpent Hunter"] = {
         QuestArgs = {"StartQuest", "TikiQuest3", 1},
         NPC_Pos = CFrame.new(-16665.1719, 105.27478, 1577.85071, -0.999501228, 5.66187488e-08, -0.0315799415, 5.45234258e-08, 1, 6.72109977e-08, 0.0315799415, 6.54556231e-08, -0.999501228)
@@ -4621,6 +4622,7 @@ local TikiQuestData = {
         QuestArgs = {"StartQuest", "TikiQuest3", 2},
         NPC_Pos = CFrame.new(-16665.1719, 105.27478, 1577.85071, -0.999501228, 5.66187488e-08, -0.0315799415, 5.45234258e-08, 1, 6.72109977e-08, 0.0315799415, 6.54556231e-08, -0.999501228)
     },
+    -- Level 2475 - 2499
     ["Isle Outlaw"] = {
         QuestArgs = {"StartQuest", "TikiQuest1", 1},
         NPC_Pos = CFrame.new(-16548.8164, 55.6059914, -172.8125, .213092566, 0, -0.977032006, 0, 1, 0, .977032006, 0, .213092566)
@@ -4724,7 +4726,9 @@ spawn(function()
                 local char = player.Character
                 local root = char.HumanoidRootPart
                 local QuestUI = player.PlayerGui.Main.Quest
-                local I = player.Data.Level.Value -- Definindo a variável I como o Level
+                
+                -- Detectar Level do Jogador
+                local I = player.Data.Level.Value
 
                 if boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then  
                     SetNoclip(false)
@@ -4733,7 +4737,7 @@ spawn(function()
                     EquipWeapon(_G.SelectWeapon)  
                     G.Kill(boss, true)  
                 elseif eyes == 4 then  
-                    -- LÓGICA DO PUZZLE
+                    -- LÓGICA DO PUZZLE (Tyrant)
                     local targetsty = {  
                         CFrame.new(-16335.1, 158.1, 1465.6), CFrame.new(-16288.6, 158.1, 1470.3),  
                         CFrame.new(-16258.0, 156.7, 1461.4), CFrame.new(-16212.4, 158.1, 1466.3),  
@@ -4759,32 +4763,31 @@ spawn(function()
                     end
                     SetNoclip(false)
                 else  
-                    -- MODO FARM NORMAL / PEGAR QUEST
+                    -- MODO FARM NORMAL / PEGAR QUEST DINÂMICA
                     SetNoclip(false)
                     if root.Anchored then root.Anchored = false end
                     
-                    -- LÓGICA DE QUEST DINÂMICA POR LEVEL
                     if _G.AcceptQuest and not QuestUI.Visible then
-                        local TargetQuest = nil
+                        local selectedQuestData = nil
                         
-                        -- Verificação de Level que você pediu
-                        if I >= 2575 and I <= 2599 then 
-                            TargetQuest = TikiQuestData["Skull Slayer"] -- Pega as 2 quests atuais (exemplo com Skull Slayer)
+                        -- Verificação de Nível para selecionar a Quest
+                        if I >= 2575 and I <= 2599 then
+                            selectedQuestData = TikiQuestData["Skull Slayer"] -- Pega as quests atuais
                         elseif I >= 2475 and I <= 2499 then
-                            TargetQuest = TikiQuestData["Isle Outlaw"] -- Pega as quests de level baixo
+                            selectedQuestData = TikiQuestData["Island Boy"] -- Pega as quests de level baixo
                         end
 
-                        if TargetQuest then
-                            _tp(TargetQuest.NPC_Pos)
-                            if (root.Position - TargetQuest.NPC_Pos.Position).Magnitude <= 15 then
-                                task.wait(1.5) 
-                                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(TargetQuest.QuestArgs))
+                        if selectedQuestData then
+                            _tp(selectedQuestData.NPC_Pos)
+                            if (root.Position - selectedQuestData.NPC_Pos.Position).Magnitude <= 15 then
+                                task.wait(1.5) -- Delay solicitado
+                                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(selectedQuestData.QuestArgs))
                             end
                             return 
                         end
                     end
 
-                    -- LOCALIZAR INIMIGO MAIS PRÓXIMO (Original Mantido)
+                    -- LOCALIZAR INIMIGO MAIS PRÓXIMO
                     local targetList = {
                         ["Isle Champion"] = true, ["Sun-kissed Warrior"] = true, 
                         ["Island Boy"] = true, ["Isle Outlaw"] = true,
@@ -4807,6 +4810,7 @@ spawn(function()
                         EquipWeapon(_G.SelectWeapon)  
                         G.Kill(closestEnemy, true)  
                     else  
+                        -- Teleporte entre spots se não houver inimigos vivos
                         local dest = (currentSpot == 1 and FarmTiki1 or FarmTiki2)  
                         _tp(dest)  
                         if (root.Position - dest.Position).Magnitude < 20 then  
