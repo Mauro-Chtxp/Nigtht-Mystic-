@@ -586,7 +586,7 @@ BringEnemy = function()
         if hum and root and hum.Health > 0 and not IsRaidMob(mob) then  
             local dist = (root.Position - targetPos).Magnitude  
 
-            if dist <= 210 then  
+            if dist <= 225 then  
                 root.CFrame = CFrame.new(targetPos)  
             end  
         end  
@@ -4609,10 +4609,11 @@ b:AddToggle({
 
 ---
 
--- 2. SISTEMA TYRANT OF THE SKIES (ATUALIZADO: CFrame Exato + Delay 1.5s)
+-- 2. SISTEMA TYRANT OF THE SKIES (ATUALIZADO: Level Check + CFrame Exato + Delay 1.5s)
 
--- Tabela de Configuração das Quests do Tiki com seu CFrame fornecido
+-- Tabela de Configuração Unificada (TikiQuest1 e TikiQuest3)
 local TikiQuestData = {
+    -- Level 2575 a 2599 (Tiki Quest 3)
     ["Serpent Hunter"] = {
         QuestArgs = {"StartQuest", "TikiQuest3", 1},
         NPC_Pos = CFrame.new(-16665.1719, 105.27478, 1577.85071, -0.999501228, 5.66187488e-08, -0.0315799415, 5.45234258e-08, 1, 6.72109977e-08, 0.0315799415, 6.54556231e-08, -0.999501228)
@@ -4620,6 +4621,15 @@ local TikiQuestData = {
     ["Skull Slayer"] = {
         QuestArgs = {"StartQuest", "TikiQuest3", 2},
         NPC_Pos = CFrame.new(-16665.1719, 105.27478, 1577.85071, -0.999501228, 5.66187488e-08, -0.0315799415, 5.45234258e-08, 1, 6.72109977e-08, 0.0315799415, 6.54556231e-08, -0.999501228)
+    },
+    -- Level 2475 a 2499 (Tiki Quest 1)
+    ["Isle Outlaw"] = {
+        QuestArgs = {"StartQuest", "TikiQuest1", 1},
+        NPC_Pos = CFrame.new(-16548.8164, 55.6059914, -172.8125, .213092566, 0, -0.977032006, 0, 1, 0, .977032006, 0, .213092566)
+    },
+    ["Island Boy"] = {
+        QuestArgs = {"StartQuest", "TikiQuest1", 2},
+        NPC_Pos = CFrame.new(-16548.8164, 55.6059914, -172.8125, .213092566, 0, -0.977032006, 0, 1, 0, .977032006, 0, .213092566)
     }
 }
 
@@ -4716,6 +4726,7 @@ spawn(function()
                 local char = player.Character
                 local root = char.HumanoidRootPart
                 local QuestUI = player.PlayerGui.Main.Quest
+                local Level = player.Data.Level.Value -- Pega o Level Atual
 
                 if boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then  
                     SetNoclip(false)
@@ -4754,33 +4765,54 @@ spawn(function()
                     SetNoclip(false)
                     if root.Anchored then root.Anchored = false end
                     
-                    -- LÓGICA DE QUEST (Prioritária quando está sem quest ativa)
-                    if _G.AcceptQuest and not QuestUI.Visible then
-                        -- Usando o CFrame que você forneceu
-                        local data = TikiQuestData["Skull Slayer"]
-                        
+                    -- SELEÇÃO DE TARGET BASEADA NO LEVEL
+                    local TargetMobName = nil
+                    
+                    if Level >= 2575 and Level <= 2599 then
+                        -- Seleciona quest do TikiQuest3
+                        TargetMobName = "Skull Slayer" -- Prioridade mob mais forte ou troque para "Serpent Hunter"
+                    elseif Level >= 2475 and Level <= 2549 then -- Estendido levemente para cobrir gaps
+                         -- Seleciona quest do TikiQuest1
+                        if Level >= 2500 then
+                            TargetMobName = "Island Boy"
+                        else
+                            TargetMobName = "Isle Outlaw"
+                        end
+                    end
+                    
+                    -- LÓGICA DE PEGAR QUEST AUTOMÁTICA
+                    if _G.AcceptQuest and not QuestUI.Visible and TargetMobName then
+                        local data = TikiQuestData[TargetMobName]
                         if data then
                             _tp(data.NPC_Pos)
-                            
-                            -- Se chegou no CFrame do NPC (distância curta)
+                            -- Se chegou no CFrame do NPC
                             if (root.Position - data.NPC_Pos.Position).Magnitude <= 15 then
-                                task.wait(1.5) -- Delay de segurança para o servidor processar
+                                task.wait(1.5) -- Delay Atualizado para 1.5s
                                 game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(data.QuestArgs))
                             end
-                            return -- Interrompe o loop para garantir que pegou a quest antes de ir farmar
+                            return -- Para o loop para garantir o pega da quest
                         end
                     end
 
-                    -- LOCALIZAR INIMIGO MAIS PRÓXIMO
-                    local targetList = {
-                        ["Isle Champion"] = true, ["Sun-kissed Warrior"] = true, 
-                        ["Island Boy"] = true, ["Isle Outlaw"] = true,
-                        ["Serpent Hunter"] = true, ["Skull Slayer"] = true
-                    }  
+                    -- LOCALIZAR INIMIGO PARA MATAR
                     local closestEnemy = nil
                     local shortestDistance = math.huge
+                    
+                    -- Lista de inimigos válida
+                    local validTargets = {}
+                    if TargetMobName then
+                        validTargets[TargetMobName] = true -- Foca apenas no mob da quest do level
+                    else
+                        -- Fallback se fora do range de level
+                        validTargets = {
+                            ["Isle Champion"] = true, ["Sun-kissed Warrior"] = true, 
+                            ["Island Boy"] = true, ["Isle Outlaw"] = true,
+                            ["Serpent Hunter"] = true, ["Skull Slayer"] = true
+                        }
+                    end
+
                     for _, v in pairs(workspace.Enemies:GetChildren()) do
-                        if targetList[v.Name] and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+                        if validTargets[v.Name] and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
                             local dist = (v.HumanoidRootPart.Position - root.Position).Magnitude
                             if dist < shortestDistance then
                                 shortestDistance = dist
