@@ -4610,6 +4610,18 @@ b:AddToggle({
 
 -- 2. SISTEMA TYRANT OF THE SKIES (ATUALIZADO COM QUEST)
 
+-- Tabela de Configuração das Quests do Tiki (Adicionado conforme pedido)
+local TikiQuestData = {
+    ["Serpent Hunter"] = {
+        QuestArgs = {"StartQuest", "TikiQuest3", 1},
+        NPC_Pos = CFrame.new(-16668.03, 105.32, 1568.60)
+    },
+    ["Skull Slayer"] = {
+        QuestArgs = {"StartQuest", "TikiQuest3", 2},
+        NPC_Pos = CFrame.new(-16668.03, 105.32, 1568.60)
+    }
+}
+
 local function SetNoclip(state)
     local char = game.Players.LocalPlayer.Character
     if char then
@@ -4697,32 +4709,13 @@ spawn(function()
     while task.wait() do 
         if _G.AutoTyrant and _G.StartFarm then  
             pcall(function()  
+                local eyes = GetEyesCount()  
+                local boss = workspace.Enemies:FindFirstChild("Tyrant of the Skies")  
                 local player = game.Players.LocalPlayer
                 local char = player.Character
                 local root = char.HumanoidRootPart
-                local eyes = GetEyesCount()  
-                local boss = workspace.Enemies:FindFirstChild("Tyrant of the Skies")  
-                
-                -- LÓGICA DE ACEITAR QUEST (TIKI OUTPOST)
-                if _G.AcceptQuest and not player.PlayerGui.Main.Quest.Visible then
-                    local myLevel = player.Data.Level.Value
-                    local questNPC达成 = CFrame.new(-16668.03, 105.32, 1568.60)
-                    
-                    if myLevel >= 2551 then
-                        TeleportConditional(root, questNPC达成, TELEPORT_DISTANCE_THRESHOLD)
-                        if (root.Position - questNPC达成.Position).Magnitude <= 50 then
-                            task.wait(0.3)
-                            if myLevel >= 2551 and myLevel <= 2574 then
-                                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", "TikiQuest3", 1)
-                            elseif myLevel >= 2575 then
-                                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", "TikiQuest3", 2)
-                            end
-                        end
-                        return -- Retorna para esperar a quest atualizar na UI
-                    end
-                end
+                local QuestUI = player.PlayerGui.Main.Quest -- Referencia para checar se a quest está ativa
 
-                -- LÓGICA DE ATAQUE
                 if boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then  
                     SetNoclip(false)
                     if root.Anchored then root.Anchored = false end
@@ -4755,6 +4748,7 @@ spawn(function()
                     end
                     SetNoclip(false)
                 else  
+                    -- MODO FARM NORMAL (Mobs da Ilha)
                     SetNoclip(false)
                     if root.Anchored then root.Anchored = false end
                     local targetList = {
@@ -4773,7 +4767,21 @@ spawn(function()
                             end
                         end
                     end
+
                     if closestEnemy then  
+                        -- >> LÓGICA DE QUEST ADICIONADA AQUI <<
+                        -- Verifica se: Aceitar Quest está ON, a UI da Quest NÃO está visível, e se o mob atual tem configuração na tabela
+                        if _G.AcceptQuest and not QuestUI.Visible and TikiQuestData[closestEnemy.Name] then
+                            local data = TikiQuestData[closestEnemy.Name]
+                            TeleportConditional(root, data.NPC_Pos, TELEPORT_DISTANCE_THRESHOLD)
+                            if (root.Position - data.NPC_Pos.Position).Magnitude <= 50 then
+                                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(data.QuestArgs))
+                                task.wait(0.5) -- Pequeno delay para garantir que pegou
+                            end
+                            return -- Retorna para não tentar matar enquanto está indo pegar a quest
+                        end
+                        -- >> FIM DA LÓGICA DE QUEST <<
+
                         _tp(closestEnemy.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))  
                         EquipWeapon(_G.SelectWeapon)  
                         G.Kill(closestEnemy, true)  
@@ -4789,6 +4797,7 @@ spawn(function()
         end  
     end
 end)
+
 
 ---
 
