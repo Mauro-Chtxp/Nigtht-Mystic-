@@ -4640,59 +4640,90 @@ end)
 local function GetTargetByLevel()
     local myLevel = game.Players.LocalPlayer.Data.Level.Value
     
--- [GRUPO 1: SERPENT HUNTER E SKULL SLAYER]
--- Coordenada aplicada: CFrame.new(-16665.0879, 105.27478, 1577.61743, ...)
-
+-- [LEVEL 2575+] SKULL SLAYER
 if myLevel >= 2575 then
     return {
         Name = "Skull Slayer",
         QuestArgs = {"StartQuest", "TikiQuest3", 2},
-        QuestPos = CFrame.new(-16665.0879, 105.27478, 1577.61743, -0.999621451, 3.5280582e-08, 0.0275127869, 3.5990368e-08, 1, 2.53032191e-08, -0.0275127869, 2.62838356e-08, -0.999621451),
+        QuestPos = CFrame.new(
+            -16665.0879, 105.27478, 1577.61743,
+            -0.999621451, 3.5280582e-08, 0.0275127869,
+             3.5990368e-08, 1, 2.53032191e-08,
+            -0.0275127869, 2.62838356e-08, -0.999621451
+        ),
         FarmPos = CFrame.new(-16709.49, 419.68, 1751.09)
     }
 
+-- [LEVEL 2551 - 2574] SERPENT HUNTER
 elseif myLevel > 2550 then
     return {
         Name = "Serpent Hunter",
         QuestArgs = {"StartQuest", "TikiQuest3", 1},
-        QuestPos = CFrame.new(-16665.0879, 105.27478, 1577.61743, -0.999621451, 3.5280582e-08, 0.0275127869, 3.5990368e-08, 1, 2.53032191e-08, -0.0275127869, 2.62838356e-08, -0.999621451),
+        QuestPos = CFrame.new(
+            -16665.0879, 105.27478, 1577.61743,
+            -0.999621451, 3.5280582e-08, 0.0275127869,
+             3.5990368e-08, 1, 2.53032191e-08,
+            -0.0275127869, 2.62838356e-08, -0.999621451
+        ),
         FarmPos = CFrame.new(-16645.64, 163.09, 1352.87)
     }
 
--- [GRUPO 2: ISLE CHAMPION, SUN-KISSED, ISLAND BOY, ISLE OUTLAW]
--- Coordenada aplicada: CFrame.new(-16546.748, 55.7216759, -172.865311, ...)
-
+-- [LEVEL 2525 - 2550] ISLE CHAMPION
 elseif myLevel >= 2525 then
     return {
         Name = "Isle Champion",
         QuestArgs = {"StartQuest", "TikiQuest2", 2},
-        QuestPos = CFrame.new(-16546.748, 55.7216759, -172.865311, -0.0595058464, 2.45485676e-08, 0.998227954, -5.3272025e-08, 1, -2.77677703e-08, -0.998227954, -5.48299717e-08, -0.0595058464),
-        FarmPos = CFrame.new(-16602.1015625, 130.38734436035, 1087.2456054688) 
+        QuestPos = CFrame.new(
+            -16546.748, 55.7216759, -172.865311,
+            -0.0595058464, 2.45485676e-08, 0.998227954,
+            -5.3272025e-08, 1, -2.77677703e-08,
+            -0.998227954, -5.48299717e-08, -0.0595058464
+        ),
+        FarmPos = CFrame.new(-16602.1015625, 130.38734436035, 1087.2456054688)
     }
 
+-- [LEVEL 2500 - 2524] SUN-KISSED WARRIOR
 elseif myLevel >= 2500 then
     return {
         Name = "Sun-kissed Warrior",
         QuestArgs = {"StartQuest", "TikiQuest2", 1},
-        QuestPos = CFrame.new(-16546.748, 55.7216759, -172.865311, -0.0595058464, 2.45485676e-08, 0.998227954, -5.3272025e-08, 1, -2.77677703e-08, -0.998227954, -5.48299717e-08, -0.0595058464),
+        QuestPos = CFrame.new(
+            -16546.748, 55.7216759, -172.865311,
+            -0.0595058464, 2.45485676e-08, 0.998227954,
+            -5.3272025e-08, 1, -2.77677703e-08,
+            -0.998227954, -5.48299717e-08, -0.0595058464
+        ),
         FarmPos = CFrame.new(-16347, 64, 984)
     }
 
+-- [LEVEL 2475 - 2499] ISLAND BOY
 elseif myLevel >= 2475 then
     return {
         Name = "Island Boy",
         QuestArgs = {"StartQuest", "TikiQuest1", 2},
-        QuestPos = CFrame.new(-16546.748, 55.7216759, -172.865311, -0.0595058464, 2.45485676e-08, 0.998227954, -5.3272025e-08, 1, -2.77677703e-08, -0.998227954, -5.48299717e-08, -0.0595058464),
+        QuestPos = CFrame.new(
+            -16546.748, 55.7216759, -172.865311,
+            -0.0595058464, 2.45485676e-08, 0.998227954,
+            -5.3272025e-08, 1, -2.77677703e-08,
+            -0.998227954, -5.48299717e-08, -0.0595058464
+        ),
         FarmPos = CFrame.new(-16670, 43, -270)
     }
 
+-- [LEVEL < 2475] ISLE OUTLAW
 else
     return {
         Name = "Isle Outlaw",
         QuestArgs = {"StartQuest", "TikiQuest1", 1},
-        QuestPos = CFrame.new(-16546.748, 55.7216759, -172.865311, -0.0595058464, 2.45485676e-08, 0.998227954, -5.3272025e-08, 1, -2.77677703e-08, -0.998227954, -5.48299717e-08, -0.0595058464),
+        QuestPos = CFrame.new(
+            -16546.748, 55.7216759, -172.865311,
+            -0.0595058464, 2.45485676e-08, 0.998227954,
+            -5.3272025e-08, 1, -2.77677703e-08,
+            -0.998227954, -5.48299717e-08, -0.0595058464
+        ),
         FarmPos = CFrame.new(-16350, 45, -180)
     }
+end
 end
 
 -- Verifica quantos "Olhos" (Vasos) foram quebrados
