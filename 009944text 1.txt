@@ -4609,18 +4609,16 @@ b:AddToggle({
 
 ---
 
--- 2. SISTEMA TYRANT OF THE SKIES (ATUALIZADO: Coordenadas Exatas + Delay 1.5s)
+-- 2. SISTEMA TYRANT OF THE SKIES (CORRIGIDO: Coordenada Exata + Snap de Posição)
 
 -- Tabela de Configuração das Quests do Tiki
 local TikiQuestData = {
     ["Serpent Hunter"] = {
         QuestArgs = {"StartQuest", "TikiQuest3", 1},
-        -- Coordenada atualizada conforme seu pedido
         NPC_Pos = CFrame.new(-16665.5684, 105.27478, 1578.12476)
     },
     ["Skull Slayer"] = {
         QuestArgs = {"StartQuest", "TikiQuest3", 2},
-        -- Coordenada atualizada conforme seu pedido
         NPC_Pos = CFrame.new(-16665.5684, 105.27478, 1578.12476)
     }
 }
@@ -4756,17 +4754,22 @@ spawn(function()
                     SetNoclip(false)
                     if root.Anchored then root.Anchored = false end
                     
-                    -- >> LÓGICA DE QUEST PRIORITÁRIA <<
+                    -- >> LÓGICA DE QUEST PRIORITÁRIA (CORRIGIDA) <<
                     if _G.AcceptQuest and not QuestUI.Visible then
                         -- Usa a coordenada atualizada para o NPC
                         local data = TikiQuestData["Skull Slayer"]
                         
                         if data then
+                            -- Só teleporta se estiver longe
                             TeleportConditional(root, data.NPC_Pos, TELEPORT_DISTANCE_THRESHOLD)
                             
-                            -- Se chegou perto do NPC (distância 15 studs)
-                            if (root.Position - data.NPC_Pos.Position).Magnitude <= 15 then
-                                task.wait(1.5) -- Espera 1.5s antes de pegar
+                            -- VERIFICAÇÃO RIGOROSA: Distância reduzida de 15 para 2
+                            if (root.Position - data.NPC_Pos.Position).Magnitude <= 3 then
+                                -- Força a posição exata para garantir (Snap)
+                                root.CFrame = data.NPC_Pos
+                                root.Velocity = Vector3.new(0,0,0) -- Para o movimento
+                                
+                                task.wait(1.5) -- Espera 1.5s na posição exata
                                 game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(data.QuestArgs))
                             end
                             return 
