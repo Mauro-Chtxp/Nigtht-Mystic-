@@ -542,7 +542,8 @@ local function FarmAtivo()
         _G.AutoFarm_Cake or
         _G.FarmMastery_Dev or
         _G.FarmMastery_G or
-        (getgenv()).AutoMaterial
+        (getgenv()).AutoMaterial or
+        _G.AutoTyrant -- ÚNICA ADIÇÃO (Para ativar no Tyrant)
     )
 end
 
@@ -550,13 +551,13 @@ end
 local function IsRaidMob(mob)
     local n = mob.Name:lower()
 
-    if n:find("raid") or n:find("microchip") or n:find("island") then return true end
-    if mob:GetAttribute("IsRaid") or mob:GetAttribute("RaidMob") or mob:GetAttribute("IsBoss") then return true end
+    if n:find("raid") or n:find("microchip") or n:find("island") then return true end  
+    if mob:GetAttribute("IsRaid") or mob:GetAttribute("RaidMob") or mob:GetAttribute("IsBoss") then return true end  
 
-    local hum = mob:FindFirstChild("Humanoid")
-    if hum and hum.WalkSpeed == 0 then return true end
+    local hum = mob:FindFirstChild("Humanoid")  
+    if hum and hum.WalkSpeed == 0 then return true end  
 
-    if mob.Parent and tostring(mob.Parent):lower():find("_worldorigin") then return true end
+    if mob.Parent and tostring(mob.Parent):lower():find("_worldorigin") then return true end  
 
     return false
 end
@@ -565,30 +566,30 @@ end
 BringEnemy = function()
     if not FarmAtivo() or not _B then return end
 
-    local LocalPlayer = game.Players.LocalPlayer
-    local char = LocalPlayer.Character
-    if not char then return end
+    local LocalPlayer = game.Players.LocalPlayer  
+    local char = LocalPlayer.Character  
+    if not char then return end  
 
-    local HRP_Player = char:FindFirstChild("HumanoidRootPart")
-    if not HRP_Player then return end
+    local HRP_Player = char:FindFirstChild("HumanoidRootPart")  
+    if not HRP_Player then return end  
 
-    if setscriptable then pcall(function() setscriptable(LocalPlayer, "SimulationRadius", true) end) end
-    if sethiddenproperty then pcall(function() sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge) end) end
+    if setscriptable then pcall(function() setscriptable(LocalPlayer, "SimulationRadius", true) end) end  
+    if sethiddenproperty then pcall(function() sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge) end) end  
 
-    local targetPos = PosMon or HRP_Player.Position
-    local enemies = workspace.Enemies:GetChildren()
+    local targetPos = PosMon or HRP_Player.Position  
+    local enemies = workspace.Enemies:GetChildren()  
 
-    for _, mob in ipairs(enemies) do
-        local hum = mob:FindFirstChild("Humanoid")
-        local root = mob:FindFirstChild("HumanoidRootPart")
+    for _, mob in ipairs(enemies) do  
+        local hum = mob:FindFirstChild("Humanoid")  
+        local root = mob:FindFirstChild("HumanoidRootPart")  
 
-        if hum and root and hum.Health > 0 and not IsRaidMob(mob) then
-            local dist = (root.Position - targetPos).Magnitude
+        if hum and root and hum.Health > 0 and not IsRaidMob(mob) then  
+            local dist = (root.Position - targetPos).Magnitude  
 
-            if dist <= 225 then
-                root.CFrame = CFrame.new(targetPos)
-            end
-        end
+            if dist <= 235 then  
+                root.CFrame = CFrame.new(targetPos)  
+            end  
+        end  
     end
 end
 
@@ -600,12 +601,12 @@ spawn(function()
             BringEnemy()
             task.wait(3)
 
-            _B = false
-            task.wait(5)
-        else
-            _B = false
-            task.wait(1)
-        end
+            _B = false  
+            task.wait(5)  
+        else  
+            _B = false  
+            task.wait(1)  
+        end  
     end
 end)
 
@@ -4608,17 +4609,19 @@ b:AddToggle({
 
 ---
 
--- 2. SISTEMA TYRANT OF THE SKIES (ATUALIZADO: Prioridade Quest + Delay 1.5s)
+-- 2. SISTEMA TYRANT OF THE SKIES (ATUALIZADO: Coordenadas Exatas + Delay 1.5s)
 
 -- Tabela de Configuração das Quests do Tiki
 local TikiQuestData = {
     ["Serpent Hunter"] = {
         QuestArgs = {"StartQuest", "TikiQuest3", 1},
-        NPC_Pos = CFrame.new(-16668.03, 105.32, 1568.60)
+        -- Coordenada atualizada conforme seu pedido
+        NPC_Pos = CFrame.new(-16665.5684, 105.27478, 1578.12476)
     },
     ["Skull Slayer"] = {
         QuestArgs = {"StartQuest", "TikiQuest3", 2},
-        NPC_Pos = CFrame.new(-16668.03, 105.32, 1568.60)
+        -- Coordenada atualizada conforme seu pedido
+        NPC_Pos = CFrame.new(-16665.5684, 105.27478, 1578.12476)
     }
 }
 
@@ -4753,25 +4756,23 @@ spawn(function()
                     SetNoclip(false)
                     if root.Anchored then root.Anchored = false end
                     
-                    -- >> NOVA LÓGICA DE QUEST (PRIORIDADE MÁXIMA) <<
+                    -- >> LÓGICA DE QUEST PRIORITÁRIA <<
                     if _G.AcceptQuest and not QuestUI.Visible then
-                        -- Seleciona a quest padrão (Usei Skull Slayer, mas o NPC é o mesmo para as duas)
+                        -- Usa a coordenada atualizada para o NPC
                         local data = TikiQuestData["Skull Slayer"]
                         
                         if data then
                             TeleportConditional(root, data.NPC_Pos, TELEPORT_DISTANCE_THRESHOLD)
                             
-                            -- Se chegou perto do NPC
+                            -- Se chegou perto do NPC (distância 15 studs)
                             if (root.Position - data.NPC_Pos.Position).Magnitude <= 15 then
-                                -- AQUI ESTÁ O DELAY DE 1.5 SEGUNDOS QUE VOCÊ PEDIU
-                                task.wait(1.5) 
+                                task.wait(1.5) -- Espera 1.5s antes de pegar
                                 game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(data.QuestArgs))
                             end
-                            -- Retorna para não tentar matar mobs enquanto vai pegar a quest
                             return 
                         end
                     end
-                    -- >> FIM DA LÓGICA DE QUEST <<
+                    -- >> FIM LÓGICA DE QUEST <<
 
                     local targetList = {
                         ["Isle Champion"] = true, ["Sun-kissed Warrior"] = true, 
