@@ -4826,10 +4826,17 @@ local function UseAllCategorySkills(targetCFrame)
     local VirtualInputManager = game:GetService("VirtualInputManager")
     local VirtualUser = game:GetService("VirtualUser")
     local categories = {"Melee", "Blox Fruit", "Sword", "Gun"}
-    local skills = {"Z", "X", "C", "F"} -- REMOVIDO O "V"
+    
+    -- REMOVIDO O "V" DA LISTA
+    local skills = {"Z", "X", "C", "F"} 
 
-    -- Offset para ficar levemente acima do vaso (3 studs)
-    local attackPos = targetCFrame * CFrame.new(0, 3, 0)
+    -- Define uma posição um pouco acima (5 studs) para evitar colisão com o chão (os "pulinhos")
+    local hoverCFrame = targetCFrame * CFrame.new(0, 5, 0)
+
+    -- Olhar para baixo (alvo original no chão)
+    pcall(function()  
+        workspace.CurrentCamera.CFrame = CFrame.new(hoverCFrame.Position, targetCFrame.Position)  
+    end)  
 
     for _, toolType in ipairs(categories) do  
         local tool = nil  
@@ -4848,11 +4855,12 @@ local function UseAllCategorySkills(targetCFrame)
         end  
 
         if tool then  
-            game.Players.LocalPlayer.Character.Humanoid:EquipTool(tool)  
+            game.Players.LocalPlayer.Character.Humanoid:EquipTool(tool)(tool)  
             
+            -- Ajustado para percorrer apenas a quantidade de skills que existem na lista
             for i = 1, #skills do
-                -- Mantém o player suspenso acima do vaso para evitar bugs de colisão
-                _tp(attackPos)
+                -- Trava de posição AGORA USANDO O HOVER (flutuando um pouco)
+                if hoverCFrame then _tp(hoverCFrame) end
                 
                 VirtualUser:CaptureController()  
                 VirtualUser:ClickButton1(Vector2.new(851, 158))  
@@ -4903,15 +4911,18 @@ spawn(function()
                           
                         local char = game.Players.LocalPlayer.Character
                         local startTime = tick()
-                        -- Define a posição de destino levemente acima
-                        local hoverPos = pos * CFrame.new(0, 3, 0)
                         
+                        -- Movimentação até o vaso
+                        -- Adicionei um pequeno offset aqui também para ele não chegar "enterrado" no chão
+                        local movePos = pos * CFrame.new(0, 5, 0)
+
                         repeat 
-                            _tp(hoverPos)
+                            _tp(movePos)
                             task.wait()
-                        until (char.HumanoidRootPart.Position - hoverPos.Position).Magnitude < 5 or tick() - startTime > 1.5
+                        until (char.HumanoidRootPart.Position - movePos.Position).Magnitude < 7 or tick() - startTime > 2
                         
-                        if (char.HumanoidRootPart.Position - hoverPos.Position).Magnitude < 8 then  
+                        -- Verifica se está perto o suficiente (usando a posição original do vaso como referência)
+                        if (char.HumanoidRootPart.Position - pos.Position).Magnitude < 15 then  
                             UseAllCategorySkills(pos)
                         end  
                     end  
@@ -4923,8 +4934,8 @@ spawn(function()
                         ["Sun-kissed Warrior"] = true, 
                         ["Island Boy"] = true, 
                         ["Isle Outlaw"] = true,
-                        ["Serpent Hunter"] = true,
-                        ["Skull Slayer"] = true
+                        ["Serpent Hunter"] = true, 
+                        ["Skull Slayer"] = true    
                     }  
                     
                     local enemy = nil  
@@ -4944,7 +4955,7 @@ spawn(function()
                         _tp(dest)  
                         if (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - dest.Position).Magnitude < 20 then  
                             currentSpot = (currentSpot == 1 and 2 or 1)  
-                            task.wait(1)
+                            task.wait(1) 
                         end  
                     end  
                 end  
@@ -4952,6 +4963,7 @@ spawn(function()
         end  
     end
 end)
+
 
 
 -- 4. SISTEMA CAKE PRINCE FARM (MODIFICADO PARA TELEPORTE INSTANTÂNEO NO BOSS E MOB)
