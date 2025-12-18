@@ -4609,20 +4609,20 @@ b:AddToggle({
 
 ---
 
--- 2. SISTEMA TYRANT OF THE SKIES (ATUALIZADO: Level System + Quests Dinâmicas)
+-- 2. SISTEMA TYRANT OF THE SKIES (ATUALIZADO: Level System + CFrame Exato)
 
--- Tabela de Configuração das Quests (Unificada)
+-- Tabela de Configuração das Quests do Tiki (Organizada por Level)
 local TikiQuestData = {
-    -- Level 2575 - 2599
-    ["Serpent Hunter"] = {
-        QuestArgs = {"StartQuest", "TikiQuest3", 1},
-        NPC_Pos = CFrame.new(-16665.1719, 105.27478, 1577.85071, -0.999501228, 5.66187488e-08, -0.0315799415, 5.45234258e-08, 1, 6.72109977e-08, 0.0315799415, 6.54556231e-08, -0.999501228)
-    },
+    -- Quests para Level 2575 a 2599
     ["Skull Slayer"] = {
         QuestArgs = {"StartQuest", "TikiQuest3", 2},
         NPC_Pos = CFrame.new(-16665.1719, 105.27478, 1577.85071, -0.999501228, 5.66187488e-08, -0.0315799415, 5.45234258e-08, 1, 6.72109977e-08, 0.0315799415, 6.54556231e-08, -0.999501228)
     },
-    -- Level 2475 - 2499
+    ["Serpent Hunter"] = {
+        QuestArgs = {"StartQuest", "TikiQuest3", 1},
+        NPC_Pos = CFrame.new(-16665.1719, 105.27478, 1577.85071, -0.999501228, 5.66187488e-08, -0.0315799415, 5.45234258e-08, 1, 6.72109977e-08, 0.0315799415, 6.54556231e-08, -0.999501228)
+    },
+    -- Quests para Level 2475 a 2499
     ["Isle Outlaw"] = {
         QuestArgs = {"StartQuest", "TikiQuest1", 1},
         NPC_Pos = CFrame.new(-16548.8164, 55.6059914, -172.8125, .213092566, 0, -0.977032006, 0, 1, 0, .977032006, 0, .213092566)
@@ -4726,9 +4726,7 @@ spawn(function()
                 local char = player.Character
                 local root = char.HumanoidRootPart
                 local QuestUI = player.PlayerGui.Main.Quest
-                
-                -- Detectar Level do Jogador
-                local I = player.Data.Level.Value
+                local playerLevel = player.Data.Level.Value
 
                 if boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then  
                     SetNoclip(false)
@@ -4763,25 +4761,27 @@ spawn(function()
                     end
                     SetNoclip(false)
                 else  
-                    -- MODO FARM NORMAL / PEGAR QUEST DINÂMICA
+                    -- MODO FARM NORMAL / PEGAR QUEST
                     SetNoclip(false)
                     if root.Anchored then root.Anchored = false end
                     
+                    -- LÓGICA DE QUEST DINÂMICA POR LEVEL
                     if _G.AcceptQuest and not QuestUI.Visible then
-                        local selectedQuestData = nil
+                        local selectedQuest = nil
                         
-                        -- Verificação de Nível para selecionar a Quest
-                        if I >= 2575 and I <= 2599 then
-                            selectedQuestData = TikiQuestData["Skull Slayer"] -- Pega as quests atuais
-                        elseif I >= 2475 and I <= 2499 then
-                            selectedQuestData = TikiQuestData["Island Boy"] -- Pega as quests de level baixo
+                        -- Seleciona a Quest baseada no Level
+                        if playerLevel >= 2575 then
+                            selectedQuest = TikiQuestData["Skull Slayer"]
+                        elseif playerLevel >= 2475 then
+                            selectedQuest = TikiQuestData["Island Boy"]
                         end
-
-                        if selectedQuestData then
-                            _tp(selectedQuestData.NPC_Pos)
-                            if (root.Position - selectedQuestData.NPC_Pos.Position).Magnitude <= 15 then
+                        
+                        if selectedQuest then
+                            _tp(selectedQuest.NPC_Pos)
+                            
+                            if (root.Position - selectedQuest.NPC_Pos.Position).Magnitude <= 15 then
                                 task.wait(1.5) -- Delay solicitado
-                                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(selectedQuestData.QuestArgs))
+                                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(selectedQuest.QuestArgs))
                             end
                             return 
                         end
