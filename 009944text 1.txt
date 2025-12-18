@@ -4608,9 +4608,9 @@ b:AddToggle({
 
 ---
 
--- 2. SISTEMA TYRANT OF THE SKIES (ATUALIZADO COM QUEST)
+-- 2. SISTEMA TYRANT OF THE SKIES (ATUALIZADO: Prioridade Quest + Delay 1.5s)
 
--- Tabela de Configuração das Quests do Tiki (Adicionado conforme pedido)
+-- Tabela de Configuração das Quests do Tiki
 local TikiQuestData = {
     ["Serpent Hunter"] = {
         QuestArgs = {"StartQuest", "TikiQuest3", 1},
@@ -4714,7 +4714,7 @@ spawn(function()
                 local player = game.Players.LocalPlayer
                 local char = player.Character
                 local root = char.HumanoidRootPart
-                local QuestUI = player.PlayerGui.Main.Quest -- Referencia para checar se a quest está ativa
+                local QuestUI = player.PlayerGui.Main.Quest
 
                 if boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then  
                     SetNoclip(false)
@@ -4723,6 +4723,7 @@ spawn(function()
                     EquipWeapon(_G.SelectWeapon)  
                     G.Kill(boss, true)  
                 elseif eyes == 4 then  
+                    -- LÓGICA DO PUZZLE (MANTER IGUAL)
                     local targetsty = {  
                         CFrame.new(-16335.1, 158.1, 1465.6), CFrame.new(-16288.6, 158.1, 1470.3),  
                         CFrame.new(-16258.0, 156.7, 1461.4), CFrame.new(-16212.4, 158.1, 1466.3),  
@@ -4748,9 +4749,30 @@ spawn(function()
                     end
                     SetNoclip(false)
                 else  
-                    -- MODO FARM NORMAL (Mobs da Ilha)
+                    -- MODO FARM NORMAL
                     SetNoclip(false)
                     if root.Anchored then root.Anchored = false end
+                    
+                    -- >> NOVA LÓGICA DE QUEST (PRIORIDADE MÁXIMA) <<
+                    if _G.AcceptQuest and not QuestUI.Visible then
+                        -- Seleciona a quest padrão (Usei Skull Slayer, mas o NPC é o mesmo para as duas)
+                        local data = TikiQuestData["Skull Slayer"]
+                        
+                        if data then
+                            TeleportConditional(root, data.NPC_Pos, TELEPORT_DISTANCE_THRESHOLD)
+                            
+                            -- Se chegou perto do NPC
+                            if (root.Position - data.NPC_Pos.Position).Magnitude <= 15 then
+                                -- AQUI ESTÁ O DELAY DE 1.5 SEGUNDOS QUE VOCÊ PEDIU
+                                task.wait(1.5) 
+                                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(data.QuestArgs))
+                            end
+                            -- Retorna para não tentar matar mobs enquanto vai pegar a quest
+                            return 
+                        end
+                    end
+                    -- >> FIM DA LÓGICA DE QUEST <<
+
                     local targetList = {
                         ["Isle Champion"] = true, ["Sun-kissed Warrior"] = true, 
                         ["Island Boy"] = true, ["Isle Outlaw"] = true,
@@ -4769,19 +4791,6 @@ spawn(function()
                     end
 
                     if closestEnemy then  
-                        -- >> LÓGICA DE QUEST ADICIONADA AQUI <<
-                        -- Verifica se: Aceitar Quest está ON, a UI da Quest NÃO está visível, e se o mob atual tem configuração na tabela
-                        if _G.AcceptQuest and not QuestUI.Visible and TikiQuestData[closestEnemy.Name] then
-                            local data = TikiQuestData[closestEnemy.Name]
-                            TeleportConditional(root, data.NPC_Pos, TELEPORT_DISTANCE_THRESHOLD)
-                            if (root.Position - data.NPC_Pos.Position).Magnitude <= 50 then
-                                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(data.QuestArgs))
-                                task.wait(0.5) -- Pequeno delay para garantir que pegou
-                            end
-                            return -- Retorna para não tentar matar enquanto está indo pegar a quest
-                        end
-                        -- >> FIM DA LÓGICA DE QUEST <<
-
                         _tp(closestEnemy.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))  
                         EquipWeapon(_G.SelectWeapon)  
                         G.Kill(closestEnemy, true)  
