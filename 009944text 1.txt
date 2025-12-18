@@ -4681,8 +4681,9 @@ end)
 
 ---
 
+
 -- ===============================
--- 5. SISTEMA TYRANT OF THE SKIES (FIXED: MOB DETECTION)
+-- 5. SISTEMA TYRANT OF THE SKIES (FIXED: EYES PRIORITY)
 -- ===============================
 spawn(function()
     while task.wait() do
@@ -4695,101 +4696,98 @@ spawn(function()
                 local enemies = workspace:FindFirstChild("Enemies")
                 if not enemies then return end
 
-                -- 1. CHECAGEM DE MOBS PARA SPAWNAR (EYES < 4)
-                if tonumber(_G.EyesCount) ~= 4 then
-                    local targetMob = nil
-                    local shortestDist = math.huge
-                    
-                    -- Lista exata dos nomes dos mobs necessários
-                    local validMobs = {"Isle Champion", "Sun-kissed Warrior", "Island Boy", "Isle Outlaw"}
+                -- Converte para número para evitar erros de comparação
+                local eyes = tonumber(_G.EyesCount) or 0
 
-                    -- Busca robusta em todos os inimigos
-                    for _, mob in pairs(enemies:GetChildren()) do
-                        local isValidName = false
-                        for _, name in ipairs(validMobs) do
-                            if mob.Name == name then
-                                isValidName = true
-                                break
-                            end
-                        end
+                -- ==========================================
+                -- ESTADO 1: JÁ TEM OS 4 OLHOS (FOCO EM BOSS OU VASOS)
+                -- ==========================================
+                if eyes >= 4 then
+                    local tyrant = enemies:FindFirstChild("Tyrant of the Skies")
 
-                        if isValidName and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 and mob:FindFirstChild("HumanoidRootPart") then
-                            local dist = (mob.HumanoidRootPart.Position - hrp.Position).Magnitude
-                            if dist < shortestDist then
-                                shortestDist = dist
-                                targetMob = mob
-                            end
-                        end
-                    end
-
-                    -- AÇÃO: Atacar ou Navegar
-                    if targetMob then
-                        -- Se achou o mob, foca nele até morrer
+                    -- Se o Boss existir, mata ele
+                    if tyrant and tyrant:FindFirstChild("Humanoid") and tyrant.Humanoid.Health > 0 and tyrant:FindFirstChild("HumanoidRootPart") then
                         repeat task.wait()
-                            if targetMob.Parent and targetMob.Humanoid.Health > 0 and _G.FullyTyrant then
-                                -- Teleporte colado no mob
-                                _tp(targetMob.HumanoidRootPart.CFrame * (Pos or CFrame.new(0, 20, 0)))
-                                G.Kill(targetMob, true)
+                            if tyrant.Parent and tyrant.Humanoid.Health > 0 and _G.FullyTyrant then
+                                _tp(tyrant.HumanoidRootPart.CFrame * (Pos or CFrame.new(0, 25, 0)))
+                                G.Kill(tyrant, true)
                             else
                                 break
                             end
-                        until not _G.FullyTyrant or tonumber(_G.EyesCount) == 4 or not targetMob.Parent
+                        until not _G.FullyTyrant or tyrant.Humanoid.Health <= 0
+                    
+                    -- Se não tem Boss, vai ativar os Vasos/Pontos
                     else
-                        -- Se NÃO tem nenhum mob no workspace, vai para o spot de farm
-                        -- Usei uma posição central da ilha de farm
-                        local spawnSpot = CFrame.new(-16423.8, 147.0, -123.6)
-                        if (hrp.Position - spawnSpot.Position).Magnitude > 20 then
-                            _tp(spawnSpot)
+                        local targets = {
+                            CFrame.new(-16335.16, 158.16, 1465.64),
+                            CFrame.new(-16288.60, 158.16, 1470.36),
+                            CFrame.new(-16258.00, 156.76, 1461.40),
+                            CFrame.new(-16212.46, 158.16, 1466.34),
+                            CFrame.new(-16335.09, 159.33, 1324.88),
+                            CFrame.new(-16286.05, 155.94, 1323.83),
+                            CFrame.new(-16250.33, 159.33, 1316.38),
+                        }
+
+                        for _, cf in ipairs(targets) do
+                            -- Se o boss spawnar ou os olhos resetarem, para a ativação
+                            if not _G.FullyTyrant or enemies:FindFirstChild("Tyrant of the Skies") or tonumber(_G.EyesCount) < 4 then break end
+
+                            _tp(cf)
+                            task.wait(0.6)
+
+                            if _G.UseSkullSummon then
+                                game.ReplicatedStorage.Remotes.CommF_:InvokeServer("LoadItem","Skull Guitar")
+                            end
+                            
+                            pcall(function()
+                                Useskills("Melee", "Z")
+                                Useskills("Melee", "X")
+                                Useskills("Sword", "Z")
+                            end)
+                            task.wait(1)
                         end
                     end
-                    return -- Sai do loop atual para recomeçar a checagem
+                    
+                    return -- Impede de descer para o farm de mobs enquanto tiver 4 olhos
                 end
 
-                -- 2. SE EYES = 4: BOSS OU EVENTO
-                local tyrant = enemies:FindFirstChild("Tyrant of the Skies")
+                -- ==========================================
+                -- ESTADO 2: FARM DE MOBS (EYES < 4)
+                -- ==========================================
+                local targetMob = nil
+                local shortestDist = math.huge
+                local validMobs = {"Isle Champion", "Sun-kissed Warrior", "Island Boy", "Isle Outlaw"}
 
-                if tyrant and tyrant:FindFirstChild("Humanoid") and tyrant.Humanoid.Health > 0 and tyrant:FindFirstChild("HumanoidRootPart") then
-                    -- Matar o Boss Tyrant
+                for _, mob in pairs(enemies:GetChildren()) do
+                    local isValidName = false
+                    for _, name in ipairs(validMobs) do
+                        if mob.Name == name then isValidName = true break end
+                    end
+
+                    if isValidName and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 and mob:FindFirstChild("HumanoidRootPart") then
+                        local dist = (mob.HumanoidRootPart.Position - hrp.Position).Magnitude
+                        if dist < shortestDist then
+                            shortestDist = dist
+                            targetMob = mob
+                        end
+                    end
+                end
+
+                if targetMob then
                     repeat task.wait()
-                        if tyrant.Parent and tyrant.Humanoid.Health > 0 and _G.FullyTyrant then
-                            _tp(tyrant.HumanoidRootPart.CFrame * (Pos or CFrame.new(0, 25, 0)))
-                            G.Kill(tyrant, true)
+                        if targetMob.Parent and targetMob.Humanoid.Health > 0 and _G.FullyTyrant and tonumber(_G.EyesCount) < 4 then
+                            _tp(targetMob.HumanoidRootPart.CFrame * (Pos or CFrame.new(0, 20, 0)))
+                            G.Kill(targetMob, true)
                         else
                             break
                         end
-                    until not _G.FullyTyrant or tyrant.Humanoid.Health <= 0
+                    until not _G.FullyTyrant or tonumber(_G.EyesCount) >= 4
                 else
-                    -- Ativar os Tochas/Pontos do evento
-                    local targets = {
-                        CFrame.new(-16335.16, 158.16, 1465.64),
-                        CFrame.new(-16288.60, 158.16, 1470.36),
-                        CFrame.new(-16258.00, 156.76, 1461.40),
-                        CFrame.new(-16212.46, 158.16, 1466.34),
-                        CFrame.new(-16335.09, 159.33, 1324.88),
-                        CFrame.new(-16286.05, 155.94, 1323.83),
-                        CFrame.new(-16250.33, 159.33, 1316.38),
-                    }
-
-                    for _, cf in ipairs(targets) do
-                        -- Se o Boss aparecer ou o StartFarm desligar, para imediatamente
-                        if not _G.FullyTyrant or enemies:FindFirstChild("Tyrant of the Skies") then break end
-
-                        _tp(cf)
-                        task.wait(0.5)
-
-                        -- Dispara ataques para garantir a ativação do ponto
-                        if _G.UseSkullSummon then
-                            game.ReplicatedStorage.Remotes.CommF_:InvokeServer("LoadItem","Skull Guitar")
-                        end
-                        
-                        -- Tenta usar habilidades básicas se disponíveis
-                        pcall(function()
-                            Useskills("Melee", "Z")
-                            Useskills("Melee", "X")
-                        end)
-                        task.wait(0.8)
-                    end
+                    -- Vai para o spawn se estiver vazio
+                    local spawnSpot = CFrame.new(-16423.8, 147.0, -123.6)
+                    TeleportConditional(hrp, spawnSpot, 20)
                 end
+
             end)
         end
     end
