@@ -586,7 +586,7 @@ BringEnemy = function()
         if hum and root and hum.Health > 0 and not IsRaidMob(mob) then  
             local dist = (root.Position - targetPos).Magnitude  
 
-            if dist <= 235 then  
+            if dist <= 210 then  
                 root.CFrame = CFrame.new(targetPos)  
             end  
         end  
