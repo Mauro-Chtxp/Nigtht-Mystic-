@@ -1,0 +1,767 @@
+repeat task.wait() until game:IsLoaded() and game.Players.LocalPlayer
+local CoreGui = game:GetService("CoreGui")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+if not getgenv().SettingFarm then
+getgenv().AutoExecute = true
+getgenv().SettingFarm = {
+    ["Reset Teleport"] = {
+        ["Enabled"] = false,
+        ["Delay Reset"] = 3,
+        ["Item Dont Reset"] = {
+            ["Fruit"] = {
+                ["Enabled"] = true,
+                ["All Fruit"] = true,
+                ["Select Fruit"] = {
+                    ["Enabled"] = false,
+                    ["Fruit"] = {}
+                }
+            }
+        }
+    },
+    ["White Screen"] = false,
+    ["Lock Fps"] = {
+        ["Enabled"] = true,
+        ["FPS"] = 360
+    },
+    ["Get Items"] = {
+        ["Saber"] = true,
+        ["Godhuman"] = true,
+        ["Skull Guitar"] = true,
+        ["Mirror Fractal"] = true,
+        ["Cursed Dual Katana"] = true,
+        ["Upgrade Race V2-V3"] = true,
+        ["Auto Pull Lever"] = true,
+        ["Shark Anchor"] = true,
+    },
+    ["Get Rare Items"] = {
+        ["Rengoku"] = false,
+        ["Dragon Trident"] = false,
+        ["Pole (1st Form)"] = false,
+        ["Gravity Blade"] = false
+    },
+    ["Farm Fragments"] = {
+        ["Enabled"] = false,
+        ["Fragment"] = 50000
+    },
+    ["Chat"] = {
+        ["Enabled"] = true,
+        ["Text"] = "Lonely Kaitun BF",
+        ["Delay"] = "150"
+    },
+    ["Auto Summon Rip Indra"] = true,
+    ["Select Hop"] = {
+        ["Hop Server If Have Player Near"] = false,
+        ["Hop Find Rip Indra Get Valkyrie Helm or Get Tushita"] = true,
+        ["Hop Find Dough King Get Mirror Fractal"] = false,
+        ["Hop Find Raids Castle [CDK]"] = true,
+        ["Hop Find Cake Queen [CDK]"] = true,
+        ["Hop Find Soul Reaper [CDK]"] = true,
+        ["Hop Find Darkbeard [SG]"] = true,
+        ["Hop Find Mirage [ Pull Lever ]"] = false
+    },
+    ["Farm Mastery"] = {
+        ["Melee"] = false,
+        ["Sword"] = false
+    },
+    ["Buy Haki"] = {
+        ["Enhancement"] = false,
+        ["Skyjump"] = true,
+        ["Flash Step"] = true,
+        ["Observation"] = true
+    }
+}
+end
+
+task.spawn(function()
+    if getgenv().SettingFarm["Chat"]["Enabled"] then
+	task.spawn(function()
+		while true do
+			pcall(function()
+				game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents.SayMessageRequest:FireServer(
+					getgenv().SettingFarm["Chat"]["Text"],
+					"All"
+				)
+			end)
+			wait(tonumber(getgenv().SettingFarm["Chat"]["Delay"]))
+		end
+	end)
+end
+loadstring(game:HttpGet("https://raw.githubusercontent.com/LongHip12/ws/refs/heads/main/TeddyHubKaitunBF.lua.txt"))()
+end)
+
+--=============================
+-- THREAD 1: COREGUI / STATUS
+--=============================
+task.spawn(function()
+	local success, StatusGui = pcall(function()
+		return CoreGui:WaitForChild("Status", math.huge)
+	end)
+	if success and StatusGui then
+		StatusGui.Enabled = false
+		local Label = StatusGui:WaitForChild("TextLabel", math.huge)
+		Label.Text = "discord.gg/2anc7nHw6b"
+	end
+end)
+
+--=============================
+-- Color Changer
+--=============================
+task.spawn(function()
+local _CoreGui2 = game:GetService("CoreGui")
+local _lplrs = game:GetService("Players").LocalPlayer
+local _PlayerGui = _lplrs:WaitForChild("PlayerGui")
+local _status = _CoreGui2:WaitForChild("Status")
+local _dropShadow = _status.DropShadow2Holder2.DropShadow2.Main
+local _uigra1 = _dropShadow.Top2:FindFirstChild("UIGradient")
+local _uigra2 = _dropShadow.Under:FindFirstChild("UIGradient")
+local _top2 = _dropShadow.Top2
+local _under = _dropShadow.Under
+local _uistro1 = _dropShadow.UIStroke
+local _dscgg = _status:WaitForChild("TextLabel")
+local _main = _PlayerGui:WaitForChild("CoinCard").Frame.Frame.LevelLabel
+local _sea = _main:Clone()
+
+_sea.Name = "SeaLabel"
+_sea.Text = "Third Sea: ❌"
+_sea.Position = UDim2.new(0.25, 0, 0.35, 0)
+_sea.Parent = _main.Parent
+
+_under.TextColor3 = Color3.fromRGB(233, 80, 80)
+_top2.TextColor3 = Color3.fromRGB(233, 80, 80)
+_dscgg.TextColor3 = Color3.fromRGB(233, 80, 80)
+_uistro1.Color = Color3.fromRGB(233, 80, 80)
+
+if _uigra1 then _uigra1:Destroy() end
+if _uigra2 then _uigra2:Destroy() end
+
+local _bgs = game:GetService("BadgeService")
+local _plrs = game:GetService("Players")
+local _lp = _plrs.LocalPlayer
+
+local _badgeId = 2125253113
+
+local function _chkBadge(_id)
+	local _ok, _has = pcall(function()
+		return _bgs:UserHasBadgeAsync(_lp.UserId, _id)
+	end)
+	
+	if _ok then
+		return _has
+	else
+		warn("[Error] Error When Checking:", _id)
+		return false
+	end
+end
+
+local _hasBadge = _chkBadge(_badgeId)
+if _hasBadge then
+	_sea.Text = "Third Sea: ✅"
+else
+	_sea.Text = "Third Sea: ❌"
+end
+
+end)
+
+--=============================
+-- INPUT JOBID GUI
+--=============================
+task.spawn(function()
+        -- CoinCard Join GUI (Nhận cả 3 định dạng) - FIXED
+local CoinCard = Instance.new("ScreenGui")
+local Frame_1 = Instance.new("Frame")
+local UIStroke_1 = Instance.new("UIStroke")
+local mainStrokeGradient_1 = Instance.new("UIGradient")
+local mainCorner_1 = Instance.new("UICorner")
+local Box_1 = Instance.new("TextBox")
+
+CoinCard.Name = "RobloxGuiService"
+CoinCard.Parent = game:GetService("CoreGui")
+CoinCard.ResetOnSpawn = false
+CoinCard.Enabled = false
+
+Frame_1.Parent = CoinCard
+Frame_1.AnchorPoint = Vector2.new(0.5, 0.5)
+Frame_1.BackgroundColor3 = Color3.fromRGB(0,0,0)
+Frame_1.BackgroundTransparency = 0.6000000238418579
+Frame_1.BorderColor3 = Color3.fromRGB(0,0,0)
+Frame_1.BorderSizePixel = 0
+Frame_1.Position = UDim2.new(0.5, 0,0.830000012, 0)
+Frame_1.Size = UDim2.new(0, 220,0, 30)
+
+UIStroke_1.Parent = Frame_1
+UIStroke_1.Color = Color3.fromRGB(255,255,255)
+UIStroke_1.Thickness = 2
+
+mainStrokeGradient_1.Name = "mainStrokeGradient"
+mainStrokeGradient_1.Parent = UIStroke_1
+mainStrokeGradient_1.Color = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(233, 80, 80)), ColorSequenceKeypoint.new(1, Color3.fromRGB(233, 80, 80))}
+mainStrokeGradient_1.Rotation = 45
+
+mainCorner_1.Name = "mainCorner"
+mainCorner_1.Parent = Frame_1
+mainCorner_1.CornerRadius = UDim.new(0,4)
+
+Box_1.Name = "Box"
+Box_1.Parent = Frame_1
+Box_1.Active = true
+Box_1.AnchorPoint = Vector2.new(0.5, 0.5)
+Box_1.BackgroundColor3 = Color3.fromRGB(255,255,255)
+Box_1.BackgroundTransparency = 1
+Box_1.BorderColor3 = Color3.fromRGB(0,0,0)
+Box_1.BorderSizePixel = 0
+Box_1.CursorPosition = -1
+Box_1.Position = UDim2.new(0.5, 0,0.5, 0)
+Box_1.Size = UDim2.new(1, -20,1, -10)
+Box_1.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal)
+Box_1.PlaceholderColor3 = Color3.fromRGB(178,178,178)
+Box_1.PlaceholderText = "Paste Script to Join here"
+Box_1.Text = ""
+Box_1.TextColor3 = Color3.fromRGB(255,255,255)
+Box_1.TextSize = 14
+
+-- Hàm chuyển số sang binary string
+local function toBinary(num, bits)
+    local result = ""
+    for i = bits - 1, 0, -1 do
+        if num >= 2^i then
+            result = result .. "1"
+            num = num - 2^i
+        else
+            result = result .. "0"
+        end
+    end
+    return result
+end
+
+-- Hàm giải mã Base64 (FIXED)
+local function fromBase64(encoded)
+    local b = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+    encoded = string.gsub(encoded, '[^'..b..'=]', '')
+    
+    local result = ""
+    local bitPattern = ""
+    
+    for i = 1, #encoded do
+        local char = string.sub(encoded, i, i)
+        if char == "=" then break end
+        
+        local value = string.find(b, char, 1, true) - 1
+        bitPattern = bitPattern .. toBinary(value, 6)
+    end
+    
+    for i = 1, #bitPattern, 8 do
+    local byteBits = string.sub(bitPattern, i, i + 7)
+    if #byteBits == 8 then
+        local byte = tonumber(byteBits, 2)
+        if byte and byte >= 0 and byte <= 255 then
+            result = result .. string.char(byte)
+        end
+    end
+end
+    
+    return result
+end
+
+-- Hàm xử lý join server (nhận cả 3 định dạng)
+local function processJoin()
+    local input = Box_1.Text
+    
+    if input == "" then
+        return
+    end
+    
+    local jobId = ""
+    
+    -- ĐỊNH DẠNG 1: Encoded JobId (Lonely-...)
+    if string.sub(input, 1, 7) == "Lonely-" then
+        local encodedPart = string.sub(input, 8)
+        local success, decoded = pcall(function()
+            return fromBase64(encodedPart)
+        end)
+        
+        if success and decoded ~= "" then
+            jobId = decoded
+            print("[Join] Decoded JobId from Lonely-:", jobId)
+        else
+            Box_1.PlaceholderText = "Incorrect Script to Join"
+            Box_1.Text = ""
+            task.wait(2)
+            Box_1.PlaceholderText = "Please fully copy the script"
+            task.wait(2)
+            Box_1.PlaceholderText = "Paste Script to Join here"
+            return
+        end
+    
+    -- ĐỊNH DẠNG 2: Script Join
+    elseif string.find(input, 'InvokeServer%("teleport"') or string.find(input, 'TeleportToPlaceInstance') then
+        local pattern = '["\']([a-fA-F0-9%-]+)["\']'
+        local extractedJobId = string.match(input, pattern)
+        
+        if extractedJobId and #extractedJobId == 36 then
+            jobId = extractedJobId
+            print("[Join] Extracted JobId from script:", jobId)
+        else
+            Box_1.PlaceholderText = "Incorrect Script to Join"
+            Box_1.Text = ""
+            task.wait(2)
+            Box_1.PlaceholderText = "Please fully copy the script"
+            task.wait(2)
+            Box_1.PlaceholderText = "Paste Script to Join here"
+            return
+        end
+    
+    -- ĐỊNH DẠNG 3: JobId Normal
+    elseif #input == 36 and string.match(input, "^[a-fA-F0-9%-]+$") then
+        jobId = input
+        print("[Join] Direct JobId:", jobId)
+    
+    else
+        Box_1.PlaceholderText = "Incorrect Script to Join"
+        Box_1.Text = ""
+        task.wait(2)
+        Box_1.PlaceholderText = "Please fully copy the script"
+        task.wait(2)
+        Box_1.PlaceholderText = "Paste Script to Join here"
+        return
+    end
+    
+    -- Thực hiện teleport
+    if jobId ~= "" then
+        local TeleportService = game:GetService("TeleportService")
+        local success, errorMsg = pcall(function()
+            TeleportService:TeleportToPlaceInstance(game.PlaceId, jobId, game.Players.LocalPlayer)
+        end)
+        
+        if not success then
+            warn("[Join] Teleport failed:", errorMsg)
+            Box_1.PlaceholderText = "Teleport Failed"
+            Box_1.Text = ""
+            task.wait(2)
+            Box_1.PlaceholderText = "Paste Script to Join here"
+        else
+            print("[Join] Teleporting to server...")
+        end
+    end
+end
+
+-- Kết nối sự kiện
+Box_1.FocusLost:Connect(function()
+    processJoin()
+end)
+end)
+--=============================
+-- THREAD 2: NOGUCHI TEXT REPLACER
+--=============================
+task.spawn(function()
+	local success, Noguchi = pcall(function()
+		return PlayerGui:WaitForChild("Noguchi", math.huge)
+	end)
+	if success and Noguchi then
+		-- Đổi tên GUI
+		Noguchi.Name = "CoinCard"
+
+		local function ReplaceText(obj)
+			if obj:IsA("TextLabel") and obj.Text and string.find(obj.Text, "Teddy Hub") then
+				-- Thay thế mọi biến thể của Teddy Hub (có hoặc không có " - Kaitun") thành Lonely Stats Checker
+				obj.Text = string.gsub(obj.Text, "Teddy Hub%s*%-*%s*Kaitun", "Lonely Stats Checker")
+                obj.Text = string.gsub(obj.Text, "Teddy Hub", "Lonely Stats Checker")
+			end
+			if obj:IsA("UIStroke") then
+				obj.Color = Color3.fromRGB(233, 80, 80)
+			elseif obj:IsA("UIGradient") then
+				local parent = obj.Parent
+				if parent and parent:IsA("TextLabel") then
+					parent.TextColor3 = Color3.fromRGB(233, 80, 80)
+				end
+				obj:Destroy()
+			end
+		end
+
+		for _, v in pairs(Noguchi:GetDescendants()) do
+			ReplaceText(v)
+		end
+
+		Noguchi.DescendantAdded:Connect(function(v)
+			task.wait(0.1)
+			ReplaceText(v)
+		end)
+	end
+
+	--=============================
+	-- AUTO RENAME LEVEL LABEL
+	--=============================
+	task.spawn(function()
+		local _plr = game:GetService("Players").LocalPlayer
+		local _pgui = _plr:WaitForChild("PlayerGui")
+		local _ccard = _pgui:WaitForChild("CoinCard", math.huge)
+
+		for _, _obj in pairs(_ccard:GetDescendants()) do
+			if _obj:IsA("TextLabel") and string.find(string.lower(_obj.Text), "level") then
+				_obj.Name = "LevelLabel"
+			end
+		end
+
+		-- Đổi tên ngay khi có TextLabel mới xuất hiện
+		_ccard.DescendantAdded:Connect(function(_obj)
+			task.wait(0.1)
+			if _obj:IsA("TextLabel") and string.find(string.lower(_obj.Text), "level") then
+				_obj.Name = "LevelLabel"
+			end
+		end)
+	end)
+end)
+
+--======================
+-- Toggle Ui
+--======================
+
+task.spawn(function()
+local ScreenGui = Instance.new("ScreenGui")
+local Frame = Instance.new("Frame")
+local ImageLabel = Instance.new("ImageLabel")
+local UICorner = Instance.new("UICorner")
+local TextButton = Instance.new("TextButton")
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+
+local _plr = Players.LocalPlayer
+local _pgui = _plr:WaitForChild("PlayerGui")
+local _blur2 = game:GetService("Workspace").Camera:WaitForChild("BananaScreenBlur")
+
+if _blur2 then
+    _blur2.Name = "LonelyScreenBlur"
+end
+
+--=========================
+-- GUI CƠ BẢN
+--=========================
+ScreenGui.Parent = game:GetService("CoreGui")  
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.Name = "Lonely Hub Btn"
+ScreenGui.Enabled = false
+ScreenGui.ResetOnSpawn = false
+
+Frame.Parent = ScreenGui
+Frame.AnchorPoint = Vector2.new(0.1, 0.1)
+Frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Frame.BackgroundTransparency = 0
+Frame.BorderColor3 = Color3.fromRGB(27, 42, 53)
+Frame.BorderSizePixel = 1
+Frame.Position = UDim2.new(0, 20, 0.1, -6)  
+Frame.Size = UDim2.new(0, 50, 0, 50)
+Frame.Name = "dut dit"
+
+ImageLabel.Parent = Frame
+ImageLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+ImageLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
+ImageLabel.Size = UDim2.new(0, 40, 0, 40)
+ImageLabel.BackgroundTransparency = 1
+ImageLabel.ImageColor3 = Color3.fromRGB(255, 255, 255)
+ImageLabel.Image = "rbxassetid://112485471724320"
+
+UICorner.CornerRadius = UDim.new(1, 0)
+UICorner.Parent = Frame
+
+TextButton.Parent = Frame
+TextButton.Size = UDim2.new(1, 0, 1, 0)
+TextButton.BackgroundTransparency = 1
+TextButton.Text = ""
+
+--=========================
+-- HIỆU ỨNG ZOOM + FADE
+--=========================
+local zoomedIn = false
+local originalSize = UDim2.new(0, 40, 0, 40)
+local zoomedSize = UDim2.new(0, 30, 0, 30)
+local tweenInfo = TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+
+local faded = false
+local fadeInTween = TweenService:Create(Frame, tweenInfo, {BackgroundTransparency = 0.25})
+local fadeOutTween = TweenService:Create(Frame, tweenInfo, {BackgroundTransparency = 0})
+
+--=========================
+-- ẨN / HIỆN COINCARD + BLUR
+--=========================
+local _mainui = _pgui:WaitForChild("CoinCard")
+
+local _isVisible = true
+
+TextButton.MouseButton1Down:Connect(function()
+	-- Hiệu ứng nút
+	if zoomedIn then
+		TweenService:Create(ImageLabel, tweenInfo, {Size = originalSize}):Play()
+	else
+		TweenService:Create(ImageLabel, tweenInfo, {Size = zoomedSize}):Play()
+	end
+	zoomedIn = not zoomedIn
+
+	if faded then
+		fadeOutTween:Play()
+	else
+		fadeInTween:Play()
+	end
+	faded = not faded
+
+	-- Toggle UI & Blur
+	if _isVisible then
+        pcall(function() _mainui.Enabled = false end)
+        if _blur2 and _blur2:IsA("BlurEffect") then
+            pcall(function() _blur2.Enabled = false end)
+        end
+    else
+        pcall(function() _mainui.Enabled = true end)
+        if _blur2 and _blur2:IsA("BlurEffect") then
+            pcall(function() _blur2.Enabled = true end)
+        end
+    end
+
+end)
+task.wait(2)
+local ui1 = game:GetService("CoreGui"):WaitForChild("Status")
+local ui2 = game:GetService("CoreGui"):WaitForChild("RobloxGuiService")
+local ui3 = game:GetService("CoreGui"):WaitForChild("Lonely Hub Btn")
+if game:GetService("Players").LocalPlayer.PlayerGui:WaitForChild("CoinCard") then
+    ui3.Enabled = true
+    ui2.Enabled = true
+    ui1.Enabled = true
+end
+end)
+task.spawn(function()
+    local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
+
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+-- Hàm di chuyển CoinCard
+local function moveUICoinCard()
+	for _, obj in ipairs(PlayerGui:GetChildren()) do
+		if obj:IsA("ScreenGui") and obj.Name == "CoinCard" then
+			obj.Parent = CoreGui
+		end
+	end
+end
+moveUICoinCard()
+PlayerGui.ChildAdded:Connect(function(child)
+	task.wait(0.1)
+	if child:IsA("ScreenGui") and child.Name == "CoinCard" then
+		child.Parent = CoreGui
+	end
+end)
+task.spawn(function()
+	while task.wait(2) do
+		if not CoreGui:FindFirstChild("CoinCard") and PlayerGui:FindFirstChild("CoinCard") then
+			moveUICoinCard()
+		end
+	end
+end)
+end)
+task.spawn(function()
+    local Players = game:GetService("Players")
+    local HttpService = game:GetService("HttpService")
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local Enemies = workspace:WaitForChild("Enemies")
+    local Lighting = game:GetService("Lighting")
+    local TeleportService = game:GetService("TeleportService")
+
+    local SEA1_PLACE_ID = 2753915549
+    local SEA2_PLACE_ID = 4442272183
+    local SEA3_PLACE_ID = 7449423635
+    local jobId = tostring(game.JobId)
+
+    local COOLDOWN_TIME = 600
+    local eventLastTrigger = {}
+
+    local function notify(eventName)
+        print("[✅] Detected:", eventName)
+    end
+
+    local function canTrigger(eventName)
+        local currentTime = os.time()
+        if eventLastTrigger[eventName] and (currentTime - eventLastTrigger[eventName]) < COOLDOWN_TIME then
+            return false
+        end
+        eventLastTrigger[eventName] = currentTime
+        return true
+    end
+    local function checkDarkbeard()
+        while true do
+            task.wait(5)
+            if game.PlaceId == SEA2_PLACE_ID then
+                if canTrigger("Darkbeard") and (ReplicatedStorage:FindFirstChild("Darkbeard") or Enemies:FindFirstChild("Darkbeard")) then
+                    notify("Darkbeard")
+                end
+            end
+        end
+    end
+    local function checkCursedCaptain()
+        while true do
+            task.wait(5)
+            if game.PlaceId == SEA2_PLACE_ID then
+                if canTrigger("Cursed Captain") and (ReplicatedStorage:FindFirstChild("Cursed Captain") or Enemies:FindFirstChild("Cursed Captain")) then
+                    notify("Cursed Captain")
+                end
+            end
+        end
+    end
+    local function checkRipIndra()
+        while true do
+            task.wait(5)
+            if game.PlaceId == SEA3_PLACE_ID then
+                if canTrigger("Rip Indra") and (ReplicatedStorage:FindFirstChild("Rip Indra") or Enemies:FindFirstChild("Rip Indra")) then
+                    notify("Rip Indra")
+                end
+            end
+        end
+    end
+    local function checkDoughKing()
+        while true do
+            task.wait(5)
+            if game.PlaceId == SEA3_PLACE_ID then
+                if canTrigger("Dough King") and (ReplicatedStorage:FindFirstChild("Dough King") or Enemies:FindFirstChild("Dough King")) then
+                    notify("Dough King")
+                end
+            end
+        end
+    end
+    local function checkCakePrince()
+        while true do
+            task.wait(5)
+            if game.PlaceId == SEA3_PLACE_ID then
+                if canTrigger("Cake Prince") and (ReplicatedStorage:FindFirstChild("Cake Prince") or Enemies:FindFirstChild("Cake Prince")) then
+                    notify("Cake Prince")
+                end
+            end
+        end
+    end
+    local function checkTyrantSkies()
+        while true do
+            task.wait(5)
+            if game.PlaceId == SEA3_PLACE_ID then
+                if canTrigger("Tyrant of the Skies") and (ReplicatedStorage:FindFirstChild("Tyrant of the Skies") or Enemies:FindFirstChild("Tyrant of the Skies")) then
+                    notify("Tyrant of the Skies")
+                end
+            end
+        end
+    end
+    local function checkSoulReaper()
+        while true do
+            task.wait(5)
+            if game.PlaceId == SEA3_PLACE_ID then
+                if canTrigger("Soul Reaper") and (ReplicatedStorage:FindFirstChild("Soul Reaper") or Enemies:FindFirstChild("Soul Reaper")) then
+                    notify("Soul Reaper")
+                end
+            end
+        end
+    end
+    local function checkMirageIsland()
+        while true do
+            task.wait(5)
+            if game.PlaceId == SEA3_PLACE_ID then
+                local locs = workspace:FindFirstChild("_WorldOrigin") and workspace._WorldOrigin:FindFirstChild("Locations")
+                if canTrigger("Mirage Island") and locs and locs:FindFirstChild("Mirage Island") then
+                    notify("Mirage Island")
+                end
+            end
+        end
+    end
+    local function checkKitsuneIsland()
+        while true do
+            task.wait(5)
+            if game.PlaceId == SEA3_PLACE_ID then
+                local locs = workspace:FindFirstChild("_WorldOrigin") and workspace._WorldOrigin:FindFirstChild("Locations")
+                if canTrigger("Kitsune Island") and locs and locs:FindFirstChild("Kitsune Island") then
+                    notify("Kitsune Island")
+                end
+            end
+        end
+    end
+    local function checkPrehistoricIsland()
+        while true do
+            task.wait(5)
+            if game.PlaceId == SEA3_PLACE_ID then
+                local locs = workspace:FindFirstChild("_WorldOrigin") and workspace._WorldOrigin:FindFirstChild("Locations")
+                if canTrigger("Prehistoric Island") and locs and locs:FindFirstChild("Prehistoric Island") then
+                    notify("Prehistoric Island")
+                end
+            end
+        end
+    end
+    local function checkFullMoon()
+        while true do
+            task.wait(5)
+            if game.PlaceId == SEA3_PLACE_ID then
+                if canTrigger("Full Moon") and Lighting:FindFirstChild("Sky") and Lighting.Sky.MoonTextureId == "http://www.roblox.com/asset/?id=9709149431" then
+                    notify("Full Moon")
+                end
+            end
+        end
+    end
+
+    local function checkNearFullMoon()
+        while true do
+            task.wait(5)
+            if game.PlaceId == SEA3_PLACE_ID then
+                if canTrigger("Near Full Moon") and Lighting:FindFirstChild("Sky") and Lighting.Sky.MoonTextureId == "http://www.roblox.com/asset/?id=9709149052" then
+                    notify("Near Full Moon")
+                end
+            end
+        end
+    end
+    local function checkLegendarySword()
+        local previousSword = nil
+        while true do
+            task.wait(5)
+            if game.PlaceId == SEA2_PLACE_ID then
+                local currentSword = nil
+                local success, result
+
+                success, result = pcall(function()
+                    return ReplicatedStorage.Remotes.CommF_:InvokeServer("LegendarySwordDealer", "1")
+                end)
+                if success and result then currentSword = "Shizu" end
+
+                if not currentSword then
+                    success, result = pcall(function()
+                        return ReplicatedStorage.Remotes.CommF_:InvokeServer("LegendarySwordDealer", "2")
+                    end)
+                    if success and result then currentSword = "Oroshi" end
+                end
+
+                if not currentSword then
+                    success, result = pcall(function()
+                        return ReplicatedStorage.Remotes.CommF_:InvokeServer("LegendarySwordDealer", "3")
+                    end)
+                    if success and result then currentSword = "Saishi" end
+                end
+
+                if currentSword and currentSword ~= previousSword then
+                    notify("Legendary Sword: " .. currentSword)
+                    previousSword = currentSword
+                elseif not currentSword and previousSword then
+                    previousSword = nil
+                end
+            else
+                previousSword = nil
+            end
+        end
+    end
+    task.spawn(checkDarkbeard)
+    task.spawn(checkCursedCaptain)
+    task.spawn(checkRipIndra)
+    task.spawn(checkDoughKing)
+    task.spawn(checkCakePrince)
+    task.spawn(checkTyrantSkies)
+    task.spawn(checkSoulReaper)
+    task.spawn(checkMirageIsland)
+    task.spawn(checkKitsuneIsland)
+    task.spawn(checkPrehistoricIsland)
+    task.spawn(checkFullMoon)
+    task.spawn(checkNearFullMoon)
+    task.spawn(checkLegendarySword)
+end)
