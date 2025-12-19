@@ -4827,19 +4827,18 @@ spawn(function()
                         end
                     end
 
-                -- [PRIORIDADE 3] FARM NORMAL (MOB + QUEST)
+                -- [PRIORIDADE 3] FARM NORMAL (TODOS OS MOBS + QUEST)
                 else
-                    local TargetData = GetTargetByLevel() -- Pega info atualizada do level
+                    local TargetData = GetTargetByLevel() -- Pega info para a Quest
                     local QuestUI = plr.PlayerGui.Main.Quest
                     local hasQuest = QuestUI.Visible
 
-                    -- A. PEGAR QUEST (Se ativado na UI)
+                    -- A. PEGAR QUEST (Se ativado na UI e não tiver quest)
                     if _G.AcceptQuest and not hasQuest then
                         local char = plr.Character
                         if char and char:FindFirstChild("HumanoidRootPart") then
                             local distToNPC = (char.HumanoidRootPart.Position - TargetData.QuestPos.Position).Magnitude
                             
-                            -- SE ESTIVER PERTO (3 STUDS), TELEPORTA INSTANTÂNEO PARA O CFRAME DO NPC
                             if distToNPC <= 3 then
                                 char.HumanoidRootPart.CFrame = TargetData.QuestPos
                                 task.wait(0.1)
@@ -4850,26 +4849,43 @@ spawn(function()
                             end
                         end
                     
-                    -- B. MATAR MOBS
+                    -- B. MATAR TODOS OS MOBS LISTADOS (COM PRIORIDADE NO MAIS PRÓXIMO)
                     else
-                        local enemy = nil
-                        for _, v in pairs(workspace.Enemies:GetChildren()) do
-                            if v.Name == TargetData.Name and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
-                                enemy = v
-                                break
-                            end
-                        end
+                        local char = plr.Character or plr.CharacterAdded:Wait()
+                        local hrp = char:WaitForChild("HumanoidRootPart", 1)
 
-                        if enemy then
-                            -- Atacar Inimigo
-                            local enemyPos = enemy.HumanoidRootPart.CFrame
-                            _tp(enemyPos * CFrame.new(0, FarmHeight, 0)) 
+                        if hrp then -- Só prossegue se tiver o personagem carregado para medir distância
+                            local closestEnemy = nil
+                            local shortestDistance = math.huge -- Inicia com distância "infinita"
+
+                            -- Lista de todos os nomes de mobs do Tyrant
+                            local AllMobs = {"Skull Slayer", "Serpent Hunter", "Isle Champion", "Sun-kissed Warrior", "Island Boy", "Isle Outlaw"}
                             
-                            EquipWeapon(_G.SelectWeapon)
-                            G.Kill(enemy, true)
-                        else
-                            -- Esperar Spawn no local correto
-                            _tp(TargetData.FarmPos)
+                            for _, v in pairs(workspace.Enemies:GetChildren()) do
+                                -- Verifica se é um mob válido, se está vivo e tem as partes necessárias
+                                if table.find(AllMobs, v.Name) and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 and v:FindFirstChild("HumanoidRootPart") then
+                                    -- Calcula a distância entre o jogador e o mob
+                                    local distance = (hrp.Position - v.HumanoidRootPart.Position).Magnitude
+
+                                    -- Se essa distância for menor que a menor encontrada até agora, atualiza
+                                    if distance < shortestDistance then
+                                        shortestDistance = distance
+                                        closestEnemy = v
+                                    end
+                                end
+                            end
+
+                            if closestEnemy then
+                                -- Atacar o Inimigo mais próximo encontrado
+                                local enemyPos = closestEnemy.HumanoidRootPart.CFrame
+                                _tp(enemyPos * CFrame.new(0, FarmHeight, 0)) 
+                                
+                                EquipWeapon(_G.SelectWeapon)
+                                G.Kill(closestEnemy, true)
+                            else
+                                -- Se não achar nenhum mob vivo, vai para o local de spawn do seu nível atual
+                                _tp(TargetData.FarmPos)
+                            end
                         end
                     end
                 end
@@ -4877,6 +4893,8 @@ spawn(function()
         end
     end
 end)
+
+
 
 -- 3. SISTEMA BONE FARM
 
