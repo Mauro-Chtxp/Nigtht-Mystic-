@@ -2287,7 +2287,7 @@ CS:AddDropdown({
     Title = "Select Método",
     Description = "",
     Values = islands,
-    Default = "Bone",
+    Default = "Cake",
     Callback = function(I)
         SelectIsland = I
     end
@@ -3960,84 +3960,93 @@ spawn(function()
 end)
 
 RR:AddSeperator("Mastery");
-
 RR:AddToggle({
-	Title = "Auto Farm 600 In Swords",
+	Title = "Auto Farm 600 Sword",
 	Description = "",
 	Default = false,
 	Callback = function(I)
-		_G.FarmMastery_S = I;
+		_G.AutoMatSoul = I
+
+		if I then
+			spawn(function()
+				while _G.AutoMatSoul do
+					wait(Sec)
+					pcall(function()
+						if not _G.FarmMastery_S then return end
+
+						if SelectIsland == "Cake" then
+							for _, e in next, replicated.Remotes.CommF_:InvokeServer("getInventory") do
+								if type(e) == "table" and e.Type == "Sword" then
+									SwordName = e.Name
+
+									if tonumber(e.Mastery) >= 1 and tonumber(e.Mastery) <= 599 then
+										local Enemy = GetConnectionEnemies(X)
+
+										if GetBP(SwordName) then
+											if Enemy then
+												repeat
+													wait()
+													G.Sword(Enemy, _G.FarmMastery_S)
+												until not _G.AutoMatSoul
+													or not _G.FarmMastery_S
+													or not Enemy.Parent
+													or Enemy.Humanoid.Health <= 0
+											else
+												_tp(CFrame.new(-1943.6765, 251.5095, -12337.8808))
+											end
+										else
+											replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName)
+										end
+
+									elseif tonumber(e.Mastery) >= 600 then
+										if not GetBP(SwordName) then
+											replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName)
+										end
+									end
+									break
+								end
+							end
+
+						elseif SelectIsland == "Bone" then
+							for _, e in next, replicated.Remotes.CommF_:InvokeServer("getInventory") do
+								if type(e) == "table" and e.Type == "Sword" then
+									SwordName = e.Name
+
+									if tonumber(e.Mastery) >= 1 and tonumber(e.Mastery) <= 599 then
+										local Enemy = GetConnectionEnemies(P)
+
+										if GetBP(SwordName) then
+											if Enemy then
+												repeat
+													wait()
+													G.Sword(Enemy, _G.FarmMastery_S)
+												until not _G.AutoMatSoul
+													or not _G.FarmMastery_S
+													or not Enemy.Parent
+													or Enemy.Humanoid.Health <= 0
+											else
+												_tp(CFrame.new(-9495.6806, 453.5862, 5977.3486))
+											end
+										else
+											replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName)
+										end
+
+									elseif tonumber(e.Mastery) >= 600 then
+										if not GetBP(SwordName) then
+											replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName)
+										end
+									end
+									break
+								end
+							end
+						end
+					end)
+				end
+			end)
+		end
 	end,
-});
-spawn(function()
-	while wait(Sec) do
-		pcall(function()
-			if _G.FarmMastery_S then
-				if SelectIsland == "Cake" then
-					for I, e in next, replicated.Remotes.CommF_:InvokeServer("getInventory") do
-						if type(e) == "table" then
-							if e.Type == "Sword" then
-								SwordName = e.Name;
-								if tonumber(e.Mastery) >= 1 or tonumber(e.Mastery) <= 599 then
-									local I = GetConnectionEnemies(X);
-									if GetBP(SwordName) then
-										if I then
-											repeat
-												wait();
-												G.Sword(I, _G.FarmMastery_S);
-											until _G.FarmMastery_S == false or not I.Parent or I.Humanoid.Healh <= 0;
-										else
-											_tp(CFrame.new(-1943.6765136719, 251.50956726074, -12337.880859375));
-										end;
-									else
-										replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName);
-									end;
-								elseif tonumber(e.Mastery) >= 600 then
-									if GetBP(SwordName) then
-										return nil;
-									else
-										replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName);
-									end;
-								end;
-								break;
-							end;
-						end;
-					end;
-				elseif SelectIsland == "Bone" then
-					for I, e in next, replicated.Remotes.CommF_:InvokeServer("getInventory") do
-						if type(e) == "table" then
-							if e.Type == "Sword" then
-								SwordName = e.Name;
-								if tonumber(e.Mastery) >= 1 or tonumber(e.Mastery) <= 599 then
-									local I = GetConnectionEnemies(P);
-									if GetBP(SwordName) then
-										if I then
-											repeat
-												wait();
-												G.Sword(I, _G.FarmMastery_S);
-											until _G.FarmMastery_S == false or not I.Parent or I.Humanoid.Healh <= 0;
-										else
-											_tp(CFrame.new(-9495.6806640625, 453.58624267578, 5977.3486328125));
-										end;
-									else
-										replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName);
-									end;
-								elseif tonumber(e.Mastery) >= 600 then
-									if GetBP(SwordName) then
-										return nil;
-									else
-										replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName);
-									end;
-								end;
-								break;
-							end;
-						end;
-					end;
-				end;
-			end;
-		end);
-	end;
-end);
+})
+
 
 -- Sistema Game Time
 local Timmessss = SS:AddParagraph({Title = "Time", Desc = ""})
