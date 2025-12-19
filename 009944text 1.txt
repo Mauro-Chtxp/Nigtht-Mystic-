@@ -529,12 +529,19 @@ statsSetings = function(I, e)
 		end;
 	end;
 
--- VARIAVEIS DE CONTROLE NECESSÁRIAS
+--==================================================
+-- VARIÁVEIS DE CONTROLE NECESSÁRIAS
+--==================================================
 _G = _G or {}
 _B = false
 PosMon = nil
 
--- FUNÇÃO: Verifica se qualquer tipo de farm está ativo.
+-- Range do Bring (fixo por enquanto)
+_G.BringRange = 235
+
+--==================================================
+-- FUNÇÃO: Verifica se qualquer tipo de farm está ativo
+--==================================================
 local function FarmAtivo()
     return _G.StartFarm and (
         _G.Level or
@@ -543,26 +550,41 @@ local function FarmAtivo()
         _G.FarmMastery_Dev or
         _G.FarmMastery_G or
         (getgenv()).AutoMaterial or
-        _G.AutoTyrant -- ÚNICA ADIÇÃO (Para ativar no Tyrant)
+        _G.AutoTyrant
     )
 end
 
--- FUNÇÃO: Verifica se o mob deve ser ignorado (Raids, Bosses, Imóveis)
+--==================================================
+-- FUNÇÃO: Verifica se o mob deve ser ignorado
+--==================================================
 local function IsRaidMob(mob)
     local n = mob.Name:lower()
 
-    if n:find("raid") or n:find("microchip") or n:find("island") then return true end  
-    if mob:GetAttribute("IsRaid") or mob:GetAttribute("RaidMob") or mob:GetAttribute("IsBoss") then return true end  
+    if n:find("raid") or n:find("microchip") or n:find("island") then 
+        return true 
+    end  
+
+    if mob:GetAttribute("IsRaid") 
+        or mob:GetAttribute("RaidMob") 
+        or mob:GetAttribute("IsBoss") then 
+        return true 
+    end  
 
     local hum = mob:FindFirstChild("Humanoid")  
-    if hum and hum.WalkSpeed == 0 then return true end  
+    if hum and hum.WalkSpeed == 0 then 
+        return true 
+    end  
 
-    if mob.Parent and tostring(mob.Parent):lower():find("_worldorigin") then return true end  
+    if mob.Parent and tostring(mob.Parent):lower():find("_worldorigin") then 
+        return true 
+    end  
 
     return false
 end
 
--- FUNÇÃO PRINCIPAL: Puxa inimigos
+--==================================================
+-- FUNÇÃO PRINCIPAL: BRING
+--==================================================
 BringEnemy = function()
     if not FarmAtivo() or not _B then return end
 
@@ -573,8 +595,18 @@ BringEnemy = function()
     local HRP_Player = char:FindFirstChild("HumanoidRootPart")  
     if not HRP_Player then return end  
 
-    if setscriptable then pcall(function() setscriptable(LocalPlayer, "SimulationRadius", true) end) end  
-    if sethiddenproperty then pcall(function() sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge) end) end  
+    -- Aumenta Simulation Radius
+    if setscriptable then 
+        pcall(function() 
+            setscriptable(LocalPlayer, "SimulationRadius", true) 
+        end) 
+    end  
+
+    if sethiddenproperty then 
+        pcall(function() 
+            sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge) 
+        end) 
+    end  
 
     local targetPos = PosMon or HRP_Player.Position  
     local enemies = workspace.Enemies:GetChildren()  
@@ -586,14 +618,16 @@ BringEnemy = function()
         if hum and root and hum.Health > 0 and not IsRaidMob(mob) then  
             local dist = (root.Position - targetPos).Magnitude  
 
-            if dist <= 235 then  
+            if dist <= _G.BringRange then  
                 root.CFrame = CFrame.new(targetPos)  
             end  
         end  
     end
 end
 
--- LOOP CONTROLADOR DE PUXAR / SOLTAR
+--==================================================
+-- LOOP CONTROLADOR (PUXAR / SOLTAR)
+--==================================================
 spawn(function()
     while task.wait(1) do
         if FarmAtivo() then
@@ -601,12 +635,12 @@ spawn(function()
             BringEnemy()
             task.wait(3)
 
-            _B = false  
-            task.wait(5)  
-        else  
-            _B = false  
-            task.wait(1)  
-        end  
+            _B = false
+            task.wait(5)
+        else
+            _B = false
+            task.wait(1)
+        end
     end
 end)
 
@@ -4910,8 +4944,7 @@ spawn(function()
 
                 if _G.AcceptQuest and not QuestUI.Visible then      
                     local npcPos = CFrame.new(-9516.99,172.01,6078.46)      
-                    -- Teleporte instantâneo para o NPC
-                    hrp.CFrame = npcPos      
+                    TeleportConditional(hrp, npcPos, TELEPORT_DISTANCE_THRESHOLD)      
                     if (npcPos.Position - hrp.Position).Magnitude <= 50 then     
                         task.wait(0.2)  
                         local q = {{"StartQuest","HauntedQuest2",2}, {"StartQuest","HauntedQuest2",1}, {"StartQuest","HauntedQuest1",1}, {"StartQuest","HauntedQuest1",2}}      
@@ -4934,20 +4967,17 @@ spawn(function()
 
                 local mob = GetClosestMob()      
                 if mob then      
-                    -- TELEPORTE INSTANTÂNEO PARA O MOB (CFrame Direto)
-                    hrp.CFrame = mob.PrimaryPart.CFrame * CFrame.new(0, 0, 3) -- Teleporta para a frente do mob
+                    _tp(mob.PrimaryPart.CFrame)      
                     repeat task.wait()      
-                        if mob.Parent and mob.Humanoid.Health > 0 then _G.Kill(mob, _G.AutoFarm_Bone) else break end      
+                        if mob.Parent and mob.Humanoid.Health > 0 then G.Kill(mob, _G.AutoFarm_Bone) else break end      
                     until not _G.StartFarm or not _G.AutoFarm_Bone      
                 else      
-                    -- Teleporte instantâneo para a área de espera
-                    hrp.CFrame = CFrame.new(-9495.68, 453.58, 5977.34)      
+                    TeleportConditional(hrp, CFrame.new(-9495.68,453.58,5977.34), TELEPORT_DISTANCE_THRESHOLD)      
                 end      
             end)  
         end  
     end
 end)
-
 
 ---
 
@@ -5031,10 +5061,9 @@ spawn(function()
                 if boss or portalOpen then  
                     if boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 and boss.PrimaryPart then  
                         local bossTarget = boss.PrimaryPart.CFrame * CFrame.new(0, 5, 0)  
-                        -- Teleporte Instantâneo no Boss
-                        hrp.CFrame = bossTarget
+                        _tp(bossTarget)  
                         local bossPos = boss.PrimaryPart.CFrame * CFrame.new(0, 25, 0) * CFrame.Angles(math.rad(-90), 0, 0)  
-                        hrp.CFrame = bossPos
+                        _tp(bossPos)  
                         G.Kill(boss, true)  
                         return  
                     end  
@@ -5062,13 +5091,11 @@ spawn(function()
                         if dist < bestDist then bestDist = dist bestMob = mob end  
                     end  
                 end  
-                
                 if bestMob then  
                     repeat task.wait()  
                         if (workspace.Map.CakeLoaf.BigMirror.Other.Transparency == 0) or enemies:FindFirstChild("Cake Prince") then break end  
                         if bestMob.Parent and bestMob.Humanoid.Health > 0 then  
-                            -- TELEPORTE INSTANTÂNEO NO MOB AQUI
-                            hrp.CFrame = bestMob.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0) * CFrame.Angles(math.rad(-90), 0, 0)  
+                            _tp(bestMob.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0) * CFrame.Angles(math.rad(-90), 0, 0))  
                             G.Kill(bestMob, true)  
                         else break end  
                     until not _G.StartFarm or not _G.AutoFarm_Cake or not bestMob.Parent or bestMob.Humanoid.Health <= 0  
@@ -5710,6 +5737,22 @@ spawn(function()
 		end);
 	end;
 end);
+
+T:AddSeperator("Select")
+
+T:AddInput({
+    Title = "Bring Mobs Range",
+    Description = "Select Bring Mobs Range (235 Recommended)",
+    PlaceHolder = "235",
+    Default = tostring(_G.BringRange),
+    Callback = function(Value)
+        local num = tonumber(Value)
+        if num and num > 0 then
+            _G.BringRange = num
+        end
+    end
+})
+
 -- =========================================
 --      AUTO FARM BOSS (DIRECT & UPRIGHT)
 -- =========================================
