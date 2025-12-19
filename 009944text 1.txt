@@ -2224,6 +2224,14 @@ local D=g:AddSection("Shop");
 local Z=u:AddSection("Misc");
 local SS=s:AddSection("Stats");
 
+-- Exemplo de uso:
+Library:Notify({
+    Title = "Night Mystic",
+    Content = "Script Loaded",
+    Duration = 5 -- Tempo em segundos para sumir
+})
+
+
 -- Secção de Configurações manuais
 local ConfigSection = c:AddSection("Manual Save")
 
@@ -2279,7 +2287,7 @@ CS:AddDropdown({
     Title = "Select Método",
     Description = "",
     Values = islands,
-    Default = "Cake",
+    Default = "Bone",
     Callback = function(I)
         SelectIsland = I
     end
@@ -3928,62 +3936,6 @@ spawn(function()
 	end;
 end);
 
-RR:AddSeperator("Mastery");
-
-_G.FarmMastery_S = false
-
-RR:AddToggle({
-	Title = "Auto Farm 600 In Swords",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.FarmMastery_S = I
-
-		if I then
-			-- 🔔 Notify APENAS ao ligar
-			game.StarterGui:SetCore("SendNotification", {
-				Title = "Night Mystic",
-				Text = "Farm Mastery Sword Ativado",
-				Duration = 5
-			})
-
-			task.spawn(function()
-				while _G.FarmMastery_S do
-					pcall(function()
-
-						for _, e in next, replicated.Remotes.CommF_:InvokeServer("getInventory") do
-							if type(e) == "table" and e.Type == "Sword" then
-								local SwordName = e.Name
-
-								-- 🔒 Usa a sword até 600
-								if tonumber(e.Mastery) < 600 then
-									-- ⚠️ IGNORA COMPLETAMENTE O DROPDOWN
-									-- equipa sword sempre
-									replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName)
-
-									local Enemy = GetConnectionEnemies()
-									if Enemy then
-										repeat
-											task.wait()
-											G.Sword(Enemy, true)
-										until not _G.FarmMastery_S
-											or not Enemy.Parent
-											or Enemy.Humanoid.Health <= 0
-									end
-
-									break
-								end
-							end
-						end
-					end)
-
-					task.wait(Sec or 1)
-				end
-			end)
-		end
-	end,
-})
-
 -- Sistema Time Zone
 local Time = SS:AddParagraph({Title = "Time Zone", Desc = ""})
 function UpdateOS()
@@ -4006,6 +3958,86 @@ spawn(function()
         game:GetService("RunService").RenderStepped:Wait()
     end
 end)
+
+RR:AddSeperator("Mastery");
+
+RR:AddToggle({
+	Title = "Auto Farm 600 In Swords",
+	Description = "",
+	Default = false,
+	Callback = function(I)
+		_G.FarmMastery_S = I;
+	end,
+});
+spawn(function()
+	while wait(Sec) do
+		pcall(function()
+			if _G.FarmMastery_S then
+				if SelectIsland == "Cake" then
+					for I, e in next, replicated.Remotes.CommF_:InvokeServer("getInventory") do
+						if type(e) == "table" then
+							if e.Type == "Sword" then
+								SwordName = e.Name;
+								if tonumber(e.Mastery) >= 1 or tonumber(e.Mastery) <= 599 then
+									local I = GetConnectionEnemies(X);
+									if GetBP(SwordName) then
+										if I then
+											repeat
+												wait();
+												G.Sword(I, _G.FarmMastery_S);
+											until _G.FarmMastery_S == false or not I.Parent or I.Humanoid.Healh <= 0;
+										else
+											_tp(CFrame.new(-1943.6765136719, 251.50956726074, -12337.880859375));
+										end;
+									else
+										replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName);
+									end;
+								elseif tonumber(e.Mastery) >= 600 then
+									if GetBP(SwordName) then
+										return nil;
+									else
+										replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName);
+									end;
+								end;
+								break;
+							end;
+						end;
+					end;
+				elseif SelectIsland == "Bone" then
+					for I, e in next, replicated.Remotes.CommF_:InvokeServer("getInventory") do
+						if type(e) == "table" then
+							if e.Type == "Sword" then
+								SwordName = e.Name;
+								if tonumber(e.Mastery) >= 1 or tonumber(e.Mastery) <= 599 then
+									local I = GetConnectionEnemies(P);
+									if GetBP(SwordName) then
+										if I then
+											repeat
+												wait();
+												G.Sword(I, _G.FarmMastery_S);
+											until _G.FarmMastery_S == false or not I.Parent or I.Humanoid.Healh <= 0;
+										else
+											_tp(CFrame.new(-9495.6806640625, 453.58624267578, 5977.3486328125));
+										end;
+									else
+										replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName);
+									end;
+								elseif tonumber(e.Mastery) >= 600 then
+									if GetBP(SwordName) then
+										return nil;
+									else
+										replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName);
+									end;
+								end;
+								break;
+							end;
+						end;
+					end;
+				end;
+			end;
+		end);
+	end;
+end);
 
 -- Sistema Game Time
 local Timmessss = SS:AddParagraph({Title = "Time", Desc = ""})
