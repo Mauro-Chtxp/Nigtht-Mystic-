@@ -1049,6 +1049,9 @@ end);
 -- TWEEN AJUSTADO POR DISTÂNCIA
 -- =======================
 
+-- VELOCIDADE PADRÃO DO TWEEN
+getgenv().TweenSpeed = getgenv().TweenSpeed or 300
+
 _tp = function(I)
 	local e = plr.Character;
 	if not e or not e:FindFirstChild("HumanoidRootPart") then
@@ -1070,17 +1073,24 @@ _tp = function(I)
 	local dist = (I.Position - HRP.Position).Magnitude
 
 	-- ===============================
-	--  SE ESTIVER ATÉ 15 STUDS → SPEED 600
-	--  CASO CONTRÁRIO → SPEED 300
+	--  SPEED DEFINIDO PELO INPUT
 	-- ===============================
-	local speed = dist <= 15 and 600 or 300
+	local speed = getgenv().TweenSpeed
 
-	local info = TweenInfo.new(dist / speed, Enum.EasingStyle.Linear)
-	local tween = game:GetService("TweenService"):Create(C, info, { CFrame = I })
+	local info = TweenInfo.new(
+		dist / speed,
+		Enum.EasingStyle.Linear
+	)
+
+	local tween = game:GetService("TweenService"):Create(
+		HRP,
+		info,
+		{ CFrame = I }
+	)
 
 	-- Caso esteja sentado
 	if e.Humanoid.Sit == true then
-		C.CFrame = CFrame.new(C.Position.X, I.Y, C.Position.Z)
+		HRP.CFrame = CFrame.new(HRP.Position.X, I.Y, HRP.Position.Z)
 	end
 
 	tween:Play()
@@ -5741,14 +5751,27 @@ end);
 T:AddSeperator("Select")
 
 T:AddInput({
-    Title = "Bring Mobs Range",
-    Description = "Select Bring Mobs Range (235 Recommended)",
+    Title = "Select Bring Mobs Range",
+    Description = "(235 Recommended)",
     PlaceHolder = "235",
     Default = tostring(_G.BringRange),
     Callback = function(Value)
         local num = tonumber(Value)
         if num and num > 0 then
             _G.BringRange = num
+        end
+    end
+})
+
+T:AddInput({
+    Title = "Select Tween Speed",
+    Description = "Select Speed Tween",
+    PlaceHolder = "300",
+    Default = tostring(getgenv().TweenSpeed or 300),
+    Callback = function(Value)
+        local num = tonumber(Value)
+        if num and num > 0 then
+            getgenv().TweenSpeed = num
         end
     end
 })
