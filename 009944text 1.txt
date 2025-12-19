@@ -3927,6 +3927,55 @@ spawn(function()
 		end);
 	end;
 end);
+_G.AutoMasterySword = false
+
+RR:AddSeperator("Mastery");
+
+RR:AddToggle({
+	Title = "Auto Farm 600 In Swords",
+	Description = "",
+	Default = false,
+	Callback = function(I)
+		_G.AutoMasterySword = I
+
+		if I then
+			task.spawn(function()
+				while _G.AutoMasterySword do
+					pcall(function()
+						local weapon = vu32.GetWeaponType("Sword")
+
+						if vu32.VerifyTool(weapon)
+						and vu32.VerifyTool(weapon).Level.Value >= 600 then
+
+							local nextFunc = next
+							local inventory, index = vu10:InvokeServer("getInventory")
+
+							while true do
+								local item
+								index, item = nextFunc(inventory, index)
+								if index == nil then
+									break
+								end
+
+								if item.Type == "Sword" and item.Mastery < 600 then
+									vu32.FireRemotes("LoadItem", item.Name)
+								end
+							end
+						end
+					end)
+
+					task.wait(1)
+				end
+			end)
+		else
+			game.StarterGui:SetCore("SendNotification", {
+				Title = "Night Mystic",
+				Text = "Active Start Farm Plz",
+				Duration = 5
+			})
+		end
+	end,
+})
 
 -- Sistema Time Zone
 local Time = SS:AddParagraph({Title = "Time Zone", Desc = ""})
