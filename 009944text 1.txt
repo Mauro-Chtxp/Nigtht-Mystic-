@@ -3931,43 +3931,65 @@ _G.AutoMasterySword = false
 
 RR:AddSeperator("Mastery");
 
+_G.FarmMastery_S = false
+local NotifiedFarmMastery = false
+
 RR:AddToggle({
 	Title = "Auto Farm 600 In Swords",
 	Description = "",
 	Default = false,
 	Callback = function(I)
-		_G.AutoMasterySword = I
+		_G.FarmMastery_S = I
 
 		if I then
+			-- spawn do sistema
 			task.spawn(function()
-				while _G.AutoMasterySword do
+				while _G.FarmMastery_S do
 					pcall(function()
-						local weapon = vu32.GetWeaponType("Sword")
 
-						if vu32.VerifyTool(weapon)
-						and vu32.VerifyTool(weapon).Level.Value >= 600 then
+						-- Notify só 1 vez
+						if not NotifiedFarmMastery then
+							NotifiedFarmMastery = true
+							game.StarterGui:SetCore("SendNotification", {
+								Title = "Night Mystic",
+								Text = "Farm Mastery Sword Ativado",
+								Duration = 5
+							})
+						end
 
-							local nextFunc = next
-							local inventory, index = vu10:InvokeServer("getInventory")
+						for _, e in next, replicated.Remotes.CommF_:InvokeServer("getInventory") do
+							if type(e) == "table" and e.Type == "Sword" then
+								local SwordName = e.Name
 
-							while true do
-								local item
-								index, item = nextFunc(inventory, index)
-								if index == nil then
-									break
-								end
+								-- ❗ só troca quando mastery < 600
+								if tonumber(e.Mastery) < 600 then
+									if not GetBP(SwordName) then
+										replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName)
+									end
 
-								if item.Type == "Sword" and item.Mastery < 600 then
-									vu32.FireRemotes("LoadItem", item.Name)
+									local Enemy = GetConnectionEnemies()
+									if Enemy then
+										repeat
+											task.wait()
+											G.Sword(Enemy, true)
+										until not _G.FarmMastery_S
+											or not Enemy.Parent
+											or Enemy.Humanoid.Health <= 0
+									end
+
+									break -- usa UMA sword por vez
 								end
 							end
 						end
 					end)
 
-					task.wait(1)
+					task.wait(Sec or 1)
 				end
 			end)
 		else
+			-- desligou
+			NotifiedFarmMastery = false
+
 			game.StarterGui:SetCore("SendNotification", {
 				Title = "Night Mystic",
 				Text = "Active Start Farm Plz",
