@@ -3927,12 +3927,10 @@ spawn(function()
 		end);
 	end;
 end);
-_G.AutoMasterySword = false
 
 RR:AddSeperator("Mastery");
 
 _G.FarmMastery_S = false
-local NotifiedFarmMastery = false
 
 RR:AddToggle({
 	Title = "Auto Farm 600 In Swords",
@@ -3942,30 +3940,26 @@ RR:AddToggle({
 		_G.FarmMastery_S = I
 
 		if I then
-			-- spawn do sistema
+			-- 🔔 Notify APENAS ao ligar
+			game.StarterGui:SetCore("SendNotification", {
+				Title = "Night Mystic",
+				Text = "Farm Mastery Sword Ativado",
+				Duration = 5
+			})
+
 			task.spawn(function()
 				while _G.FarmMastery_S do
 					pcall(function()
-
-						-- Notify só 1 vez
-						if not NotifiedFarmMastery then
-							NotifiedFarmMastery = true
-							game.StarterGui:SetCore("SendNotification", {
-								Title = "Night Mystic",
-								Text = "Farm Mastery Sword Ativado",
-								Duration = 5
-							})
-						end
 
 						for _, e in next, replicated.Remotes.CommF_:InvokeServer("getInventory") do
 							if type(e) == "table" and e.Type == "Sword" then
 								local SwordName = e.Name
 
-								-- ❗ só troca quando mastery < 600
+								-- 🔒 Usa a sword até 600
 								if tonumber(e.Mastery) < 600 then
-									if not GetBP(SwordName) then
-										replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName)
-									end
+									-- ⚠️ IGNORA COMPLETAMENTE O DROPDOWN
+									-- equipa sword sempre
+									replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName)
 
 									local Enemy = GetConnectionEnemies()
 									if Enemy then
@@ -3977,7 +3971,7 @@ RR:AddToggle({
 											or Enemy.Humanoid.Health <= 0
 									end
 
-									break -- usa UMA sword por vez
+									break
 								end
 							end
 						end
@@ -3986,15 +3980,6 @@ RR:AddToggle({
 					task.wait(Sec or 1)
 				end
 			end)
-		else
-			-- desligou
-			NotifiedFarmMastery = false
-
-			game.StarterGui:SetCore("SendNotification", {
-				Title = "Night Mystic",
-				Text = "Active Start Farm Plz",
-				Duration = 5
-			})
 		end
 	end,
 })
