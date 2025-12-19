@@ -4910,7 +4910,8 @@ spawn(function()
 
                 if _G.AcceptQuest and not QuestUI.Visible then      
                     local npcPos = CFrame.new(-9516.99,172.01,6078.46)      
-                    TeleportConditional(hrp, npcPos, TELEPORT_DISTANCE_THRESHOLD)      
+                    -- Teleporte instantâneo para o NPC
+                    hrp.CFrame = npcPos      
                     if (npcPos.Position - hrp.Position).Magnitude <= 50 then     
                         task.wait(0.2)  
                         local q = {{"StartQuest","HauntedQuest2",2}, {"StartQuest","HauntedQuest2",1}, {"StartQuest","HauntedQuest1",1}, {"StartQuest","HauntedQuest1",2}}      
@@ -4933,17 +4934,20 @@ spawn(function()
 
                 local mob = GetClosestMob()      
                 if mob then      
-                    _tp(mob.PrimaryPart.CFrame)      
+                    -- TELEPORTE INSTANTÂNEO PARA O MOB (CFrame Direto)
+                    hrp.CFrame = mob.PrimaryPart.CFrame * CFrame.new(0, 0, 3) -- Teleporta para a frente do mob
                     repeat task.wait()      
-                        if mob.Parent and mob.Humanoid.Health > 0 then G.Kill(mob, _G.AutoFarm_Bone) else break end      
+                        if mob.Parent and mob.Humanoid.Health > 0 then _G.Kill(mob, _G.AutoFarm_Bone) else break end      
                     until not _G.StartFarm or not _G.AutoFarm_Bone      
                 else      
-                    TeleportConditional(hrp, CFrame.new(-9495.68,453.58,5977.34), TELEPORT_DISTANCE_THRESHOLD)      
+                    -- Teleporte instantâneo para a área de espera
+                    hrp.CFrame = CFrame.new(-9495.68, 453.58, 5977.34)      
                 end      
             end)  
         end  
     end
 end)
+
 
 ---
 
@@ -5027,9 +5031,10 @@ spawn(function()
                 if boss or portalOpen then  
                     if boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 and boss.PrimaryPart then  
                         local bossTarget = boss.PrimaryPart.CFrame * CFrame.new(0, 5, 0)  
-                        _tp(bossTarget)  
+                        -- Teleporte Instantâneo no Boss
+                        hrp.CFrame = bossTarget
                         local bossPos = boss.PrimaryPart.CFrame * CFrame.new(0, 25, 0) * CFrame.Angles(math.rad(-90), 0, 0)  
-                        _tp(bossPos)  
+                        hrp.CFrame = bossPos
                         G.Kill(boss, true)  
                         return  
                     end  
@@ -5057,11 +5062,13 @@ spawn(function()
                         if dist < bestDist then bestDist = dist bestMob = mob end  
                     end  
                 end  
+                
                 if bestMob then  
                     repeat task.wait()  
                         if (workspace.Map.CakeLoaf.BigMirror.Other.Transparency == 0) or enemies:FindFirstChild("Cake Prince") then break end  
                         if bestMob.Parent and bestMob.Humanoid.Health > 0 then  
-                            _tp(bestMob.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0) * CFrame.Angles(math.rad(-90), 0, 0))  
+                            -- TELEPORTE INSTANTÂNEO NO MOB AQUI
+                            hrp.CFrame = bestMob.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0) * CFrame.Angles(math.rad(-90), 0, 0)  
                             G.Kill(bestMob, true)  
                         else break end  
                     until not _G.StartFarm or not _G.AutoFarm_Cake or not bestMob.Parent or bestMob.Humanoid.Health <= 0  
