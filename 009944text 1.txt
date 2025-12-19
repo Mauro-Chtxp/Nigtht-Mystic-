@@ -2000,18 +2000,29 @@ BringEnemy = function()
 		}
 	end
 
-	local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+	local Fluent = loadstring(game:HttpGet("https://files.catbox.moe/pj2qb9.lua", true))()
 
 local Window = Fluent:CreateWindow({
-    Title = "Zenith Hub"
-    SubTitle = "By Brezull & Mikasa",
-    TabWidth = 160,
-    Size = UDim2.fromOffset(490, 460),
-    Acrylic = true, -- The blur may be detectable, setting this to false disables blur entirely
-    Theme = "Dark",
-    MinimizeKey = Enum.KeyCode.LeftControl -- Used when theres no MinimizeKeybind
-})
+    Title = "Zenith Hub",
+    SubTitle = "Discord.gg",
 
+    -- ADICIONADOS DA OUTRA WINDOW:
+    TitleIcon = "",
+    Image = "",
+    Search = false,
+    Icon = "",
+    TabWidth = 170, -- você já tinha, deixei igual
+    Theme = "Dark",
+    Acrylic = false,
+    Size = UDim2.fromOffset(490, 380),
+    MinimizeKey = Enum.KeyCode.End,
+
+    UserInfo = false,
+    UserInfoTop = false,
+    UserInfoTitle = game.Players.LocalPlayer.DisplayName,
+    UserInfoSubtitle = "Player",
+    UserInfoSubtitleColor = Color3.fromRGB(71, 123, 255)
+})
 	local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "ControlGUI"
 screenGui.Parent = game.CoreGui
