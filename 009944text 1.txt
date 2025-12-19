@@ -1045,77 +1045,70 @@ task.spawn(function()
 	end;
 end);
 
--- =======================
--- TWEEN AJUSTADO POR DISTÂNCIA
--- =======================
-
--- VELOCIDADE PADRÃO DO TWEEN
-getgenv().TweenSpeed = getgenv().TweenSpeed or 300
+-- Configurações de Velocidade (Podem ser alteradas via Input/Interface)
+getgenv().TweenSpeed = 300
+getgenv().CloseRangeSpeed = 600
 
 _tp = function(I)
-	local e = plr.Character;
-	if not e or not e:FindFirstChild("HumanoidRootPart") then
-		return;
-	end;
+    local e = plr.Character;
+    if not e or not e:FindFirstChild("HumanoidRootPart") then
+        return;
+    end;
 
-	local HRP = e.HumanoidRootPart;
+    local HRP = e.HumanoidRootPart;
 
-	-- Desativar farm enquanto tweena
-	shouldTween = true
-	getgenv().OnFarm = false
+    -- Controle de estado
+    shouldTween = true
+    getgenv().OnFarm = false
 
-	-- Garantir que não está ancorado
-	if HRP.Anchored then
-		HRP.Anchored = false
-		task.wait()
-	end
+    -- Garantir que não está ancorado
+    if HRP.Anchored then
+        HRP.Anchored = false
+        task.wait()
+    end
 
-	local dist = (I.Position - HRP.Position).Magnitude
+    -- Cálculo de distância e velocidade dinâmica
+    local dist = (I.Position - HRP.Position).Magnitude
+    local speed = dist <= 15 and getgenv().CloseRangeSpeed or getgenv().TweenSpeed
 
-	-- ===============================
-	--  SPEED DEFINIDO PELO INPUT
-	-- ===============================
-	local speed = getgenv().TweenSpeed
+    -- Configuração e Execução do Tween
+    local info = TweenInfo.new(dist / speed, Enum.EasingStyle.Linear)
+    -- Nota: Usei HRP como o objeto a ser movido
+    local tween = game:GetService("TweenService"):Create(HRP, info, { CFrame = I })
 
-	local info = TweenInfo.new(
-		dist / speed,
-		Enum.EasingStyle.Linear
-	)
+    -- Ajuste caso esteja sentado
+    if e:FindFirstChildOfClass("Humanoid") and e.Humanoid.Sit == true then
+        HRP.CFrame = CFrame.new(HRP.Position.X, I.Y, HRP.Position.Z)
+    end
 
-	local tween = game:GetService("TweenService"):Create(
-		HRP,
-		info,
-		{ CFrame = I }
-	)
+    tween:Play()
 
-	-- Caso esteja sentado
-	if e.Humanoid.Sit == true then
-		HRP.CFrame = CFrame.new(HRP.Position.X, I.Y, HRP.Position.Z)
-	end
-
-	tween:Play()
-
-	-- Anti travamento / controle
-	task.spawn(function()
-		while tween.PlaybackState == Enum.PlaybackState.Playing do
-			if not shouldTween then
-				tween:Cancel()
-				break
-			end
-			task.wait(.1)
-		end
-
-		getgenv().OnFarm = true
-	end)
+    -- Anti-travamento e retorno ao estado original
+    task.spawn(function()
+        while tween.PlaybackState == Enum.PlaybackState.Playing do
+            if not shouldTween then
+                tween:Cancel()
+                break
+            end
+            task.wait(.1)
+        end
+        getgenv().OnFarm = true
+    end)
 end
 
+-- Função de atalho
 TeleportToTarget = function(I)
-	_tp(I)
+    _tp(I)
 end
 
+-- Teleporte Instantâneo
 notween = function(I)
-	plr.Character.HumanoidRootPart.CFrame = I
+    if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+        plr.Character.HumanoidRootPart.CFrame = I
+    end
 end
+
+
 
 function BTP(I)
 	local e = game.Players.LocalPlayer;
@@ -5764,13 +5757,13 @@ T:AddInput({
 })
 
 T:AddInput({
-    Title = "Select Tween Speed",
-    Description = "Select Speed Tween",
+    Title = "Tween Speed",
+    Description = "Ajuste a velocidade do teleporte",
     PlaceHolder = "300",
     Default = tostring(getgenv().TweenSpeed or 300),
     Callback = function(Value)
         local num = tonumber(Value)
-        if num and num > 0 then
+        if num then
             getgenv().TweenSpeed = num
         end
     end
