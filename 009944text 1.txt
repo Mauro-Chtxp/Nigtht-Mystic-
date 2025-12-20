@@ -2284,9 +2284,11 @@ _G.SelectedSkills = _G.SelectedSkills or {
     ["Blox Fruit"] = {}
 }
 
+SSS:AddSeperator("Melee")
+
 -- [[ TOGGLES MELEE ]]
 SSS:AddToggle({
-    Title = "Melee [Z]",
+    Title = "Skill Z",
     Default = GetSetting("Skill_Melee_Z", true), 
     Callback = function(I)
         _G.SelectedSkills["Melee"]["Z"] = I
@@ -2296,7 +2298,7 @@ SSS:AddToggle({
 })
 
 SSS:AddToggle({
-    Title = "Melee [X]",
+    Title = "Skill X",
     Default = GetSetting("Skill_Melee_X", true), 
     Callback = function(I)
         _G.SelectedSkills["Melee"]["X"] = I
@@ -2306,7 +2308,7 @@ SSS:AddToggle({
 })
 
 SSS:AddToggle({
-    Title = "Melee [C]",
+    Title = "Skill C",
     Default = GetSetting("Skill_Melee_C", true), 
     Callback = function(I)
         _G.SelectedSkills["Melee"]["C"] = I
@@ -2315,9 +2317,11 @@ SSS:AddToggle({
     end
 })
 
+SSS:AddSeperator("Sword")
+
 -- [[ TOGGLES SWORD ]]
 SSS:AddToggle({
-    Title = "Sword [Z]",
+    Title = "Skill Z",
     Default = GetSetting("Skill_Sword_Z", true), 
     Callback = function(I)
         _G.SelectedSkills["Sword"]["Z"] = I
@@ -2327,7 +2331,7 @@ SSS:AddToggle({
 })
 
 SSS:AddToggle({
-    Title = "Sword [X]",
+    Title = "Skill X",
     Default = GetSetting("Skill_Sword_X", true), 
     Callback = function(I)
         _G.SelectedSkills["Sword"]["X"] = I
@@ -2336,9 +2340,11 @@ SSS:AddToggle({
     end
 })
 
+SSS:AddSeperator("Gun")
+
 -- [[ TOGGLES GUN ]]
 SS:AddToggle({
-    Title = "Gun [Z]",
+    Title = "Skill Z",
     Default = GetSetting("Skill_Gun_Z", true), 
     Callback = function(I)
         _G.SelectedSkills["Gun"]["Z"] = I
@@ -2348,7 +2354,7 @@ SS:AddToggle({
 })
 
 SSS:AddToggle({
-    Title = "Gun [X]",
+    Title = "Skill X",
     Default = GetSetting("Skill_Gun_X", true), 
     Callback = function(I)
         _G.SelectedSkills["Gun"]["X"] = I
@@ -2357,9 +2363,11 @@ SSS:AddToggle({
     end
 })
 
+SSS:AddSeperator("Blox Fruit")
+
 -- [[ TOGGLES BLOX FRUIT ]]
 SSS:AddToggle({
-    Title = "Blox Fruit [Z]",
+    Title = "Skill Z",
     Default = GetSetting("Skill_Fruit_Z", true), 
     Callback = function(I)
         _G.SelectedSkills["Blox Fruit"]["Z"] = I
@@ -2369,7 +2377,7 @@ SSS:AddToggle({
 })
 
 SSS:AddToggle({
-    Title = "Blox Fruit [X]",
+    Title = "Skill X",
     Default = GetSetting("Skill_Fruit_X", true), 
     Callback = function(I)
         _G.SelectedSkills["Blox Fruit"]["X"] = I
@@ -2378,8 +2386,8 @@ SSS:AddToggle({
     end
 })
 
-SS:AddToggle({
-    Title = "Blox Fruit [C]",
+SSS:AddToggle({
+    Title = "Skill C",
     Default = GetSetting("Skill_Fruit_C", true), 
     Callback = function(I)
         _G.SelectedSkills["Blox Fruit"]["C"] = I
@@ -2389,7 +2397,7 @@ SS:AddToggle({
 })
 
 SSS:AddToggle({
-    Title = "Blox Fruit [V]",
+    Title = "Skill V",
     Default = GetSetting("Skill_Fruit_V", true), 
     Callback = function(I)
         _G.SelectedSkills["Blox Fruit"]["V"] = I
@@ -2399,7 +2407,7 @@ SSS:AddToggle({
 })
 
 SSS:AddToggle({
-    Title = "Blox Fruit [F]",
+    Title = "Skill F",
     Default = GetSetting("Skill_Fruit_F", true), 
     Callback = function(I)
         _G.SelectedSkills["Blox Fruit"]["F"] = I
