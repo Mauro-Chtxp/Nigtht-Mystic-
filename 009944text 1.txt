@@ -10466,57 +10466,11 @@ spawn(function()
 	end;
 end);
 
-E:AddSeperator("Combat / Aimbot");
-__indexPlayer = E:AddParagraph({ Title = "All Players On Server :", Content = "" });
-spawn(function()
-	while wait(Sec) do
-		pcall(function()
-			for I, e in pairs((game:GetService("Players")):GetPlayers()) do
-				if I == 12 then
-					__indexPlayer:SetDesc("All Players :" .. (" " .. (I .. " / 12 [Max]")));
-				elseif I == 1 then
-					__indexPlayer:SetDesc("All Players  :" .. (" " .. (I .. " / 12")));
-				else
-					__indexPlayer:SetDesc("All Players  :" .. (" " .. (I .. " / 12")));
-				end;
-			end;
-		end);
-	end;
-end);
-__AimBotTurn = E:AddParagraph({ Title = "Aimbot Status :", Content = "" });
-local w5 = { "AimBots Skill", "Auto Aimbots" };
-Checking_AimStatus = function()
-		if _G.AimCam then
-			return "Aimbot Camera";
-		else
-			return "";
-		end;
-		if _G.AimbotGun then
-			return "Aimbot Guns";
-		else
-			return "";
-		end;
-	end;
-spawn(function()
-	while wait(.2) do
-		pcall(function()
-			if _G.AimMethod then
-				__AimBotTurn:SetDesc("Aimbot - Skills : True");
-			elseif (_G.AimCam or _G.AimbotGun) and _G.AimMethod then
-				__AimBotTurn:SetDesc("Aimbot - Skills |" .. (Checking_AimStatus() .. " :True"));
-			else
-				__AimBotTurn:SetDesc("Aimbot - Skills : False");
-			end;
-		end);
-	end;
-end);
-local O5 = {};
-for I, e in pairs((game:GetService("Players")):GetChildren()) do
-	table.insert(O5, e.Name);
-end;
+E:AddSeperator("Players");
+
 -- VARIAVEL PARA GUARDAR O MENU DE PLAYERS
 local PlayerDropdown = E:AddDropdown({ 
-    Title = "Choose Players",
+    Title = "Select  Players",
     Description = "",
     Values = O5, -- Começa com a lista que foi pega quando o script ligou
     Default = false,
@@ -10529,7 +10483,7 @@ local PlayerDropdown = E:AddDropdown({
 -- BOTÃO DE ATUALIZAR REAL
 E:AddButton({
     Title = "Refresh Player List",
-    Description = "Atualiza quem está no servidor AGORA",
+    Description = "",
     Callback = function()
         local NewPlayers = {} -- Cria uma tabela vazia
         
@@ -10547,7 +10501,7 @@ E:AddButton({
 });
 
 E:AddToggle({
-	Title = "Teleport to choose players",
+	Title = "Teleport to Player",
 	Description = "",
 	Default = false,
 	Callback = function(I)
@@ -10577,57 +10531,11 @@ E:AddToggle({
 		end);
 	end,
 });
-E:AddDropdown({
-	Title = "Choose Aim Method",
-	Description = "",
-	Values = w5,
-	Default = false,
-	Multi = false,
-	Callback = function(I)
-		ABmethod = I;
-	end,
-});
+
+E:AddSeperator("Aimbot");
+
 E:AddToggle({
-	Title = "Aimbot Method Skills",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.AimMethod = I;
-	end,
-});
-task.spawn(function()
-	while task.wait() do
-		pcall(function()
-			if _G.AimMethod and ABmethod == "AimBots Skill" then
-				for I, e in pairs((game:GetService("Players")):GetPlayers()) do
-					if e.Name == _G.PlayersList and e.Team ~= game.Players.LocalPlayer.Team then
-						MousePos = (e.Character:FindFirstChild("HumanoidRootPart")).Position;
-					end;
-				end;
-			end;
-		end);
-	end;
-end);
-task.spawn(function()
-	while task.wait() do
-		pcall(function()
-			if _G.AimMethod and ABmethod == "Auto Aimbots" then
-				local I = math.huge;
-				for e, K in pairs((game:GetService("Players")):GetPlayers()) do
-					if K.Name ~= plr.Name and K.Team ~= game.Players.LocalPlayer.Team then
-						local e = K:DistanceFromCharacter(plr.Character.HumanoidRootPart.Position);
-						if e < I then
-							I = e;
-							MousePos = (K.Character:FindFirstChild("HumanoidRootPart")).Position;
-						end;
-					end;
-				end;
-			end;
-		end);
-	end;
-end);
-E:AddToggle({
-	Title = "Aimbot Camera Closet Players",
+	Title = "Aimbot Cam Lock",
 	Description = "",
 	Default = false,
 	Callback = function(I)
