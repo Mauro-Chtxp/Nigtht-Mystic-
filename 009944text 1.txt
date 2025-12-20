@@ -1,11 +1,24 @@
--- Script para destruir mensagens indesejadas
+local Players = game:GetService("Players")
+local plr = Players.LocalPlayer
+local StarterGui = game:GetService("StarterGui")
+
+-- Intercepta notificações do SetCore
+local oldSetCore = StarterGui.SetCore
+function StarterGui:SetCore(coreType, data)
+    if coreType == "SendNotification" then
+        if typeof(data) == "table" and data.Text and string.find(data.Text, "You can only Elore 1 of each Blox Fruit") then
+            return -- ignora a notificação
+        end
+    end
+    return oldSetCore(self, coreType, data)
+end
+
+-- Destroi mensagens criadas no PlayerGui
 spawn(function()
-    local CoreGui = game:GetService("CoreGui")
-    while true do
-        wait(0.1) -- verifica a cada 0.1s
-        for _, gui in pairs(CoreGui:GetDescendants()) do
+    while wait(0.1) do
+        for _, gui in pairs(plr.PlayerGui:GetDescendants()) do
             if gui:IsA("TextLabel") and gui.Text and string.find(gui.Text, "You can only Elore 1 of each Blox Fruit") then
-                gui:Destroy() -- destrói a mensagem
+                gui:Destroy()
             end
         end
     end
