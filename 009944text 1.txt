@@ -11295,22 +11295,6 @@ Z:AddButton({
 	end,
 });
 
-Z:AddSeperator("Disable");
-
-Z:AddToggle({
-	Title = "Disable Leader Board GUI",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		ReLeader = I;
-		local e = game:GetService("StarterGui");
-		if ReLeader then
-			e:SetCoreGuiEnabled(Enum.CoreGuiType.PlayerList, false);
-		else
-			e:SetCoreGuiEnabled(Enum.CoreGuiType.PlayerList, true);
-		end;
-	end,
-});
 Z:AddSeperator("Team");
 Z:AddButton({ Title = "Set Pirate Team", Description = "", Callback = function()
 		Pirates();
