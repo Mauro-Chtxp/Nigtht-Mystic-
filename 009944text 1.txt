@@ -10299,33 +10299,52 @@ p:AddToggle({
 })
 
 p:AddSeperator("Raid Farming");
+
 p:AddToggle({
-	Title = "Auto Start Raid",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.Auto_StartRaid = I;
-	end,
+    Title = "Auto Start Raid",
+    Description = "",
+    Default = false,
+    Callback = function(I)
+        _G.Auto_StartRaid = I;
+    end,
 });
+
 spawn(function()
-	while wait(Sec) do
-		pcall(function()
-			if _G.Auto_StartRaid then
-				if plr.PlayerGui.Main.TopHUDList.RaidTimer.Visible == false then
-					if GetBP("Special Microchip") then
-						if World2 then
-							_tp(CFrame.new(-6438.73535, 250.645355, -4501.50684));
-							fireclickdetector(workspace.Map.CircleIsland.RaidSummon2.Button.Main.ClickDetector);
-						elseif World3 then
-							replicated.Remotes.CommF_:InvokeServer("requestEntrance", Vector3.new(-5097.93164, 316.447021, -3142.66602, -0.405007899, -4.31682743e-08, .914313197, -1.90943332e-08, 1, 3.8755779e-08, -0.914313197, -1.76180437e-09, -0.405007899));
-							fireclickdetector(workspace.Map["Boat Castle"].RaidSummon2.Button.Main.ClickDetector);
-						end;
-					end;
-				end;
-			end;
-		end);
-	end;
+    while wait(Sec) do
+        pcall(function()
+            if _G.Auto_StartRaid then
+                -- Verifica se a Raid já não está acontecendo
+                if plr.PlayerGui.Main.TopHUDList.RaidTimer.Visible == false then
+                    -- Verifica se tem o Microchip
+                    if GetBP("Special Microchip") then
+                        
+                        if World2 then
+                            _tp(CFrame.new(-6438.73535, 250.645355, -4501.50684));
+                            fireclickdetector(workspace.Map.CircleIsland.RaidSummon2.Button.Main.ClickDetector);
+                            
+                        elseif World3 then
+                            -- 1. Tenta o atalho do Portal (InvokeServer)
+                            replicated.Remotes.CommF_:InvokeServer("requestEntrance", Vector3.new(-5097.93164, 316.447021, -3142.66602));
+                            
+                            -- Pequena espera para o servidor processar o movimento do portal
+                            task.wait(0.5); 
+                            
+                            -- 2. Fallback: Usa o seu _tp para ir até a frente do botão
+                            -- Se o portal funcionou, a distância será curta e o _tp termina rápido.
+                            -- Se o portal NÃO funcionou, ele vai voando/andando pelo seu _tp.
+                            _tp(CFrame.new(-5033.50879, 315.014252, -2947.77539));
+                            
+                            -- 3. Clica no botão para iniciar
+                            fireclickdetector(workspace.Map["Boat Castle"].RaidSummon2.Button.Main.ClickDetector);
+                        end;
+                        
+                    end;
+                end;
+            end;
+        end);
+    end;
 end);
+
 p:AddToggle({
     Title = "Auto Complete Raid",
     Description = "",
