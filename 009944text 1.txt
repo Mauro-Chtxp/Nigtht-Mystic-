@@ -10302,7 +10302,7 @@ p:AddSeperator("Raid Farming");
 
 p:AddToggle({
     Title = "Auto Start Raid",
-    Description = "",
+    Description = "Inicia a Raid automaticamente e aguarda 10s entre verificações",
     Default = false,
     Callback = function(I)
         _G.Auto_StartRaid = I;
@@ -10310,12 +10310,16 @@ p:AddToggle({
 });
 
 spawn(function()
-    while wait(Sec) do
-        pcall(function()
-            if _G.Auto_StartRaid then
-                -- Verifica se a Raid já não está acontecendo
+    -- O loop agora espera 10 segundos para cada execução
+    while true do 
+        task.wait(10)
+        
+        if _G.Auto_StartRaid then
+            pcall(function()
+                -- Só tenta iniciar se a Raid não estiver ativa (Timer invisível)
                 if plr.PlayerGui.Main.TopHUDList.RaidTimer.Visible == false then
-                    -- Verifica se tem o Microchip
+                    
+                    -- Verifica se o player possui o Microchip
                     if GetBP("Special Microchip") then
                         
                         if World2 then
@@ -10323,25 +10327,24 @@ spawn(function()
                             fireclickdetector(workspace.Map.CircleIsland.RaidSummon2.Button.Main.ClickDetector);
                             
                         elseif World3 then
-                            -- 1. Tenta o atalho do Portal (InvokeServer)
+                            -- 1. Tenta usar o portal via InvokeServer (apenas uma tentativa rápida)
                             replicated.Remotes.CommF_:InvokeServer("requestEntrance", Vector3.new(-5097.93164, 316.447021, -3142.66602));
                             
-                            -- Pequena espera para o servidor processar o movimento do portal
+                            -- Pequena pausa para o teleporte do jogo acontecer
                             task.wait(0.5); 
                             
-                            -- 2. Fallback: Usa o seu _tp para ir até a frente do botão
-                            -- Se o portal funcionou, a distância será curta e o _tp termina rápido.
-                            -- Se o portal NÃO funcionou, ele vai voando/andando pelo seu _tp.
+                            -- 2. Fallback: Se o portal falhou ou o player não tem acesso, 
+                            -- o script usa o seu _tp para ir até a posição do botão.
                             _tp(CFrame.new(-5033.50879, 315.014252, -2947.77539));
                             
-                            -- 3. Clica no botão para iniciar
+                            -- 3. Aciona o botão da Raid
                             fireclickdetector(workspace.Map["Boat Castle"].RaidSummon2.Button.Main.ClickDetector);
                         end;
                         
                     end;
                 end;
-            end;
-        end);
+            end);
+        end;
     end;
 end);
 
