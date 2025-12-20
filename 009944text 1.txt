@@ -10298,7 +10298,42 @@ p:AddToggle({
 	end
 })
 
+-- Status da Raid (Painel)
+spawn(function()
+    while wait(.2) do
+        pcall(function()
+            if plr.PlayerGui.Main.Timer.Visible == true then
+                P5:SetDesc(" Raiding Statud : True");
+                _G.RaidActive = true
+            else
+                P5:SetDesc(" Raiding Statud : False");
+                _G.RaidActive = false
+            end;
+        end);
+    end;
+end);
+
 p:AddSeperator("Raid Farming");
+
+-- Toggle Buy Chip (Ajustado para não comprar se estiver em Raid)
+p:AddToggle({
+    Title = "Auto Buy Chip",
+    Description = "Compra o chip apenas se não estiver em Raid",
+    Default = false,
+    Callback = function(I)
+        _G.Auto_BuyChip = I;
+    end,
+});
+
+spawn(function()
+    while wait(2) do
+        if _G.Auto_BuyChip and not _G.RaidActive then
+            if not GetBP("Special Microchip") then
+                replicated.Remotes.CommF_:InvokeServer("RaidsItems", "Chip", "Quake") -- Exemplo: Quake (Pode mudar para sua fruta)
+            end
+        end
+    end
+end)
 
 p:AddToggle({
     Title = "Auto Start Raid",
@@ -10310,37 +10345,24 @@ p:AddToggle({
 });
 
 spawn(function()
-    -- O loop agora espera 10 segundos para cada execução
     while true do 
         task.wait(10)
         
-        if _G.Auto_StartRaid then
+        -- Só tenta iniciar se a função estiver ligada E não houver Raid ativa
+        if _G.Auto_StartRaid and not _G.RaidActive then
             pcall(function()
-                -- Só tenta iniciar se a Raid não estiver ativa (Timer invisível)
-                if plr.PlayerGui.Main.TopHUDList.RaidTimer.Visible == false then
+                -- Verifica se o player possui o Microchip
+                if GetBP("Special Microchip") then
                     
-                    -- Verifica se o player possui o Microchip
-                    if GetBP("Special Microchip") then
+                    if World2 then
+                        _tp(CFrame.new(-6438.73535, 250.645355, -4501.50684));
+                        fireclickdetector(workspace.Map.CircleIsland.RaidSummon2.Button.Main.ClickDetector);
                         
-                        if World2 then
-                            _tp(CFrame.new(-6438.73535, 250.645355, -4501.50684));
-                            fireclickdetector(workspace.Map.CircleIsland.RaidSummon2.Button.Main.ClickDetector);
-                            
-                        elseif World3 then
-                            -- 1. Tenta usar o portal via InvokeServer (apenas uma tentativa rápida)
-                            replicated.Remotes.CommF_:InvokeServer("requestEntrance", Vector3.new(-5097.93164, 316.447021, -3142.66602));
-                            
-                            -- Pequena pausa para o teleporte do jogo acontecer
-                            task.wait(0.5); 
-                            
-                            -- 2. Fallback: Se o portal falhou ou o player não tem acesso, 
-                            -- o script usa o seu _tp para ir até a posição do botão.
-                            _tp(CFrame.new(-5033.50879, 315.014252, -2947.77539));
-                            
-                            -- 3. Aciona o botão da Raid
-                            fireclickdetector(workspace.Map["Boat Castle"].RaidSummon2.Button.Main.ClickDetector);
-                        end;
-                        
+                    elseif World3 then
+                        replicated.Remotes.CommF_:InvokeServer("requestEntrance", Vector3.new(-5097.93164, 316.447021, -3142.66602));
+                        task.wait(0.5); 
+                        _tp(CFrame.new(-5033.50879, 315.014252, -2947.77539));
+                        fireclickdetector(workspace.Map["Boat Castle"].RaidSummon2.Button.Main.ClickDetector);
                     end;
                 end;
             end);
@@ -10414,37 +10436,31 @@ function attackNearbyEnemies()
     end
 end
 
--- Loop principal (igual ao seu)
+-- Loop principal Auto Complete
 spawn(function()
-pcall(function()
-while wait(Sec) do
-    if _G.Raiding then
+    pcall(function()
+        while wait(Sec) do
+            if _G.Raiding then
+                if _G.RaidActive then
+                    -- Matar próximos
+                    attackNearbyEnemies()
 
-        if plr.PlayerGui.Main.TopHUDList.RaidTimer.Visible == true then
-
-            -- Matar próximos
-            attackNearbyEnemies()
-
-            -- Pegar ilha certa
-            local nextIsland = getNextIsland()
-            if nextIsland then
-                -- USA SEU TELEPORTE REAL
-                _tp(nextIsland.CFrame * CFrame.new(0, 50, 0))
-
-                NextIs = true
+                    -- Pegar ilha certa
+                    local nextIsland = getNextIsland()
+                    if nextIsland then
+                        _tp(nextIsland.CFrame * CFrame.new(0, 50, 0))
+                        NextIs = true
+                    else
+                        NextIs = false
+                    end
+                else
+                    NextIs = false
+                end
             else
                 NextIs = false
             end
-
-        else
-            NextIs = false
         end
-
-    else
-        NextIs = false
-    end
-end
-end)
+    end)
 end)
 
 p:AddToggle({
@@ -10455,6 +10471,7 @@ p:AddToggle({
 		_G.Auto_Awakener = I;
 	end,
 });
+
 spawn(function()
 	while wait(Sec) do
 		pcall(function()
@@ -10465,6 +10482,7 @@ spawn(function()
 		end);
 	end;
 end);
+
 
 E:AddSeperator("Combat / Aimbot");
 __indexPlayer = E:AddParagraph({ Title = "All Players On Server :", Content = "" });
