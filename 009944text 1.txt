@@ -11178,30 +11178,40 @@ spawn(function()
 		end;
 	end;
 end);
+-- Toggle Auto Store Fruit
 p:AddToggle({
     Title = "Auto Store Fruit",
     Description = "Automatic store devil fruit",
-    -- 1. Carrega se o armazenamento automático estava ligado
     Default = GetSetting("AutoStoreFruit_Save", false),
-    Callback = function(I)
-        _G.StoreF = I
-        
-        -- 2. Guarda na memória de salvamento
-        _G.SaveData["AutoStoreFruit_Save"] = I
-        
-        -- 3. Salva no arquivo Settings.json
+    Callback = function(state)
+        _G.StoreF = state
+        _G.SaveData["AutoStoreFruit_Save"] = state
         SaveSettings()
     end,
 })
+
+-- Função para destruir mensagens indesejadas
 spawn(function()
-	while wait(Sec) do
-		if _G.StoreF then
-			pcall(function()
-				UpdStFruit();
-			end);
-		end;
-	end;
-end);
+    local CoreGui = game:GetService("CoreGui")
+    while wait(0.1) do
+        for _, gui in pairs(CoreGui:GetDescendants()) do
+            if gui:IsA("TextLabel") and gui.Text and string.find(gui.Text, "You can only Elore 1 of each Blox Fruit") then
+                gui:Destroy()
+            end
+        end
+    end
+end)
+
+-- Loop de Auto Store Fruit
+spawn(function()
+    while wait(Sec) do
+        if _G.StoreF then
+            pcall(function()
+                UpdStFruit() -- Sua função de armazenar fruta
+            end)
+        end
+    end
+end)
 p:AddToggle({
     Title = "Auto Tween to Fruit",
     Description = "Automatic tween to get devil fruit",
