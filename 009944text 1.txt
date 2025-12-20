@@ -4835,6 +4835,8 @@ end
 
 -- LOOP PRINCIPAL DO FARM
 spawn(function()
+    local VaseIndex = 1 -- Índice para controlar qual vaso atacar
+    
     while task.wait() do
         -- Só roda se a toggle estiver ativada E o modo for Tyrant
         if _G.AutoTyrant and _G.StartFarm then
@@ -4865,35 +4867,37 @@ spawn(function()
                         CFrame.new(-16250.3, 159.3, 1316.3)
                     }
                     
-                    for _, pos in ipairs(targetsty) do
-                        if not _G.StartFarm or not _G.AutoTyrant or GetEyesCount() ~= 4 or workspace.Enemies:FindFirstChild("Tyrant of the Skies") then break end
-                        
-                        -- Vai até a posição usando o TP normal (Tween/Bypass)
+                    -- CORREÇÃO: Usa o VaseIndex para ciclar entre os vasos ao invés de resetar o loop
+                    local pos = targetsty[VaseIndex]
+                    
+                    if pos then
                         _tp(pos)
                         
                         local char = plr.Character
                         if char and char:FindFirstChild("HumanoidRootPart") then
-                            -- Só ataca se estiver perto (evita atacar do nada e garante o TP)
+                            -- Só ataca se estiver perto
                             if (char.HumanoidRootPart.Position - pos.Position).Magnitude < 15 then
-                                -- ANCORA PARA NÃO BUGAR/SER JOGADO LONGE
                                 char.HumanoidRootPart.Anchored = true
-                                
                                 UseAllCategorySkills()
                                 task.wait(0.1) 
-                                
-                                -- DESANCORA PARA PODER SE MOVER PARA O PRÓXIMO
                                 char.HumanoidRootPart.Anchored = false
+                                
+                                -- Passa para o próximo vaso
+                                VaseIndex = VaseIndex + 1
+                                if VaseIndex > #targetsty then
+                                    VaseIndex = 1
+                                end
                             end
                         end
                     end
 
                 -- [PRIORIDADE 3] FARM NORMAL (TODOS OS MOBS + QUEST)
                 else
-                    local TargetData = GetTargetByLevel() -- Pega info para a Quest
+                    local TargetData = GetTargetByLevel() 
                     local QuestUI = plr.PlayerGui.Main.Quest
                     local hasQuest = QuestUI.Visible
 
-                    -- A. PEGAR QUEST (Se ativado na UI e não tiver quest)
+                    -- A. PEGAR QUEST 
                     if _G.AcceptQuest and not hasQuest then
                         local char = plr.Character
                         if char and char:FindFirstChild("HumanoidRootPart") then
@@ -4909,25 +4913,20 @@ spawn(function()
                             end
                         end
                     
-                    -- B. MATAR TODOS OS MOBS LISTADOS (COM PRIORIDADE NO MAIS PRÓXIMO)
+                    -- B. MATAR MOBS
                     else
                         local char = plr.Character or plr.CharacterAdded:Wait()
                         local hrp = char:WaitForChild("HumanoidRootPart", 1)
 
-                        if hrp then -- Só prossegue se tiver o personagem carregado para medir distância
+                        if hrp then 
                             local closestEnemy = nil
-                            local shortestDistance = math.huge -- Inicia com distância "infinita"
+                            local shortestDistance = math.huge 
 
-                            -- Lista de todos os nomes de mobs do Tyrant
                             local AllMobs = {"Skull Slayer", "Serpent Hunter", "Isle Champion", "Sun-kissed Warrior", "Island Boy", "Isle Outlaw"}
                             
                             for _, v in pairs(workspace.Enemies:GetChildren()) do
-                                -- Verifica se é um mob válido, se está vivo e tem as partes necessárias
                                 if table.find(AllMobs, v.Name) and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 and v:FindFirstChild("HumanoidRootPart") then
-                                    -- Calcula a distância entre o jogador e o mob
                                     local distance = (hrp.Position - v.HumanoidRootPart.Position).Magnitude
-
-                                    -- Se essa distância for menor que a menor encontrada até agora, atualiza
                                     if distance < shortestDistance then
                                         shortestDistance = distance
                                         closestEnemy = v
@@ -4936,14 +4935,11 @@ spawn(function()
                             end
 
                             if closestEnemy then
-                                -- Atacar o Inimigo mais próximo encontrado
                                 local enemyPos = closestEnemy.HumanoidRootPart.CFrame
                                 _tp(enemyPos * CFrame.new(0, FarmHeight, 0)) 
-                                
                                 EquipWeapon(_G.SelectWeapon)
                                 G.Kill(closestEnemy, true)
                             else
-                                -- Se não achar nenhum mob vivo, vai para o local de spawn do seu nível atual
                                 _tp(TargetData.FarmPos)
                             end
                         end
@@ -4953,6 +4949,7 @@ spawn(function()
         end
     end
 end)
+
 
 
 
