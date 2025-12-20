@@ -1,29 +1,3 @@
-local Players = game:GetService("Players")
-local plr = Players.LocalPlayer
-local StarterGui = game:GetService("StarterGui")
-
--- Intercepta notificações do SetCore
-local oldSetCore = StarterGui.SetCore
-function StarterGui:SetCore(coreType, data)
-    if coreType == "SendNotification" then
-        if typeof(data) == "table" and data.Text and string.find(data.Text, "You can only Elore 1 of each Blox Fruit") then
-            return -- ignora a notificação
-        end
-    end
-    return oldSetCore(self, coreType, data)
-end
-
--- Destroi mensagens criadas no PlayerGui
-spawn(function()
-    while wait(0.1) do
-        for _, gui in pairs(plr.PlayerGui:GetDescendants()) do
-            if gui:IsA("TextLabel") and gui.Text and string.find(gui.Text, "You can only Elore 1 of each Blox Fruit") then
-                gui:Destroy()
-            end
-        end
-    end
-end)
-
 repeat task.wait() until game:IsLoaded()
 
 -- // SISTEMA DE SAVE/LOAD // --
@@ -7116,39 +7090,42 @@ spawn(function()
 		end);
 	end;
 end);
-j:AddSeperator("Items Law/Order Sword");
+j:AddSeperator("Law");
+
 j:AddToggle({
-	Title = "Auto Law Sword",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.AutoLawKak = I;
-	end,
+    Title = "Auto Law Raid",
+    Description = "",
+    Default = false,
+    Callback = function(state)
+        _G.AutoLawKak = state
+    end,
 });
+
 spawn(function()
-	while wait(Sec) do
-		if _G.AutoLawKak then
-			pcall(function()
-				local I = GetConnectionEnemies("Order");
-				if I then
-					repeat
-						task.wait();
-						G.Kill(I, _G.AutoLawKak);
-					until _G.AutoLawKak == false or not I.Parent or I.Humanoid.Health <= 0;
-				else
-					_tp(CFrame.new(-6217.2021484375, 28.047645568848, -5053.1357421875));
-				end;
-			end);
-		end;
-	end;
-end);
-j:AddButton({ Title = "Buy Microchip Law", Description = "", Callback = function()
-		replicated.Remotes.CommF_:InvokeServer("BlackbeardReward", "Microchip", "2");
-	end });
-j:AddButton({ Title = "Start Law Raids", Description = "", Callback = function()
-		fireclickdetector(workspace.Map.CircleIsland.RaidSummon.Button.Main.ClickDetector);
-	end });
-j:AddSeperator("East Blue Misc");
+    while wait(Sec) do
+        if _G.AutoLawKak then
+            pcall(function()
+                -- Comprar o Microchip
+                replicated.Remotes.CommF_:InvokeServer("BlackbeardReward", "Microchip", "2")
+                
+                -- Iniciar a raid
+                fireclickdetector(workspace.Map.CircleIsland.RaidSummon.Button.Main.ClickDetector)
+                
+                -- Procurar inimigo "Order"
+                local enemy = GetConnectionEnemies("Order")
+                if enemy then
+                    repeat
+                        task.wait()
+                        G.Kill(enemy, _G.AutoLawKak)
+                    until not _G.AutoLawKak or not enemy.Parent or enemy.Humanoid.Health <= 0
+                else
+                    _tp(CFrame.new(-6217.2021484375, 28.047645568848, -5053.1357421875))
+                end
+            end)
+        end
+    end
+end)
+j:AddSeperator("Sea 1");
 j:AddToggle({
 	Title = "Auto Saw Sword",
 	Description = "",
@@ -7265,31 +7242,6 @@ spawn(function()
 				end;
 			end;
 		end);
-	end;
-end);
-j:AddToggle({
-	Title = "Auto Cybrog",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.AutoColShad = I;
-	end,
-});
-spawn(function()
-	while wait(.2) do
-		if _G.AutoColShad then
-			pcall(function()
-				local I = GetConnectionEnemies("Cyborg");
-				if I then
-					repeat
-						task.wait();
-						G.Kill(I, _G.AutoColShad);
-					until _G.AutoColShad == false or not I.Parent or I.Humanoid.Health <= 0;
-				else
-					_tp(CFrame.new(6094.0249023438, 73.770050048828, 3825.7348632813));
-				end;
-			end);
-		end;
 	end;
 end);
 j:AddToggle({
@@ -7424,63 +7376,48 @@ spawn(function()
 		end;
 	end;
 end);
-j:AddSeperator("Rengoku Sword");
+j:AddSeperator("Sea 2");
 j:AddToggle({
-	Title = "Auto Rengoku Sword",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.IceBossRen = I;
-	end,
-});
+    Title = "Auto Rengoku Sword",
+    Description = "",
+    Default = false,
+    Callback = function(I)
+        _G.AutoKeyRen = I
+    end,
+})
+
 spawn(function()
-	pcall(function()
-		while wait(.1) do
-			if _G.IceBossRen then
-				local I = GetConnectionEnemies("Awakened Ice Admiral");
-				if I then
-					repeat
-						task.wait();
-						G.Kill(I, _G.IceBossRen);
-					until _G.IceBossRen == false or not I.Parent or I.Humanoid.Health <= 0;
-				else
-					_tp(CFrame.new(5668.9780273438, 28.519989013672, -6483.3520507813));
-				end;
-			end;
-		end;
-	end);
-end);
-j:AddToggle({
-	Title = "Auto Key Rengoku",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.KeysRen = I;
-	end,
-});
-spawn(function()
-	while wait(.1) do
-		pcall(function()
-			if _G.KeysRen then
-				if plr.Backpack:FindFirstChild(K[3]) or plr.Character:FindFirstChild(K[3]) then
-					EquipWeapon(K[3]);
-					wait(.1);
-					_tp(CFrame.new(6571.1201171875, 299.23028564453, -6967.841796875));
-				else
-					local I = GetConnectionEnemies(K);
-					if I then
-						repeat
-							task.wait();
-							G.Kill(I, _G.KeysRen);
-						until plr.Backpack:FindFirstChild(K[3]) or _G.KeysRen == false or not I.Parent or I.Humanoid.Health <= 0;
-					else
-						_tp(CFrame.new(5439.716796875, 84.420944213867, -6715.1635742188));
-					end;
-				end;
-			end;
-		end);
-	end;
-end);
+    while wait(0.1) do
+        pcall(function()
+            if _G.AutoKeyRen then
+                -- Checa se já tem a chave
+                if plr.Backpack:FindFirstChild(K[3]) or plr.Character:FindFirstChild(K[3]) then
+                    EquipWeapon(K[3])
+                    wait(0.1)
+                    -- Vai pegar a chave no ponto específico
+                    _tp(CFrame.new(6571.1201171875, 299.23028564453, -6967.841796875))
+                else
+                    -- Procura inimigos
+                    local enemy = GetConnectionEnemies("Awakened Ice Admiral")
+                    if enemy then
+                        repeat
+                            task.wait()
+                            -- Mata o inimigo
+                            G.Kill(enemy, _G.AutoKeyRen)
+                        until plr.Backpack:FindFirstChild(K[3]) 
+                            or not enemy.Parent 
+                            or enemy.Humanoid.Health <= 0 
+                            or _G.AutoKeyRen == false
+                    else
+                        -- Teleporta para o spawn do inimigo caso não encontre
+                        _tp(CFrame.new(5439.716796875, 84.420944213867, -6715.1635742188))
+                        wait(1)
+                    end
+                end
+            end
+        end)
+    end
+end)
 j:AddToggle({
 	Title = "Auto Dragon Trident",
 	Description = "",
@@ -7554,38 +7491,6 @@ spawn(function()
 				end;
 			end);
 		end;
-	end;
-end);
-j:AddToggle({
-	Title = "Auto Dark Blade V3",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.DarkBladev3 = I;
-	end,
-});
-spawn(function()
-	while wait(Sec) do
-		pcall(function()
-			if _G.DarkBladev3 and World2 then
-				if not GetBP("Dark Blade") then
-					replicated.Remotes.CommF_:InvokeServer("LoadItem", "Dark Blade");
-				end;
-				if GetBP("Fist of Darkness") > 1 then
-					if not workspace.Enemies:FindFirstChild("Darkbeard") then
-						_tp(CFrame.new(3677.08203125, 62.751937866211, -3144.8332519531));
-					elseif GetConnectionEnemies("Darkbeard") and GetBP("Fist of Darkness") >= 1 then
-						repeat
-							wait();
-							_tp(CFrame.new(-5719.3637695312, 48.505905151367, -782.97595214844));
-						until not _G.DarkBladev3 or Root.Position == (CFrame.new(-5719.3637695312, 48.505905151367, -782.97595214844)).Position;
-						fireclickdetector(workspace.Map.GraveIsland.Mountain.Rocks.Button.ClickDetector);
-					end;
-				else
-					_G.AutoFarmChest = true;
-				end;
-			end;
-		end);
 	end;
 end);
 j:AddToggle({
@@ -7728,32 +7633,7 @@ spawn(function()
 		end;
 	end;
 end);
-j:AddSeperator("Cavender + Twin Hooks + Bigmom");
-j:AddToggle({
-	Title = "Auto Bigmom",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.AutoBigmom = I;
-	end,
-});
-spawn(function()
-	while wait(Sec) do
-		if _G.AutoBigmom then
-			pcall(function()
-				local I = GetConnectionEnemies("Cake Queen");
-				if I then
-					repeat
-						task.wait();
-						G.Kill(I, _G.AutoBigmom);
-					until not _G.AutoBigmom or not I.Parent or I.Humanoid.Health <= 0;
-				else
-					_tp(CFrame.new(-709.3133, 381.6006, -11011.3965));
-				end;
-			end);
-		end;
-	end;
-end);
+j:AddSeperator("Sea 3");
 j:AddToggle({
 	Title = "Auto Canvendish Sword",
 	Description = "",
