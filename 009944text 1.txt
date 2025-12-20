@@ -529,12 +529,19 @@ statsSetings = function(I, e)
 		end;
 	end;
 
--- VARIAVEIS DE CONTROLE NECESSÁRIAS
+--==================================================
+-- VARIÁVEIS DE CONTROLE NECESSÁRIAS
+--==================================================
 _G = _G or {}
 _B = false
 PosMon = nil
 
--- FUNÇÃO: Verifica se qualquer tipo de farm está ativo.
+-- Range do Bring (fixo por enquanto)
+_G.BringRange = 235
+
+--==================================================
+-- FUNÇÃO: Verifica se qualquer tipo de farm está ativo
+--==================================================
 local function FarmAtivo()
     return _G.StartFarm and (
         _G.Level or
@@ -543,26 +550,41 @@ local function FarmAtivo()
         _G.FarmMastery_Dev or
         _G.FarmMastery_G or
         (getgenv()).AutoMaterial or
-        _G.AutoTyrant -- ÚNICA ADIÇÃO (Para ativar no Tyrant)
+        _G.AutoTyrant
     )
 end
 
--- FUNÇÃO: Verifica se o mob deve ser ignorado (Raids, Bosses, Imóveis)
+--==================================================
+-- FUNÇÃO: Verifica se o mob deve ser ignorado
+--==================================================
 local function IsRaidMob(mob)
     local n = mob.Name:lower()
 
-    if n:find("raid") or n:find("microchip") or n:find("island") then return true end  
-    if mob:GetAttribute("IsRaid") or mob:GetAttribute("RaidMob") or mob:GetAttribute("IsBoss") then return true end  
+    if n:find("raid") or n:find("microchip") or n:find("island") then 
+        return true 
+    end  
+
+    if mob:GetAttribute("IsRaid") 
+        or mob:GetAttribute("RaidMob") 
+        or mob:GetAttribute("IsBoss") then 
+        return true 
+    end  
 
     local hum = mob:FindFirstChild("Humanoid")  
-    if hum and hum.WalkSpeed == 0 then return true end  
+    if hum and hum.WalkSpeed == 0 then 
+        return true 
+    end  
 
-    if mob.Parent and tostring(mob.Parent):lower():find("_worldorigin") then return true end  
+    if mob.Parent and tostring(mob.Parent):lower():find("_worldorigin") then 
+        return true 
+    end  
 
     return false
 end
 
--- FUNÇÃO PRINCIPAL: Puxa inimigos
+--==================================================
+-- FUNÇÃO PRINCIPAL: BRING
+--==================================================
 BringEnemy = function()
     if not FarmAtivo() or not _B then return end
 
@@ -573,8 +595,18 @@ BringEnemy = function()
     local HRP_Player = char:FindFirstChild("HumanoidRootPart")  
     if not HRP_Player then return end  
 
-    if setscriptable then pcall(function() setscriptable(LocalPlayer, "SimulationRadius", true) end) end  
-    if sethiddenproperty then pcall(function() sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge) end) end  
+    -- Aumenta Simulation Radius
+    if setscriptable then 
+        pcall(function() 
+            setscriptable(LocalPlayer, "SimulationRadius", true) 
+        end) 
+    end  
+
+    if sethiddenproperty then 
+        pcall(function() 
+            sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge) 
+        end) 
+    end  
 
     local targetPos = PosMon or HRP_Player.Position  
     local enemies = workspace.Enemies:GetChildren()  
@@ -586,14 +618,16 @@ BringEnemy = function()
         if hum and root and hum.Health > 0 and not IsRaidMob(mob) then  
             local dist = (root.Position - targetPos).Magnitude  
 
-            if dist <= 235 then  
+            if dist <= _G.BringRange then  
                 root.CFrame = CFrame.new(targetPos)  
             end  
         end  
     end
 end
 
--- LOOP CONTROLADOR DE PUXAR / SOLTAR
+--==================================================
+-- LOOP CONTROLADOR (PUXAR / SOLTAR)
+--==================================================
 spawn(function()
     while task.wait(1) do
         if FarmAtivo() then
@@ -601,12 +635,12 @@ spawn(function()
             BringEnemy()
             task.wait(3)
 
-            _B = false  
-            task.wait(5)  
-        else  
-            _B = false  
-            task.wait(1)  
-        end  
+            _B = false
+            task.wait(5)
+        else
+            _B = false
+            task.wait(1)
+        end
     end
 end)
 
@@ -4613,18 +4647,10 @@ b:AddToggle({
 -- 2. LÓGICA DO TYRANT (FARM, QUESTS E BOSS)
 ----------------------------------------------------------------------------
 
--- [[ CONFIGURAÇÕES ]] --
-local FarmHeight = 45 
-local AllTyrantMobs = {
-    "Skull Slayer", 
-    "Serpent Hunter", 
-    "Isle Champion", 
-    "Sun-kissed Warrior", 
-    "Island Boy", 
-    "Isle Outlaw"
-}
+-- Configurações
+local FarmHeight = 45 -- Altura segura para não bugar no mob
 
--- [[ NOCLIP REFORÇADO ]] --
+-- NoClip Reforçado (Para não travar nas paredes/mobs)
 spawn(function()
     game:GetService("RunService").Stepped:Connect(function()
         if _G.AutoTyrant and _G.StartFarm then
@@ -4644,24 +4670,97 @@ spawn(function()
     end)
 end)
 
--- [[ FUNÇÕES AUXILIARES ]] --
+-- Função Mágica: Seleciona o Mob/Quest exato pelo Nível
 local function GetTargetByLevel()
     local myLevel = game.Players.LocalPlayer.Data.Level.Value
-    if myLevel >= 2575 then
-        return {Name = "Skull Slayer", QuestArgs = {"StartQuest", "TikiQuest3", 2}, QuestPos = CFrame.new(-16665.08, 105.27, 1577.61), FarmPos = CFrame.new(-16709.49, 419.68, 1751.09)}
-    elseif myLevel > 2550 then
-        return {Name = "Serpent Hunter", QuestArgs = {"StartQuest", "TikiQuest3", 1}, QuestPos = CFrame.new(-16665.08, 105.27, 1577.61), FarmPos = CFrame.new(-16645.64, 163.09, 1352.87)}
-    elseif myLevel >= 2525 then
-        return {Name = "Isle Champion", QuestArgs = {"StartQuest", "TikiQuest2", 2}, QuestPos = CFrame.new(-16546.74, 55.72, -172.86), FarmPos = CFrame.new(-16602.10, 130.38, 1087.24)}
-    elseif myLevel >= 2500 then
-        return {Name = "Sun-kissed Warrior", QuestArgs = {"StartQuest", "TikiQuest2", 1}, QuestPos = CFrame.new(-16546.74, 55.72, -172.86), FarmPos = CFrame.new(-16347, 64, 984)}
-    elseif myLevel >= 2475 then
-        return {Name = "Island Boy", QuestArgs = {"StartQuest", "TikiQuest1", 2}, QuestPos = CFrame.new(-16546.74, 55.72, -172.86), FarmPos = CFrame.new(-16670, 43, -270)}
-    else
-        return {Name = "Isle Outlaw", QuestArgs = {"StartQuest", "TikiQuest1", 1}, QuestPos = CFrame.new(-16546.74, 55.72, -172.86), FarmPos = CFrame.new(-16350, 45, -180)}
-    end
+    
+-- [LEVEL 2575+] SKULL SLAYER
+if myLevel >= 2575 then
+    return {
+        Name = "Skull Slayer",
+        QuestArgs = {"StartQuest", "TikiQuest3", 2},
+        QuestPos = CFrame.new(
+            -16665.0879, 105.27478, 1577.61743,
+            -0.999621451, 3.5280582e-08, 0.0275127869,
+             3.5990368e-08, 1, 2.53032191e-08,
+            -0.0275127869, 2.62838356e-08, -0.999621451
+        ),
+        FarmPos = CFrame.new(-16709.49, 419.68, 1751.09)
+    }
+
+-- [LEVEL 2551 - 2574] SERPENT HUNTER
+elseif myLevel > 2550 then
+    return {
+        Name = "Serpent Hunter",
+        QuestArgs = {"StartQuest", "TikiQuest3", 1},
+        QuestPos = CFrame.new(
+            -16665.0879, 105.27478, 1577.61743,
+            -0.999621451, 3.5280582e-08, 0.0275127869,
+             3.5990368e-08, 1, 2.53032191e-08,
+            -0.0275127869, 2.62838356e-08, -0.999621451
+        ),
+        FarmPos = CFrame.new(-16645.64, 163.09, 1352.87)
+    }
+
+-- [LEVEL 2525 - 2550] ISLE CHAMPION
+elseif myLevel >= 2525 then
+    return {
+        Name = "Isle Champion",
+        QuestArgs = {"StartQuest", "TikiQuest2", 2},
+        QuestPos = CFrame.new(
+            -16546.748, 55.7216759, -172.865311,
+            -0.0595058464, 2.45485676e-08, 0.998227954,
+            -5.3272025e-08, 1, -2.77677703e-08,
+            -0.998227954, -5.48299717e-08, -0.0595058464
+        ),
+        FarmPos = CFrame.new(-16602.1015625, 130.38734436035, 1087.2456054688)
+    }
+
+-- [LEVEL 2500 - 2524] SUN-KISSED WARRIOR
+elseif myLevel >= 2500 then
+    return {
+        Name = "Sun-kissed Warrior",
+        QuestArgs = {"StartQuest", "TikiQuest2", 1},
+        QuestPos = CFrame.new(
+            -16546.748, 55.7216759, -172.865311,
+            -0.0595058464, 2.45485676e-08, 0.998227954,
+            -5.3272025e-08, 1, -2.77677703e-08,
+            -0.998227954, -5.48299717e-08, -0.0595058464
+        ),
+        FarmPos = CFrame.new(-16347, 64, 984)
+    }
+
+-- [LEVEL 2475 - 2499] ISLAND BOY
+elseif myLevel >= 2475 then
+    return {
+        Name = "Island Boy",
+        QuestArgs = {"StartQuest", "TikiQuest1", 2},
+        QuestPos = CFrame.new(
+            -16546.748, 55.7216759, -172.865311,
+            -0.0595058464, 2.45485676e-08, 0.998227954,
+            -5.3272025e-08, 1, -2.77677703e-08,
+            -0.998227954, -5.48299717e-08, -0.0595058464
+        ),
+        FarmPos = CFrame.new(-16670, 43, -270)
+    }
+
+-- [LEVEL < 2475] ISLE OUTLAW
+else
+    return {
+        Name = "Isle Outlaw",
+        QuestArgs = {"StartQuest", "TikiQuest1", 1},
+        QuestPos = CFrame.new(
+            -16546.748, 55.7216759, -172.865311,
+            -0.0595058464, 2.45485676e-08, 0.998227954,
+            -5.3272025e-08, 1, -2.77677703e-08,
+            -0.998227954, -5.48299717e-08, -0.0595058464
+        ),
+        FarmPos = CFrame.new(-16350, 45, -180)
+    }
+end
 end
 
+-- Verifica quantos "Olhos" (Vasos) foram quebrados
 local function GetEyesCount()
     local model = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("TikiOutpost") and workspace.Map.TikiOutpost:FindFirstChild("IslandModel")
     local count = 0
@@ -4679,6 +4778,7 @@ local function GetEyesCount()
     return count
 end
 
+-- Usa skills para quebrar os vasos
 local function UseAllCategorySkills()
     local VirtualInputManager = game:GetService("VirtualInputManager")
     local VirtualUser = game:GetService("VirtualUser")
@@ -4686,6 +4786,7 @@ local function UseAllCategorySkills()
     local skills = {"Z", "X", "C"}
 
     pcall(function()
+        game:GetService("VirtualInputManager"):SendKeyEvent(true, "RightControl", false, game)
         workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, workspace.CurrentCamera.CFrame.Position + Vector3.new(0,-1,0))
     end)
 
@@ -4705,25 +4806,28 @@ local function UseAllCategorySkills()
                 VirtualUser:CaptureController()
                 VirtualUser:ClickButton1(Vector2.new(851, 158))
                 local skillKey = skills[i]
-                VirtualInputManager:SendKeyEvent(true, skillKey, false, game)
-                task.wait(0.05)
-                VirtualInputManager:SendKeyEvent(false, skillKey, false, game)
+                if skillKey then
+                    VirtualInputManager:SendKeyEvent(true, skillKey, false, game)
+                    task.wait(0.05)
+                    VirtualInputManager:SendKeyEvent(false, skillKey, false, game)
+                end
                 task.wait(0.1) 
             end
         end
     end
 end
 
--- [[ LOOP PRINCIPAL ]] --
+-- LOOP PRINCIPAL DO FARM
 spawn(function()
     while task.wait() do
+        -- Só roda se a toggle estiver ativada E o modo for Tyrant
         if _G.AutoTyrant and _G.StartFarm then
             pcall(function()
                 local plr = game.Players.LocalPlayer
                 local boss = workspace.Enemies:FindFirstChild("Tyrant of the Skies")
                 local eyes = GetEyesCount()
 
-                -- [1] BOSS
+                -- [PRIORIDADE 1] MATAR BOSS
                 if boss and boss.Humanoid.Health > 0 then
                     _tp(boss.HumanoidRootPart.CFrame * CFrame.new(0, FarmHeight, 0))
                     repeat task.wait()
@@ -4731,10 +4835,12 @@ spawn(function()
                             _tp(boss.HumanoidRootPart.CFrame * CFrame.new(0, FarmHeight, 0))
                             EquipWeapon(_G.SelectWeapon)
                             G.Kill(boss, true)
-                        else break end
+                        else
+                            break
+                        end
                     until not boss.Parent or boss.Humanoid.Health <= 0 or not _G.StartFarm or not _G.AutoTyrant
 
-                -- [2] QUEBRA DE VASOS (AJUSTADO)
+                -- [PRIORIDADE 2] QUEBRAR 4 VASOS PARA INVOCAR
                 elseif eyes == 4 then
                     local targetsty = {
                         CFrame.new(-16335.1, 158.1, 1465.6), CFrame.new(-16288.6, 158.1, 1470.3),
@@ -4742,50 +4848,88 @@ spawn(function()
                         CFrame.new(-16335.0, 159.3, 1324.8), CFrame.new(-16286.0, 155.9, 1323.8),
                         CFrame.new(-16250.3, 159.3, 1316.3)
                     }
+                    
                     for _, pos in ipairs(targetsty) do
                         if not _G.StartFarm or not _G.AutoTyrant or GetEyesCount() ~= 4 or workspace.Enemies:FindFirstChild("Tyrant of the Skies") then break end
                         
-                        _tp(pos) -- Teleporte Normal (Suave)
+                        -- Vai até a posição usando o TP normal (Tween/Bypass)
+                        _tp(pos)
                         
                         local char = plr.Character
-                        local hrp = char and char:FindFirstChild("HumanoidRootPart")
-                        if hrp and (hrp.Position - pos.Position).Magnitude < 15 then
-                            hrp.Anchored = true -- Ancorar para não bugar
-                            UseAllCategorySkills()
-                            task.wait(0.2)
-                            hrp.Anchored = false -- Desancorar
+                        if char and char:FindFirstChild("HumanoidRootPart") then
+                            -- Só ataca se estiver perto (evita atacar do nada e garante o TP)
+                            if (char.HumanoidRootPart.Position - pos.Position).Magnitude < 15 then
+                                -- ANCORA PARA NÃO BUGAR/SER JOGADO LONGE
+                                char.HumanoidRootPart.Anchored = true
+                                
+                                UseAllCategorySkills()
+                                task.wait(0.1) 
+                                
+                                -- DESANCORA PARA PODER SE MOVER PARA O PRÓXIMO
+                                char.HumanoidRootPart.Anchored = false
+                            end
                         end
-                        task.wait(0.1)
                     end
 
-                -- [3] FARM MOBS
+                -- [PRIORIDADE 3] FARM NORMAL (TODOS OS MOBS + QUEST)
                 else
-                    local TargetData = GetTargetByLevel()
+                    local TargetData = GetTargetByLevel() -- Pega info para a Quest
                     local QuestUI = plr.PlayerGui.Main.Quest
                     local hasQuest = QuestUI.Visible
-                    local enemy = nil
 
-                    for _, mobName in ipairs(AllTyrantMobs) do
-                        for _, v in pairs(workspace.Enemies:GetChildren()) do
-                            if v.Name == mobName and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
-                                enemy = v; break
+                    -- A. PEGAR QUEST (Se ativado na UI e não tiver quest)
+                    if _G.AcceptQuest and not hasQuest then
+                        local char = plr.Character
+                        if char and char:FindFirstChild("HumanoidRootPart") then
+                            local distToNPC = (char.HumanoidRootPart.Position - TargetData.QuestPos.Position).Magnitude
+                            
+                            if distToNPC <= 3 then
+                                char.HumanoidRootPart.CFrame = TargetData.QuestPos
+                                task.wait(0.1)
+                                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(TargetData.QuestArgs))
+                                task.wait(0.5)
+                            else
+                                _tp(TargetData.QuestPos)
                             end
                         end
-                        if enemy then break end
-                    end
-
-                    if enemy then
-                        _tp(enemy.HumanoidRootPart.CFrame * CFrame.new(0, FarmHeight, 0)) 
-                        EquipWeapon(_G.SelectWeapon)
-                        G.Kill(enemy, true)
+                    
+                    -- B. MATAR TODOS OS MOBS LISTADOS (COM PRIORIDADE NO MAIS PRÓXIMO)
                     else
-                        if _G.AcceptQuest and not hasQuest then
-                            _tp(TargetData.QuestPos)
-                            if (plr.Character.HumanoidRootPart.Position - TargetData.QuestPos.Position).Magnitude <= 5 then
-                                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(TargetData.QuestArgs))
+                        local char = plr.Character or plr.CharacterAdded:Wait()
+                        local hrp = char:WaitForChild("HumanoidRootPart", 1)
+
+                        if hrp then -- Só prossegue se tiver o personagem carregado para medir distância
+                            local closestEnemy = nil
+                            local shortestDistance = math.huge -- Inicia com distância "infinita"
+
+                            -- Lista de todos os nomes de mobs do Tyrant
+                            local AllMobs = {"Skull Slayer", "Serpent Hunter", "Isle Champion", "Sun-kissed Warrior", "Island Boy", "Isle Outlaw"}
+                            
+                            for _, v in pairs(workspace.Enemies:GetChildren()) do
+                                -- Verifica se é um mob válido, se está vivo e tem as partes necessárias
+                                if table.find(AllMobs, v.Name) and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 and v:FindFirstChild("HumanoidRootPart") then
+                                    -- Calcula a distância entre o jogador e o mob
+                                    local distance = (hrp.Position - v.HumanoidRootPart.Position).Magnitude
+
+                                    -- Se essa distância for menor que a menor encontrada até agora, atualiza
+                                    if distance < shortestDistance then
+                                        shortestDistance = distance
+                                        closestEnemy = v
+                                    end
+                                end
                             end
-                        else
-                            _tp(TargetData.FarmPos)
+
+                            if closestEnemy then
+                                -- Atacar o Inimigo mais próximo encontrado
+                                local enemyPos = closestEnemy.HumanoidRootPart.CFrame
+                                _tp(enemyPos * CFrame.new(0, FarmHeight, 0)) 
+                                
+                                EquipWeapon(_G.SelectWeapon)
+                                G.Kill(closestEnemy, true)
+                            else
+                                -- Se não achar nenhum mob vivo, vai para o local de spawn do seu nível atual
+                                _tp(TargetData.FarmPos)
+                            end
                         end
                     end
                 end
@@ -4793,6 +4937,8 @@ spawn(function()
         end
     end
 end)
+
+
 
 
 -- 3. SISTEMA BONE FARM
@@ -5602,6 +5748,22 @@ spawn(function()
 		end);
 	end;
 end);
+
+T:AddSeperator("Select")
+
+T:AddInput({
+    Title = "Bring Mobs Range",
+    Description = "Select Bring Mobs Range (235 Recommended)",
+    PlaceHolder = "235",
+    Default = tostring(_G.BringRange),
+    Callback = function(Value)
+        local num = tonumber(Value)
+        if num and num > 0 then
+            _G.BringRange = num
+        end
+    end
+})
+
 -- =========================================
 --      AUTO FARM BOSS (DIRECT & UPRIGHT)
 -- =========================================
