@@ -2417,55 +2417,6 @@ SSS:AddToggle({
 })
 
 
-
--- Secção de Configurações manuais
-local ConfigSection = c:AddSection("Manual Save")
-
-ConfigSection:AddButton({
-    Title = "Salvar Configurações Agora",
-    Description = "Cria um backup manual das tuas opções atuais",
-    Callback = function()
-        -- Verifica se a função existe antes de chamar
-        if SaveSettings then
-            SaveSettings()
-            
-            -- Notificação Universal (Funciona sem a lib Fluent)
-            game.StarterGui:SetCore("SendNotification", {
-                Title = "Night Mystic",
-                Text = "Configurações salvas com sucesso!",
-                Duration = 5
-            })
-        else
-            warn("Erro: Função SaveSettings não encontrada!")
-        end
-    end
-})
-
-ConfigSection:AddButton({
-    Title = "Resetar Configurações",
-    Description = "Apaga o ficheiro de save e volta ao padrão",
-    Callback = function()
-        -- Usa a variável FullPath que foi definida lá no topo do script
-        if isfile and isfile(FullPath) then
-            delfile(FullPath)
-            _G.SaveData = {} -- Limpa a tabela na memória ram
-            
-            -- Notificação Universal
-            game.StarterGui:SetCore("SendNotification", {
-                Title = "Night Mystic",
-                Text = "Configurações resetadas! Re-execute o script.",
-                Duration = 5
-            })
-        else
-            game.StarterGui:SetCore("SendNotification", {
-                Title = "Night Mystic",
-                Text = "Nenhum arquivo de save encontrado para apagar.",
-                Duration = 3
-            })
-        end
-    end
-})
-
 CS:AddSeperator("Mastery")
 
 local islands = { "Cake", "Bone" }
@@ -4727,7 +4678,8 @@ _G.StartFarm = false
 _G.Level = false
 _G.AutoFarm_Bone = false
 _G.AutoFarm_Cake = false
-_G.AutoTyrant = false -- Adicionado
+_G.AutoTyrant = false 
+_G.AutoFarmNear = false -- Adicionado para o Mobs Nearest
 _G.AcceptQuest = false
 
 -- Variável para guardar o mob de Level Farm
@@ -4736,6 +4688,9 @@ local CurrentMobLevelSystem = nil
 
 -- Define o limite de distância para teleporte condicional (em studs)
 local TELEPORT_DISTANCE_THRESHOLD = 15 
+
+-- Configuração da Distância Máxima para Mobs Nearest
+_G.MaxFarmDistance = 325
 
 -- Função auxiliar para teleporte condicional
 local function TeleportConditional(hrp, targetCFrame, threshold)
@@ -4750,12 +4705,13 @@ end
 ---
 
 ----------------------------------------------------------------------------
--- 1. UI: DROPDOWN + TOGGLES (Coloque isso na seção da sua UI)
+-- 1. UI: DROPDOWN + TOGGLES
 ----------------------------------------------------------------------------
 
 b:AddDropdown({
     Title = "Select Farm Mode",
-    Values = {"Level", "Bone", "Cake Prince", "Tyrant Of The Skies"},
+    -- Adicionado "Mobs Nearest" na lista
+    Values = {"Level", "Bone", "Cake Prince", "Tyrant Of The Skies", "Mobs Nearest"},
     Default = GetSetting("SelectedFarmMode_Save", "Level"),
     Callback = function(v)
         _G.SelectedFarmMode = v
@@ -4775,6 +4731,7 @@ b:AddToggle({
         _G.AutoFarm_Bone = false  
         _G.AutoFarm_Cake = false  
         _G.AutoTyrant = false 
+        _G.AutoFarmNear = false -- Reseta o Mobs Nearest
 
         if v then  
             if _G.SelectedFarmMode == "Level" then  
@@ -4784,7 +4741,9 @@ b:AddToggle({
             elseif _G.SelectedFarmMode == "Cake Prince" then  
                 _G.AutoFarm_Cake = true  
             elseif _G.SelectedFarmMode == "Tyrant Of The Skies" then  
-                _G.AutoTyrant = true -- Ativa a lógica do Tyrant
+                _G.AutoTyrant = true 
+            elseif _G.SelectedFarmMode == "Mobs Nearest" then
+                _G.AutoFarmNear = true -- Ativa o Mobs Nearest
             end  
         end
 
@@ -4810,7 +4769,7 @@ b:AddToggle({
 -- Configurações
 local FarmHeight = 45 -- Altura segura para não bugar no mob
 
--- NoClip Reforçado (Para não travar nas paredes/mobs)
+-- NoClip Reforçado
 spawn(function()
     game:GetService("RunService").Stepped:Connect(function()
         if _G.AutoTyrant and _G.StartFarm then
@@ -5011,7 +4970,6 @@ spawn(function()
                         CFrame.new(-16250.3, 159.3, 1316.3)
                     }
                     
-                    -- CORREÇÃO: Usa o VaseIndex para ciclar entre os vasos ao invés de resetar o loop
                     local pos = targetsty[VaseIndex]
                     
                     if pos then
@@ -5093,10 +5051,6 @@ spawn(function()
         end
     end
 end)
-
-
-
-
 
 -- 3. SISTEMA BONE FARM
 
@@ -5275,91 +5229,72 @@ spawn(function()
     end
 end)
 
-
-
-b:AddSeperator("Other")
-
--- Configuração da Distância Máxima (em studs)
--- Aumente se quiser pegar mobs um pouco mais longe, diminua se quiser bem perto.
-_G.MaxFarmDistance = 325
-
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
-b:AddToggle({
-    Title = "Kill Mobs Nearest",
-    Description = "",
-    -- 1. Carrega se estava ligado ou desligado ao abrir o script
-    Default = GetSetting("AutoFarmNear_Save", false),
-    Callback = function(I)
-        _G.AutoFarmNear = I
-        
-        -- 2. Guarda na tabela de configurações para o Save
-        _G.SaveData["AutoFarmNear_Save"] = I
-        
-        -- 3. Salva no arquivo Settings.json na pasta do executor
-        SaveSettings()
-    end,
-})
+-- 6. SISTEMA MOBS NEAREST (NOVA LÓGICA INTEGRADA)
 
 spawn(function()
     while task.wait() do
-        pcall(function()
-            if not _G.AutoFarmNear then return end
+        -- Roda se o modo for "Mobs Nearest" e o farm estiver iniciado
+        if _G.AutoFarmNear and _G.StartFarm then
+            pcall(function()
+                local Players = game:GetService("Players")
+                local ReplicatedStorage = game:GetService("ReplicatedStorage")
+                
+                local Plr = Players.LocalPlayer
+                local Char = Plr.Character or Plr.CharacterAdded:Wait()
+                local Root = Char:FindFirstChild("HumanoidRootPart")
+                if not Root then return end
 
-            local Plr = Players.LocalPlayer
-            local Char = Plr.Character or Plr.CharacterAdded:Wait()
-            local Root = Char:FindFirstChild("HumanoidRootPart")
-            if not Root then return end
+                local ClosestEnemy = nil
+                local ShortestDistance = math.huge
 
-            local ClosestEnemy = nil
-            local ShortestDistance = math.huge
-
-            -- 🔍 1. Procurar inimigos no WORKSPACE
-            if workspace:FindFirstChild("Enemies") then
-                for _, e in pairs(workspace.Enemies:GetChildren()) do
-                    if e:FindFirstChild("Humanoid")
-                    and e:FindFirstChild("HumanoidRootPart")
-                    and e.Humanoid.Health > 0 then
-                        
-                        local dist = (Root.Position - e.HumanoidRootPart.Position).Magnitude
-                        if dist < ShortestDistance then
-                            ShortestDistance = dist
-                            ClosestEnemy = e
+                -- 🔍 1. Procurar inimigos no WORKSPACE
+                if workspace:FindFirstChild("Enemies") then
+                    for _, e in pairs(workspace.Enemies:GetChildren()) do
+                        if e:FindFirstChild("Humanoid")
+                        and e:FindFirstChild("HumanoidRootPart")
+                        and e.Humanoid.Health > 0 then
+                            
+                            local dist = (Root.Position - e.HumanoidRootPart.Position).Magnitude
+                            if dist < ShortestDistance then
+                                ShortestDistance = dist
+                                ClosestEnemy = e
+                            end
                         end
                     end
                 end
-            end
 
-            -- 🔍 2. Procurar inimigos no REPLICATEDSTORAGE
-            if ReplicatedStorage:FindFirstChild("Enemies") then
-                for _, e in pairs(ReplicatedStorage.Enemies:GetChildren()) do
-                    if e:IsA("Model") and e:FindFirstChild("Humanoid") then
-                        -- Se não achou nenhum no workspace ainda
-                        if not ClosestEnemy then
-                            ClosestEnemy = e
+                -- 🔍 2. Procurar inimigos no REPLICATEDSTORAGE
+                if ReplicatedStorage:FindFirstChild("Enemies") then
+                    for _, e in pairs(ReplicatedStorage.Enemies:GetChildren()) do
+                        if e:IsA("Model") and e:FindFirstChild("Humanoid") then
+                            -- Se não achou nenhum no workspace ainda
+                            if not ClosestEnemy then
+                                ClosestEnemy = e
+                            end
                         end
                     end
                 end
-            end
 
-            -- ⚔️ 3. Atacar
-            if ClosestEnemy and (not _G.MaxFarmDistance or ShortestDistance <= _G.MaxFarmDistance) then
-                repeat
-                    task.wait()
-                    if G and G.Kill then
-                        G.Kill(ClosestEnemy, _G.AutoFarmNear)
-                    end
-                until not _G.AutoFarmNear
-                or not ClosestEnemy.Parent
-                or (ClosestEnemy:FindFirstChild("Humanoid") and ClosestEnemy.Humanoid.Health <= 0)
-                or not Root.Parent
-            end
-        end)
+                -- ⚔️ 3. Atacar
+                if ClosestEnemy and (not _G.MaxFarmDistance or ShortestDistance <= _G.MaxFarmDistance) then
+                    repeat
+                        task.wait()
+                        if G and G.Kill then
+                            G.Kill(ClosestEnemy, _G.AutoFarmNear)
+                        end
+                    until not _G.StartFarm or not _G.AutoFarmNear
+                    or not ClosestEnemy.Parent
+                    or (ClosestEnemy:FindFirstChild("Humanoid") and ClosestEnemy.Humanoid.Health <= 0)
+                    or not Root.Parent
+                end
+            end)
+        end
     end
 end)
--- Delay do sistema (pode ajustar)
-local Sec = 0.5
+
+
+
+b:AddSeperator("Other")
 
 -- Toggle
 b:AddToggle({
@@ -5910,8 +5845,8 @@ T:AddSeperator("Select")
 
 T:AddInput({
     Title = "Bring Mobs Range",
-    Description = "Select Bring Mobs Range (235 Recommended)",
-    PlaceHolder = "235",
+    Description = "Select Bring Mobs Range",
+    PlaceHolder = "250",
     Default = tostring(_G.BringRange),
     Callback = function(Value)
         local num = tonumber(Value)
@@ -8546,111 +8481,8 @@ spawn(function()
 		end);
 	end;
 end);
-W:AddSeperator("Dojo Quest & Drago Race");
-W:AddToggle({
-	Title = "Auto Dojo Trainer",
-	Description = "turn on for do dojo belt quest white to black",
-	Default = false,
-	Callback = function(I)
-		_G.Dojoo = I;
-	end,
-});
-function printBeltName(I)
-	if type(I) == "table" and I.Quest.BeltName then
-		return I.Quest.BeltName;
-	end;
-end;
-spawn(function()
-	while wait(Sec) do
-		if _G.Dojoo then
-			pcall(function()
-				local I = { [1] = { NPC = "Dojo Trainer", Command = "RequestQuest" } };
-				local e = (replicated.Modules.Net:FindFirstChild("RF/InteractDragonQuest")):InvokeServer(unpack(I));
-				local K = printBeltName(e);
-				if debug == false and (not e and not K) then
-					_tp(CFrame.new(5865.0234375, 1208.3154296875, 871.15185546875));
-					debug = true;
-				elseif debug == true and ((CFrame.new(5865.0234375, 1208.3154296875, 871.15185546875)).Position - plr.Character.HumanoidRootPart.Position).Magnitude <= 50 then
-					if K == "White" then
-						local I = GetConnectionEnemies("Skull Slayer");
-						if I then
-							repeat
-								task.wait();
-								G.Kill(I, _G.Dojoo);
-							until not e or not _G.Dojoo or not G.Alive(I);
-						else
-							_tp(CFrame.new(-16759.58984375, 71.283767700195, 1595.3399658203));
-						end;
-					elseif K == "Yellow" then
-						repeat
-							task.wait();
-							_G.SeaBeast1 = true;
-							_G.TerrorShark = true;
-							_G.Shark = true;
-							_G.Piranha = true;
-							_G.MobCrew = true;
-							_G.FishBoat = true;
-							_G.SailBoats = true;
-						until not _G.Dojoo or not e;
-						_G.SeaBeast1 = false;
-						_G.TerrorShark = false;
-						_G.Shark = false;
-						_G.Piranha = false;
-						_G.MobCrew = false;
-						_G.FishBoat = false;
-						_G.SailBoats = false;
-					elseif K == "Green" then
-						repeat
-							task.wait();
-							_G.SailBoats = true;
-						until not _G.Dojoo or not e;
-						_G.SailBoats = false;
-					elseif K == "Purple" then
-						repeat
-							task.wait();
-							_G.FarmEliteHunt = true;
-						until not _G.Dojoo or not e;
-						_G.FarmEliteHunt = false;
-					elseif K == "Red" then
-						repeat
-							task.wait();
-							_G.SailBoats = true;
-							_G.FishBoat = true;
-						until not _G.Dojoo or not e;
-						_G.SailBoats = false;
-						_G.FishBoat = false;
-					elseif K == "Black" then
-						repeat
-							task.wait();
-							if workspace.Map:FindFirstChild("PrehistoricIsland") or workspace._WorldOrigin.Locations:FindFirstChild("Prehistoric Island") then
-								_G.Prehis_Find = true;
-								if workspace.Map.PrehistoricIsland.Core.ActivationPrompt:FindFirstChild("ProximityPrompt", true) then
-									_G.Prehis_Skills = false;
-									_G.Prehis_Find = true;
-								else
-									_G.Prehis_Skills = true;
-									_G.Prehis_Find = false;
-								end;
-							else
-								_G.Prehis_Find = true;
-								_G.Prehis_Skills = false;
-							end;
-						until not _G.Dojoo or not e;
-						_G.Prehis_Find = false;
-						_G.Prehis_Skills = false;
-					elseif K == "Orange" or K == "Blue" then
-						return nil;
-					end;
-				end;
-				if not e then
-					debug = false;
-					local I = { [1] = { NPC = "Dojo Trainer", Command = "ClaimQuest" } };
-					(replicated.Modules.Net:FindFirstChild("RF/InteractDragonQuest")):InvokeServer(unpack(I));
-				end;
-			end);
-		end;
-	end;
-end);
+W:AddSeperator("Dojo Treiner");
+
 W:AddToggle({
 	Title = "Auto Dragon Hunter",
 	Description = "turn on for farm blaze ember + auto collect blaze ember",
@@ -8779,39 +8611,9 @@ spawn(function()
 	end;
 end);
 W:AddSeperator("Drago Trial");
-GetQuestDracoLevel = function()
-		local I = { [1] = { NPC = "Dragon Wizard", Command = "Upgrade" } };
-		return (replicated.Modules.Net:FindFirstChild("RF/InteractDragonQuest")):InvokeServer(unpack(I));
-	end;
+
 W:AddToggle({
-	Title = "Tween To Upgrade Droco Trial",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.UPGDrago = I;
-	end,
-});
-spawn(function()
-	while wait(Sec) do
-		pcall(function()
-			if _G.UPGDrago then
-				if GetQuestDracoLevel() == false then
-					return nil;
-				elseif GetQuestDracoLevel() == true then
-					if ((CFrame.new(5814.4272460938, 1208.3267822266, 884.57855224609)).Position - Root.Position).Magnitude >= 300 then
-						_tp(CFrame.new(5814.4272460938, 1208.3267822266, 884.57855224609));
-					else
-						_tp(CFrame.new(5814.4272460938, 1208.3267822266, 884.57855224609));
-						local I = { [1] = { NPC = "Dragon Wizard", Command = "Upgrade" } };
-						(replicated.Modules.Net:FindFirstChild("RF/InteractDragonQuest")):InvokeServer(unpack(I));
-					end;
-				end;
-			end;
-		end);
-	end;
-end);
-W:AddToggle({
-	Title = "Auto Drago (V1)",
+	Title = "Auto Draco V1",
 	Description = "turn on for auto quest1 auto prehistoric event + collect dragon eggs",
 	Default = false,
 	Callback = function(I)
@@ -8838,7 +8640,7 @@ spawn(function()
 	end;
 end);
 W:AddToggle({
-	Title = "Auto Drago (V2)",
+	Title = "Auto Draco V2",
 	Description = "turn on for auto kill Forest Pirate & Collect fireflower",
 	Default = false,
 	Callback = function(I)
@@ -8878,8 +8680,8 @@ spawn(function()
 	end;
 end);
 W:AddToggle({
-	Title = "Auto Drago (V3)",
-	Description = "turn on for sea event kill terror shark",
+	Title = "Auto Draco V3",
+	Description = "Kill Terrorshark Or Sea Beast",
 	Default = false,
 	Callback = function(I)
 		_G.DragoV3 = I;
@@ -8903,8 +8705,8 @@ spawn(function()
 	end;
 end);
 W:AddToggle({
-	Title = "Auto Relic Drago Trial [Beta]",
-	Description = "turn on for auto trial v4 you have to COLLECT RELIC by your self",
+	Title = "Auto Trial Draco [Beta]",
+	Description = "",
 	Default = false,
 	Callback = function(I)
 		_G.Relic123 = I;
@@ -8954,7 +8756,7 @@ spawn(function()
 	end;
 end);
 W:AddToggle({
-	Title = "Auto Train Drago v4",
+	Title = "Auto Train Race Draco",
 	Description = "turn on for training Drago race v4 + auto upgrade tier",
 	Default = false,
 	Callback = function(I)
@@ -8987,171 +8789,8 @@ spawn(function()
 		end);
 	end;
 end);
---================================================--
--- FLY TOGGLE
---================================================--
-W:AddToggle({
-	Title = "Fly",
-	Description = "Fly controlado pelo analógico ( Subida Automática )",
-	Default = false,
-	Callback = function(v)
-		_G.Fly = v
-	end,
-})
 
---================================================--
--- FLY SYSTEM
---================================================--
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
 
-local player = Players.LocalPlayer
-local flying = false
-
-local speed = 90        -- velocidade horizontal
-local yForce = 50       -- força de subida (AJUSTE AQUI)
-
-local bodyGyro, bodyVelocity
-local flyConn
-
-local function startFly()
-	local char = player.Character or player.CharacterAdded:Wait()
-	local hum = char:WaitForChild("Humanoid")
-	local root = char:WaitForChild("HumanoidRootPart")
-
-	-- segurança
-	if bodyGyro then bodyGyro:Destroy() end
-	if bodyVelocity then bodyVelocity:Destroy() end
-
-	bodyGyro = Instance.new("BodyGyro")
-	bodyGyro.P = 9e4
-	bodyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
-	bodyGyro.CFrame = root.CFrame
-	bodyGyro.Parent = root
-
-	bodyVelocity = Instance.new("BodyVelocity")
-	bodyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
-	bodyVelocity.Velocity = Vector3.zero
-	bodyVelocity.Parent = root
-
-	flying = true
-
-	flyConn = RunService.Heartbeat:Connect(function()
-		if not _G.Fly or not flying then return end
-
-		local moveDir = hum.MoveDirection
-		local velX, velZ = 0, 0
-
-		if moveDir.Magnitude > 0 then
-			velX = moveDir.Unit.X * speed
-			velZ = moveDir.Unit.Z * speed
-
-			bodyGyro.CFrame = CFrame.new(
-				root.Position,
-				root.Position + Vector3.new(moveDir.X, 0, moveDir.Z)
-			)
-		end
-
-		bodyVelocity.Velocity = Vector3.new(
-			velX,
-			yForce,
-			velZ
-		)
-	end)
-end
-
-local function stopFly()
-	flying = false
-
-	if flyConn then
-		flyConn:Disconnect()
-		flyConn = nil
-	end
-
-	if bodyGyro then
-		bodyGyro:Destroy()
-		bodyGyro = nil
-	end
-
-	if bodyVelocity then
-		bodyVelocity:Destroy()
-		bodyVelocity = nil
-	end
-end
-
---================================================--
--- LOOP CONTROLLER
---================================================--
-task.spawn(function()
-	while task.wait() do
-		if _G.Fly and not flying then
-			startFly()
-		elseif not _G.Fly and flying then
-			stopFly()
-		end
-	end
-end)
-W:AddToggle({
-	Title = "Tween to Drago Trials",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.TpDrago_Prehis = I;
-	end,
-});
-spawn(function()
-	while wait(Sec) do
-		if _G.TpDrago_Prehis then
-			local I = workspace.Map.PrehistoricIsland:FindFirstChild("TrialTeleport");
-			if I and I:IsA("Part") then
-				_tp(CFrame.new(I.Position));
-			end;
-		end;
-	end;
-end);
-W:AddToggle({
-	Title = "Swap Drago Race",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.BuyDrago = I;
-	end,
-});
-spawn(function()
-	while wait(Sec) do
-		if _G.BuyDrago then
-			pcall(function()
-				if ((CFrame.new(5814.4272460938, 1208.3267822266, 884.57855224609)).Position - Root.Position).Magnitude >= 300 then
-					_tp(CFrame.new(5814.4272460938, 1208.3267822266, 884.57855224609));
-				else
-					_tp(CFrame.new(5814.4272460938, 1208.3267822266, 884.57855224609));
-					local I = { [1] = { NPC = "Dragon Wizard", Command = "DragonRace" } };
-					(replicated.Modules.Net:FindFirstChild("RF/InteractDragonQuest")):InvokeServer(unpack(I));
-				end;
-			end);
-		end;
-	end;
-end);
-W:AddToggle({
-	Title = "Upgrade Dragon Talon With Uzoth",
-	Description = "",
-	Default = false,
-	Callback = function(I)
-		_G.DT_Uzoth = I;
-	end,
-});
-spawn(function()
-	while wait(Sec) do
-		if _G.DT_Uzoth then
-			local I = CFrame.new(5661.89014, 1211.31909, 864.836731, .811413169, -1.36805838e-08, -0.584473014, 4.75227395e-08, 1, 4.25682458e-08, .584473014, -6.23161966e-08, .811413169);
-			_tp(I);
-			if (I.Position - plr.Character.HumanoidRootPart.Position).Magnitude <= 25 then
-				local I = { NPC = "Uzoth", Command = "Upgrade" };
-				replicated.Modules.Net["RF/InteractDragonQuest"]:InvokeServer(I);
-			end;
-		end;
-	end;
-end);
 f:AddSeperator("Volcanic Magnet");
 f:AddToggle({
 	Title = "Auto Craft Volcanic Magnet",
