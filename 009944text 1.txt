@@ -530,72 +530,96 @@ statsSetings = function(I, e)
 	end;
 
 --==================================================
--- FUNÇÃO PRINCIPAL: BRING POR TWEEN (adaptado do vu32)
+-- CONFIG
 --==================================================
-BringEnemy = function(targetEnemy)
-    if not FarmAtivo() or not _B then return end
-    if not targetEnemy or not targetEnemy:FindFirstChild("HumanoidRootPart") then return end
+_G = _G or {}
 
-    local LocalPlayer = game.Players.LocalPlayer
-    local char = LocalPlayer.Character
-    if not char then return end
+_G.BringRange = 235
+_G.MaxBringMobs = 3
 
-    local HRP_Player = char:FindFirstChild("HumanoidRootPart")
-    if not HRP_Player then return end
+local TweenService = game:GetService("TweenService")
 
-    -- Simulation Radius infinito
-    pcall(function()
-        sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge)
-    end)
+local TweenInfoBring = TweenInfo.new(
+    0.45,
+    Enum.EasingStyle.Linear,
+    Enum.EasingDirection.Out
+)
 
-    local targetCFrame = targetEnemy.HumanoidRootPart.CFrame
-    local enemies = workspace.Enemies:GetChildren()
-    local count = 0
-    local maxPull = _G.MaxBringMobs or 3
-    local cooldown = 2 -- segundos de cooldown entre puxadas
-
-    for _, enemy in ipairs(enemies) do
-        if count >= maxPull then break end
-
-        local hum = enemy:FindFirstChild("Humanoid")
-        local root = enemy:FindFirstChild("HumanoidRootPart")
-
-        if hum and root and hum.Health > 0 and enemy.Name == targetEnemy.Name 
-           and not IsRaidMob(enemy) and isnetworkowner(root)
-           and (root.Position - HRP_Player.Position).Magnitude <= 500 then
-
-            -- Desabilita colisão das partes
-            for _, part in ipairs(enemy:GetChildren()) do
-                if part:IsA("BasePart") then
-                    part.CanCollide = false
-                end
-            end
-
-            -- BodyVelocity caso não exista
-            if not root:FindFirstChild("Lock") then
-                local lock = Instance.new("BodyVelocity")
-                lock.Name = "Lock"
-                lock.Parent = root
-                lock.Velocity = Vector3.new(0, 0, 0)
-                lock.MaxForce = Vector3.new(10000, 10000, 10000)
-            end
-
-            -- Para o inimigo
-            hum.WalkSpeed = 0
-
-            -- Tween para puxar
-            local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Linear)
-            local goal = {CFrame = targetCFrame}
-            local tween = TweenService:Create(root, tweenInfo, goal)
-            tween:Play()
-
-            count = count + 1
-        end
+--==================================================
+-- IGNORAR RAID / BOSS
+--==================================================
+local function IsRaidMob(mob)
+    local n = mob.Name:lower()
+    if n:find("raid") or n:find("microchip") then
+        return true
     end
-
-    wait(cooldown)
+    if mob:GetAttribute("IsRaid")
+        or mob:GetAttribute("RaidMob")
+        or mob:GetAttribute("IsBoss") then
+        return true
+    end
+    return false
 end
 
+--==================================================
+-- BRING (SÓ SE O MOB JÁ TIVER TOMADO DANO)
+--==================================================
+local function BringEnemy()
+    local plr = game.Players.LocalPlayer
+    local char = plr.Character
+    if not char then return end
+
+    local HRP = char:FindFirstChild("HumanoidRootPart")
+    if not HRP then return end
+
+    pcall(function()
+        sethiddenproperty(plr, "SimulationRadius", math.huge)
+    end)
+
+    local targetPos = HRP.Position
+    local count = 0
+
+    for _, mob in ipairs(workspace.Enemies:GetChildren()) do
+        if count >= _G.MaxBringMobs then break end
+
+        local hum = mob:FindFirstChild("Humanoid")
+        local root = mob:FindFirstChild("HumanoidRootPart")
+
+        if hum and root
+        and hum.Health > 0
+        and hum.Health < hum.MaxHealth -- 🔥 SÓ QUANDO TÁ MATANDO
+        and not IsRaidMob(mob)
+        and not root:GetAttribute("Tweening") then
+
+            local dist = (root.Position - targetPos).Magnitude
+            if dist <= _G.BringRange then
+                count += 1
+                root:SetAttribute("Tweening", true)
+
+                TweenService:Create(
+                    root,
+                    TweenInfoBring,
+                    {CFrame = CFrame.new(targetPos)}
+                ):Play()
+
+                task.delay(0.5, function()
+                    if root then
+                        root:SetAttribute("Tweening", false)
+                    end
+                end)
+            end
+        end
+    end
+end
+
+--==================================================
+-- LOOP LIMPO
+--==================================================
+task.spawn(function()
+    while task.wait(0.35) do
+        BringEnemy()
+    end
+end)
 Useskills = function(I, e)
 		if I == "Melee" then
 			weaponSc("Melee");
@@ -2198,7 +2222,7 @@ local T=c:AddSection("Setting");
 local j=x:AddSection("Other Farming");
 local MF=mf:AddSection("Fishing");
 local A=t:AddSection("Sea Events");
-local SSS=ss:AddSection("Settings Skill Sea Event");
+local SSS=ss:AddSection("Settings Skills Sea");
 local h=m:AddSection("Race");
 local W=v:AddSection("Drago Dojo");
 local f=S:AddSection("Prehistoric");
@@ -5115,7 +5139,7 @@ spawn(function()
                 if not plr.PlayerGui.Main.Quest.Visible then      
                     TeleportConditional(Root, Q[6], TELEPORT_DISTANCE_THRESHOLD)      
                     if (Root.Position - Q[6].Position).Magnitude <= 50 then      
-                        task.wait(1.9)  
+                        task.wait(1.3)  
                         game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", Q[3], Q[2])      
                     end      
                     return      
