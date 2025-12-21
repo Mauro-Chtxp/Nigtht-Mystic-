@@ -546,10 +546,11 @@ local TweenInfoBring = TweenInfo.new(
 )
 
 --==================================================
--- FUNÇÃO: Verifica se qualquer sistema está ativo
+-- FUNÇÃO: Verifica se QUALQUER FARM / SISTEMA está ativo
 --==================================================
 local function FarmAtivo()
     return (
+        _G.AutoTyrant or
         _G.SailBoat_Hydra or _G.WardenBoss or _G.AutoFactory or _G.HighestMirage or
         _G.HCM or _G.PGB or _G.Leviathan1 or _G.UPGDrago or _G.Complete_Trials or
         _G.TpDrago_Prehis or _G.BuyDrago or _G.AutoFireFlowers or _G.DT_Uzoth or
@@ -659,6 +660,7 @@ task.spawn(function()
             _B = true
             BringEnemy()
             task.wait(3)
+
             _B = false
             task.wait(5)
         else
