@@ -536,7 +536,7 @@ _G = _G or {}
 _B = false
 PosMon = nil
 
-_G.BringRange = 235
+_G.BringRange = 250
 _G.MaxBringMobs = 3 -- LIMITE DE MOBS
 
 local TweenService = game:GetService("TweenService")
@@ -8614,7 +8614,7 @@ W:AddSeperator("Drago Trial");
 
 W:AddToggle({
 	Title = "Auto Draco V1",
-	Description = "turn on for auto quest1 auto prehistoric event + collect dragon eggs",
+	Description = "",
 	Default = false,
 	Callback = function(I)
 		_G.DragoV1 = I;
@@ -8641,7 +8641,7 @@ spawn(function()
 end);
 W:AddToggle({
 	Title = "Auto Draco V2",
-	Description = "turn on for auto kill Forest Pirate & Collect fireflower",
+	Description = "",
 	Default = false,
 	Callback = function(I)
 		_G.AutoFireFlowers = I;
@@ -8681,7 +8681,7 @@ spawn(function()
 end);
 W:AddToggle({
 	Title = "Auto Draco V3",
-	Description = "Kill Terrorshark Or Sea Beast",
+	Description = "",
 	Default = false,
 	Callback = function(I)
 		_G.DragoV3 = I;
@@ -8757,7 +8757,7 @@ spawn(function()
 end);
 W:AddToggle({
 	Title = "Auto Train Race Draco",
-	Description = "turn on for training Drago race v4 + auto upgrade tier",
+	Description = "",
 	Default = false,
 	Callback = function(I)
 		_G.TrainDrago = I;
@@ -8794,7 +8794,7 @@ end);
 f:AddSeperator("Volcanic Magnet");
 f:AddToggle({
 	Title = "Auto Craft Volcanic Magnet",
-	Description = "turn on for auto farm material and craft volcanic magnet & stop when you have 1 volcanic magnet",
+	Description = "",
 	Default = false,
 	Callback = function(I)
 		_G.CraftVM = I;
@@ -8923,7 +8923,7 @@ task.spawn(function()
 end)
 f:AddToggle({
     Title = "Auto Event Prehistoric Island",
-    Description = "Faz a Prehistoric Automaticamente (Otimizado + NoClip)",
+    Description = "",
     -- 1. Carrega o estado salvo
     Default = GetSetting("AutoEventPrehistoric_Save", false),
     Callback = function(I)
@@ -9090,7 +9090,7 @@ end)
 
 f:AddButton({
     Title = "Remove Lava",
-    Description = "Remove toda Lava do mapa instantaneamente",
+    Description = "",
     Callback = function()
         -- Workspace
         for _, v in pairs(game.Workspace:GetDescendants()) do
@@ -9110,7 +9110,7 @@ f:AddButton({
 -- 1. TOGGLE: Dino Bones
 f:AddToggle({
     Title = "Auto Collect Dino Bones",
-    Description = "Coleta ossos (Prioridade Baixa)",
+    Description = "",
     Default = GetSetting("DinoBones_Save", false),
     Callback = function(I)
         _G.Prehis_DB = I
@@ -9122,7 +9122,7 @@ f:AddToggle({
 -- 2. TOGGLE: Dragon Eggs
 f:AddToggle({
     Title = "Auto Collect Dragon Eggs",
-    Description = "Coleta ovos (Prioridade Alta)",
+    Description = "",
     Default = GetSetting("DragonEggs_Save", false),
     Callback = function(I)
         _G.Prehis_DE = I
@@ -9134,7 +9134,7 @@ f:AddToggle({
 -- 3. TOGGLE: Auto Reset
 f:AddToggle({
     Title = "Auto Reset When Complete Volcano",
-    Description = "Reseta APÓS coletar os itens desejados",
+    Description = "",
     Default = GetSetting("ResetVolcano_Save", false),
     Callback = function(I)
         _G.ResetPH = I
