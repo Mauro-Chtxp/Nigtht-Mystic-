@@ -3623,6 +3623,68 @@ VI_S:AddButton({ Title = "Fps Boost", Description = "", Callback = function()
 		LowCpu();
 	end });
 
+VI_S:AddButton({
+    Title = "Destroy Map [Fix Lag]",
+    Description = "",
+    Callback = function()
+
+        local gay = {"Part", "MeshPart", "UnionOperation"}
+        for _, hnccudai in next, workspace:GetDescendants() do
+            if table.find(gay, hnccudai.ClassName) then
+                hnccudai.Material = Enum.Material.Plastic
+            end
+        end
+
+        pcall(function()
+            LowCpu()
+        end)
+
+        local hacnocunigga = game:GetService("Lighting")
+        pcall(function()
+            if hacnocunigga:FindFirstChild("LightingLayers") then
+                hacnocunigga.LightingLayers:Destroy()
+            end
+            if hacnocunigga:FindFirstChild("SeaTerrorCC") then
+                hacnocunigga.SeaTerrorCC:Destroy()
+            end
+            if hacnocunigga:FindFirstChild("FantasySky") then
+                hacnocunigga.FantasySky:Destroy()
+            end
+            if hacnocunigga:FindFirstChildOfClass("Sky") then
+                hacnocunigga:FindFirstChildOfClass("Sky"):Destroy()
+            end
+        end)
+
+        local function bucuanhkhong(obj)
+            if obj:IsA("BasePart") or obj:IsA("Decal") or obj:IsA("Texture") then
+                obj.Transparency = 1
+                if obj:IsA("BasePart") then
+                    obj.CanCollide = false
+                end
+            end
+        end
+
+        for _, hnccudai in next, workspace:GetDescendants() do
+            if hnccudai:IsDescendantOf(workspace:FindFirstChild("Enemies")) then continue end
+            if hnccudai:IsDescendantOf(game:GetService("Players")) then continue end
+            bucuanhkhong(hnccudai)
+        end
+
+        pcall(function()
+            local missnmc = workspace:FindFirstChild("Map")
+            if missnmc then
+                if missnmc:FindFirstChild("WaterBase-Plane") then missnmc["WaterBase-Plane"]:Destroy() end
+                if missnmc:FindFirstChild("Waterfall") then missnmc["Waterfall"]:Destroy() end
+                if missnmc:FindFirstChild("Ocean") then missnmc["Ocean"]:Destroy() end
+                if missnmc:FindFirstChild("Sea") then missnmc["Sea"]:Destroy() end
+            end
+            if workspace:FindFirstChild("WaterVisual") then workspace.WaterVisual:Destroy() end
+            if workspace:FindFirstChild("Water") then workspace.Water:Destroy() end
+        end)
+
+    end
+})
+
 VI_S:AddSeperator("Stats");
 
 -- // AUTO STATS (Adicionado à aba VI_S conforme solicitado) // --
@@ -8840,7 +8902,7 @@ end);
 f:AddSeperator("Prehistoric Island");
 f:AddToggle({
     Title = "Auto Find Prehistoric Island",
-    Description = "Procura a Prehistoric Island Automatic",
+    Description = "",
     -- 1. Carrega se o buscador estava ativado
     Default = GetSetting("PrehistoricFinder_Save", false),
     Callback = function(I)
