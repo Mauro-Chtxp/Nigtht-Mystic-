@@ -535,15 +535,8 @@ _G = _G or {}
 _B = false
 PosMon = nil
 
-_G.BringRange = 250
-_G.MaxBringMobs = 3 -- LIMITE DE MOBS
-
-local TweenService = game:GetService("TweenService")
-local TweenInfoBring = TweenInfo.new(
-    0.45,
-    Enum.EasingStyle.Linear,
-    Enum.EasingDirection.Out
-)
+_G.BringRange = 260
+_G.MaxBringMobs = 6 -- LIMITE DE MOBS
 
 --==================================================
 -- FUNÇÃO: Verifica se QUALQUER FARM / SISTEMA está ativo
@@ -604,10 +597,10 @@ local function IsRaidMob(mob)
 end
 
 --==================================================
--- BRING POR TWEEN
+-- BRING INSTANTÂNEO (SEM TWEEN / SEM DELAY)
 --==================================================
 BringEnemy = function()
-    if not FarmAtivo() or not _B then return end
+    if not FarmAtivo() then return end
 
     local lp = game.Players.LocalPlayer
     local char = lp.Character
@@ -631,40 +624,28 @@ BringEnemy = function()
         local root = mob:FindFirstChild("HumanoidRootPart")
 
         if hum and root and hum.Health > 0 and not IsRaidMob(mob) then
-            if (root.Position - targetPos).Magnitude <= _G.BringRange
-            and not root:GetAttribute("Tweening") then
+            if (root.Position - targetPos).Magnitude <= _G.BringRange then
                 count += 1
-                root:SetAttribute("Tweening", true)
 
-                local tween = TweenService:Create(
-                    root,
-                    TweenInfoBring,
-                    {CFrame = CFrame.new(targetPos)}
+                root.CFrame = CFrame.new(
+                    targetPos + Vector3.new(
+                        math.random(-3,3),
+                        0,
+                        math.random(-3,3)
+                    )
                 )
-
-                tween:Play()
-                tween.Completed:Once(function()
-                    if root then root:SetAttribute("Tweening", false) end
-                end)
             end
         end
     end
 end
 
 --==================================================
--- LOOP CONTROLADOR
+-- LOOP SEM TEMPO MORTO
 --==================================================
 task.spawn(function()
-    while task.wait(1) do
+    while task.wait() do
         if FarmAtivo() then
-            _B = true
             BringEnemy()
-            task.wait(3)
-
-            _B = false
-            task.wait(5)
-        else
-            _B = false
         end
     end
 end)
@@ -11296,125 +11277,3 @@ task.spawn(function()
 		end);
 	end);
 end);
--- FastAttack extraído do seu script (cole isso onde precisar)
-local FastAttackModule = {}
-
--- Dependências (ajuste se já tiver essas variáveis no seu ambiente)
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
-local Player = Players.LocalPlayer
-
-local function SafeWaitForChild(parent, childName)
-    local success, result = pcall(function()
-        return parent:WaitForChild(childName)
-    end)
-    if not success or not result then
-        warn("SafeWaitForChild falhou: " .. tostring(childName))
-    end
-    return result
-end
-
-local Modules = SafeWaitForChild(ReplicatedStorage, "Modules")
-local Net = SafeWaitForChild(Modules, "Net")
-
--- Configs usadas pelo loop externo (podem ser mudadas em runtime)
-local Settings = {
-    AutoClick = true,
-    ClickDelay = 0
-}
-
--- Implementação do FastAttack
-local FastAttack = {
-    Distance = 100,
-    attackMobs = true,
-    attackPlayers = true,
-    Equipped = nil
-}
-
-local RegisterAttack = SafeWaitForChild(Net, "RE/RegisterAttack")
-local RegisterHit = SafeWaitForChild(Net, "RE/RegisterHit")
-
-local function IsAlive(character)
-    return character and character:FindFirstChild("Humanoid") and character.Humanoid.Health > 0
-end
-
--- Procura inimigos (Head) dentro da pasta passada (Enemies ou Characters)
-local function ProcessEnemies(OthersEnemies, Folder)
-    local BasePart = nil
-    for _, Enemy in ipairs(Folder:GetChildren()) do
-        local Head = Enemy:FindFirstChild("Head")
-        if Head and IsAlive(Enemy) and Player:DistanceFromCharacter(Head.Position) < FastAttack.Distance then
-            if Enemy ~= Player.Character then
-                table.insert(OthersEnemies, { Enemy, Head })
-                BasePart = Head
-            end
-        end
-    end
-    return BasePart
-end
-
-function FastAttack:Attack(BasePart, OthersEnemies)
-    if not BasePart or #OthersEnemies == 0 then return end
-    -- envia RegisterAttack com delay configurado e depois RegisterHit com os alvos
-    pcall(function()
-        RegisterAttack:FireServer(Settings.ClickDelay or 0)
-        RegisterHit:FireServer(BasePart, OthersEnemies)
-    end)
-end
-
-function FastAttack:AttackNearest()
-    local OthersEnemies = {}
-    -- assume que as pastas 'Enemies' e 'Characters' existem no workspace
-    local EnemiesFolder = workspace:FindFirstChild("Enemies")
-    local CharactersFolder = workspace:FindFirstChild("Characters")
-    local Part1 = nil
-    local Part2 = nil
-    if EnemiesFolder then Part1 = ProcessEnemies(OthersEnemies, EnemiesFolder) end
-    if CharactersFolder then Part2 = ProcessEnemies(OthersEnemies, CharactersFolder) end
-
-    local character = Player.Character
-    if not character then return end
-    local equippedWeapon = character:FindFirstChildOfClass("Tool")
-
-    -- Se a arma tem LeftClickRemote, usa ela (some armas enviam direção)
-    if equippedWeapon and equippedWeapon:FindFirstChild("LeftClickRemote") then
-        for _, enemyData in ipairs(OthersEnemies) do
-            local enemy = enemyData[1]
-            if enemy and enemy:FindFirstChild("HumanoidRootPart") and character:FindFirstChild("HumanoidRootPart") then
-                local direction = (enemy.HumanoidRootPart.Position - character:GetPivot().Position).Unit
-                pcall(function()
-                    equippedWeapon.LeftClickRemote:FireServer(direction, 1)
-                end)
-            end
-        end
-    elseif #OthersEnemies > 0 then
-        -- fallback: usa RegisterHit
-        self:Attack(Part1 or Part2, OthersEnemies)
-    else
-        task.wait(0)
-    end
-end
-
-function FastAttack:BladeHits()
-    local Equipped = IsAlive(Player.Character) and Player.Character:FindFirstChildOfClass("Tool")
-    if Equipped and Equipped.ToolTip ~= "Gun" then
-        self:AttackNearest()
-    else
-        task.wait(0)
-    end
-end
-
--- loop automático que dispara BladeHits de acordo com Settings
-task.spawn(function()
-    while task.wait(Settings.ClickDelay) do
-        if Settings.AutoClick then
-            FastAttack:BladeHits()
-        end
-    end
-end)
-
--- exporta / cacheia no _ENV como no original
-_ENV.rz_FastAttack = FastAttack
-FastAttackModule.FastAttack = FastAttack
-return FastAttackModule
