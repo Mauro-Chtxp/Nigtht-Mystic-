@@ -112,14 +112,12 @@ repeat
 until I;
 if game.PlaceId == 2753915549 or game.PlaceId == 85211729168715 then
     World1 = true
-
-elseif game.PlaceId == 4442272183 
-    or game.PlaceId == 79091703265657
-    or game.PlaceId == 73902483975735 then
+elseif game.PlaceId == 4442272183 or game.PlaceId == 79091703265657 then
     World2 = true
-
 elseif game.PlaceId == 7449423635 or game.PlaceId == 100117331123089 then
     World3 = true
+elseif game.PlaceId == 73902483975735 then
+    Dungeon = true
 end
 Sea = World1 or World2 or World3 or plr:Kick("\226\157\140 Error : A[12]Blox Fruits \226\157\140");
 Marines = function()
@@ -541,7 +539,7 @@ _B = false
 PosMon = nil
 
 _G.BringRange = 235
-_G.MaxBringMobs = math.huge -- SEM LIMITE (removeu o 3)
+_G.MaxBringMobs = 3 -- LIMITE DE MOBS
 
 local TweenService = game:GetService("TweenService")
 local TweenInfoBring = TweenInfo.new(
@@ -571,24 +569,24 @@ end
 local function IsRaidMob(mob)
     local n = mob.Name:lower()
 
-    if n:find("raid") or n:find("microchip") or n:find("island") then
-        return true
-    end
+    if n:find("raid") or n:find("microchip") or n:find("island") then 
+        return true 
+    end  
 
-    if mob:GetAttribute("IsRaid")
-        or mob:GetAttribute("RaidMob")
-        or mob:GetAttribute("IsBoss") then
-        return true
-    end
+    if mob:GetAttribute("IsRaid") 
+        or mob:GetAttribute("RaidMob") 
+        or mob:GetAttribute("IsBoss") then 
+        return true 
+    end  
 
-    local hum = mob:FindFirstChild("Humanoid")
-    if hum and hum.WalkSpeed == 0 then
-        return true
-    end
+    local hum = mob:FindFirstChild("Humanoid")  
+    if hum and hum.WalkSpeed == 0 then 
+        return true 
+    end  
 
-    if mob.Parent and tostring(mob.Parent):lower():find("_worldorigin") then
-        return true
-    end
+    if mob.Parent and tostring(mob.Parent):lower():find("_worldorigin") then 
+        return true 
+    end  
 
     return false
 end
@@ -614,7 +612,11 @@ BringEnemy = function()
     local targetPos = PosMon or HRP_Player.Position
     local enemies = workspace.Enemies:GetChildren()
 
+    local count = 0
+
     for _, mob in ipairs(enemies) do
+        if count >= _G.MaxBringMobs then break end
+
         local hum = mob:FindFirstChild("Humanoid")
         local root = mob:FindFirstChild("HumanoidRootPart")
 
@@ -622,12 +624,13 @@ BringEnemy = function()
             local dist = (root.Position - targetPos).Magnitude
 
             if dist <= _G.BringRange and not root:GetAttribute("Tweening") then
+                count += 1
                 root:SetAttribute("Tweening", true)
 
                 local tween = TweenService:Create(
                     root,
                     TweenInfoBring,
-                    { CFrame = CFrame.new(targetPos) }
+                    {CFrame = CFrame.new(targetPos)}
                 )
 
                 tween:Play()
@@ -642,15 +645,20 @@ BringEnemy = function()
 end
 
 --==================================================
--- LOOP CONTROLADOR (BRING CONTÍNUO)
+-- LOOP CONTROLADOR (PUXAR / SOLTAR)
 --==================================================
 task.spawn(function()
-    while task.wait(0.2) do
+    while task.wait(1) do
         if FarmAtivo() then
             _B = true
             BringEnemy()
+            task.wait(3)
+
+            _B = false
+            task.wait(5)
         else
             _B = false
+            task.wait(1)
         end
     end
 end)
@@ -8366,42 +8374,9 @@ spawn(function()
 		end);
 	end;
 end);
-h:AddButton({
-    Title = "Teleport to Temple of Time (Force Load)",
-    Description = "",
-    Callback = function()
-        local plr = game.Players.LocalPlayer
-        local char = plr.Character or plr.CharacterAdded:Wait()
-        local hrp = char:WaitForChild("HumanoidRootPart")
-
-        -- Coordenadas do Templo
-        local templePos = Vector3.new(
-            28286.35546875,
-            14895.301757812,
-            102.62469482422
-        )
-
-        -- 1️⃣ Teleporta via servidor
-        replicated.Remotes.CommF_:InvokeServer("requestEntrance", templePos)
-
-        task.wait(0.3)
-
-        -- 2️⃣ Ancora no ar (evita cair no void)
-        hrp.Anchored = true
-
-        -- 3️⃣ Força SimulationRadius (ajuda no streaming)
-        pcall(function()
-            sethiddenproperty(plr, "SimulationRadius", math.huge)
-            sethiddenproperty(plr, "MaxSimulationRadius", math.huge)
-        end)
-
-        -- 4️⃣ Espera o "mapa carregar"
-        task.wait(2)
-
-        -- 5️⃣ Solta o player
-        hrp.Anchored = false
-    end
-})
+h:AddButton({ Title = "Teleport to Temple of Time", Description = "", Callback = function()
+		replicated.Remotes.CommF_:InvokeServer("requestEntrance", Vector3.new(28286.35546875, 14895.301757812, 102.62469482422));
+	end });
 h:AddButton({ Title = "Teleport to Ancient One", Description = "", Callback = function()
 		notween(CFrame.new(28981.552734375, 14888.426757812, -120.24584960938));
 	end });
@@ -11615,3 +11590,125 @@ task.spawn(function()
 		end);
 	end);
 end);
+-- FastAttack extraído do seu script (cole isso onde precisar)
+local FastAttackModule = {}
+
+-- Dependências (ajuste se já tiver essas variáveis no seu ambiente)
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local Player = Players.LocalPlayer
+
+local function SafeWaitForChild(parent, childName)
+    local success, result = pcall(function()
+        return parent:WaitForChild(childName)
+    end)
+    if not success or not result then
+        warn("SafeWaitForChild falhou: " .. tostring(childName))
+    end
+    return result
+end
+
+local Modules = SafeWaitForChild(ReplicatedStorage, "Modules")
+local Net = SafeWaitForChild(Modules, "Net")
+
+-- Configs usadas pelo loop externo (podem ser mudadas em runtime)
+local Settings = {
+    AutoClick = true,
+    ClickDelay = 0
+}
+
+-- Implementação do FastAttack
+local FastAttack = {
+    Distance = 100,
+    attackMobs = true,
+    attackPlayers = true,
+    Equipped = nil
+}
+
+local RegisterAttack = SafeWaitForChild(Net, "RE/RegisterAttack")
+local RegisterHit = SafeWaitForChild(Net, "RE/RegisterHit")
+
+local function IsAlive(character)
+    return character and character:FindFirstChild("Humanoid") and character.Humanoid.Health > 0
+end
+
+-- Procura inimigos (Head) dentro da pasta passada (Enemies ou Characters)
+local function ProcessEnemies(OthersEnemies, Folder)
+    local BasePart = nil
+    for _, Enemy in ipairs(Folder:GetChildren()) do
+        local Head = Enemy:FindFirstChild("Head")
+        if Head and IsAlive(Enemy) and Player:DistanceFromCharacter(Head.Position) < FastAttack.Distance then
+            if Enemy ~= Player.Character then
+                table.insert(OthersEnemies, { Enemy, Head })
+                BasePart = Head
+            end
+        end
+    end
+    return BasePart
+end
+
+function FastAttack:Attack(BasePart, OthersEnemies)
+    if not BasePart or #OthersEnemies == 0 then return end
+    -- envia RegisterAttack com delay configurado e depois RegisterHit com os alvos
+    pcall(function()
+        RegisterAttack:FireServer(Settings.ClickDelay or 0)
+        RegisterHit:FireServer(BasePart, OthersEnemies)
+    end)
+end
+
+function FastAttack:AttackNearest()
+    local OthersEnemies = {}
+    -- assume que as pastas 'Enemies' e 'Characters' existem no workspace
+    local EnemiesFolder = workspace:FindFirstChild("Enemies")
+    local CharactersFolder = workspace:FindFirstChild("Characters")
+    local Part1 = nil
+    local Part2 = nil
+    if EnemiesFolder then Part1 = ProcessEnemies(OthersEnemies, EnemiesFolder) end
+    if CharactersFolder then Part2 = ProcessEnemies(OthersEnemies, CharactersFolder) end
+
+    local character = Player.Character
+    if not character then return end
+    local equippedWeapon = character:FindFirstChildOfClass("Tool")
+
+    -- Se a arma tem LeftClickRemote, usa ela (some armas enviam direção)
+    if equippedWeapon and equippedWeapon:FindFirstChild("LeftClickRemote") then
+        for _, enemyData in ipairs(OthersEnemies) do
+            local enemy = enemyData[1]
+            if enemy and enemy:FindFirstChild("HumanoidRootPart") and character:FindFirstChild("HumanoidRootPart") then
+                local direction = (enemy.HumanoidRootPart.Position - character:GetPivot().Position).Unit
+                pcall(function()
+                    equippedWeapon.LeftClickRemote:FireServer(direction, 1)
+                end)
+            end
+        end
+    elseif #OthersEnemies > 0 then
+        -- fallback: usa RegisterHit
+        self:Attack(Part1 or Part2, OthersEnemies)
+    else
+        task.wait(0)
+    end
+end
+
+function FastAttack:BladeHits()
+    local Equipped = IsAlive(Player.Character) and Player.Character:FindFirstChildOfClass("Tool")
+    if Equipped and Equipped.ToolTip ~= "Gun" then
+        self:AttackNearest()
+    else
+        task.wait(0)
+    end
+end
+
+-- loop automático que dispara BladeHits de acordo com Settings
+task.spawn(function()
+    while task.wait(Settings.ClickDelay) do
+        if Settings.AutoClick then
+            FastAttack:BladeHits()
+        end
+    end
+end)
+
+-- exporta / cacheia no _ENV como no original
+_ENV.rz_FastAttack = FastAttack
+FastAttackModule.FastAttack = FastAttack
+return FastAttackModule
