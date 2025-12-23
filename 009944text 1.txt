@@ -110,14 +110,24 @@ repeat
 	local I = (plr.PlayerGui:WaitForChild("Main")):WaitForChild("Loading") and game:IsLoaded();
 	wait();
 until I;
-if game.PlaceId == 2753915549 or game.PlaceId == 85211729168715 then
+local MarketplaceService = game:GetService("MarketplaceService")
+
+local placeId = game.PlaceId
+local placeName = MarketplaceService:GetProductInfo(placeId).Name
+
+World1, World2, World3, Dungeons = false, false, false, false
+
+if placeId == 2753915549 or placeId == 85211729168715 then
     World1 = true
-elseif game.PlaceId == 4442272183 or game.PlaceId == 79091703265657 then
+
+elseif placeId == 4442272183 or placeId == 79091703265657 then
     World2 = true
-elseif game.PlaceId == 7449423635 or game.PlaceId == 100117331123089 then
+
+elseif placeId == 7449423635 or placeId == 100117331123089 then
     World3 = true
-elseif game.PlaceId == 73902483975735 then
-    Dungeon = true
+
+elseif placeId == 7390248397535 and placeName == "Blox Fruits | Dungeons" then
+    Dungeons = true
 end
 Sea = World1 or World2 or World3 or plr:Kick("\226\157\140 Error : A[12]Blox Fruits \226\157\140");
 Marines = function()
