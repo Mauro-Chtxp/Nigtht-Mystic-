@@ -8372,28 +8372,42 @@ spawn(function()
 		end);
 	end;
 end);
-h:AddButton({ 
-    Title = "Teleport to Temple of Time", 
-    Description = "Teleporta e força o carregamento do mapa", 
+h:AddButton({
+    Title = "Teleport to Temple of Time (Force Load)",
+    Description = "",
     Callback = function()
-        local player = game.Players.LocalPlayer
-        local targetPos = Vector3.new(28286.35546875, 14895.301757812, 102.62469482422)
-        
-        -- 1. Força o motor do jogo a focar no carregamento dessa área
-        player:RequestStreamAroundAsync(targetPos)
-        
-        -- 2. Executa o teleporte via Remote
-        replicated.Remotes.CommF_:InvokeServer("requestEntrance", targetPos)
-        
-        -- 3. Pequena espera e verificação de segurança
-        task.wait(0.5)
-        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            -- Garante que o personagem não caia no vazio se o chão demorar 1s a mais
-            player.Character.HumanoidRootPart.Velocity = Vector3.new(0, 0, 0)
-        end
-    end 
-})
+        local plr = game.Players.LocalPlayer
+        local char = plr.Character or plr.CharacterAdded:Wait()
+        local hrp = char:WaitForChild("HumanoidRootPart")
 
+        -- Coordenadas do Templo
+        local templePos = Vector3.new(
+            28286.35546875,
+            14895.301757812,
+            102.62469482422
+        )
+
+        -- 1️⃣ Teleporta via servidor
+        replicated.Remotes.CommF_:InvokeServer("requestEntrance", templePos)
+
+        task.wait(0.3)
+
+        -- 2️⃣ Ancora no ar (evita cair no void)
+        hrp.Anchored = true
+
+        -- 3️⃣ Força SimulationRadius (ajuda no streaming)
+        pcall(function()
+            sethiddenproperty(plr, "SimulationRadius", math.huge)
+            sethiddenproperty(plr, "MaxSimulationRadius", math.huge)
+        end)
+
+        -- 4️⃣ Espera o "mapa carregar"
+        task.wait(2)
+
+        -- 5️⃣ Solta o player
+        hrp.Anchored = false
+    end
+})
 h:AddButton({ Title = "Teleport to Ancient One", Description = "", Callback = function()
 		notween(CFrame.new(28981.552734375, 14888.426757812, -120.24584960938));
 	end });
