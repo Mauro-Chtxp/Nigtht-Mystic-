@@ -112,8 +112,12 @@ repeat
 until I;
 if game.PlaceId == 2753915549 or game.PlaceId == 85211729168715 then
     World1 = true
-elseif game.PlaceId == 4442272183 or game.PlaceId == 79091703265657 then
+
+elseif game.PlaceId == 4442272183 
+    or game.PlaceId == 79091703265657
+    or game.PlaceId == 73902483975735 then
     World2 = true
+
 elseif game.PlaceId == 7449423635 or game.PlaceId == 100117331123089 then
     World3 = true
 end
