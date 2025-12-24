@@ -119,7 +119,9 @@ elseif game.PlaceId == 7449423635 or game.PlaceId == 100117331123089 then
 elseif game.PlaceId == 73902483975735 then
     Dungeon = true
 end
-Sea = World1 or World2 or World3 or plr:Kick("\226\157\140 Error : A[12]Blox Fruits \226\157\140");
+
+Sea = World1 or World2 or World3 or Dungeon
+    or plr:Kick("\226\157\140 Error : A[12]Blox Fruits \226\157\140");
 Marines = function()
 		replicated.Remotes.CommF_:InvokeServer("SetTeam", "Marines");
 	end;
