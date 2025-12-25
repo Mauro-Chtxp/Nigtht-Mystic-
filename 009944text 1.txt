@@ -116,19 +116,15 @@ elseif game.PlaceId == 4442272183 or game.PlaceId == 79091703265657 then
     World2 = true
 elseif game.PlaceId == 7449423635 or game.PlaceId == 100117331123089 then
     World3 = true
-elseif game.PlaceId == 73902483975735 then
-    Dungeon = true
 end
-
-Sea = World1 or World2 or World3 or Dungeon
-    or plr:Kick("\226\157\140 Error : A[12]Blox Fruits \226\157\140");
+Sea = World1 or World2 or World3 or plr:Kick("\226\157\140 Error : A[12]Blox Fruits \226\157\140");
 Marines = function()
 		replicated.Remotes.CommF_:InvokeServer("SetTeam", "Marines");
 	end;
 Pirates = function()
 		replicated.Remotes.CommF_:InvokeServer("SetTeam", "Pirates");
 	end;
-local I = (loadstring(game:HttpGet("https://raw.githubusercontent.com/Dev-NightMystic/Night-Mystic-/refs/heads/main/Ui%20Night%20Mystic")))();
+local I = (loadstring(game:HttpGet("https://pastefy.app/C5SnG36Q/raw")))();
 if World1 then
 	Boss = {
 			"The Gorilla King",
@@ -321,13 +317,11 @@ gay = (function()
 
     -- NÃO remover DarkFog
 
-local WorldOrigin = workspace:FindFirstChild("_WorldOrigin")
-if WorldOrigin then
-    local K = WorldOrigin:FindFirstChild("Foam;")
-    if K then
-        K:Destroy()
-    end
-end
+    local K = workspace._WorldOrigin["Foam;"];
+    if K and workspace._WorldOrigin["Foam;"] then
+        K:Destroy();
+    end;
+end)();
 
 local G = {};
 G.__index = G;
@@ -5925,7 +5919,91 @@ T:AddInput({
             _G.BringRange = num
         end
     end
+}}
+
+
+j:AddSeperator("Christmas")
+
+-- 1. VARIÁVEIS DE CONTROLE
+local CurrentMob = nil
+_G.AutoFarmNear = GetSetting("AutoFarmNear_Save", false) -- Carrega o estado inicial
+
+-- 2. FUNÇÃO PARA BUSCAR O MOB MAIS PRÓXIMO
+local function GetNearestMob(TargetName)
+    local plr = game.Players.LocalPlayer
+    local Root = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+    if not Root then return nil end
+    
+    local Closest, Dist = nil, math.huge
+    for _, Mob in pairs(workspace.Enemies:GetChildren()) do
+        -- Verifica se o mob está vivo, se o nome coincide e se tem corpo
+        if G.Alive(Mob) and Mob.Name == TargetName and Mob:FindFirstChild("HumanoidRootPart") then
+            local d = (Mob.HumanoidRootPart.Position - Root.Position).Magnitude
+            if d < Dist then 
+                Dist = d 
+                Closest = Mob 
+            end
+        end
+    end
+    return Closest
+end
+
+-- 3. O TOGGLE (Coloque isso dentro da sua b:AddToggle)
+b:AddToggle({
+    Title = "Auto Farm Candy",
+    Description = "",
+    Default = _G.AutoFarmNear,
+    Callback = function(Value)
+        _G.AutoFarmNear = Value
+        -- Salva as configurações
+        if _G.SaveData then
+            _G.SaveData["AutoFarmNear_Save"] = Value
+            SaveSettings()
+        end
+    end,
 })
+
+-- 4. O SISTEMA DE FARM (LOOP)
+spawn(function()
+    while task.wait() do
+        if _G.AutoFarmNear then
+            pcall(function()
+                local plr = game.Players.LocalPlayer
+                local Root = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+                if not Root then return end
+
+                -- Pega as informações do Mob baseado no seu level atual
+                local Q = QuestNeta() -- Q[1] = Nome do Mob, Q[4] = Posição de Spawn
+                
+                -- Busca o mob mais próximo com o nome correto
+                local Nearest = GetNearestMob(Q[1])
+
+                if Nearest then
+                    -- Se achou o mob, teleporta e mata
+                    CurrentMob = Nearest
+                    
+                    -- Teleporte para cima do mob (evita bugar no chão)
+                    if CurrentMob:FindFirstChild("HumanoidRootPart") then
+                        _tp(CurrentMob.HumanoidRootPart.CFrame * CFrame.new(0, 10, 0))
+                    end
+
+                    -- Loop de ataque até o mob morrer ou o toggle desligar
+                    repeat 
+                        task.wait()
+                        if CurrentMob and CurrentMob:FindFirstChild("Humanoid") then
+                            G.Kill(CurrentMob, true) -- Executa a função de ataque
+                        end
+                    until not _G.AutoFarmNear or not CurrentMob.Parent or not G.Alive(CurrentMob)
+                    
+                    CurrentMob = nil
+                else
+                    -- Se não achou nenhum mob vivo, vai para a área de spawn deles
+                    TeleportConditional(Root, Q[4], TELEPORT_DISTANCE_THRESHOLD)
+                end
+            end)
+        end
+    end
+end)
 
 -- =========================================
 --      AUTO FARM BOSS (DIRECT & UPRIGHT)
