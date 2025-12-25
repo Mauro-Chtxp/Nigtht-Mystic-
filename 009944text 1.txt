@@ -5923,9 +5923,9 @@ T:AddInput({
 
 j:AddSeperator("Christmas")
 
--- [[ TOGGLE PARA O FARM DE ELFOS ]]
-j:AddToggle({
-    Title = "Auto Farm Elf (DisplayName Fix)",
+-- [[ TOGGLE PARA O FARM DE ELFOS PRÓXIMOS ]]
+SSS:AddToggle({
+    Title = "Auto Farm Candy",
     Default = _G.FarmElfLevelOnly or false,
     Callback = function(I)
         _G.FarmElfLevelOnly = I
@@ -5934,24 +5934,23 @@ j:AddToggle({
     end
 })
 
--- [[ FUNÇÃO DE BUSCA POR DISPLAY NAME OU NAME ]]
-local function GetNearestElf()
+-- [[ FUNÇÃO DE BUSCA COM LIMITE DE DISTÂNCIA ]]
+local function GetNearestElf(MaxDistance)
     local plr = game.Players.LocalPlayer
     local Root = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
     if not Root then return nil end
     
-    local Closest, Dist = nil, math.huge
+    local Closest, Dist = nil, MaxDistance or 1500 -- 1500 é um bom tamanho de ilha
     
     for _, Mob in pairs(workspace.Enemies:GetChildren()) do
         if G.Alive(Mob) and Mob:FindFirstChild("HumanoidRootPart") then
-            -- 1. Verifica o Nome do Objeto
             local InternalName = string.lower(Mob.Name)
-            -- 2. Verifica o DisplayName do Humanoid (o nome que aparece na cabeça)
             local DisplayName = Mob:FindFirstChild("Humanoid") and string.lower(Mob.Humanoid.DisplayName) or ""
             
-            -- Se "elf" estiver no nome interno OU no nome de exibição
+            -- Verifica se é um Elfo
             if string.find(InternalName, "elf") or string.find(DisplayName, "elf") then
                 local d = (Mob.HumanoidRootPart.Position - Root.Position).Magnitude
+                -- Só aceita se estiver dentro da distância máxima definida
                 if d < Dist then 
                     Dist = d 
                     Closest = Mob 
@@ -5971,24 +5970,22 @@ spawn(function()
                 local Root = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
                 if not Root then return end
 
-                -- Localização do Level para viagem automática
                 local Q = QuestNeta() 
                 
-                -- Procura por qualquer mob que tenha "Elf" no DisplayName
-                local TargetElf = GetNearestElf()
+                -- Busca Elfos num raio de 1000 studs (tamanho médio de uma ilha grande)
+                -- Se ele sair da ilha, diminua esse número para 500 ou 800
+                local TargetElf = GetNearestElf(1000)
 
                 if TargetElf then
                     repeat 
                         task.wait()
                         if TargetElf and TargetElf:FindFirstChild("HumanoidRootPart") then
-                            -- Teleporta e ataca
                             _tp(TargetElf.HumanoidRootPart.CFrame * CFrame.new(0, 10, 0))
                             G.Kill(TargetElf, true)
                         end
-                    -- Para se o mob morrer, sumir ou desligar o toggle
                     until not _G.FarmElfLevelOnly or not TargetElf.Parent or TargetElf.Humanoid.Health <= 0
                 else
-                    -- Se não houver Elfos por perto, viaja para a área do level
+                    -- Se não houver Elfos NA ILHA, ele volta/fica na posição do level
                     TeleportConditional(Root, Q[4], TELEPORT_DISTANCE_THRESHOLD)
                 end
             end)
