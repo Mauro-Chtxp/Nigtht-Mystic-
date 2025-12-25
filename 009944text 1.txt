@@ -550,7 +550,9 @@ local TweenInfoBring = TweenInfo.new(
 -- FUNÇÃO: Verifica se qualquer tipo de farm está ativo
 --==================================================
 local function FarmAtivo()
-    return _G.StartFarm and (
+    return (
+        _G.StartFarm or _G.StartFarm_NoQuest
+    ) and (
         _G.Level or
         _G.AutoFarm_Bone or
         _G.AutoFarm_Cake or
