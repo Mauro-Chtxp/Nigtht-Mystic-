@@ -5930,7 +5930,7 @@ T:AddInput({
 
 j:AddSeperator("Christmas")
 
--- [[ TOGGLE PARA FARM COM PRIORIDADE EM ELFO ]]
+-- [[ TOGGLE PARA FARM COM FOCO NA ILHA DO LEVEL ]]
 j:AddToggle({
     Title = "Auto Farm Candy",
     Default = _G.FarmPriorityElf or false,
@@ -5941,42 +5941,44 @@ j:AddToggle({
     end
 })
 
--- [[ FUNÇÃO DE BUSCA COM PRIORIDADE ]]
-local function GetPriorityTarget(MaxDistance)
+-- [[ FUNÇÃO DE BUSCA FOCO NA ILHA (Q[4]) ]]
+local function GetIslandTarget(LevelMobName, IslandPosition, MaxRadius)
     local plr = game.Players.LocalPlayer
     local Root = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
-    if not Root then return nil end
+    if not Root or not IslandPosition then return nil end
     
-    local BestElf, BestNormal = nil, nil
-    local DistElf, DistNormal = MaxDistance or 1000, MaxDistance or 1000
+    local BestElf, BestLevelMob = nil, nil
+    local DistElf, DistLevel = math.huge, math.huge
     
     for _, Mob in pairs(workspace.Enemies:GetChildren()) do
         if G.Alive(Mob) and Mob:FindFirstChild("HumanoidRootPart") then
-            local d = (Mob.HumanoidRootPart.Position - Root.Position).Magnitude
+            -- Calcula a distância do MOB até o CENTRO DA ILHA (Q[4])
+            -- Isso impede que ele pegue mobs de outras ilhas no caminho
+            local distanceToIsland = (Mob.HumanoidRootPart.Position - IslandPosition.Position).Magnitude
             
-            if d < (MaxDistance or 1000) then
+            if distanceToIsland < (MaxRadius or 800) then
                 local InternalName = string.lower(Mob.Name)
                 local DisplayName = Mob:FindFirstChild("Humanoid") and string.lower(Mob.Humanoid.DisplayName) or ""
                 
-                -- Se for um ELFO (Prioridade Máxima)
+                -- PRIORIDADE 1: Qualquer um com "Elf" na ilha
                 if string.find(InternalName, "elf") or string.find(DisplayName, "elf") then
-                    if d < DistElf then
-                        DistElf = d
+                    if distanceToIsland < DistElf then
+                        DistElf = distanceToIsland
                         BestElf = Mob
                     end
-                -- Se for um MOB NORMAL
-                else
-                    if d < DistNormal then
-                        DistNormal = d
-                        BestNormal = Mob
+                -- PRIORIDADE 2: O mob específico do seu level
+                elseif Mob.Name == LevelMobName then
+                    if distanceToIsland < DistLevel then
+                        DistLevel = distanceToIsland
+                        BestLevelMob = Mob
                     end
                 end
             end
         end
     end
     
-    -- Retorna o Elfo se existir, se não, retorna o mob normal
-    return BestElf or BestNormal
+    -- Retorna Elfo primeiro, se não houver, retorna o mob do level
+    return BestElf or BestLevelMob
 end
 
 -- [[ LOOP DE EXECUÇÃO ]]
@@ -5988,24 +5990,21 @@ spawn(function()
                 local Root = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
                 if not Root then return end
 
-                local Q = QuestNeta() 
+                local Q = QuestNeta() -- Q[1] Nome, Q[4] Posição da Ilha
                 
-                -- Busca o alvo priorizando Elfos
-                local Target = GetPriorityTarget(1000)
+                -- Procura alvo APENAS num raio de 800 studs ao redor da área do level
+                local Target = GetIslandTarget(Q[1], Q[4], 800)
 
                 if Target then
                     repeat 
                         task.wait()
-                        -- VERIFICAÇÃO DE INTERRUPÇÃO:
-                        -- Se o alvo atual NÃO for um elfo, mas um elfo spawnar por perto, quebra o loop para trocar de alvo
-                        local CheckElf = GetPriorityTarget(1000)
-                        if CheckElf and CheckElf ~= Target then
-                            local isNewElf = string.find(string.lower(CheckElf.Name), "elf") or (CheckElf:FindFirstChild("Humanoid") and string.find(string.lower(CheckElf.Humanoid.DisplayName), "elf"))
+                        -- Checa se um Elfo nasceu na ilha enquanto mata o mob do level
+                        local QuickCheck = GetIslandTarget(Q[1], Q[4], 800)
+                        if QuickCheck and QuickCheck ~= Target then
+                            local isNewElf = string.find(string.lower(QuickCheck.Name), "elf") or (QuickCheck:FindFirstChild("Humanoid") and string.find(string.lower(QuickCheck.Humanoid.DisplayName), "elf"))
                             local isCurrentElf = string.find(string.lower(Target.Name), "elf") or (Target:FindFirstChild("Humanoid") and string.find(string.lower(Target.Humanoid.DisplayName), "elf"))
                             
-                            if isNewElf and not isCurrentElf then
-                                break -- Abandona o mob normal para pegar o elfo
-                            end
+                            if isNewElf and not isCurrentElf then break end
                         end
 
                         if Target and Target:FindFirstChild("HumanoidRootPart") then
@@ -6014,7 +6013,7 @@ spawn(function()
                         end
                     until not _G.FarmPriorityElf or not Target.Parent or Target.Humanoid.Health <= 0
                 else
-                    -- Se não houver nada perto, vai para o spawn do level
+                    -- Se não encontrar os mobs específicos DA ILHA, ele voa para lá
                     TeleportConditional(Root, Q[4], TELEPORT_DISTANCE_THRESHOLD)
                 end
             end)
