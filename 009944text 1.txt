@@ -5924,7 +5924,7 @@ T:AddInput({
 j:AddSeperator("Christmas")
 
 -- [[ TOGGLE PARA O FARM DE ELFOS PRÓXIMOS ]]
-SSS:AddToggle({
+j:AddToggle({
     Title = "Auto Farm Candy",
     Default = _G.FarmElfLevelOnly or false,
     Callback = function(I)
