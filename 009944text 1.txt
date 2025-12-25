@@ -5932,7 +5932,7 @@ j:AddSeperator("Christmas")
 
 -- [[ TOGGLE PARA O FARM ]]
 j:AddToggle({
-    Title = "Auto Farm Elf (Island & Travel)",
+    Title = "Auto Farm Candy",
     Default = _G.FarmElfLevelCustom or false,
     Callback = function(I)
         _G.FarmElfLevelCustom = I
@@ -5941,44 +5941,46 @@ j:AddToggle({
     end
 })
 
--- [[ FUNÇÃO DE BUSCA NA ILHA USANDO SEU PADRÃO ]]
-local function GetIslandTarget(LevelMobName, IslandPosition, MaxRadius)
+-- [[ FUNÇÃO DE BUSCA NA ILHA (BUSCA TODOS OS MOBS DA ÁREA) ]]
+local function GetAllIslandTargets(IslandPosition, MaxRadius)
     local plr = game.Players.LocalPlayer
     local char = plr.Character
     if not char or not char:FindFirstChild("HumanoidRootPart") or not IslandPosition then return nil end
     
-    local BestElf, BestLevelMob = nil, nil
-    local DistElf, DistLevel = math.huge, math.huge
+    local BestElf, BestAnyMob = nil, nil
+    local DistElf, DistAny = math.huge, math.huge
     
     for _, Mob in pairs(workspace.Enemies:GetChildren()) do
         if G.Alive(Mob) and Mob:FindFirstChild("HumanoidRootPart") then
-            -- Calcula distância do mob até o ponto central da quest/ilha
+            -- Calcula distância do mob até o ponto central da quest/ilha (Q[4])
             local distanceToIsland = (Mob.HumanoidRootPart.Position - IslandPosition.Position).Magnitude
             
+            -- Só considera mobs que pertencem à ilha do seu level
             if distanceToIsland < (MaxRadius or 800) then
                 local InternalName = string.lower(Mob.Name)
                 local DisplayName = Mob:FindFirstChild("Humanoid") and string.lower(Mob.Humanoid.DisplayName) or ""
                 
-                -- PRIORIDADE 1: Elfos
+                -- PRIORIDADE 1: Elfos (Qualquer um com "Elf" no nome)
                 if string.find(InternalName, "elf") or string.find(DisplayName, "elf") then
                     if distanceToIsland < DistElf then
                         DistElf = distanceToIsland
                         BestElf = Mob
                     end
-                -- PRIORIDADE 2: Mob do Nível
-                elseif Mob.Name == LevelMobName then
-                    if distanceToIsland < DistLevel then
-                        DistLevel = distanceToIsland
-                        BestLevelMob = Mob
+                -- PRIORIDADE 2: Qualquer outro mob que esteja na ilha do seu level
+                else
+                    if distanceToIsland < DistAny then
+                        DistAny = distanceToIsland
+                        BestAnyMob = Mob
                     end
                 end
             end
         end
     end
-    return BestElf or BestLevelMob
+    -- Retorna o Elfo primeiro; se não houver, retorna qualquer mob da ilha
+    return BestElf or BestAnyMob
 end
 
--- [[ LOOP PRINCIPAL INTEGRADO ]]
+-- [[ LOOP PRINCIPAL ]]
 spawn(function()
     while task.wait() do
         if _G.FarmElfLevelCustom then
@@ -5988,38 +5990,32 @@ spawn(function()
                 local hrp = char and char:FindFirstChild("HumanoidRootPart")
                 if not hrp then return end
 
-                -- Pega dados do seu sistema de Quest
                 local Q = QuestNeta() 
-                local TargetMobName = Q[1] -- Nome do mob do level
-                local IslandPos = Q[4]    -- CFrame da posição de farm/quest
+                local IslandPos = Q[4] -- CFrame da posição de farm da ilha
                 
                 -- === LÓGICA DE VIAGEM (SUBMARINE) ===
-                -- Se estiver a mais de 10k studs, usa seu _tp para ir ao NPC
                 if (IslandPos.Position - hrp.Position).Magnitude > 10000 then
                     local SubmarineNPC = CFrame.new(-16269.7041, 25.2288494, 1373.65955)
-                    
-                    -- Se já estiver perto do NPC, interage
                     if (hrp.Position - SubmarineNPC.Position).Magnitude < 15 then
                         local args = {"TravelToSubmergedIsland"}
                         game:GetService("ReplicatedStorage").Modules.Net:FindFirstChild("RF/SubmarineWorkerSpeak"):InvokeServer(unpack(args))
                         task.wait(2)
                     else
-                        -- Usa o SEU teleporte para ir ao NPC
                         _tp(SubmarineNPC)
                     end
                     return 
                 end
 
-                -- === LÓGICA DE ATAQUE NA ILHA ===
-                local Target = GetIslandTarget(TargetMobName, IslandPos, 800)
+                -- === LÓGICA DE ATAQUE ===
+                -- Agora busca qualquer mob próximo à posição Q[4]
+                local Target = GetAllIslandTargets(IslandPos, 800)
 
                 if Target then
-                    -- Se achou alvo, ataca
                     repeat 
                         task.wait()
                         
-                        -- Verificação de interrupção (se spawnar Elfo enquanto mata mob comum)
-                        local QuickCheck = GetIslandTarget(TargetMobName, IslandPos, 800)
+                        -- Verificação de interrupção: Se um Elfo spawnar na ilha, larga o mob atual
+                        local QuickCheck = GetAllIslandTargets(IslandPos, 800)
                         if QuickCheck and QuickCheck ~= Target then
                             local isNewElf = string.find(string.lower(QuickCheck.Name), "elf") or (QuickCheck:FindFirstChild("Humanoid") and string.find(string.lower(QuickCheck.Humanoid.DisplayName), "elf"))
                             local isCurrentElf = string.find(string.lower(Target.Name), "elf") or (Target:FindFirstChild("Humanoid") and string.find(string.lower(Target.Humanoid.DisplayName), "elf"))
@@ -6028,14 +6024,14 @@ spawn(function()
                         end
 
                         if Target and Target:FindFirstChild("HumanoidRootPart") then
-                            -- Usa seu _tp para ir até o mob (com a altura do seu Tyrant)
+                            -- Usa seu _tp com a altura de segurança (45)
                             _tp(Target.HumanoidRootPart.CFrame * CFrame.new(0, 45, 0))
                             EquipWeapon(_G.SelectWeapon)
                             G.Kill(Target, true)
                         end
                     until not _G.FarmElfLevelCustom or not Target.Parent or Target.Humanoid.Health <= 0
                 else
-                    -- Se não houver mobs vivos na ilha, vai para o ponto de spawn deles
+                    -- Se a ilha estiver vazia, fica no ponto de spawn da quest
                     _tp(IslandPos)
                 end
             end)
