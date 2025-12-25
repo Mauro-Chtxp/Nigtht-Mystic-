@@ -5923,48 +5923,59 @@ T:AddInput({
 
 j:AddSeperator("Christmas")
 
--- [[ TOGGLE PARA O FARM DE ELFOS PRÓXIMOS ]]
+-- [[ TOGGLE PARA FARM COM PRIORIDADE EM ELFO ]]
 j:AddToggle({
     Title = "Auto Farm Candy",
-    Default = _G.FarmElfLevelOnly or false,
+    Default = _G.FarmPriorityElf or false,
     Callback = function(I)
-        _G.FarmElfLevelOnly = I
-        _G.SaveData["FarmElfLevelOnly"] = I
+        _G.FarmPriorityElf = I
+        _G.SaveData["FarmPriorityElf"] = I
         SaveSettings()
     end
 })
 
--- [[ FUNÇÃO DE BUSCA COM LIMITE DE DISTÂNCIA ]]
-local function GetNearestElf(MaxDistance)
+-- [[ FUNÇÃO DE BUSCA COM PRIORIDADE ]]
+local function GetPriorityTarget(MaxDistance)
     local plr = game.Players.LocalPlayer
     local Root = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
     if not Root then return nil end
     
-    local Closest, Dist = nil, MaxDistance or 1500 -- 1500 é um bom tamanho de ilha
+    local BestElf, BestNormal = nil, nil
+    local DistElf, DistNormal = MaxDistance or 1000, MaxDistance or 1000
     
     for _, Mob in pairs(workspace.Enemies:GetChildren()) do
         if G.Alive(Mob) and Mob:FindFirstChild("HumanoidRootPart") then
-            local InternalName = string.lower(Mob.Name)
-            local DisplayName = Mob:FindFirstChild("Humanoid") and string.lower(Mob.Humanoid.DisplayName) or ""
+            local d = (Mob.HumanoidRootPart.Position - Root.Position).Magnitude
             
-            -- Verifica se é um Elfo
-            if string.find(InternalName, "elf") or string.find(DisplayName, "elf") then
-                local d = (Mob.HumanoidRootPart.Position - Root.Position).Magnitude
-                -- Só aceita se estiver dentro da distância máxima definida
-                if d < Dist then 
-                    Dist = d 
-                    Closest = Mob 
+            if d < (MaxDistance or 1000) then
+                local InternalName = string.lower(Mob.Name)
+                local DisplayName = Mob:FindFirstChild("Humanoid") and string.lower(Mob.Humanoid.DisplayName) or ""
+                
+                -- Se for um ELFO (Prioridade Máxima)
+                if string.find(InternalName, "elf") or string.find(DisplayName, "elf") then
+                    if d < DistElf then
+                        DistElf = d
+                        BestElf = Mob
+                    end
+                -- Se for um MOB NORMAL
+                else
+                    if d < DistNormal then
+                        DistNormal = d
+                        BestNormal = Mob
+                    end
                 end
             end
         end
     end
-    return Closest
+    
+    -- Retorna o Elfo se existir, se não, retorna o mob normal
+    return BestElf or BestNormal
 end
 
 -- [[ LOOP DE EXECUÇÃO ]]
 spawn(function()
     while task.wait() do
-        if _G.FarmElfLevelOnly then
+        if _G.FarmPriorityElf then
             pcall(function()
                 local plr = game.Players.LocalPlayer
                 local Root = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
@@ -5972,26 +5983,38 @@ spawn(function()
 
                 local Q = QuestNeta() 
                 
-                -- Busca Elfos num raio de 1000 studs (tamanho médio de uma ilha grande)
-                -- Se ele sair da ilha, diminua esse número para 500 ou 800
-                local TargetElf = GetNearestElf(1000)
+                -- Busca o alvo priorizando Elfos
+                local Target = GetPriorityTarget(1000)
 
-                if TargetElf then
+                if Target then
                     repeat 
                         task.wait()
-                        if TargetElf and TargetElf:FindFirstChild("HumanoidRootPart") then
-                            _tp(TargetElf.HumanoidRootPart.CFrame * CFrame.new(0, 10, 0))
-                            G.Kill(TargetElf, true)
+                        -- VERIFICAÇÃO DE INTERRUPÇÃO:
+                        -- Se o alvo atual NÃO for um elfo, mas um elfo spawnar por perto, quebra o loop para trocar de alvo
+                        local CheckElf = GetPriorityTarget(1000)
+                        if CheckElf and CheckElf ~= Target then
+                            local isNewElf = string.find(string.lower(CheckElf.Name), "elf") or (CheckElf:FindFirstChild("Humanoid") and string.find(string.lower(CheckElf.Humanoid.DisplayName), "elf"))
+                            local isCurrentElf = string.find(string.lower(Target.Name), "elf") or (Target:FindFirstChild("Humanoid") and string.find(string.lower(Target.Humanoid.DisplayName), "elf"))
+                            
+                            if isNewElf and not isCurrentElf then
+                                break -- Abandona o mob normal para pegar o elfo
+                            end
                         end
-                    until not _G.FarmElfLevelOnly or not TargetElf.Parent or TargetElf.Humanoid.Health <= 0
+
+                        if Target and Target:FindFirstChild("HumanoidRootPart") then
+                            _tp(Target.HumanoidRootPart.CFrame * CFrame.new(0, 10, 0))
+                            G.Kill(Target, true)
+                        end
+                    until not _G.FarmPriorityElf or not Target.Parent or Target.Humanoid.Health <= 0
                 else
-                    -- Se não houver Elfos NA ILHA, ele volta/fica na posição do level
+                    -- Se não houver nada perto, vai para o spawn do level
                     TeleportConditional(Root, Q[4], TELEPORT_DISTANCE_THRESHOLD)
                 end
             end)
         end
     end
 end)
+
 
 
 
