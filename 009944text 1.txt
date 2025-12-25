@@ -5925,7 +5925,7 @@ j:AddSeperator("Christmas")
 
 -- [[ TOGGLE PARA O FARM DE ELFOS ]]
 j:AddToggle({
-    Title = "Auto Farm Candy",
+    Title = "Auto Farm Elf (DisplayName Fix)",
     Default = _G.FarmElfLevelOnly or false,
     Callback = function(I)
         _G.FarmElfLevelOnly = I
@@ -5934,7 +5934,7 @@ j:AddToggle({
     end
 })
 
--- [[ FUNÇÃO DE BUSCA REVISADA ]]
+-- [[ FUNÇÃO DE BUSCA POR DISPLAY NAME OU NAME ]]
 local function GetNearestElf()
     local plr = game.Players.LocalPlayer
     local Root = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
@@ -5943,14 +5943,14 @@ local function GetNearestElf()
     local Closest, Dist = nil, math.huge
     
     for _, Mob in pairs(workspace.Enemies:GetChildren()) do
-        -- Verifica se o Mob está vivo e tem o RootPart
         if G.Alive(Mob) and Mob:FindFirstChild("HumanoidRootPart") then
-            -- Pega o nome e transforma em minúsculo para não ter erro de digitação
-            local name = string.lower(Mob.Name)
+            -- 1. Verifica o Nome do Objeto
+            local InternalName = string.lower(Mob.Name)
+            -- 2. Verifica o DisplayName do Humanoid (o nome que aparece na cabeça)
+            local DisplayName = Mob:FindFirstChild("Humanoid") and string.lower(Mob.Humanoid.DisplayName) or ""
             
-            -- Verifica se tem "elf" no nome OU se o mob tem um DisplayName/Tag que contenha Elf
-            -- Adicionei uma verificação extra caso o nome no workspace seja diferente do que aparece na tela
-            if string.find(name, "elf") then
+            -- Se "elf" estiver no nome interno OU no nome de exibição
+            if string.find(InternalName, "elf") or string.find(DisplayName, "elf") then
                 local d = (Mob.HumanoidRootPart.Position - Root.Position).Magnitude
                 if d < Dist then 
                     Dist = d 
@@ -5971,32 +5971,31 @@ spawn(function()
                 local Root = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
                 if not Root then return end
 
-                -- Localização do seu Level atual (para onde o script viaja se não vir elfos)
+                -- Localização do Level para viagem automática
                 local Q = QuestNeta() 
                 
-                -- Procura qualquer mob com "Elf" no nome
+                -- Procura por qualquer mob que tenha "Elf" no DisplayName
                 local TargetElf = GetNearestElf()
 
                 if TargetElf then
-                    -- Se achou o Elfo, vai até ele
                     repeat 
                         task.wait()
                         if TargetElf and TargetElf:FindFirstChild("HumanoidRootPart") then
-                            -- Teleporta e ataca (usando sua função G.Kill)
+                            -- Teleporta e ataca
                             _tp(TargetElf.HumanoidRootPart.CFrame * CFrame.new(0, 10, 0))
                             G.Kill(TargetElf, true)
                         end
-                    -- Sai do repeat se o elfo morrer, o toggle desligar ou o elfo sumir
+                    -- Para se o mob morrer, sumir ou desligar o toggle
                     until not _G.FarmElfLevelOnly or not TargetElf.Parent or TargetElf.Humanoid.Health <= 0
                 else
-                    -- Se NÃO encontrar nenhum Elfo na tela, ele voa para o spawn do level
-                    -- Isso garante que ele chegue onde os Elfos do seu nível nascem
+                    -- Se não houver Elfos por perto, viaja para a área do level
                     TeleportConditional(Root, Q[4], TELEPORT_DISTANCE_THRESHOLD)
                 end
             end)
         end
     end
 end)
+
 
 
 
