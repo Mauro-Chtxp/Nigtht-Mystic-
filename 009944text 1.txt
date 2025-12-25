@@ -550,9 +550,7 @@ local TweenInfoBring = TweenInfo.new(
 -- FUNÇÃO: Verifica se qualquer tipo de farm está ativo
 --==================================================
 local function FarmAtivo()
-    return (
-        _G.StartFarm or _G.StartFarm_NoQuest
-    ) and (
+    return _G.StartFarm and (
         _G.Level or
         _G.AutoFarm_Bone or
         _G.AutoFarm_Cake or
@@ -5925,76 +5923,71 @@ T:AddInput({
 
 j:AddSeperator("Christmas")
 
--- [[ TOGGLE PARA O FARM SEM QUEST ]]
-j:AddToggle({
-    Title = "Auto Farm Candy",
-    Default = _G.StartFarm_NoQuest or false,
+-- [[ TOGGLE PARA O FARM DE ELFOS ]]
+SSS:AddToggle({
+    Title = "Auto Farm Elf (Level/Near)",
+    Default = _G.FarmElfLevelOnly or false,
     Callback = function(I)
-        _G.StartFarm_NoQuest = I
-        _G.SaveData["NoQuest_Farm"] = I
+        _G.FarmElfLevelOnly = I
+        _G.SaveData["FarmElfLevelOnly"] = I
         SaveSettings()
     end
 })
 
--- [[ SISTEMA DE LÓGICA DO FARM ]]
-local CurrentMob = nil
-
--- Função para localizar o mob mais próximo pelo nome
-local function GetNearestMob(TargetName)
+-- [[ FUNÇÃO PARA BUSCAR APENAS ELFOS ]]
+local function GetNearestElf(LevelMobName)
     local plr = game.Players.LocalPlayer
     local Root = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
     if not Root then return nil end
+    
     local Closest, Dist = nil, math.huge
     
     for _, Mob in pairs(workspace.Enemies:GetChildren()) do
-        if G.Alive(Mob) and Mob.Name == TargetName and Mob:FindFirstChild("HumanoidRootPart") then
-            local d = (Mob.HumanoidRootPart.Position - Root.Position).Magnitude
-            if d < Dist then 
-                Dist = d 
-                Closest = Mob 
+        -- Verifica se o Mob está vivo
+        if G.Alive(Mob) and Mob:FindFirstChild("HumanoidRootPart") then
+            -- CONDIÇÃO: Deve ter "Elf" no nome. 
+            -- Ele vai checar se o mob do Level OU qualquer mob próximo tem "Elf" no nome.
+            if string.find(Mob.Name, "Elf") then
+                local d = (Mob.HumanoidRootPart.Position - Root.Position).Magnitude
+                if d < Dist then 
+                    Dist = d 
+                    Closest = Mob 
+                end
             end
         end
     end
     return Closest
 end
 
--- Loop de execução
+-- [[ LOOP DE EXECUÇÃO ]]
 spawn(function()
     while task.wait() do
-        -- Verifica se o Toggle que criamos acima está ligado
-        if _G.StartFarm_NoQuest then
+        if _G.FarmElfLevelOnly then
             pcall(function()
                 local plr = game.Players.LocalPlayer
                 local Root = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
                 if not Root then return end
 
-                -- Pega as informações do mob atual baseado no seu nível (através da sua função QuestNeta)
-                -- Q[1] = Nome do Mob | Q[4] = Posição de Spawn
+                -- Pega os dados do level atual para saber para onde ir
                 local Q = QuestNeta() 
                 
-                local Nearest = GetNearestMob(Q[1])
+                -- Procura um Elfo (pode ser o do level ou um próximo)
+                local TargetElf = GetNearestElf(Q[1])
 
-                -- Se não encontrar o mob, vai até o local de spawn dele
-                if not Nearest then 
-                    TeleportConditional(Root, Q[4], TELEPORT_DISTANCE_THRESHOLD) 
-                    return 
+                if TargetElf then
+                    -- Se achou um Elfo, vai matar
+                    repeat 
+                        task.wait()
+                        if TargetElf and TargetElf:FindFirstChild("HumanoidRootPart") then
+                            _tp(TargetElf.HumanoidRootPart.CFrame * CFrame.new(0, 10, 0))
+                            G.Kill(TargetElf, true)
+                        end
+                    until not _G.FarmElfLevelOnly or not TargetElf.Parent or TargetElf.Humanoid.Health <= 0
+                else
+                    -- Se não achou nenhum Elfo perto, ele vai para o spawn do level atual
+                    -- mas ele só vai atacar lá se os mobs de lá forem "Elf"
+                    TeleportConditional(Root, Q[4], TELEPORT_DISTANCE_THRESHOLD)
                 end
-
-                CurrentMob = Nearest
-
-                -- Ataca o mob até ele morrer ou o toggle ser desligado
-                repeat 
-                    task.wait()
-                    if CurrentMob and CurrentMob:FindFirstChild("HumanoidRootPart") then
-                        -- Teleporta para o mob (mantendo uma pequena distância de 10 studs para evitar detecção/bugs)
-                        _tp(CurrentMob.HumanoidRootPart.CFrame * CFrame.new(0, 10, 0))
-                        
-                        -- Chama a sua função global de ataque
-                        G.Kill(CurrentMob, true) 
-                    end
-                until not _G.StartFarm_NoQuest or not CurrentMob.Parent or CurrentMob.Humanoid.Health <= 0
-                
-                CurrentMob = nil
             end)
         end
     end
