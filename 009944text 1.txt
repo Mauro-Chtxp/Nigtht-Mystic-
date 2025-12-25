@@ -321,11 +321,13 @@ gay = (function()
 
     -- NÃO remover DarkFog
 
-    local K = workspace._WorldOrigin["Foam;"];
-    if K and workspace._WorldOrigin["Foam;"] then
-        K:Destroy();
-    end;
-end)();
+local WorldOrigin = workspace:FindFirstChild("_WorldOrigin")
+if WorldOrigin then
+    local K = WorldOrigin:FindFirstChild("Foam;")
+    if K then
+        K:Destroy()
+    end
+end
 
 local G = {};
 G.__index = G;
