@@ -6117,6 +6117,105 @@ spawn(function()
 end)
 
 
+-- [[ VARIÁVEIS DO EVENTO ]]
+local EventStartCFrame = CFrame.new(517.377808, 12.9568377, -3343.0481, -0.745878398, 3.51812908e-08, -0.666082144, -1.26563835e-08, 1, 6.69908573e-08, 0.666082144, 5.83972231e-08, -0.745878398)
+
+-- [[ TOGGLE PARA O FARM ]]
+j:AddToggle({
+    Title = "Auto Farm Event Gift",
+    Default = false,
+    Callback = function(Value)
+        _G.AutoFarmGift = Value
+    end
+})
+
+-- [[ LOOP PRINCIPAL ]]
+spawn(function()
+    while task.wait(0.2) do -- Loop rápido para reação
+        if _G.AutoFarmGift then
+            pcall(function()
+                local plr = game.Players.LocalPlayer
+                local char = plr.Character
+                local hrp = char and char:FindFirstChild("HumanoidRootPart")
+                
+                if not hrp then return end
+
+                local foundGift = false
+                
+                -- ====================================================
+                -- 1. VERIFICAR SE O PRESENTE JÁ EXISTE (PRIORIDADE)
+                -- ====================================================
+                -- O caminho base na imagem é: workspace -> present -> PresentEvent
+                local presentFolder = workspace:FindFirstChild("present") and workspace.present:FindFirstChild("PresentEvent")
+                
+                if presentFolder then
+                    for _, child in pairs(presentFolder:GetChildren()) do
+                        -- Procura por "GiantPresent" ou variações (GiantPresent2, etc.)
+                        if string.find(child.Name, "GiantPresent") and child:FindFirstChild("Present Handle") then
+                            local handle = child["Present Handle"]
+                            local prompt = handle:FindFirstChildOfClass("ProximityPrompt")
+                            
+                            -- Verifica se o prompt existe e está habilitado
+                            if prompt and prompt.Enabled then
+                                foundGift = true
+                                
+                                -- Vai até o presente usando sua função _tp
+                                -- Ajustamos um pouco a altura para não bugar no chão
+                                _tp(handle.CFrame * CFrame.new(0, 3, 0)) 
+                                
+                                task.wait(0.3) -- Pequeno delay para garantir que chegou
+                                fireproximityprompt(prompt) -- Clica no presente
+                            end
+                        end
+                    end
+                end
+
+                -- ====================================================
+                -- 2. SE NÃO TEM PRESENTE, VAI INICIAR O EVENTO
+                -- ====================================================
+                if not foundGift then
+                    local distToStart = (hrp.Position - EventStartCFrame.Position).Magnitude
+                    
+                    -- Se estiver longe (> 10 studs), usa o _tp para ir até lá
+                    if distToStart > 10 then
+                        _tp(EventStartCFrame)
+                    else
+                        -- Se já estiver lá, procura o ProximityPrompt do botão/NPC para iniciar
+                        -- Varre objetos próximos ao player para achar o prompt correto
+                        for _, v in pairs(workspace:GetDescendants()) do
+                            if v:IsA("ProximityPrompt") and v.Parent and v.Enabled then
+                                if (v.Parent.Position - hrp.Position).Magnitude <= 15 then
+                                    fireproximityprompt(v)
+                                end
+                            end
+                        end
+                    end
+                end
+                
+            end)
+        end
+    end
+end)
+
+-- [[ NOCLIP PARA EVITAR FICAR PRESO DURANTE O TP ]]
+spawn(function()
+    while task.wait() do
+        if _G.AutoFarmGift then
+            pcall(function()
+                local char = game.Players.LocalPlayer.Character
+                if char then
+                    for _, v in pairs(char:GetDescendants()) do
+                        if v:IsA("BasePart") and v.CanCollide then
+                            v.CanCollide = false
+                        end
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+
 
 
 
