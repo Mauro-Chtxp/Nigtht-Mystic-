@@ -6127,12 +6127,16 @@ j:AddToggle({
     Default = false,
     Callback = function(Value)
         _G.AutoFarmEvent = Value
+        -- Se desligar o farm, garante que desancora o player
+        if not Value then
+            pcall(function() game.Players.LocalPlayer.Character.HumanoidRootPart.Anchored = false end)
+        end
     end
 })
 
 -- [[ LOOP PRINCIPAL ]]
 spawn(function()
-    while task.wait() do -- Loop principal
+    while task.wait() do 
         pcall(function()
             if _G.AutoFarmEvent then
                 local plr = game.Players.LocalPlayer
@@ -6141,77 +6145,70 @@ spawn(function()
                 
                 if not hrp then return end
 
-                -- Procura a pasta do evento baseada na imagem
                 local EventFolder = workspace:FindFirstChild("present") and workspace.present:FindFirstChild("PresentEvent")
                 local TargetGift = nil
 
-                -- 1. Tenta encontrar um Presente GIGANTE já existente
+                -- 1. Tenta encontrar um Presente GIGANTE
                 if EventFolder then
                     for _, v in pairs(EventFolder:GetChildren()) do
                         if string.find(v.Name, "GiantPresent") and v:FindFirstChild("Present Handle") then
                             TargetGift = v
-                            break -- Foca no primeiro que achar
+                            break 
                         end
                     end
                 end
 
-                -- 2. LÓGICA DE DECISÃO (Igual Elite Hunt)
                 if TargetGift then
-                    -- === [CENÁRIO A] TEM PRESENTE: VAI LÁ E COLETA ===
+                    -- === [CENÁRIO A] TEM PRESENTE ===
                     local Handle = TargetGift:FindFirstChild("Present Handle")
-                    
                     if Handle then
-                        -- Teleporta um pouco acima para não bugar
-                        _tp(Handle.CFrame * CFrame.new(0, 5, 0)) 
+                        -- Se estiver longe do presente, desancora para viajar
+                        if (hrp.Position - Handle.Position).Magnitude > 10 then
+                            hrp.Anchored = false
+                            _tp(Handle.CFrame * CFrame.new(0, 5, 0))
+                        else
+                            -- Se chegou no presente, ancora para não ser empurrado
+                            hrp.Anchored = true
+                        end
                         
-                        -- Loop de Coleta Focado (Repete até sumir ou desligar)
+                        -- Loop de Coleta
                         repeat
-                            task.wait(0.1) -- Delay pequeno para não travar
+                            task.wait(0.1)
                             if not _G.AutoFarmEvent then break end
                             
-                            -- Reforça o TP se cair
-                            if Handle.Parent and (hrp.Position - Handle.Position).Magnitude > 15 then
-                                _tp(Handle.CFrame * CFrame.new(0, 5, 0))
-                            end
-                            
-                            -- Tenta clicar no Prompt específico do presente
                             local prompt = Handle:FindFirstChildOfClass("ProximityPrompt")
                             if prompt and prompt.Enabled then
                                 fireproximityprompt(prompt)
                             end
                         until not TargetGift.Parent or not Handle.Parent
+                        
+                        hrp.Anchored = false -- Desancora quando o presente sumir
                     end
 
                 else
-                    -- === [CENÁRIO B] NÃO TEM PRESENTE: VAI NO INÍCIO E SPAWNA ===
+                    -- === [CENÁRIO B] NÃO TEM PRESENTE (ESPERANDO NO INÍCIO) ===
                     local dist = (hrp.Position - StartLocation.Position).Magnitude
                     
-                    if dist > 15 then
-                        -- Se está longe, teleporta
+                    if dist > 10 then
+                        -- Se está longe, desancora para o TP funcionar
+                        hrp.Anchored = false
                         _tp(StartLocation)
                     else
-                        -- Se já chegou, procura o botão SEM LAGAR O JOGO
-                        -- Usando PromptService é instantâneo e leve
-                        local foundPrompt = false
-                        
+                        -- SE CHEGOU NO LOCAL, ANCORA O PERSONAGEM AQUI
+                        hrp.Anchored = true
+                        hrp.CFrame = StartLocation -- Garante que está exatamente no CFrame certo
+
+                        -- Tenta clicar no botão de spawn sem lag
                         for _, prompt in pairs(PromptService:GetProximityPrompts()) do
                             if prompt.Parent then
-                                local promptPos = prompt.Parent.Position
-                                -- Clica apenas se o prompt estiver muito perto (raio de 20 studs)
-                                if (promptPos - hrp.Position).Magnitude <= 20 then
+                                if (prompt.Parent.Position - hrp.Position).Magnitude <= 20 then
                                     if prompt.Enabled then
                                         fireproximityprompt(prompt)
-                                        foundPrompt = true
                                     end
                                 end
                             end
                         end
-                        
-                        -- Se não achou prompt nenhum, espera um pouco antes de tentar de novo
-                        -- Isso impede o travamento se o NPC demorar pra carregar
-                        if not foundPrompt then
-                            task.wait(0.5) 
-                        end
+                        task.wait(0.5)
                     end
                 end
             end
@@ -6219,7 +6216,7 @@ spawn(function()
     end
 end)
 
--- [[ NOCLIP (EVITA PRENDER EM PAREDES) ]]
+-- [[ NOCLIP ]]
 spawn(function()
     while task.wait(0.5) do
         if _G.AutoFarmEvent then
