@@ -5946,9 +5946,9 @@ T:AddInput({
 j:AddSeperator("Christmas")
 
 -- [[ VARIÁVEIS DE CONFIGURAÇÃO ]]
-_G.FarmCandyMode = "Island (Default)" -- Valor padrão
+_G.FarmCandyMode = "Island (Default)"
 
--- [[ DROPDOWN PARA SELECIONAR O MODO ]]
+-- [[ DROPDOWN ]]
 j:AddDropdown({
     Title = "Candy Farm Mode",
     Description = "Select how to find Elfs",
@@ -5960,7 +5960,7 @@ j:AddDropdown({
     end,
 })
 
--- [[ TOGGLE PARA O FARM ]]
+-- [[ TOGGLE ]]
 j:AddToggle({
     Title = "Auto Farm Candy",
     Default = _G.FarmElfLevelCustom or false,
@@ -5972,88 +5972,44 @@ j:AddToggle({
     end
 })
 
--- [[ FUNÇÃO DE NOCLIP ]]
+-- [[ FUNÇÃO DE NOCLIP (OTIMIZADA) ]]
 spawn(function()
-    while task.wait() do
+    while task.wait(0.1) do
         if _G.FarmElfLevelCustom then
-            local char = game.Players.LocalPlayer.Character
-            if char then
-                for _, v in pairs(char:GetDescendants()) do
-                    if v:IsA("BasePart") and v.CanCollide then
-                        v.CanCollide = false
+            pcall(function()
+                local char = game.Players.LocalPlayer.Character
+                if char then
+                    for _, v in pairs(char:GetChildren()) do
+                        if v:IsA("BasePart") then v.CanCollide = false end
                     end
                 end
-            end
+            end)
         end
     end
 end)
 
--- [[ FUNÇÃO: BUSCA NA ILHA (PADRÃO) ]]
-local function GetAllIslandTargets(IslandPosition, MaxRadius)
-    local plr = game.Players.LocalPlayer
-    local char = plr.Character
-    if not char or not char:FindFirstChild("HumanoidRootPart") or not IslandPosition then return nil end
-
-    local BestElf, BestAnyMob = nil, nil  
-    local DistElf, DistAny = math.huge, math.huge  
-
-    for _, Mob in pairs(workspace.Enemies:GetChildren()) do  
-        if G.Alive(Mob) and Mob:FindFirstChild("HumanoidRootPart") then  
-            local distanceToIsland = (Mob.HumanoidRootPart.Position - IslandPosition.Position).Magnitude  
-
-            if distanceToIsland < (MaxRadius or 800) then  
-                local InternalName = string.lower(Mob.Name)  
-                local DisplayName = Mob:FindFirstChild("Humanoid") and string.lower(Mob.Humanoid.DisplayName) or ""  
-
-                if string.find(InternalName, "elf") or string.find(DisplayName, "elf") then  
-                    if distanceToIsland < DistElf then  
-                        DistElf = distanceToIsland  
-                        BestElf = Mob  
-                    end  
-                else  
-                    if distanceToIsland < DistAny then  
-                        DistAny = distanceToIsland  
-                        BestAnyMob = Mob  
-                    end  
-                end  
-            end  
-        end  
-    end  
-    return BestElf or BestAnyMob
-end
-
--- [[ FUNÇÃO: BUSCA GLOBAL + REPLICATED STORAGE (HUNT) ]]
+-- [[ BUSCA GLOBAL + REPLICATED ]]
 local function GetGlobalElfTarget()
     local plr = game.Players.LocalPlayer
     local char = plr.Character
     local hrp = char and char:FindFirstChild("HumanoidRootPart")
-    
-    -- LISTA DE LOCAIS PARA PROCURAR (Workspace E ReplicatedStorage)
-    local SearchLocations = {
-        workspace.Enemies,
-        game:GetService("ReplicatedStorage") -- Adicionado conforme solicitado
-    }
+    if not hrp then return nil end
 
     local BestMob = nil
     local ShortestDist = math.huge
 
+    local SearchLocations = {workspace.Enemies, game:GetService("ReplicatedStorage")}
+
     for _, Location in pairs(SearchLocations) do
-        if Location then
-            -- Varre os filhos da pasta
-            for _, Mob in pairs(Location:GetChildren()) do
-                -- Verifica se é um modelo e tem as partes necessárias
-                if Mob:IsA("Model") and Mob:FindFirstChild("HumanoidRootPart") and Mob:FindFirstChild("Humanoid") then
-                    local InternalName = string.lower(Mob.Name)
-                    local DisplayName = string.lower(Mob.Humanoid.DisplayName)
+        for _, Mob in pairs(Location:GetChildren()) do
+            if Mob:IsA("Model") and Mob:FindFirstChild("HumanoidRootPart") then
+                local hum = Mob:FindFirstChild("Humanoid")
+                if hum and hum.Health > 0 then
+                    local name = string.lower(Mob.Name)
+                    local display = string.lower(hum.DisplayName)
 
-                    -- Verifica se tem "elf" no nome
-                    if string.find(InternalName, "elf") or string.find(DisplayName, "elf") then
-                        local dist = math.huge
-                        -- Se o HRP existir, calcula distância. Se for do Replicated, pode retornar 0 ou posição padrão.
-                        if hrp then
-                            dist = (hrp.Position - Mob.HumanoidRootPart.Position).Magnitude
-                        end
-
+                    if string.find(name, "elf") or string.find(display, "elf") then
+                        local dist = (hrp.Position - Mob.HumanoidRootPart.Position).Magnitude
                         if dist < ShortestDist then
                             ShortestDist = dist
                             BestMob = Mob
@@ -6066,11 +6022,12 @@ local function GetGlobalElfTarget()
     return BestMob
 end
 
--- [[ LOOP PRINCIPAL ]]
+-- [[ LOOP PRINCIPAL REFEITO ]]
 spawn(function()
-    while task.wait() do
+    while true do
+        task.wait(0.05) -- Delay mínimo para não travar, mas ser instantâneo
         if _G.FarmElfLevelCustom then
-            pcall(function()
+            local success, err = pcall(function()
                 local plr = game.Players.LocalPlayer
                 local char = plr.Character
                 local hrp = char and char:FindFirstChild("HumanoidRootPart")
@@ -6078,75 +6035,49 @@ spawn(function()
 
                 local Target = nil
 
-                -- ==========================================
-                -- MODO 1: ISLAND (PADRÃO COM SUBMARINO)
-                -- ==========================================
+                -- Seleção de Alvo
                 if _G.FarmCandyMode == "Island (Default)" then
                     local Q = QuestNeta()  
                     local IslandPos = Q[4]  
-
-                    if (IslandPos.Position - hrp.Position).Magnitude > 10000 then  
-                        local SubmarineNPC = CFrame.new(-16269.7041, 25.2288494, 1373.65955)  
-                        if (hrp.Position - SubmarineNPC.Position).Magnitude < 15 then  
-                            local args = {"TravelToSubmergedIsland"}  
-                            game:GetService("ReplicatedStorage").Modules.Net  
-                                :FindFirstChild("RF/SubmarineWorkerSpeak")  
-                                :InvokeServer(unpack(args))  
-                            task.wait(2)  
-                        else  
-                            _tp(SubmarineNPC)  
-                        end  
-                        return 
-                    end  
-
-                    Target = GetAllIslandTargets(IslandPos, 800)
-                    if not Target then
-                        _tp(IslandPos)
+                    
+                    -- Viagem Submarino
+                    if (IslandPos.Position - hrp.Position).Magnitude > 10000 then
+                        _tp(CFrame.new(-16269.7041, 25.2288494, 1373.65955))
+                        if (hrp.Position - Vector3.new(-16269.7041, 25.2288494, 1373.65955)).Magnitude < 15 then
+                            game:GetService("ReplicatedStorage").Modules.Net:FindFirstChild("RF/SubmarineWorkerSpeak"):InvokeServer("TravelToSubmergedIsland")
+                            task.wait(1)
+                        end
+                        return
                     end
-
-                -- ==========================================
-                -- MODO 2: GLOBAL + REPLICATED (HUNT ALL ELFS)
-                -- ==========================================
-                elseif _G.FarmCandyMode == "Global + Replicated (Hunt All)" then
+                    Target = GetAllIslandTargets(IslandPos, 800)
+                else
                     Target = GetGlobalElfTarget()
                 end
 
-                -- ==========================================
-                -- LÓGICA DE ATAQUE
-                -- ==========================================
-                if Target then  
-                    repeat  
-                        task.wait()
-                        if not _G.FarmElfLevelCustom then break end
-
-                        -- Check extra se for Island Mode
+                -- Ataque
+                if Target and Target:FindFirstChild("HumanoidRootPart") then
+                    while _G.FarmElfLevelCustom and Target.Parent and Target:FindFirstChild("Humanoid") and Target.Humanoid.Health > 0 do
+                        task.wait() -- Loop de ataque ultra rápido
+                        _tp(Target.HumanoidRootPart.CFrame * CFrame.new(0, 45, 0))
+                        EquipWeapon(_G.SelectWeapon)
+                        G.Kill(Target, true)
+                        
+                        -- Verificação de prioridade (se um Elfo spawnar enquanto bate em mob comum)
                         if _G.FarmCandyMode == "Island (Default)" then
-                            local Q = QuestNeta()
-                            local IslandPos = Q[4]
-                            local QuickCheck = GetAllIslandTargets(IslandPos, 800)  
-                            if QuickCheck and QuickCheck ~= Target then  
-                                local isNewElf = string.find(string.lower(QuickCheck.Name), "elf")
-                                local isCurrentElf = string.find(string.lower(Target.Name), "elf")
-                                if isNewElf and not isCurrentElf then break end  
+                            local HighPrio = GetAllIslandTargets(QuestNeta()[4], 800)
+                            if HighPrio and HighPrio ~= Target and string.find(string.lower(HighPrio.Name), "elf") then
+                                break 
                             end
                         end
-
-                        if Target and Target:FindFirstChild("HumanoidRootPart") and Target:FindFirstChild("Humanoid") and Target.Humanoid.Health > 0 then  
-                            -- Tenta TP e Kill (Funciona para Workspace, tenta forçar para Replicated)
-                            pcall(function()
-                                _tp(Target.HumanoidRootPart.CFrame * CFrame.new(0, 45, 0))  
-                                EquipWeapon(_G.SelectWeapon)  
-                                G.Kill(Target, true)  
-                            end)
-                        else
-                            break 
-                        end  
-                    until not Target.Parent or Target.Humanoid.Health <= 0  
-                end  
-            end)  
-        end  
+                    end
+                elseif _G.FarmCandyMode == "Island (Default)" then
+                    _tp(QuestNeta()[4]) -- Idle na ilha se não houver alvo
+                end
+            end)
+        end
     end
 end)
+
 
 
 
