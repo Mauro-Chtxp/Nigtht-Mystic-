@@ -536,53 +536,63 @@ _G = _G or {}
 _B = false
 PosMon = nil
 
-_G.BringRange = 235
-_G.MaxBringMobs = 3 -- LIMITE DE MOBS
-
-local TweenService = game:GetService("TweenService")
-local TweenInfoBring = TweenInfo.new(
-    0.45, -- velocidade do tween
-    Enum.EasingStyle.Linear,
-    Enum.EasingDirection.Out
-)
-
---==================================================
--- VARIÁVEIS NECESSÁRIAS
---==================================================
-_G = _G or {}
-
 _G.BringRange = _G.BringRange or 235
 _G.MaxBringMobs = _G.MaxBringMobs or 3
 _G.FarmPriorityElf = _G.FarmPriorityElf or false
 
 local TweenService = game:GetService("TweenService")
 local TweenInfoBring = TweenInfo.new(
-    0.45,
+    1.2,
     Enum.EasingStyle.Linear,
     Enum.EasingDirection.Out
 )
-
-local _B = false
-PosMon = nil
 
 --==================================================
 -- FUNÇÃO: VERIFICA SE QUALQUER FARM ESTÁ ATIVO
 --==================================================
 local function FarmAtivo()
-    -- PRIORIDADE ABSOLUTA PARA ELF
+    -- PRIORIDADE ABSOLUTA
     if _G.FarmPriorityElf or _G.FarmElfLevelCustom then
         return true
     end
 
-    -- TODOS OS OUTROS FARMS (INALTERADOS)
-    return _G.StartFarm and (
-        _G.Level or
-        _G.AutoFarm_Bone or
-        _G.AutoFarm_Cake or
-        _G.FarmMastery_Dev or
-        _G.FarmMastery_G or
-        (getgenv()).AutoMaterial or
-        _G.AutoTyrant
+    return (
+        _G.SailBoat_Hydra or _G.WardenBoss or _G.AutoFactory or _G.HighestMirage or
+        _G.HCM or _G.PGB or _G.Leviathan1 or _G.UPGDrago or _G.Complete_Trials or
+        _G.TpDrago_Prehis or _G.BuyDrago or _G.AutoFireFlowers or _G.DT_Uzoth or
+        _G.AutoBerry or _G.Prehis_Find or _G.Prehis_Skills or _G.Prehis_DB or
+        _G.Prehis_DE or _G.FarmBlazeEM or _G.Dojoo or _G.CollectPresent or
+        _G.AutoLawKak or _G.TpLab or _G.AutoPhoenixF or _G.AutoFarmChest or
+        _G.AutoHytHallow or _G.LongsWord or _G.BlackSpikey or _G.AutoHolyTorch or
+        _G.TrainDrago or _G.AutoSaber or _G.FarmMastery_Dev or _G.CitizenQuest or
+        _G.AutoEctoplasm or _G.KeysRen or _G.Auto_Rainbow_Haki or _G.obsFarm or
+        _G.AutoBigmom or _G.Doughv2 or _G.AuraBoss or _G.Raiding or
+        _G.Auto_Cavender or _G.TpPly or _G.Bartilo_Quest or _G.Level or
+        _G.FarmEliteHunt or _G.AutoZou or _G.AutoFarm_Bone or (getgenv()).AutoMaterial or
+        _G.CraftVM or _G.FrozenTP or _G.TPDoor or _G.AcientOne or
+        _G.AutoFarmNear or _G.AutoRaidCastle or _G.DarkBladev3 or
+        _G.AutoFarmRaid or _G.Auto_Cake_Prince or _G.Addealer or _G.TPNpc or
+        _G.TwinHook or _G.FindMirage or _G.FarmChestM or _G.Shark or
+        _G.TerrorShark or _G.Piranha or _G.MobCrew or _G.SeaBeast1 or
+        _G.FishBoat or _G.Auto or _G.AutoPoleV2 or _G.Auto_SuperHuman or
+        _G.AutoDeathStep or _G.Auto_SharkMan_Karate or _G.Auto_Electric_Claw or
+        _G.AutoDragonTalon or _G.Auto_Def_DarkCoat or _G.Auto_God_Human or
+        _G.Auto_Tushita or _G.AutoMatSoul or _G.AutoKenVTWO or
+        _G.AutoSerpentBow or _G.AutoFMon or _G.Auto_Soul_Guitar or _G.TPGEAR or
+        _G.AutoSaw or _G.AutoTridentW2 or _G.Auto_StartRaid or _G.AutoEvoRace or
+        _G.AutoGetQuestBounty or _G.MarinesCoat or _G.TravelDres or _G.Defeating or
+        _G.DummyMan or _G.Auto_Yama or _G.Auto_SwanGG or _G.SwanCoat or
+        _G.AutoEcBoss or _G.Auto_Mink or _G.Auto_Human or _G.Auto_Skypiea or
+        _G.Auto_Fish or _G.CDK_TS or _G.CDK_YM or _G.CDK or
+        _G.AutoFarmGodChalice or _G.AutoFistDarkness or _G.AutoMiror or
+        _G.Teleport or _G.AutoKilo or _G.AutoGetUsoap or _G.Praying or
+        _G.TryLucky or _G.AutoColShad or _G.AutoUnHaki or _G.Auto_DonAcces or
+        _G.AutoRipIngay or _G.DragoV3 or _G.DragoV1 or _G.SailBoats or
+        NextIs or _G.FarmGodChalice or _G.IceBossRen or senth or senth2 or
+        _G.Lvthan or _G.beasthunter or _G.DangerLV or _G.Relic123 or
+        _G.tweenKitsune or _G.Collect_Ember or _G.AutofindKitIs or
+        _G.snaguine or _G.TwFruits or _G.tweenKitShrine or _G.Tp_LgS or
+        _G.Tp_MasterA or _G.tweenShrine or _G.FarmMastery_G or _G.FarmMastery_S
     )
 end
 
@@ -625,40 +635,31 @@ BringEnemy = function()
     local hrp = char and char:FindFirstChild("HumanoidRootPart")
     if not hrp then return end
 
-    -- Simulation Radius
     pcall(function()
         sethiddenproperty(plr, "SimulationRadius", math.huge)
     end)
 
     local targetPos = PosMon or hrp.Position
-    local enemies = workspace.Enemies:GetChildren()
     local count = 0
 
-    for _, mob in ipairs(enemies) do
+    for _, mob in ipairs(workspace.Enemies:GetChildren()) do
         if count >= _G.MaxBringMobs then break end
 
         local hum = mob:FindFirstChild("Humanoid")
         local root = mob:FindFirstChild("HumanoidRootPart")
 
         if hum and root and hum.Health > 0 and not IsRaidMob(mob) then
-            local dist = (root.Position - targetPos).Magnitude
+            if (root.Position - targetPos).Magnitude <= _G.BringRange
+                and not root:GetAttribute("Tweening") then
 
-            if dist <= _G.BringRange and not root:GetAttribute("Tweening") then
                 count += 1
                 root:SetAttribute("Tweening", true)
 
-                local tween = TweenService:Create(
+                TweenService:Create(
                     root,
                     TweenInfoBring,
-                    {CFrame = CFrame.new(targetPos)}
-                )
-
-                tween:Play()
-                tween.Completed:Once(function()
-                    if root then
-                        root:SetAttribute("Tweening", false)
-                    end
-                end)
+                    { CFrame = CFrame.new(targetPos) }
+                ):Play()
             end
         end
     end
@@ -672,17 +673,11 @@ task.spawn(function()
         if FarmAtivo() then
             _B = true
             BringEnemy()
-            task.wait(3)
-
-            _B = false
-            task.wait(5)
         else
             _B = false
-            task.wait(1)
         end
     end
 end)
-
 Useskills = function(I, e)
 		if I == "Melee" then
 			weaponSc("Melee");
@@ -5945,22 +5940,7 @@ T:AddInput({
 
 j:AddSeperator("Christmas")
 
--- [[ VARIÁVEIS DE CONFIGURAÇÃO ]]
-_G.FarmCandyMode = "Island (Default)"
-
--- [[ DROPDOWN ]]
-j:AddDropdown({
-    Title = "Candy Farm Mode",
-    Description = "Select how to find Elfs",
-    Values = {"Island (Default)", "Global + Replicated (Hunt All)"},
-    Default = "Island (Default)",
-    Multi = false,
-    Callback = function(Value)
-        _G.FarmCandyMode = Value
-    end,
-})
-
--- [[ TOGGLE ]]
+-- [[ TOGGLE PARA O FARM ]]
 j:AddToggle({
     Title = "Auto Farm Candy",
     Default = _G.FarmElfLevelCustom or false,
@@ -5972,113 +5952,128 @@ j:AddToggle({
     end
 })
 
--- [[ FUNÇÃO DE NOCLIP (OTIMIZADA) ]]
+-- [[ FUNÇÃO DE NOCLIP ]]
+-- Adicionado para evitar que o personagem prenda em objetos durante o TP
 spawn(function()
-    while task.wait(0.1) do
+    while task.wait() do
         if _G.FarmElfLevelCustom then
-            pcall(function()
-                local char = game.Players.LocalPlayer.Character
-                if char then
-                    for _, v in pairs(char:GetChildren()) do
-                        if v:IsA("BasePart") then v.CanCollide = false end
-                    end
-                end
-            end)
-        end
-    end
-end)
-
--- [[ BUSCA GLOBAL + REPLICATED ]]
-local function GetGlobalElfTarget()
-    local plr = game.Players.LocalPlayer
-    local char = plr.Character
-    local hrp = char and char:FindFirstChild("HumanoidRootPart")
-    if not hrp then return nil end
-
-    local BestMob = nil
-    local ShortestDist = math.huge
-
-    local SearchLocations = {workspace.Enemies, game:GetService("ReplicatedStorage")}
-
-    for _, Location in pairs(SearchLocations) do
-        for _, Mob in pairs(Location:GetChildren()) do
-            if Mob:IsA("Model") and Mob:FindFirstChild("HumanoidRootPart") then
-                local hum = Mob:FindFirstChild("Humanoid")
-                if hum and hum.Health > 0 then
-                    local name = string.lower(Mob.Name)
-                    local display = string.lower(hum.DisplayName)
-
-                    if string.find(name, "elf") or string.find(display, "elf") then
-                        local dist = (hrp.Position - Mob.HumanoidRootPart.Position).Magnitude
-                        if dist < ShortestDist then
-                            ShortestDist = dist
-                            BestMob = Mob
-                        end
+            local char = game.Players.LocalPlayer.Character
+            if char then
+                for _, v in pairs(char:GetDescendants()) do
+                    if v:IsA("BasePart") and v.CanCollide then
+                        v.CanCollide = false
                     end
                 end
             end
         end
     end
-    return BestMob
+end)
+
+-- [[ FUNÇÃO DE BUSCA NA ILHA (BUSCA TODOS OS MOBS DA ÁREA) ]]
+local function GetAllIslandTargets(IslandPosition, MaxRadius)
+    local plr = game.Players.LocalPlayer
+    local char = plr.Character
+    if not char or not char:FindFirstChild("HumanoidRootPart") or not IslandPosition then return nil end
+
+    local BestElf, BestAnyMob = nil, nil  
+    local DistElf, DistAny = math.huge, math.huge  
+
+    for _, Mob in pairs(workspace.Enemies:GetChildren()) do  
+        if G.Alive(Mob) and Mob:FindFirstChild("HumanoidRootPart") then  
+            local distanceToIsland = (Mob.HumanoidRootPart.Position - IslandPosition.Position).Magnitude  
+
+            if distanceToIsland < (MaxRadius or 800) then  
+                local InternalName = string.lower(Mob.Name)  
+                local DisplayName = Mob:FindFirstChild("Humanoid") and string.lower(Mob.Humanoid.DisplayName) or ""  
+
+                -- PRIORIDADE 1: Elfos  
+                if string.find(InternalName, "elf") or string.find(DisplayName, "elf") then  
+                    if distanceToIsland < DistElf then  
+                        DistElf = distanceToIsland  
+                        BestElf = Mob  
+                    end  
+                else  
+                    -- PRIORIDADE 2: Qualquer mob da ilha  
+                    if distanceToIsland < DistAny then  
+                        DistAny = distanceToIsland  
+                        BestAnyMob = Mob  
+                    end  
+                end  
+            end  
+        end  
+    end  
+
+    return BestElf or BestAnyMob
 end
 
--- [[ LOOP PRINCIPAL REFEITO ]]
+-- [[ LOOP PRINCIPAL ]]
 spawn(function()
-    while true do
-        task.wait(0.05) -- Delay mínimo para não travar, mas ser instantâneo
+    while task.wait() do
         if _G.FarmElfLevelCustom then
-            local success, err = pcall(function()
+            pcall(function()
                 local plr = game.Players.LocalPlayer
                 local char = plr.Character
                 local hrp = char and char:FindFirstChild("HumanoidRootPart")
                 if not hrp then return end
 
-                local Target = nil
+                local Q = QuestNeta()  
+                local IslandPos = Q[4]  
 
-                -- Seleção de Alvo
-                if _G.FarmCandyMode == "Island (Default)" then
-                    local Q = QuestNeta()  
-                    local IslandPos = Q[4]  
-                    
-                    -- Viagem Submarino
-                    if (IslandPos.Position - hrp.Position).Magnitude > 10000 then
-                        _tp(CFrame.new(-16269.7041, 25.2288494, 1373.65955))
-                        if (hrp.Position - Vector3.new(-16269.7041, 25.2288494, 1373.65955)).Magnitude < 15 then
-                            game:GetService("ReplicatedStorage").Modules.Net:FindFirstChild("RF/SubmarineWorkerSpeak"):InvokeServer("TravelToSubmergedIsland")
-                            task.wait(1)
-                        end
-                        return
-                    end
-                    Target = GetAllIslandTargets(IslandPos, 800)
-                else
-                    Target = GetGlobalElfTarget()
-                end
+                -- === LÓGICA DE VIAGEM (SUBMARINE) ===  
+                if (IslandPos.Position - hrp.Position).Magnitude > 10000 then  
+                    local SubmarineNPC = CFrame.new(-16269.7041, 25.2288494, 1373.65955)  
+                    if (hrp.Position - SubmarineNPC.Position).Magnitude < 15 then  
+                        local args = {"TravelToSubmergedIsland"}  
+                        game:GetService("ReplicatedStorage").Modules.Net  
+                            :FindFirstChild("RF/SubmarineWorkerSpeak")  
+                            :InvokeServer(unpack(args))  
+                        task.wait(2)  
+                    else  
+                        _tp(SubmarineNPC)  
+                    end  
+                    return  
+                end  
 
-                -- Ataque
-                if Target and Target:FindFirstChild("HumanoidRootPart") then
-                    while _G.FarmElfLevelCustom and Target.Parent and Target:FindFirstChild("Humanoid") and Target.Humanoid.Health > 0 do
-                        task.wait() -- Loop de ataque ultra rápido
-                        _tp(Target.HumanoidRootPart.CFrame * CFrame.new(0, 45, 0))
-                        EquipWeapon(_G.SelectWeapon)
-                        G.Kill(Target, true)
-                        
-                        -- Verificação de prioridade (se um Elfo spawnar enquanto bate em mob comum)
-                        if _G.FarmCandyMode == "Island (Default)" then
-                            local HighPrio = GetAllIslandTargets(QuestNeta()[4], 800)
-                            if HighPrio and HighPrio ~= Target and string.find(string.lower(HighPrio.Name), "elf") then
-                                break 
-                            end
-                        end
-                    end
-                elseif _G.FarmCandyMode == "Island (Default)" then
-                    _tp(QuestNeta()[4]) -- Idle na ilha se não houver alvo
-                end
-            end)
-        end
+                -- === LÓGICA DE ATAQUE ===  
+                local Target = GetAllIslandTargets(IslandPos, 800)  
+
+                if Target then  
+                    repeat  
+                        task.wait()  
+
+                        -- INTERRUPÇÃO SE ELF SPAWNAR  
+                        local QuickCheck = GetAllIslandTargets(IslandPos, 800)  
+                        if QuickCheck and QuickCheck ~= Target then  
+                            local isNewElf =  
+                                string.find(string.lower(QuickCheck.Name), "elf") or  
+                                (QuickCheck:FindFirstChild("Humanoid") and  
+                                 string.find(string.lower(QuickCheck.Humanoid.DisplayName), "elf"))  
+
+                            local isCurrentElf =  
+                                string.find(string.lower(Target.Name), "elf") or  
+                                (Target:FindFirstChild("Humanoid") and  
+                                 string.find(string.lower(Target.Humanoid.DisplayName), "elf"))  
+
+                            if isNewElf and not isCurrentElf then  
+                                break  
+                            end  
+                        end  
+
+                        if Target and Target:FindFirstChild("HumanoidRootPart") then  
+                            _tp(Target.HumanoidRootPart.CFrame * CFrame.new(0, 45, 0))  
+                            EquipWeapon(_G.SelectWeapon)  
+                            G.Kill(Target, true)  
+                        end  
+                    until not _G.FarmElfLevelCustom  
+                        or not Target.Parent  
+                        or Target.Humanoid.Health <= 0  
+                else  
+                    _tp(IslandPos)  
+                end  
+            end)  
+        end  
     end
 end)
-
-
 
 
 local replicated = game:GetService("ReplicatedStorage")
@@ -6111,124 +6106,6 @@ spawn(function()
                 replicated.Modules.Net["RE/SpinGacha"]:FireServer({
                     BoxName = "F2PXmasWeek2Gacha25"
                 })
-            end)
-        end
-    end
-end)
-
-
--- [[ CONFIGURAÇÃO DO LOCAL DE INÍCIO ]]
-local StartLocation = CFrame.new(517.377808, 12.9568377, -3343.0481, -0.745878398, 3.51812908e-08, -0.666082144, -1.26563835e-08, 1, 6.69908573e-08, 0.666082144, 5.83972231e-08, -0.745878398)
-local PromptService = game:GetService("ProximityPromptService")
-
--- [[ TOGGLE ]]
-j:AddToggle({
-    Title = "Auto Farm Present Event",
-    Default = false,
-    Callback = function(Value)
-        _G.AutoFarmEvent = Value
-        -- Se desligar o farm, garante que desancora o player
-        if not Value then
-            pcall(function() game.Players.LocalPlayer.Character.HumanoidRootPart.Anchored = false end)
-        end
-    end
-})
-
--- [[ LOOP PRINCIPAL ]]
-spawn(function()
-    while task.wait() do 
-        pcall(function()
-            if _G.AutoFarmEvent then
-                local plr = game.Players.LocalPlayer
-                local char = plr.Character
-                local hrp = char and char:FindFirstChild("HumanoidRootPart")
-                
-                if not hrp then return end
-
-                local EventFolder = workspace:FindFirstChild("present") and workspace.present:FindFirstChild("PresentEvent")
-                local TargetGift = nil
-
-                -- 1. Tenta encontrar um Presente GIGANTE
-                if EventFolder then
-                    for _, v in pairs(EventFolder:GetChildren()) do
-                        if string.find(v.Name, "GiantPresent") and v:FindFirstChild("Present Handle") then
-                            TargetGift = v
-                            break 
-                        end
-                    end
-                end
-
-                if TargetGift then
-                    -- === [CENÁRIO A] TEM PRESENTE ===
-                    local Handle = TargetGift:FindFirstChild("Present Handle")
-                    if Handle then
-                        -- Se estiver longe do presente, desancora para viajar
-                        if (hrp.Position - Handle.Position).Magnitude > 10 then
-                            hrp.Anchored = false
-                            _tp(Handle.CFrame * CFrame.new(0, 5, 0))
-                        else
-                            -- Se chegou no presente, ancora para não ser empurrado
-                            hrp.Anchored = true
-                        end
-                        
-                        -- Loop de Coleta
-                        repeat
-                            task.wait(0.1)
-                            if not _G.AutoFarmEvent then break end
-                            
-                            local prompt = Handle:FindFirstChildOfClass("ProximityPrompt")
-                            if prompt and prompt.Enabled then
-                                fireproximityprompt(prompt)
-                            end
-                        until not TargetGift.Parent or not Handle.Parent
-                        
-                        hrp.Anchored = false -- Desancora quando o presente sumir
-                    end
-
-                else
-                    -- === [CENÁRIO B] NÃO TEM PRESENTE (ESPERANDO NO INÍCIO) ===
-                    local dist = (hrp.Position - StartLocation.Position).Magnitude
-                    
-                    if dist > 10 then
-                        -- Se está longe, desancora para o TP funcionar
-                        hrp.Anchored = false
-                        _tp(StartLocation)
-                    else
-                        -- SE CHEGOU NO LOCAL, ANCORA O PERSONAGEM AQUI
-                        hrp.Anchored = true
-                        hrp.CFrame = StartLocation -- Garante que está exatamente no CFrame certo
-
-                        -- Tenta clicar no botão de spawn sem lag
-                        for _, prompt in pairs(PromptService:GetProximityPrompts()) do
-                            if prompt.Parent then
-                                if (prompt.Parent.Position - hrp.Position).Magnitude <= 20 then
-                                    if prompt.Enabled then
-                                        fireproximityprompt(prompt)
-                                    end
-                                end
-                            end
-                        end
-                        task.wait(0.5)
-                    end
-                end
-            end
-        end)
-    end
-end)
-
--- [[ NOCLIP ]]
-spawn(function()
-    while task.wait(0.5) do
-        if _G.AutoFarmEvent then
-            pcall(function()
-                local char = game.Players.LocalPlayer.Character
-                if char then
-                    for _, v in pairs(char:GetDescendants()) do
-                        if v:IsA("BasePart") and v.CanCollide then
-                            v.CanCollide = false
-                        end
-                    end
-                end
             end)
         end
     end
