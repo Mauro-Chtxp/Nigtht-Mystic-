@@ -6135,6 +6135,132 @@ spawn(function()
 end)
 
 
+-- [[ CONFIGURAÇÕES GERAIS ]]
+-- Local de espera (CFrame fornecido)
+local WaitingCFrame = CFrame.new(522.823364, 13.2353449, -3343.6897, -0.540576756, -2.98752134e-08, 0.841294706, -8.76561934e-09, 1, 2.98786169e-08, -0.841294706, 8.77721629e-09, -0.540576756)
+
+-- Função auxiliar para pegar o ProximityPrompt dentro do objeto ou nos filhos
+local function GetPrompt(instance)
+    if not instance then return nil end
+    -- Verifica no próprio objeto
+    if instance:IsA("ProximityPrompt") then return instance end
+    -- Verifica nos filhos
+    return instance:FindFirstChildWhichIsA("ProximityPrompt", true)
+end
+
+-- [[ TOGGLE PARA O EVENTO ]]
+j:AddToggle({
+    Title = "Auto Farm Gift (Event)",
+    Default = _G.AutoFarmGift or false,
+    Callback = function(Value)
+        _G.AutoFarmGift = Value
+        
+        -- Segurança: Se desativar o farm, solta o boneco imediatamente
+        if not Value then
+            local char = game.Players.LocalPlayer.Character
+            if char and char:FindFirstChild("HumanoidRootPart") then
+                char.HumanoidRootPart.Anchored = false
+            end
+        end
+    end
+})
+
+-- [[ LOOP PRINCIPAL ]]
+spawn(function()
+    while task.wait() do
+        if _G.AutoFarmGift then
+            pcall(function()
+                local plr = game.Players.LocalPlayer
+                local char = plr.Character
+                local hrp = char and char:FindFirstChild("HumanoidRootPart")
+                
+                if not hrp then return end
+
+                -- 1. BUSCA O PRESENTE (TARGET)
+                -- Procura nas pastas de evento mostradas nas prints (PresentEventCustom ou PresentEvent)
+                local TargetPresent = nil
+                local PromptFound = nil
+                
+                -- Lista de pastas onde o presente pode spawnar
+                local SearchFolders = {
+                    workspace:FindFirstChild("PresentEventCustom"),
+                    workspace:FindFirstChild("PresentEvent"),
+                    workspace -- Backup: procura no workspace geral se não achar nas pastas
+                }
+                
+                for _, folder in pairs(SearchFolders) do
+                    if folder and not TargetPresent then
+                        for _, item in pairs(folder:GetDescendants()) do
+                            -- Filtro para não pegar coisas inúteis (MeshParts decorativos sem prompt)
+                            if item:IsA("BasePart") or item:IsA("Model") then
+                                local N = string.lower(item.Name)
+                                -- Verifica se o nome bate com os padrões das imagens ou o pedido "gift"
+                                if (N == "giantpresent" or N == "present handle" or string.find(N, "gift")) then
+                                    local p = GetPrompt(item)
+                                    if p then
+                                        TargetPresent = item
+                                        PromptFound = p
+                                        break
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+
+                -- 2. LÓGICA DE MOVIMENTO E AÇÃO
+                if TargetPresent and PromptFound then
+                    -- === MODO COLETA: O Presente Spawnou ===
+                    
+                    -- Solta a âncora para poder teleportar
+                    hrp.Anchored = false 
+                    
+                    -- Teleporta para o presente
+                    if TargetPresent:IsA("Model") then
+                         -- Se for Model, vai para o PrimaryPart ou para o centro
+                         if TargetPresent.PrimaryPart then
+                             _tp(TargetPresent:GetPrimaryPartCFrame())
+                         else
+                             _tp(TargetPresent:GetModelCFrame())
+                         end
+                    else
+                         -- Se for Part, vai direto nela
+                         _tp(TargetPresent.CFrame)
+                    end
+                    
+                    -- Aciona o Prompt (Simula tecla E)
+                    fireproximityprompt(PromptFound)
+                    
+                else
+                    -- === MODO ESPERA: Aguardando o Evento ===
+                    
+                    -- Verifica a distância para o ponto de espera (Spawn do evento)
+                    local dist = (hrp.Position - WaitingCFrame.Position).Magnitude
+                    
+                    if dist > 10 then
+                        -- Se estiver longe, solta âncora e viaja até lá
+                        hrp.Anchored = false
+                        _tp(WaitingCFrame)
+                    else
+                        -- Se chegou no lugar: ANCORA
+                        hrp.Anchored = true
+                        
+                        -- Clica no Prompt do NPC/Botão de iniciar se aparecer por perto
+                        -- Raio de 20 studs
+                        for _, v in pairs(workspace:GetPartBoundsInBox(hrp.CFrame, Vector3.new(20, 20, 20))) do
+                            local nearbyPrompt = GetPrompt(v) or GetPrompt(v.Parent)
+                            if nearbyPrompt then
+                                fireproximityprompt(nearbyPrompt)
+                            end
+                        end
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+
 
 
 
