@@ -529,6 +529,7 @@ statsSetings = function(I, e)
 		end;
 	end;
 
+
 --==================================================
 -- VARIÁVEIS DE CONTROLE NECESSÁRIAS
 --==================================================
@@ -540,9 +541,13 @@ _G.BringRange = _G.BringRange or 235
 _G.MaxBringMobs = _G.MaxBringMobs or 3
 _G.FarmPriorityElf = _G.FarmPriorityElf or false
 
+-- 🔒 CONTROLE DA ÁREA (PRISÃO DE MOBS)
+_G.BringLockArea = _G.BringLockArea or true
+_G.BringAreaRadius = _G.BringAreaRadius or 25 -- raio máximo que o mob pode sair
+
 local TweenService = game:GetService("TweenService")
 local TweenInfoBring = TweenInfo.new(
-    0.55, -- 🔽 Tween um pouco mais lento (antes 0.45)
+    0.55,
     Enum.EasingStyle.Linear,
     Enum.EasingDirection.Out
 )
@@ -551,14 +556,12 @@ local TweenInfoBring = TweenInfo.new(
 -- FUNÇÃO: VERIFICA SE QUALQUER FARM ESTÁ ATIVO
 --==================================================
 local function FarmAtivo()
-    -- PRIORIDADE ABSOLUTA
     if _G.FarmPriorityElf or _G.FarmElfLevelCustom then
         return true
     end
 
     return (
-        _G.AutoFarm_Cake or _G.AutoTyrant or -- 🔥 ADICIONADOS AQUI
-
+        _G.AutoFarm_Cake or _G.AutoTyrant or
         _G.SailBoat_Hydra or _G.WardenBoss or _G.AutoFactory or _G.HighestMirage or
         _G.HCM or _G.PGB or _G.Leviathan1 or _G.UPGDrago or _G.Complete_Trials or
         _G.TpDrago_Prehis or _G.BuyDrago or _G.AutoFireFlowers or _G.DT_Uzoth or
@@ -590,11 +593,11 @@ local function FarmAtivo()
         _G.Teleport or _G.AutoKilo or _G.AutoGetUsoap or _G.Praying or
         _G.TryLucky or _G.AutoColShad or _G.AutoUnHaki or _G.Auto_DonAcces or
         _G.AutoRipIngay or _G.DragoV3 or _G.DragoV1 or _G.SailBoats or
-        NextIs or _G.FarmGodChalice or _G.IceBossRen or senth or senth2 or
-        _G.Lvthan or _G.beasthunter or _G.DangerLV or _G.Relic123 or
-        _G.tweenKitsune or _G.Collect_Ember or _G.AutofindKitIs or
-        _G.snaguine or _G.TwFruits or _G.tweenKitShrine or _G.Tp_LgS or
-        _G.Tp_MasterA or _G.tweenShrine or _G.FarmMastery_G or _G.FarmMastery_S
+        _G.FarmGodChalice or _G.IceBossRen or _G.Lvthan or _G.beasthunter or
+        _G.DangerLV or _G.Relic123 or _G.tweenKitsune or _G.Collect_Ember or
+        _G.AutofindKitIs or _G.snaguine or _G.TwFruits or _G.tweenKitShrine or
+        _G.Tp_LgS or _G.Tp_MasterA or _G.tweenShrine or
+        _G.FarmMastery_G or _G.FarmMastery_S
     )
 end
 
@@ -624,6 +627,19 @@ local function IsRaidMob(mob)
     end
 
     return false
+end
+
+--==================================================
+-- FUNÇÃO: TRAVA O MOB DENTRO DA ÁREA
+--==================================================
+local function LockMobInArea(root, centerPos)
+    if not _G.BringLockArea then return end
+
+    if (root.Position - centerPos).Magnitude > _G.BringAreaRadius then
+        root.CFrame = CFrame.new(centerPos)
+        root.AssemblyLinearVelocity = Vector3.zero
+        root.AssemblyAngularVelocity = Vector3.zero
+    end
 end
 
 --==================================================
@@ -657,11 +673,19 @@ BringEnemy = function()
                 count += 1
                 root:SetAttribute("Tweening", true)
 
-                TweenService:Create(
+                local tween = TweenService:Create(
                     root,
                     TweenInfoBring,
                     { CFrame = CFrame.new(targetPos) }
-                ):Play()
+                )
+                tween:Play()
+
+                task.spawn(function()
+                    while root and root.Parent and hum.Health > 0 do
+                        LockMobInArea(root, targetPos)
+                        task.wait(0.15)
+                    end
+                end)
             end
         end
     end
