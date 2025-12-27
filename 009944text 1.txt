@@ -2360,7 +2360,7 @@ SSS:AddToggle({
 SSS:AddSeperator("Gun")
 
 -- [[ TOGGLES GUN ]]
-SS:AddToggle({
+SSS:AddToggle({
     Title = "Skill Z",
     Default = GetSetting("Skill_Gun_Z", true), 
     Callback = function(I)
