@@ -341,35 +341,26 @@ G.Dist = function(I, e)
 G.DistH = function(I, e)
 		return (Root.Position - (I:FindFirstChild("HumanoidRootPart")).Position).Magnitude > e;
 	end;
+-- ALTURA ÚNICA AJUSTÁVEL DO MOB
+_G.MobHeight = _G.MobHeight or 20
+
 G.Kill = function(I, e)
-		if I and e then
-			if not I:GetAttribute("Locked") then
-				I:SetAttribute("Locked", I.HumanoidRootPart.CFrame);
-			end;
-			PosMon = (I:GetAttribute("Locked")).Position;
-			BringEnemy();
-			EquipWeapon(_G.SelectWeapon);
-			local e = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool");
-			local K = e.ToolTip;
-			if K == "Blox Fruit" then
-				_tp((I.HumanoidRootPart.CFrame * CFrame.new(0, 10, 0)) * CFrame.Angles(0, math.rad(90), 0));
-			else
-				_tp((I.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0)) * CFrame.Angles(0, math.rad(180), 0));
-			end;
-			if RandomCFrame then
-				wait(.5);
-				_tp(I.HumanoidRootPart.CFrame * CFrame.new(0, 30, 25));
-				wait(.5);
-				_tp(I.HumanoidRootPart.CFrame * CFrame.new(25, 30, 0));
-				wait(.5);
-				_tp(I.HumanoidRootPart.CFrame * CFrame.new(-25, 30, 0));
-				wait(.5);
-				_tp(I.HumanoidRootPart.CFrame * CFrame.new(0, 30, 25));
-				wait(.5);
-				_tp(I.HumanoidRootPart.CFrame * CFrame.new(-25, 30, 0));
-			end;
-		end;
-	end;
+	if I and e then
+		if not I:GetAttribute("Locked") then
+			I:SetAttribute("Locked", I.HumanoidRootPart.CFrame)
+		end
+
+		PosMon = (I:GetAttribute("Locked")).Position
+		BringEnemy()
+		EquipWeapon(_G.SelectWeapon)
+
+		local tool = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
+		if not tool then return end
+
+		-- >>> ALTURA SOMENTE DO MOB (ÚNICA) <<<
+		_tp(I.HumanoidRootPart.CFrame * CFrame.new(0, _G.MobHeight, 0))
+	end
+end
 G.Kill2 = function(I, e)
 		if I and e then
 			if not I:GetAttribute("Locked") then
@@ -5961,6 +5952,19 @@ T:AddInput({
     end
 })
 
+T:AddInput({
+    Title = "Select Farm Height",
+    Description = "",
+    PlaceHolder = "20",
+    Default = tostring(_G.MobHeight),
+    Callback = function(Value)
+        local num = tonumber(Value)
+        if num and num > 0 then
+            _G.MobHeight = num
+        end
+    end
+})
+
 j:AddSeperator("Christmas")
 
 -- [[ TOGGLE PARA O FARM ]]
@@ -6129,100 +6133,6 @@ spawn(function()
                 replicated.Modules.Net["RE/SpinGacha"]:FireServer({
                     BoxName = "F2PXmasWeek2Gacha25"
                 })
-            end)
-        end
-    end
-end)
-
-
--- [[ CONFIGURAÇÕES GERAIS ]]
-local WaitingCFrame = CFrame.new(522.823364, 13.2353449, -3343.6897, -0.540576756, -2.98752134e-08, 0.841294706, -8.76561934e-09, 1, 2.98786169e-08, -0.841294706, 8.77721629e-09, -0.540576756)
-
--- Função para verificar se o nome é relacionado a presente
-local function IsGiftName(name)
-    local n = string.lower(name)
-    return n:find("gift") or n:find("present")
-end
-
--- [[ TOGGLE ]]
-j:AddToggle({
-    Title = "Auto Farm Gift (Otimizado)",
-    Default = _G.AutoFarmGift or false,
-    Callback = function(Value)
-        _G.AutoFarmGift = Value
-        if not Value then
-            local char = game.Players.LocalPlayer.Character
-            if char and char:FindFirstChild("HumanoidRootPart") then
-                char.HumanoidRootPart.Anchored = false
-            end
-        end
-    end
-})
-
--- [[ LOOP PRINCIPAL ]]
-spawn(function()
-    while task.wait(0.1) do -- Intervalo de 0.1 para reduzir uso de CPU
-        if _G.AutoFarmGift then
-            pcall(function()
-                local plr = game.Players.LocalPlayer
-                local char = plr.Character
-                local hrp = char and char:FindFirstChild("HumanoidRootPart")
-                if not hrp then return end
-
-                local TargetPresent = nil
-                local PromptFound = nil
-
-                -- 1. BUSCA O PRESENTE APENAS NAS PASTAS ESPECÍFICAS (Print 1 e 2)
-                local Folders = {workspace:FindFirstChild("PresentEventCustom"), workspace:FindFirstChild("PresentEvent")}
-                
-                for _, folder in pairs(Folders) do
-                    if folder then
-                        for _, obj in pairs(folder:GetChildren()) do
-                            if IsGiftName(obj.Name) then
-                                local p = obj:FindFirstChildWhichIsA("ProximityPrompt", true)
-                                if p then
-                                    TargetPresent = obj
-                                    PromptFound = p
-                                    break
-                                end
-                            end
-                        end
-                    end
-                end
-
-                -- 2. LÓGICA DE AÇÃO
-                if TargetPresent and PromptFound then
-                    -- ACHOU O PRESENTE: Vai buscar
-                    hrp.Anchored = false 
-                    local targetCF = TargetPresent:IsA("Model") and (TargetPresent.PrimaryPart and TargetPresent.PrimaryPart.CFrame or TargetPresent:GetModelCFrame()) or TargetPresent.CFrame
-                    
-                    _tp(targetCF)
-                    
-                    -- Só aperta se estiver perto do presente (evita apertar prompts errados no caminho)
-                    if (hrp.Position - targetCF.Position).Magnitude < 10 then
-                        fireproximityprompt(PromptFound)
-                    end
-                else
-                    -- NÃO ACHOU: Vai para o ponto de espera
-                    local dist = (hrp.Position - WaitingCFrame.Position).Magnitude
-                    
-                    if dist > 5 then
-                        hrp.Anchored = false
-                        _tp(WaitingCFrame)
-                    else
-                        -- ESTÁ NO LOCAL: Ancora e espera o prompt de INICIAR
-                        hrp.Anchored = true
-                        
-                        -- Busca prompts APENAS em volta do player (raio de 15 studs)
-                        -- Isso evita o lag de procurar no mapa todo
-                        for _, v in pairs(workspace:GetPartBoundsInBox(hrp.CFrame, Vector3.new(15, 15, 15))) do
-                            local p = v:FindFirstChildWhichIsA("ProximityPrompt") or v.Parent:FindFirstChildWhichIsA("ProximityPrompt")
-                            if p and IsGiftName(v.Name or v.Parent.Name) then
-                                fireproximityprompt(p)
-                            end
-                        end
-                    end
-                end
             end)
         end
     end
