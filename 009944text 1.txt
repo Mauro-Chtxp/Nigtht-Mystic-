@@ -542,7 +542,7 @@ _G.FarmPriorityElf = _G.FarmPriorityElf or false
 
 local TweenService = game:GetService("TweenService")
 local TweenInfoBring = TweenInfo.new(
-    1.2,
+    0.55, -- 🔽 Tween um pouco mais lento (antes 0.45)
     Enum.EasingStyle.Linear,
     Enum.EasingDirection.Out
 )
@@ -557,6 +557,8 @@ local function FarmAtivo()
     end
 
     return (
+        _G.AutoFarm_Cake or _G.AutoTyrant or -- 🔥 ADICIONADOS AQUI
+
         _G.SailBoat_Hydra or _G.WardenBoss or _G.AutoFactory or _G.HighestMirage or
         _G.HCM or _G.PGB or _G.Leviathan1 or _G.UPGDrago or _G.Complete_Trials or
         _G.TpDrago_Prehis or _G.BuyDrago or _G.AutoFireFlowers or _G.DT_Uzoth or
