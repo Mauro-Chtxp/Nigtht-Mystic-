@@ -341,14 +341,11 @@ G.Dist = function(I, e)
 G.DistH = function(I, e)
 		return (Root.Position - (I:FindFirstChild("HumanoidRootPart")).Position).Magnitude > e;
 	end;
--- ALTURA FINAL DO FARM (PLAYER ESCOLHE)
+-- ALTURA ÚNICA AJUSTÁVEL DO MOB
 _G.MobHeight = _G.MobHeight or 20
 
--- ALTURA FIXA DE SUBIDA (75 STUDS)
-local UP_HEIGHT = 75
-
 G.Kill = function(I, e)
-	if I and e and I:FindFirstChild("HumanoidRootPart") then
+	if I and e then
 		if not I:GetAttribute("Locked") then
 			I:SetAttribute("Locked", I.HumanoidRootPart.CFrame)
 		end
@@ -357,16 +354,11 @@ G.Kill = function(I, e)
 		BringEnemy()
 		EquipWeapon(_G.SelectWeapon)
 
-		local char = game.Players.LocalPlayer.Character
-		if not char or not char:FindFirstChildOfClass("Tool") then return end
+		local tool = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
+		if not tool then return end
 
-		local baseCF = I.HumanoidRootPart.CFrame
-
-		-- 🔼 SOBE 75 STUDS
-		_tp(baseCF * CFrame.new(0, UP_HEIGHT, 0))
-
-		-- 🔽 DESCE DIRETO PRA ALTURA DO PLAYER (SEM TWEEN)
-		_tp(baseCF * CFrame.new(0, _G.MobHeight, 0))
+		-- >>> ALTURA SOMENTE DO MOB (ÚNICA) <<<
+		_tp(I.HumanoidRootPart.CFrame * CFrame.new(0, _G.MobHeight, 0))
 	end
 end
 G.Kill2 = function(I, e)
@@ -532,37 +524,21 @@ statsSetings = function(I, e)
 -- VARIÁVEIS DE CONTROLE NECESSÁRIAS
 --==================================================
 _G = _G or {}
-_B = false
-PosMon = nil
 
-_G.BringRange = 235
-_G.MaxBringMobs = 3 -- LIMITE DE MOBS
+-- Configurações
+_G.BringRange = 350 -- Distância máxima para detectar e puxar o mob
+_G.MaxBringMobs = 3 -- Quantidade máxima de mobs para puxar por vez
+_G.BringInterval = 1.5 -- Tempo de espera entre os puxões (Solta -> Espera 1.5s -> Puxa)
 
-local TweenService = game:GetService("TweenService")
-local TweenInfoBring = TweenInfo.new(
-    0.45, -- velocidade do tween
-    Enum.EasingStyle.Linear,
-    Enum.EasingDirection.Out
-)
-
---==================================================
--- VARIÁVEIS NECESSÁRIAS
---==================================================
-_G = _G or {}
-
-_G.BringRange = _G.BringRange or 235
-_G.MaxBringMobs = _G.MaxBringMobs or 3
+-- Prioridades de Farm (Mantidas do seu script)
 _G.FarmPriorityElf = _G.FarmPriorityElf or false
+_G.StartFarm = _G.StartFarm or true -- Garante que comece se as vars não existirem
 
-local TweenService = game:GetService("TweenService")
-local TweenInfoBring = TweenInfo.new(
-    0.45,
-    Enum.EasingStyle.Linear,
-    Enum.EasingDirection.Out
-)
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
 
-local _B = false
-PosMon = nil
+local PosMon = nil -- Se definir isso externamente, ele puxa pra cá. Se nil, puxa pro player.
 
 --==================================================
 -- FUNÇÃO: VERIFICA SE QUALQUER FARM ESTÁ ATIVO
@@ -573,14 +549,14 @@ local function FarmAtivo()
         return true
     end
 
-    -- TODOS OS OUTROS FARMS (INALTERADOS)
+    -- TODOS OS OUTROS FARMS
     return _G.StartFarm and (
         _G.Level or
         _G.AutoFarm_Bone or
         _G.AutoFarm_Cake or
         _G.FarmMastery_Dev or
         _G.FarmMastery_G or
-        (getgenv()).AutoMaterial or
+        (getgenv and getgenv().AutoMaterial) or
         _G.AutoTyrant
     )
 end
@@ -589,48 +565,44 @@ end
 -- FUNÇÃO: IGNORA MOBS INDESEJADOS
 --==================================================
 local function IsRaidMob(mob)
+    if not mob then return true end
     local n = mob.Name:lower()
 
-    if n:find("raid") or n:find("microchip") or n:find("island") then
-        return true
-    end
-
-    if mob:GetAttribute("IsRaid")
-        or mob:GetAttribute("RaidMob")
-        or mob:GetAttribute("IsBoss") then
-        return true
-    end
+    if n:find("raid") or n:find("microchip") or n:find("island") then return true end
+    
+    if mob:GetAttribute("IsRaid") 
+    or mob:GetAttribute("RaidMob") 
+    or mob:GetAttribute("IsBoss") then return true end
 
     local hum = mob:FindFirstChild("Humanoid")
-    if hum and hum.WalkSpeed == 0 then
-        return true
-    end
+    if hum and hum.WalkSpeed == 0 then return true end
 
-    if mob.Parent and tostring(mob.Parent):lower():find("_worldorigin") then
-        return true
-    end
+    if mob.Parent and tostring(mob.Parent):lower():find("_worldorigin") then return true end
 
     return false
 end
 
 --==================================================
--- FUNÇÃO PRINCIPAL: BRING
+-- FUNÇÃO PRINCIPAL: BRING (TP INSTA)
 --==================================================
-BringEnemy = function()
-    if not FarmAtivo() or not _B then return end
+local function BringEnemyInstant()
+    if not FarmAtivo() then return end
 
-    local plr = game.Players.LocalPlayer
+    local plr = Players.LocalPlayer
     local char = plr.Character
     local hrp = char and char:FindFirstChild("HumanoidRootPart")
-    if not hrp then return end
+    
+    -- Define o ponto central para onde os mobs vão (Seu personagem ou PosMon)
+    local targetBase = PosMon or (hrp and hrp.Position)
+    if not targetBase then return end
 
-    -- Simulation Radius
+    -- Aumenta o raio de simulação para garantir que o server aceite o TP
     pcall(function()
-        sethiddenproperty(plr, "SimulationRadius", math.huge)
+        if setscriptable then setscriptable(plr, "SimulationRadius", true) end
+        if sethiddenproperty then sethiddenproperty(plr, "SimulationRadius", math.huge) end
     end)
 
-    local targetPos = PosMon or hrp.Position
-    local enemies = workspace.Enemies:GetChildren()
+    local enemies = Workspace.Enemies:GetChildren()
     local count = 0
 
     for _, mob in ipairs(enemies) do
@@ -640,47 +612,47 @@ BringEnemy = function()
         local root = mob:FindFirstChild("HumanoidRootPart")
 
         if hum and root and hum.Health > 0 and not IsRaidMob(mob) then
-            local dist = (root.Position - targetPos).Magnitude
+            local dist = (root.Position - targetBase).Magnitude
 
-            if dist <= _G.BringRange and not root:GetAttribute("Tweening") then
-                count += 1
-                root:SetAttribute("Tweening", true)
+            -- Verifica se está no Range de detecção (_G.BringRange)
+            if dist <= _G.BringRange then
+                
+                -- LÓGICA DO TP INSTA
+                -- Traz o mob para a sua posição exata (CFrame)
+                root.CFrame = CFrame.new(targetBase)
+                
+                -- CANCELA A VELOCIDADE (Evita Fling/Voar longe)
+                root.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                root.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+                
+                -- Se houver cancollide, desativa temporariamente para não travar
+                if root.CanCollide then root.CanCollide = false end
 
-                local tween = TweenService:Create(
-                    root,
-                    TweenInfoBring,
-                    {CFrame = CFrame.new(targetPos)}
-                )
-
-                tween:Play()
-                tween.Completed:Once(function()
-                    if root then
-                        root:SetAttribute("Tweening", false)
-                    end
-                end)
+                count = count + 1
             end
         end
     end
 end
 
 --==================================================
--- LOOP CONTROLADOR
+-- LOOP CONTROLADOR (Puxa -> Solta -> Espera 1.5s)
 --==================================================
 task.spawn(function()
-    while task.wait(1) do
+    while true do
         if FarmAtivo() then
-            _B = true
-            BringEnemy()
-            task.wait(3)
-
-            _B = false
-            task.wait(5)
+            -- 1. PUXAR (TP INSTA)
+            BringEnemyInstant()
+            
+            -- 2. ESPERAR (Soltar e esperar o tempo definido)
+            -- Durante esse tempo, o mob pode tentar andar, mas será puxado de volta no próximo ciclo.
+            task.wait(_G.BringInterval) 
         else
-            _B = false
+            -- Se farm não estiver ativo, verifica menos frequentemente para economizar processamento
             task.wait(1)
         end
     end
 end)
+
 
 Useskills = function(I, e)
 		if I == "Melee" then
