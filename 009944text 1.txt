@@ -524,39 +524,35 @@ statsSetings = function(I, e)
 -- VARIÁVEIS DE CONTROLE NECESSÁRIAS
 --==================================================
 _G = _G or {}
+_B = false
+PosMon = nil
 
--- Configurações
-_G.BringRange = 350 -- Distância máxima para detectar e puxar o mob
-_G.MaxBringMobs = 3 -- Quantidade máxima de mobs para puxar por vez
-_G.BringInterval = 1.5 -- Tempo de espera entre os puxões (Solta -> Espera 1.5s -> Puxa)
+_G.BringRange = 235
+_G.MaxBringMobs = math.huge -- sem limite, pega todos no range
+_G.KeepRange = 300 -- Range que os mobs não poderão ultrapassar
 
--- Prioridades de Farm (Mantidas do seu script)
-_G.FarmPriorityElf = _G.FarmPriorityElf or false
-_G.StartFarm = _G.StartFarm or true -- Garante que comece se as vars não existirem
-
-local RunService = game:GetService("RunService")
-local Players = game:GetService("Players")
-local Workspace = game:GetService("Workspace")
-
-local PosMon = nil -- Se definir isso externamente, ele puxa pra cá. Se nil, puxa pro player.
+local TweenService = game:GetService("TweenService")
+local TweenInfoBring = TweenInfo.new(
+    0.1, -- TP praticamente instantâneo
+    Enum.EasingStyle.Linear,
+    Enum.EasingDirection.Out
+)
 
 --==================================================
 -- FUNÇÃO: VERIFICA SE QUALQUER FARM ESTÁ ATIVO
 --==================================================
 local function FarmAtivo()
-    -- PRIORIDADE ABSOLUTA PARA ELF
     if _G.FarmPriorityElf or _G.FarmElfLevelCustom then
         return true
     end
 
-    -- TODOS OS OUTROS FARMS
     return _G.StartFarm and (
         _G.Level or
         _G.AutoFarm_Bone or
         _G.AutoFarm_Cake or
         _G.FarmMastery_Dev or
         _G.FarmMastery_G or
-        (getgenv and getgenv().AutoMaterial) or
+        (getgenv()).AutoMaterial or
         _G.AutoTyrant
     )
 end
@@ -565,94 +561,76 @@ end
 -- FUNÇÃO: IGNORA MOBS INDESEJADOS
 --==================================================
 local function IsRaidMob(mob)
-    if not mob then return true end
     local n = mob.Name:lower()
-
-    if n:find("raid") or n:find("microchip") or n:find("island") then return true end
-    
-    if mob:GetAttribute("IsRaid") 
-    or mob:GetAttribute("RaidMob") 
-    or mob:GetAttribute("IsBoss") then return true end
-
+    if n:find("raid") or n:find("microchip") or n:find("island") then
+        return true
+    end
+    if mob:GetAttribute("IsRaid") or mob:GetAttribute("RaidMob") or mob:GetAttribute("IsBoss") then
+        return true
+    end
     local hum = mob:FindFirstChild("Humanoid")
-    if hum and hum.WalkSpeed == 0 then return true end
-
-    if mob.Parent and tostring(mob.Parent):lower():find("_worldorigin") then return true end
-
+    if hum and hum.WalkSpeed == 0 then
+        return true
+    end
+    if mob.Parent and tostring(mob.Parent):lower():find("_worldorigin") then
+        return true
+    end
     return false
 end
 
 --==================================================
--- FUNÇÃO PRINCIPAL: BRING (TP INSTA)
+-- FUNÇÃO PRINCIPAL: BRING INSTA
 --==================================================
-local function BringEnemyInstant()
+BringEnemy = function()
     if not FarmAtivo() then return end
 
-    local plr = Players.LocalPlayer
+    local plr = game.Players.LocalPlayer
     local char = plr.Character
     local hrp = char and char:FindFirstChild("HumanoidRootPart")
-    
-    -- Define o ponto central para onde os mobs vão (Seu personagem ou PosMon)
-    local targetBase = PosMon or (hrp and hrp.Position)
-    if not targetBase then return end
+    if not hrp then return end
 
-    -- Aumenta o raio de simulação para garantir que o server aceite o TP
+    -- Simulation Radius
     pcall(function()
-        if setscriptable then setscriptable(plr, "SimulationRadius", true) end
-        if sethiddenproperty then sethiddenproperty(plr, "SimulationRadius", math.huge) end
+        sethiddenproperty(plr, "SimulationRadius", math.huge)
     end)
 
-    local enemies = Workspace.Enemies:GetChildren()
-    local count = 0
+    local targetPos = PosMon or hrp.Position
+    local enemies = workspace.Enemies:GetChildren()
 
     for _, mob in ipairs(enemies) do
-        if count >= _G.MaxBringMobs then break end
-
         local hum = mob:FindFirstChild("Humanoid")
         local root = mob:FindFirstChild("HumanoidRootPart")
-
         if hum and root and hum.Health > 0 and not IsRaidMob(mob) then
-            local dist = (root.Position - targetBase).Magnitude
+            local dist = (root.Position - targetPos).Magnitude
+            if dist <= _G.BringRange and not root:GetAttribute("Tweening") then
+                -- Marca como puxando
+                root:SetAttribute("Tweening", true)
 
-            -- Verifica se está no Range de detecção (_G.BringRange)
-            if dist <= _G.BringRange then
-                
-                -- LÓGICA DO TP INSTA
-                -- Traz o mob para a sua posição exata (CFrame)
-                root.CFrame = CFrame.new(targetBase)
-                
-                -- CANCELA A VELOCIDADE (Evita Fling/Voar longe)
-                root.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-                root.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
-                
-                -- Se houver cancollide, desativa temporariamente para não travar
-                if root.CanCollide then root.CanCollide = false end
+                -- TP instantâneo
+                root.CFrame = CFrame.new(targetPos)
 
-                count = count + 1
+                -- Solta o mob
+                root:SetAttribute("Tweening", false)
+            end
+
+            -- Mantém dentro do KeepRange
+            if (root.Position - targetPos).Magnitude > _G.KeepRange then
+                root.CFrame = CFrame.new(targetPos)
             end
         end
     end
 end
 
 --==================================================
--- LOOP CONTROLADOR (Puxa -> Solta -> Espera 1.5s)
+-- LOOP CONTROLADOR RAPIDO
 --==================================================
 task.spawn(function()
-    while true do
+    while task.wait(1.5) do -- repete a cada 1.5s
         if FarmAtivo() then
-            -- 1. PUXAR (TP INSTA)
-            BringEnemyInstant()
-            
-            -- 2. ESPERAR (Soltar e esperar o tempo definido)
-            -- Durante esse tempo, o mob pode tentar andar, mas será puxado de volta no próximo ciclo.
-            task.wait(_G.BringInterval) 
-        else
-            -- Se farm não estiver ativo, verifica menos frequentemente para economizar processamento
-            task.wait(1)
+            BringEnemy()
         end
     end
 end)
-
 
 Useskills = function(I, e)
 		if I == "Melee" then
