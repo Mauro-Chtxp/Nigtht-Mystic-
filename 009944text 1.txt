@@ -341,11 +341,14 @@ G.Dist = function(I, e)
 G.DistH = function(I, e)
 		return (Root.Position - (I:FindFirstChild("HumanoidRootPart")).Position).Magnitude > e;
 	end;
--- ALTURA ÚNICA AJUSTÁVEL DO MOB
+-- ALTURA FINAL DO FARM (PLAYER ESCOLHE)
 _G.MobHeight = _G.MobHeight or 20
 
+-- ALTURA FIXA DE SUBIDA (75 STUDS)
+local UP_HEIGHT = 75
+
 G.Kill = function(I, e)
-	if I and e then
+	if I and e and I:FindFirstChild("HumanoidRootPart") then
 		if not I:GetAttribute("Locked") then
 			I:SetAttribute("Locked", I.HumanoidRootPart.CFrame)
 		end
@@ -354,11 +357,16 @@ G.Kill = function(I, e)
 		BringEnemy()
 		EquipWeapon(_G.SelectWeapon)
 
-		local tool = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
-		if not tool then return end
+		local char = game.Players.LocalPlayer.Character
+		if not char or not char:FindFirstChildOfClass("Tool") then return end
 
-		-- >>> ALTURA SOMENTE DO MOB (ÚNICA) <<<
-		_tp(I.HumanoidRootPart.CFrame * CFrame.new(0, _G.MobHeight, 0))
+		local baseCF = I.HumanoidRootPart.CFrame
+
+		-- 🔼 SOBE 75 STUDS
+		_tp(baseCF * CFrame.new(0, UP_HEIGHT, 0))
+
+		-- 🔽 DESCE DIRETO PRA ALTURA DO PLAYER (SEM TWEEN)
+		_tp(baseCF * CFrame.new(0, _G.MobHeight, 0))
 	end
 end
 G.Kill2 = function(I, e)
