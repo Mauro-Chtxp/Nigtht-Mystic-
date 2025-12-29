@@ -532,7 +532,7 @@ _G.BringRange = _G.BringRange or 235
 _G.MaxBringMobs = _G.MaxBringMobs or 3 -- LIMITE DE MOBS
 
 _G.FarmPriorityElf = _G.FarmPriorityElf or false
-_G.FarmMastery_S = _G.FarmMastery_S or false
+_G.FarmMastery_S   = _G.FarmMastery_S or false
 
 local TweenService = game:GetService("TweenService")
 local TweenInfoBring = TweenInfo.new(
@@ -545,19 +545,23 @@ local TweenInfoBring = TweenInfo.new(
 -- FUNÇÃO: VERIFICA SE QUALQUER FARM ESTÁ ATIVO
 --==================================================
 local function FarmAtivo()
-    -- PRIORIDADE ABSOLUTA PARA ELF
+    -- PRIORIDADE ABSOLUTA (ELF)
     if _G.FarmPriorityElf or _G.FarmElfLevelCustom then
         return true
     end
 
-    -- TODOS OS OUTROS FARMS
+    -- AUTO MASTERY ALL SWORD (INDEPENDENTE DO START FARM)
+    if _G.FarmMastery_S then
+        return true
+    end
+
+    -- OUTROS FARMS (DEPENDENTES DO START FARM)
     return _G.StartFarm and (
         _G.Level or
         _G.AutoFarm_Bone or
         _G.AutoFarm_Cake or
         _G.FarmMastery_Dev or
         _G.FarmMastery_G or
-        _G.FarmMastery_S or -- AUTO MASTERY ALL SWORD
         (getgenv()).AutoMaterial or
         _G.AutoTyrant
     )
@@ -659,6 +663,7 @@ task.spawn(function()
         end
     end
 end)
+
 Useskills = function(I, e)
 		if I == "Melee" then
 			weaponSc("Melee");
@@ -4126,7 +4131,7 @@ spawn(function()
 	end;
 end);
 
-RR:AddSeperator("Mastery 600");
+RR:AddSeperator("Farm Mastery");
 
 local TargetMobs = {
 	"Reborn Skeleton",
