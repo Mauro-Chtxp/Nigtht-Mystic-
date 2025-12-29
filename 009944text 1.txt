@@ -538,9 +538,34 @@ local TweenInfoBring = TweenInfo.new(
 )
 
 --==================================================
--- FUNÇÃO: Verifica se qualquer tipo de farm está ativo
+-- VARIÁVEIS NECESSÁRIAS
+--==================================================
+_G = _G or {}
+
+_G.BringRange = _G.BringRange or 235
+_G.MaxBringMobs = _G.MaxBringMobs or 3
+_G.FarmPriorityElf = _G.FarmPriorityElf or false
+
+local TweenService = game:GetService("TweenService")
+local TweenInfoBring = TweenInfo.new(
+    0.45,
+    Enum.EasingStyle.Linear,
+    Enum.EasingDirection.Out
+)
+
+local _B = false
+PosMon = nil
+
+--==================================================
+-- FUNÇÃO: VERIFICA SE QUALQUER FARM ESTÁ ATIVO
 --==================================================
 local function FarmAtivo()
+    -- PRIORIDADE ABSOLUTA PARA ELF
+    if _G.FarmPriorityElf or _G.FarmElfLevelCustom then
+        return true
+    end
+
+    -- TODOS OS OUTROS FARMS (INALTERADOS)
     return _G.StartFarm and (
         _G.Level or
         _G.AutoFarm_Bone or
@@ -553,54 +578,51 @@ local function FarmAtivo()
 end
 
 --==================================================
--- FUNÇÃO: Verifica se o mob deve ser ignorado
+-- FUNÇÃO: IGNORA MOBS INDESEJADOS
 --==================================================
 local function IsRaidMob(mob)
     local n = mob.Name:lower()
 
-    if n:find("raid") or n:find("microchip") or n:find("island") then 
-        return true 
-    end  
+    if n:find("raid") or n:find("microchip") or n:find("island") then
+        return true
+    end
 
-    if mob:GetAttribute("IsRaid") 
-        or mob:GetAttribute("RaidMob") 
-        or mob:GetAttribute("IsBoss") then 
-        return true 
-    end  
+    if mob:GetAttribute("IsRaid")
+        or mob:GetAttribute("RaidMob")
+        or mob:GetAttribute("IsBoss") then
+        return true
+    end
 
-    local hum = mob:FindFirstChild("Humanoid")  
-    if hum and hum.WalkSpeed == 0 then 
-        return true 
-    end  
+    local hum = mob:FindFirstChild("Humanoid")
+    if hum and hum.WalkSpeed == 0 then
+        return true
+    end
 
-    if mob.Parent and tostring(mob.Parent):lower():find("_worldorigin") then 
-        return true 
-    end  
+    if mob.Parent and tostring(mob.Parent):lower():find("_worldorigin") then
+        return true
+    end
 
     return false
 end
 
 --==================================================
--- FUNÇÃO PRINCIPAL: BRING POR TWEEN
+-- FUNÇÃO PRINCIPAL: BRING
 --==================================================
 BringEnemy = function()
     if not FarmAtivo() or not _B then return end
 
-    local LocalPlayer = game.Players.LocalPlayer
-    local char = LocalPlayer.Character
-    if not char then return end
-
-    local HRP_Player = char:FindFirstChild("HumanoidRootPart")
-    if not HRP_Player then return end
+    local plr = game.Players.LocalPlayer
+    local char = plr.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
 
     -- Simulation Radius
     pcall(function()
-        sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge)
+        sethiddenproperty(plr, "SimulationRadius", math.huge)
     end)
 
-    local targetPos = PosMon or HRP_Player.Position
+    local targetPos = PosMon or hrp.Position
     local enemies = workspace.Enemies:GetChildren()
-
     local count = 0
 
     for _, mob in ipairs(enemies) do
@@ -634,7 +656,7 @@ BringEnemy = function()
 end
 
 --==================================================
--- LOOP CONTROLADOR (PUXAR / SOLTAR)
+-- LOOP CONTROLADOR
 --==================================================
 task.spawn(function()
     while task.wait(1) do
@@ -651,6 +673,7 @@ task.spawn(function()
         end
     end
 end)
+
 Useskills = function(I, e)
 		if I == "Melee" then
 			weaponSc("Melee");
