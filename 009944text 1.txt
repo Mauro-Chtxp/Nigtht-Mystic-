@@ -4140,39 +4140,15 @@ local TargetMobs = {
 	"Posessed Mummy"
 }
 
-local function GetSpecificMob()
-	-- Primeiro procura no Workspace (onde o combate acontece)
-	for _, mobName in pairs(TargetMobs) do
-		for _, v in pairs(game:GetService("Workspace"):GetDescendants()) do
-			if v.Name == mobName and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
-				return v
-			end
-		end
-	end
-	-- Se não achar no Workspace, procura no ReplicatedStorage
-	for _, mobName in pairs(TargetMobs) do
-		for _, v in pairs(game:GetService("ReplicatedStorage"):GetDescendants()) do
-			if v.Name == mobName and v:FindFirstChild("Humanoid") then
-				return v
-			end
-		end
-	end
-	return nil
-end
-
-local TargetMobs = {
-	"Reborn Skeleton",
-	"Living Zombie",
-	"Demonic Soul",
-	"Posessed Mummy"
-}
-
 local FarmPos = CFrame.new(-9513.63867, 164.010269, 5786.66895, -0.0950724334, 9.31791888e-08, 0.995470345, 7.18874515e-09, 1, -9.29166148e-08, -0.995470345, -1.67762626e-09, -0.0950724334)
 
 local function GetClosestMob()
 	local closestDist = math.huge
 	local target = nil
-	local playerPos = game.Players.LocalPlayer.Character.HumanoidRootPart.Position
+	local hrp = game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+	
+	if not hrp then return nil end
+	local playerPos = hrp.Position
 
 	for _, v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
 		local isTarget = false
@@ -4183,7 +4159,7 @@ local function GetClosestMob()
 			end
 		end
 
-		if isTarget and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+		if isTarget and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 and v:FindFirstChild("HumanoidRootPart") then
 			local dist = (v.HumanoidRootPart.Position - playerPos).Magnitude
 			if dist < closestDist then
 				closestDist = dist
@@ -4207,13 +4183,17 @@ spawn(function()
 	while wait(0.1) do
 		if _G.FarmMastery_S then
 			pcall(function()
-				-- Primeiro garante que você está no local de farm
-				local distToArea = (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - FarmPos.Position).Magnitude
-				if distToArea > 50 then
+				local character = game.Players.LocalPlayer.Character
+				if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+				
+				-- Só dá TP se estiver longe do ponto central (mais de 150 studs)
+				local distToArea = (character.HumanoidRootPart.Position - FarmPos.Position).Magnitude
+				if distToArea > 300 then
 					_tp(FarmPos)
 					wait(0.5)
 				end
 
+				-- Procura espada e mob
 				for _, e in next, replicated.Remotes.CommF_:InvokeServer("getInventory") do
 					if type(e) == "table" and e.Type == "Sword" then
 						local SwordName = e.Name;
@@ -4226,7 +4206,7 @@ spawn(function()
 								if Target then
 									repeat
 										wait()
-										if Target and Target:FindFirstChild("HumanoidRootPart") then
+										if _G.FarmMastery_S and Target and Target:FindFirstChild("HumanoidRootPart") and Target.Humanoid.Health > 0 then
 											G.Sword(Target, _G.FarmMastery_S)
 										end
 									until not _G.FarmMastery_S or not Target.Parent or Target.Humanoid.Health <= 0
