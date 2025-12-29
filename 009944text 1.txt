@@ -1052,75 +1052,70 @@ task.spawn(function()
 end);
 
 -- =======================
--- TWEEN OTIMIZADO (V2)
+-- TWEEN AJUSTADO POR DISTÂNCIA
 -- =======================
 
-local TweenService = game:GetService("TweenService")
-local RunService = game:GetService("RunService")
-local plr = game.Players.LocalPlayer
+-- [[ VARIÁVEIS PARA O SEU INPUT ]] --
+getgenv().TweenSpeedFar = 300   -- Velocidade Padrão (Longe)
+getgenv().TweenSpeedNear = 600  -- Velocidade Boost (Perto <= 15 studs)
 
--- [[ CONFIGURAÇÕES PADRÃO ]] --
-getgenv().TweenSpeedFar = getgenv().TweenSpeedFar or 300
-getgenv().TweenSpeedNear = getgenv().TweenSpeedNear or 600
+_tp = function(I)
+local e = plr.Character;
+if not e or not e:FindFirstChild("HumanoidRootPart") then
+return;
+end;
 
-local currentTween = nil -- Variável para controlar o tween atual
+local HRP = e.HumanoidRootPart;  
 
-_tp = function(TargetCFrame)
-    local char = plr.Character
-    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
-    
-    local HRP = char.HumanoidRootPart
-    local Humanoid = char:FindFirstChildOfClass("Humanoid")
+-- Desativar farm enquanto tweena  
+shouldTween = true  
+getgenv().OnFarm = false  
 
-    -- Se já estiver rodando um tween, cancela para iniciar o novo (Evita "puxões")
-    if currentTween then
-        currentTween:Cancel()
-    end
+-- Garantir que não está ancorado  
+if HRP.Anchored then  
+	HRP.Anchored = false  
+	task.wait()  
+end  
 
-    local dist = (TargetCFrame.Position - HRP.Position).Magnitude
-    
-    -- Ajuste de velocidade dinâmico
-    local speed = dist <= 15 and getgenv().TweenSpeedNear or getgenv().TweenSpeedFar
-    
-    -- Se estiver muito perto, teleporta logo pra economizar processamento
-    if dist < 2 then
-        HRP.CFrame = TargetCFrame
-        return
-    end
+local dist = (I.Position - HRP.Position).Magnitude  
 
-    -- Tratamento de estado do personagem
-    if Humanoid then 
-        Humanoid.Sit = false -- Garante que não está sentado
-    end
-    
-    shouldTween = true
-    getgenv().OnFarm = false
+-- ===============================  
+--  SE ESTIVER ATÉ 15 STUDS → USA A VELOCIDADE DE PERTO
+--  CASO CONTRÁRIO → USA A VELOCIDADE PADRÃO
+-- ===============================  
+local speed = dist <= 15 and (getgenv().TweenSpeedNear or 600) or (getgenv().TweenSpeedFar or 300)
 
-    local info = TweenInfo.new(dist / speed, Enum.EasingStyle.Linear)
-    currentTween = TweenService:Create(HRP, info, {CFrame = TargetCFrame})
-    
-    currentTween:Play()
+local info = TweenInfo.new(dist / speed, Enum.EasingStyle.Linear)  
+local tween = game:GetService("TweenService"):Create(C, info, { CFrame = I })  
 
-    -- Monitoramento otimizado
-    task.spawn(function()
-        -- Espera o tween terminar ou ser cancelado
-        currentTween.Completed:Wait()
-        
-        currentTween = nil
-        getgenv().OnFarm = true
-    end)
+-- Caso esteja sentado  
+if e.Humanoid.Sit == true then  
+	C.CFrame = CFrame.new(C.Position.X, I.Y, C.Position.Z)  
+end  
+
+tween:Play()  
+
+-- Anti travamento / controle  
+task.spawn(function()  
+	while tween.PlaybackState == Enum.PlaybackState.Playing do  
+		if not shouldTween then  
+			tween:Cancel()  
+			break  
+		end  
+		task.wait(.1)  
+	end  
+
+	getgenv().OnFarm = true  
+end)
+
 end
 
--- Mantendo suas funções de atalho
 TeleportToTarget = function(I)
-    _tp(I)
+_tp(I)
 end
 
 notween = function(I)
-    if currentTween then currentTween:Cancel() end -- Cancela tween se houver um
-    if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-        plr.Character.HumanoidRootPart.CFrame = I
-    end
+plr.Character.HumanoidRootPart.CFrame = I
 end
 
 
