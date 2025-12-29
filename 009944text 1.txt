@@ -11267,11 +11267,13 @@ Y:AddButton({ Title = "Teleport Sea 3", Description = "", Callback = function()
 	end });
 Y:AddSeperator("Travel - Island")
 
+-- Lista de Ilhas
 Location = {}
 for _, e in pairs(workspace._WorldOrigin.Locations:GetChildren()) do
 	table.insert(Location, e.Name)
 end
 
+-- Dropdown
 Y:AddDropdown({
 	Title = "Select Travelling",
 	Description = "",
@@ -11283,6 +11285,7 @@ Y:AddDropdown({
 	end,
 })
 
+-- Toggle Auto Travel
 Y:AddToggle({
 	Title = "Auto Travel",
 	Description = "",
@@ -11294,10 +11297,11 @@ Y:AddToggle({
 			task.spawn(function()
 				for _, e in pairs(workspace._WorldOrigin.Locations:GetChildren()) do
 					if e.Name == _G.Island then
-						local HighPos  = e.CFrame * CFrame.new(0, 100, 0) -- 🔼 100 studs acima
-						local SafePos  = e.CFrame * CFrame.new(0, 30, 0)  -- 🔽 ponto seguro
+						local HighY = 700
+						local EndY  = 30
 
-						-- 1️⃣ Vai primeiro pro alto
+						-- 1️⃣ Vai bem alto primeiro
+						local HighPos = e.CFrame * CFrame.new(0, HighY, 0)
 						repeat
 							task.wait()
 							_tp(HighPos)
@@ -11305,11 +11309,12 @@ Y:AddToggle({
 
 						if not _G.Teleport then return end
 
-						-- 2️⃣ Depois desce suavemente
-						repeat
-							task.wait()
-							_tp(SafePos)
-						until not _G.Teleport or (Root.Position - SafePos.Position).Magnitude < 10
+						-- 2️⃣ Descida suave
+						for y = HighY, EndY, -10 do
+							if not _G.Teleport then break end
+							_tp(e.CFrame * CFrame.new(0, y, 0))
+							task.wait(0.05)
+						end
 					end
 				end
 			end)
