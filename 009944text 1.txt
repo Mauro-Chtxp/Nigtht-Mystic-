@@ -531,11 +531,9 @@ _G.BringRange = 235
 _G.MaxBringMobs = 3 -- LIMITE DE MOBS
 
 local TweenService = game:GetService("TweenService")
-
--- TWEEN BEM MAIS LENTO E SUAVE
 local TweenInfoBring = TweenInfo.new(
-    2.5, -- <<< MUITO MAIS LENTO
-    Enum.EasingStyle.Quad, -- mais suave que Linear
+    0.45, -- velocidade do tween
+    Enum.EasingStyle.Linear,
     Enum.EasingDirection.Out
 )
 
@@ -564,8 +562,8 @@ local function IsRaidMob(mob)
         return true 
     end  
 
-    if mob:GetAttribute("IsRaid")
-        or mob:GetAttribute("RaidMob")
+    if mob:GetAttribute("IsRaid") 
+        or mob:GetAttribute("RaidMob") 
         or mob:GetAttribute("IsBoss") then 
         return true 
     end  
@@ -583,7 +581,7 @@ local function IsRaidMob(mob)
 end
 
 --==================================================
--- FUNÇÃO PRINCIPAL: BRING POR TWEEN (LENTO)
+-- FUNÇÃO PRINCIPAL: BRING POR TWEEN
 --==================================================
 BringEnemy = function()
     if not FarmAtivo() or not _B then return end
@@ -621,7 +619,7 @@ BringEnemy = function()
                 local tween = TweenService:Create(
                     root,
                     TweenInfoBring,
-                    { CFrame = CFrame.new(targetPos) }
+                    {CFrame = CFrame.new(targetPos)}
                 )
 
                 tween:Play()
@@ -643,17 +641,16 @@ task.spawn(function()
         if FarmAtivo() then
             _B = true
             BringEnemy()
-            task.wait(4) -- espera maior pro tween terminar
+            task.wait(3)
 
             _B = false
-            task.wait(6)
+            task.wait(5)
         else
             _B = false
             task.wait(1)
         end
     end
 end)
-
 Useskills = function(I, e)
 		if I == "Melee" then
 			weaponSc("Melee");
@@ -5944,6 +5941,22 @@ T:AddInput({
         end
     end
 })
+
+T:AddInput({
+    Title = "Tween Speed",
+    Description = "Velocidade do tween (ex: 300 ou 600)",
+    PlaceHolder = "Digite a velocidade",
+    Default = "300",
+    Callback = function(I)
+        -- Converte o valor para número
+        local speed = tonumber(I)
+        if speed and speed > 0 then
+            _G.TweenSpeedCustom = speed
+        else
+            _G.TweenSpeedCustom = 300 -- valor padrão se for inválido
+        end
+    end,
+});
 
 j:AddSeperator("Christmas")
 
