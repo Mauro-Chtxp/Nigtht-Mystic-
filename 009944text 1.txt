@@ -5760,16 +5760,30 @@ T:AddSeperator("Settings");
 
 T:AddButton({
     Title = "Stop Tween",
-    Description = "Solta o player se estiver ancorado ou travado",
+    Description = "",
     Callback = function()
         local plr = game.Players.LocalPlayer
-        local char = plr.Character or plr.CharacterAdded:Wait()
+        local char = plr.Character
+        if not char then return end
 
         local hrp = char:FindFirstChild("HumanoidRootPart")
         local hum = char:FindFirstChild("Humanoid")
 
+        -- 🔴 PARA O TWEEN (usa a variável que JÁ EXISTE)
+        shouldTween = false
+
+        -- 🔓 Solta o player
         if hrp then
             hrp.Anchored = false
+
+            -- Remove coisas que costumam travar
+            for _, v in pairs(hrp:GetChildren()) do
+                if v:IsA("BodyVelocity")
+                or v:IsA("BodyPosition")
+                or v:IsA("BodyGyro") then
+                    v:Destroy()
+                end
+            end
         end
 
         if hum then
@@ -5781,12 +5795,12 @@ T:AddButton({
             hum:ChangeState(Enum.HumanoidStateType.Running)
         end
 
-        -- Segurança extra: remove qualquer BodyMover que esteja travando
-        for _, v in pairs(hrp:GetChildren()) do
-            if v:IsA("BodyPosition") or v:IsA("BodyVelocity") or v:IsA("BodyGyro") then
-                v:Destroy()
-            end
-        end
+        -- Libera o farm de novo
+        getgenv().OnFarm = true
+
+        -- Permite novos tweens depois
+        task.wait()
+        shouldTween = true
     end
 })
 
@@ -9447,7 +9461,7 @@ end);
 f:AddSeperator("Prehistoric Island");
 f:AddToggle({
     Title = "Auto Find Prehistoric Island",
-    Description = "Procura a Prehistoric Island Automatic",
+    Description = "",
     -- 1. Carrega se o buscador estava ativado
     Default = GetSetting("PrehistoricFinder_Save", false),
     Callback = function(I)
@@ -9535,7 +9549,7 @@ task.spawn(function()
 end)
 f:AddToggle({
     Title = "Auto Event Prehistoric Island",
-    Description = "Faz a Prehistoric Automaticamente (Otimizado + NoClip)",
+    Description = "",
     -- 1. Carrega o estado salvo
     Default = GetSetting("AutoEventPrehistoric_Save", false),
     Callback = function(I)
@@ -9702,7 +9716,7 @@ end)
 
 f:AddButton({
     Title = "Remove Lava",
-    Description = "Remove toda Lava do mapa instantaneamente",
+    Description = "",
     Callback = function()
         -- Workspace
         for _, v in pairs(game.Workspace:GetDescendants()) do
@@ -9722,7 +9736,7 @@ f:AddButton({
 -- 1. TOGGLE: Dino Bones
 f:AddToggle({
     Title = "Auto Collect Dino Bones",
-    Description = "Coleta ossos (Prioridade Baixa)",
+    Description = "",
     Default = GetSetting("DinoBones_Save", false),
     Callback = function(I)
         _G.Prehis_DB = I
@@ -9734,7 +9748,7 @@ f:AddToggle({
 -- 2. TOGGLE: Dragon Eggs
 f:AddToggle({
     Title = "Auto Collect Dragon Eggs",
-    Description = "Coleta ovos (Prioridade Alta)",
+    Description = "",
     Default = GetSetting("DragonEggs_Save", false),
     Callback = function(I)
         _G.Prehis_DE = I
@@ -9746,7 +9760,7 @@ f:AddToggle({
 -- 3. TOGGLE: Auto Reset
 f:AddToggle({
     Title = "Auto Reset When Complete Volcano",
-    Description = "Reseta APÓS coletar os itens desejados",
+    Description = "",
     Default = GetSetting("ResetVolcano_Save", false),
     Callback = function(I)
         _G.ResetPH = I
