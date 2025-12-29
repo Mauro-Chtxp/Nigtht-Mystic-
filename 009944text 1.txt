@@ -4141,6 +4141,79 @@ spawn(function()
 	end;
 end);
 
+RR:AddSeperator("Mastery 600");
+
+local TargetMobs = {
+	"Reborn Skeleton",
+	"Living Zombie",
+	"Demonic Soul",
+	"Posessed Mummy"
+}
+
+local function GetSpecificMob()
+	-- Primeiro procura no Workspace (onde o combate acontece)
+	for _, mobName in pairs(TargetMobs) do
+		for _, v in pairs(game:GetService("Workspace"):GetDescendants()) do
+			if v.Name == mobName and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+				return v
+			end
+		end
+	end
+	-- Se não achar no Workspace, procura no ReplicatedStorage
+	for _, mobName in pairs(TargetMobs) do
+		for _, v in pairs(game:GetService("ReplicatedStorage"):GetDescendants()) do
+			if v.Name == mobName and v:FindFirstChild("Humanoid") then
+				return v
+			end
+		end
+	end
+	return nil
+end
+
+RR:AddToggle({
+	Title = "Auto Farm 600 In Swords",
+	Description = "Foca em Skeletons, Zombies, Souls e Mummies",
+	Default = false,
+	Callback = function(I)
+		_G.FarmMastery_S = I;
+	end,
+});
+
+spawn(function()
+	while wait(0.1) do
+		if _G.FarmMastery_S then
+			pcall(function()
+				for _, e in next, replicated.Remotes.CommF_:InvokeServer("getInventory") do
+					if type(e) == "table" and e.Type == "Sword" then
+						local SwordName = e.Name;
+						local Mastery = tonumber(e.Mastery) or 0;
+
+						if Mastery < 600 then
+							if GetBP(SwordName) then
+								local Target = GetSpecificMob()
+								
+								if Target then
+									repeat
+										wait()
+										if Target and Target:FindFirstChild("HumanoidRootPart") then
+											-- Se o mob estiver no ReplicatedStorage, ele tenta ir até a posição dele
+											-- Nota: Se o mob não tiver um Parent no Workspace, o dano pode não registrar
+											G.Sword(Target, _G.FarmMastery_S)
+										end
+									until not _G.FarmMastery_S or not Target.Parent or (Target:FindFirstChild("Humanoid") and Target.Humanoid.Health <= 0)
+								end
+							else
+								replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName)
+							end
+							break
+						end
+					end
+				end
+			end)
+		end
+	end
+end)
+
 -- Sistema Time Zone
 local Time = SS:AddParagraph({Title = "Time Zone", Desc = ""})
 function UpdateOS()
