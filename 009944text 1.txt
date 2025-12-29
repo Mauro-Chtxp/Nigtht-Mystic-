@@ -5757,6 +5757,39 @@ spawn(function()
 	end;
 end);
 T:AddSeperator("Settings");
+
+T:AddButton({
+    Title = "Stop Tween",
+    Description = "Solta o player se estiver ancorado ou travado",
+    Callback = function()
+        local plr = game.Players.LocalPlayer
+        local char = plr.Character or plr.CharacterAdded:Wait()
+
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        local hum = char:FindFirstChild("Humanoid")
+
+        if hrp then
+            hrp.Anchored = false
+        end
+
+        if hum then
+            hum.PlatformStand = false
+            hum.Sit = false
+            hum.WalkSpeed = 16
+            hum.JumpPower = 50
+            hum.AutoRotate = true
+            hum:ChangeState(Enum.HumanoidStateType.Running)
+        end
+
+        -- Segurança extra: remove qualquer BodyMover que esteja travando
+        for _, v in pairs(hrp:GetChildren()) do
+            if v:IsA("BodyPosition") or v:IsA("BodyVelocity") or v:IsA("BodyGyro") then
+                v:Destroy()
+            end
+        end
+    end
+})
+
 T:AddToggle({
 	Title = "Auto Attack",
 	Description = "",
@@ -5924,7 +5957,7 @@ T:AddSeperator("Select")
 
 T:AddInput({
     Title = "Bring Mobs Range",
-    Description = "Select Bring Mobs Range (235 Recommended)",
+    Description = "",
     PlaceHolder = "235",
     Default = tostring(_G.BringRange),
     Callback = function(Value)
