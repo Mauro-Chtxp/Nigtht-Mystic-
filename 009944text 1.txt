@@ -11265,11 +11265,13 @@ Y:AddButton({ Title = "Teleport Sea 2", Description = "", Callback = function()
 Y:AddButton({ Title = "Teleport Sea 3", Description = "", Callback = function()
 		replicated.Remotes.CommF_:InvokeServer("TravelZou");
 	end });
-Y:AddSeperator("Travel - Island");
-Location = {};
-for I, e in pairs(workspace._WorldOrigin.Locations:GetChildren()) do
-	table.insert(Location, e.Name);
-end;
+Y:AddSeperator("Travel - Island")
+
+Location = {}
+for _, e in pairs(workspace._WorldOrigin.Locations:GetChildren()) do
+	table.insert(Location, e.Name)
+end
+
 Y:AddDropdown({
 	Title = "Select Travelling",
 	Description = "",
@@ -11277,29 +11279,43 @@ Y:AddDropdown({
 	Default = false,
 	Multi = false,
 	Callback = function(I)
-		_G.Island = I;
+		_G.Island = I
 	end,
-});
+})
+
 Y:AddToggle({
 	Title = "Auto Travel",
 	Description = "",
 	Default = false,
 	Callback = function(I)
-		_G.Teleport = I;
+		_G.Teleport = I
+
 		if I then
-			spawn(function()
-				for I, e in pairs(workspace._WorldOrigin.Locations:GetChildren()) do
+			task.spawn(function()
+				for _, e in pairs(workspace._WorldOrigin.Locations:GetChildren()) do
 					if e.Name == _G.Island then
+						local HighPos  = e.CFrame * CFrame.new(0, 100, 0) -- 🔼 100 studs acima
+						local SafePos  = e.CFrame * CFrame.new(0, 30, 0)  -- 🔽 ponto seguro
+
+						-- 1️⃣ Vai primeiro pro alto
 						repeat
-							wait();
-							_tp(e.CFrame * CFrame.new(0, 30, 0));
-						until not _G.Teleport or Root.CFrame == e.CFrame;
-					end;
-				end;
-			end);
-		end;
+							task.wait()
+							_tp(HighPos)
+						until not _G.Teleport or (Root.Position - HighPos.Position).Magnitude < 10
+
+						if not _G.Teleport then return end
+
+						-- 2️⃣ Depois desce suavemente
+						repeat
+							task.wait()
+							_tp(SafePos)
+						until not _G.Teleport or (Root.Position - SafePos.Position).Magnitude < 10
+					end
+				end
+			end)
+		end
 	end,
-});
+})
 Y:AddSeperator("Travel - Portal");
 if World1 then
 	Location_Portal = { "Sky", "UnderWater" };
