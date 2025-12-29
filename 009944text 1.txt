@@ -528,24 +528,21 @@ _B = false
 PosMon = nil
 
 _G.BringRange = 235
-_G.MaxBringMobs = math.huge -- sem limite, pega todos no range
-_G.KeepRange = 300 -- Range que os mobs não poderão ultrapassar
+_G.MaxBringMobs = 3 -- LIMITE DE MOBS
 
 local TweenService = game:GetService("TweenService")
+
+-- TWEEN BEM MAIS LENTO E SUAVE
 local TweenInfoBring = TweenInfo.new(
-    0.1, -- TP praticamente instantâneo
-    Enum.EasingStyle.Linear,
+    2.5, -- <<< MUITO MAIS LENTO
+    Enum.EasingStyle.Quad, -- mais suave que Linear
     Enum.EasingDirection.Out
 )
 
 --==================================================
--- FUNÇÃO: VERIFICA SE QUALQUER FARM ESTÁ ATIVO
+-- FUNÇÃO: Verifica se qualquer tipo de farm está ativo
 --==================================================
 local function FarmAtivo()
-    if _G.FarmPriorityElf or _G.FarmElfLevelCustom then
-        return true
-    end
-
     return _G.StartFarm and (
         _G.Level or
         _G.AutoFarm_Bone or
@@ -558,76 +555,101 @@ local function FarmAtivo()
 end
 
 --==================================================
--- FUNÇÃO: IGNORA MOBS INDESEJADOS
+-- FUNÇÃO: Verifica se o mob deve ser ignorado
 --==================================================
 local function IsRaidMob(mob)
     local n = mob.Name:lower()
-    if n:find("raid") or n:find("microchip") or n:find("island") then
-        return true
-    end
-    if mob:GetAttribute("IsRaid") or mob:GetAttribute("RaidMob") or mob:GetAttribute("IsBoss") then
-        return true
-    end
-    local hum = mob:FindFirstChild("Humanoid")
-    if hum and hum.WalkSpeed == 0 then
-        return true
-    end
-    if mob.Parent and tostring(mob.Parent):lower():find("_worldorigin") then
-        return true
-    end
+
+    if n:find("raid") or n:find("microchip") or n:find("island") then 
+        return true 
+    end  
+
+    if mob:GetAttribute("IsRaid")
+        or mob:GetAttribute("RaidMob")
+        or mob:GetAttribute("IsBoss") then 
+        return true 
+    end  
+
+    local hum = mob:FindFirstChild("Humanoid")  
+    if hum and hum.WalkSpeed == 0 then 
+        return true 
+    end  
+
+    if mob.Parent and tostring(mob.Parent):lower():find("_worldorigin") then 
+        return true 
+    end  
+
     return false
 end
 
 --==================================================
--- FUNÇÃO PRINCIPAL: BRING INSTA
+-- FUNÇÃO PRINCIPAL: BRING POR TWEEN (LENTO)
 --==================================================
 BringEnemy = function()
-    if not FarmAtivo() then return end
+    if not FarmAtivo() or not _B then return end
 
-    local plr = game.Players.LocalPlayer
-    local char = plr.Character
-    local hrp = char and char:FindFirstChild("HumanoidRootPart")
-    if not hrp then return end
+    local LocalPlayer = game.Players.LocalPlayer
+    local char = LocalPlayer.Character
+    if not char then return end
+
+    local HRP_Player = char:FindFirstChild("HumanoidRootPart")
+    if not HRP_Player then return end
 
     -- Simulation Radius
     pcall(function()
-        sethiddenproperty(plr, "SimulationRadius", math.huge)
+        sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge)
     end)
 
-    local targetPos = PosMon or hrp.Position
+    local targetPos = PosMon or HRP_Player.Position
     local enemies = workspace.Enemies:GetChildren()
 
+    local count = 0
+
     for _, mob in ipairs(enemies) do
+        if count >= _G.MaxBringMobs then break end
+
         local hum = mob:FindFirstChild("Humanoid")
         local root = mob:FindFirstChild("HumanoidRootPart")
+
         if hum and root and hum.Health > 0 and not IsRaidMob(mob) then
             local dist = (root.Position - targetPos).Magnitude
+
             if dist <= _G.BringRange and not root:GetAttribute("Tweening") then
-                -- Marca como puxando
+                count += 1
                 root:SetAttribute("Tweening", true)
 
-                -- TP instantâneo
-                root.CFrame = CFrame.new(targetPos)
+                local tween = TweenService:Create(
+                    root,
+                    TweenInfoBring,
+                    { CFrame = CFrame.new(targetPos) }
+                )
 
-                -- Solta o mob
-                root:SetAttribute("Tweening", false)
-            end
-
-            -- Mantém dentro do KeepRange
-            if (root.Position - targetPos).Magnitude > _G.KeepRange then
-                root.CFrame = CFrame.new(targetPos)
+                tween:Play()
+                tween.Completed:Once(function()
+                    if root then
+                        root:SetAttribute("Tweening", false)
+                    end
+                end)
             end
         end
     end
 end
 
 --==================================================
--- LOOP CONTROLADOR RAPIDO
+-- LOOP CONTROLADOR (PUXAR / SOLTAR)
 --==================================================
 task.spawn(function()
-    while task.wait(1.5) do -- repete a cada 1.5s
+    while task.wait(1) do
         if FarmAtivo() then
+            _B = true
             BringEnemy()
+            task.wait(4) -- espera maior pro tween terminar
+
+            _B = false
+            task.wait(6)
+        else
+            _B = false
+            task.wait(1)
         end
     end
 end)
