@@ -4140,13 +4140,19 @@ local TargetMobs = {
 	"Posessed Mummy"
 }
 
-local FarmPos = CFrame.new(-9513.63867, 164.010269, 5786.66895, -0.0950724334, 9.31791888e-08, 0.995470345, 7.18874515e-09, 1, -9.29166148e-08, -0.995470345, -1.67762626e-09, -0.0950724334)
+local FarmPos = CFrame.new(
+	-9513.63867, 164.010269, 5786.66895,
+	-0.0950724334, 9.31791888e-08, 0.995470345,
+	7.18874515e-09, 1, -9.29166148e-08,
+	-0.995470345, -1.67762626e-09, -0.0950724334
+)
 
 local function GetClosestMob()
 	local closestDist = math.huge
 	local target = nil
-	local hrp = game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-	
+	local hrp = game.Players.LocalPlayer.Character
+		and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+
 	if not hrp then return nil end
 	local playerPos = hrp.Position
 
@@ -4159,7 +4165,11 @@ local function GetClosestMob()
 			end
 		end
 
-		if isTarget and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 and v:FindFirstChild("HumanoidRootPart") then
+		if isTarget
+			and v:FindFirstChild("Humanoid")
+			and v.Humanoid.Health > 0
+			and v:FindFirstChild("HumanoidRootPart") then
+
 			local dist = (v.HumanoidRootPart.Position - playerPos).Magnitude
 			if dist < closestDist then
 				closestDist = dist
@@ -4175,9 +4185,9 @@ RR:AddToggle({
 	Description = "",
 	Default = false,
 	Callback = function(I)
-		_G.FarmMastery_S = I;
+		_G.FarmMastery_S = I
 	end,
-});
+})
 
 spawn(function()
 	while wait(0.1) do
@@ -4185,31 +4195,42 @@ spawn(function()
 			pcall(function()
 				local character = game.Players.LocalPlayer.Character
 				if not character or not character:FindFirstChild("HumanoidRootPart") then return end
-				
-				-- Só dá TP se estiver longe do ponto central (mais de 150 studs)
-				local distToArea = (character.HumanoidRootPart.Position - FarmPos.Position).Magnitude
-				if distToArea > 300 then
-					_tp(FarmPos)
-					wait(0.5)
+
+				-- ===============================
+				-- PRIORIDADE 100000 PARA MOBS
+				-- ===============================
+				local Target = GetClosestMob()
+
+				-- Só usa o CFrame SE NÃO EXISTIR MOB
+				if not Target then
+					local distToArea = (character.HumanoidRootPart.Position - FarmPos.Position).Magnitude
+					if distToArea > 150 then
+						_tp(FarmPos)
+						wait(0.5)
+					end
 				end
 
-				-- Procura espada e mob
+				-- Procura espada e farma mastery
 				for _, e in next, replicated.Remotes.CommF_:InvokeServer("getInventory") do
 					if type(e) == "table" and e.Type == "Sword" then
-						local SwordName = e.Name;
-						local Mastery = tonumber(e.Mastery) or 0;
+						local SwordName = e.Name
+						local Mastery = tonumber(e.Mastery) or 0
 
 						if Mastery < 600 then
 							if GetBP(SwordName) then
-								local Target = GetClosestMob()
-								
 								if Target then
 									repeat
 										wait()
-										if _G.FarmMastery_S and Target and Target:FindFirstChild("HumanoidRootPart") and Target.Humanoid.Health > 0 then
+										if _G.FarmMastery_S
+											and Target
+											and Target:FindFirstChild("HumanoidRootPart")
+											and Target.Humanoid.Health > 0 then
+
 											G.Sword(Target, _G.FarmMastery_S)
 										end
-									until not _G.FarmMastery_S or not Target.Parent or Target.Humanoid.Health <= 0
+									until not _G.FarmMastery_S
+										or not Target.Parent
+										or Target.Humanoid.Health <= 0
 								end
 							else
 								replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName)
@@ -4222,7 +4243,6 @@ spawn(function()
 		end
 	end
 end)
-
 
 -- Sistema Time Zone
 local Time = SS:AddParagraph({Title = "Time Zone", Desc = ""})
