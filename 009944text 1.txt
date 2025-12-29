@@ -11292,33 +11292,39 @@ Y:AddToggle({
 	Default = false,
 	Callback = function(I)
 		_G.Teleport = I
+		if not I then return end
 
-		if I then
-			task.spawn(function()
-				for _, e in pairs(workspace._WorldOrigin.Locations:GetChildren()) do
-					if e.Name == _G.Island then
-						local HighY = 700
-						local EndY  = 30
+		task.spawn(function()
+			for _, e in pairs(workspace._WorldOrigin.Locations:GetChildren()) do
+				if e.Name == _G.Island then
 
-						-- 1️⃣ Vai bem alto primeiro
-						local HighPos = e.CFrame * CFrame.new(0, HighY, 0)
-						repeat
-							task.wait()
-							_tp(HighPos)
-						until not _G.Teleport or (Root.Position - HighPos.Position).Magnitude < 10
+					local HighY = 700
+					local EndY  = 30
 
-						if not _G.Teleport then return end
+					-- 🔼 1) TP INSTANTÂNEO PRA CIMA
+					Root.CFrame = e.CFrame * CFrame.new(0, HighY, 0)
+					task.wait(0.1)
 
-						-- 2️⃣ Descida suave
-						for y = HighY, EndY, -10 do
-							if not _G.Teleport then break end
-							_tp(e.CFrame * CFrame.new(0, y, 0))
-							task.wait(0.05)
-						end
-					end
+					if not _G.Teleport then return end
+
+					-- 🏝️ 2) VAI ATÉ A ILHA USANDO SEU _tp (NORMAL)
+					local TravelPos = e.CFrame * CFrame.new(0, HighY, 0)
+					repeat
+						task.wait()
+						_tp(TravelPos)
+					until not _G.Teleport or (Root.Position - TravelPos.Position).Magnitude < 5
+
+					if not _G.Teleport then return end
+
+					-- 🔽 3) TP INSTANTÂNEO PRA BAIXO (SEGURO)
+					Root.CFrame = e.CFrame * CFrame.new(0, EndY, 0)
+					task.wait(0.1)
+
+					-- ⛔ 4) DESLIGA SOZINHO
+					_G.Teleport = false
 				end
-			end)
-		end
+			end
+		end)
 	end,
 })
 Y:AddSeperator("Travel - Portal");
