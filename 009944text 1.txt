@@ -524,11 +524,15 @@ statsSetings = function(I, e)
 -- VARIÁVEIS DE CONTROLE NECESSÁRIAS
 --==================================================
 _G = _G or {}
+
 _B = false
 PosMon = nil
 
-_G.BringRange = 235
-_G.MaxBringMobs = 3 -- LIMITE DE MOBS
+_G.BringRange = _G.BringRange or 235
+_G.MaxBringMobs = _G.MaxBringMobs or 3 -- LIMITE DE MOBS
+
+_G.FarmPriorityElf = _G.FarmPriorityElf or false
+_G.FarmMastery_S = _G.FarmMastery_S or false
 
 local TweenService = game:GetService("TweenService")
 local TweenInfoBring = TweenInfo.new(
@@ -536,25 +540,6 @@ local TweenInfoBring = TweenInfo.new(
     Enum.EasingStyle.Linear,
     Enum.EasingDirection.Out
 )
-
---==================================================
--- VARIÁVEIS NECESSÁRIAS
---==================================================
-_G = _G or {}
-
-_G.BringRange = _G.BringRange or 235
-_G.MaxBringMobs = _G.MaxBringMobs or 3
-_G.FarmPriorityElf = _G.FarmPriorityElf or false
-
-local TweenService = game:GetService("TweenService")
-local TweenInfoBring = TweenInfo.new(
-    0.45,
-    Enum.EasingStyle.Linear,
-    Enum.EasingDirection.Out
-)
-
-local _B = false
-PosMon = nil
 
 --==================================================
 -- FUNÇÃO: VERIFICA SE QUALQUER FARM ESTÁ ATIVO
@@ -565,13 +550,14 @@ local function FarmAtivo()
         return true
     end
 
-    -- TODOS OS OUTROS FARMS (INALTERADOS)
+    -- TODOS OS OUTROS FARMS
     return _G.StartFarm and (
         _G.Level or
         _G.AutoFarm_Bone or
         _G.AutoFarm_Cake or
         _G.FarmMastery_Dev or
         _G.FarmMastery_G or
+        _G.FarmMastery_S or -- AUTO MASTERY ALL SWORD
         (getgenv()).AutoMaterial or
         _G.AutoTyrant
     )
@@ -641,7 +627,7 @@ BringEnemy = function()
                 local tween = TweenService:Create(
                     root,
                     TweenInfoBring,
-                    {CFrame = CFrame.new(targetPos)}
+                    { CFrame = CFrame.new(targetPos) }
                 )
 
                 tween:Play()
@@ -673,7 +659,6 @@ task.spawn(function()
         end
     end
 end)
-
 Useskills = function(I, e)
 		if I == "Melee" then
 			weaponSc("Melee");
@@ -4170,9 +4155,43 @@ local function GetSpecificMob()
 	return nil
 end
 
+local TargetMobs = {
+	"Reborn Skeleton",
+	"Living Zombie",
+	"Demonic Soul",
+	"Posessed Mummy"
+}
+
+local FarmPos = CFrame.new(-9513.63867, 164.010269, 5786.66895, -0.0950724334, 9.31791888e-08, 0.995470345, 7.18874515e-09, 1, -9.29166148e-08, -0.995470345, -1.67762626e-09, -0.0950724334)
+
+local function GetClosestMob()
+	local closestDist = math.huge
+	local target = nil
+	local playerPos = game.Players.LocalPlayer.Character.HumanoidRootPart.Position
+
+	for _, v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
+		local isTarget = false
+		for _, name in pairs(TargetMobs) do
+			if v.Name == name then
+				isTarget = true
+				break
+			end
+		end
+
+		if isTarget and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+			local dist = (v.HumanoidRootPart.Position - playerPos).Magnitude
+			if dist < closestDist then
+				closestDist = dist
+				target = v
+			end
+		end
+	end
+	return target
+end
+
 RR:AddToggle({
 	Title = "Auto Farm 600 In Swords",
-	Description = "Foca em Skeletons, Zombies, Souls e Mummies",
+	Description = "",
 	Default = false,
 	Callback = function(I)
 		_G.FarmMastery_S = I;
@@ -4183,6 +4202,13 @@ spawn(function()
 	while wait(0.1) do
 		if _G.FarmMastery_S then
 			pcall(function()
+				-- Primeiro garante que você está no local de farm
+				local distToArea = (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - FarmPos.Position).Magnitude
+				if distToArea > 50 then
+					_tp(FarmPos)
+					wait(0.5)
+				end
+
 				for _, e in next, replicated.Remotes.CommF_:InvokeServer("getInventory") do
 					if type(e) == "table" and e.Type == "Sword" then
 						local SwordName = e.Name;
@@ -4190,17 +4216,15 @@ spawn(function()
 
 						if Mastery < 600 then
 							if GetBP(SwordName) then
-								local Target = GetSpecificMob()
+								local Target = GetClosestMob()
 								
 								if Target then
 									repeat
 										wait()
 										if Target and Target:FindFirstChild("HumanoidRootPart") then
-											-- Se o mob estiver no ReplicatedStorage, ele tenta ir até a posição dele
-											-- Nota: Se o mob não tiver um Parent no Workspace, o dano pode não registrar
 											G.Sword(Target, _G.FarmMastery_S)
 										end
-									until not _G.FarmMastery_S or not Target.Parent or (Target:FindFirstChild("Humanoid") and Target.Humanoid.Health <= 0)
+									until not _G.FarmMastery_S or not Target.Parent or Target.Humanoid.Health <= 0
 								end
 							else
 								replicated.Remotes.CommF_:InvokeServer("LoadItem", SwordName)
@@ -4213,6 +4237,7 @@ spawn(function()
 		end
 	end
 end)
+
 
 -- Sistema Time Zone
 local Time = SS:AddParagraph({Title = "Time Zone", Desc = ""})
