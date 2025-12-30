@@ -357,8 +357,14 @@ G.Kill = function(I, e)
 		local tool = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
 		if not tool then return end
 
-		-- >>> ALTURA SOMENTE DO MOB (ÚNICA) <<<
-		_tp(I.HumanoidRootPart.CFrame * CFrame.new(0, _G.MobHeight, 0))
+		local MobCF = I.HumanoidRootPart.CFrame
+
+		-- VAI ATÉ O MOB JÁ EM +500 NO Y
+		_tp(MobCF * CFrame.new(0, 500, 0))
+
+		-- QUANDO CHEGAR, ABAIXA PARA A ALTURA NORMAL
+		task.wait(0.05)
+		_tp(MobCF * CFrame.new(0, _G.MobHeight, 0))
 	end
 end
 G.Kill2 = function(I, e)
