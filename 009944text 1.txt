@@ -6313,7 +6313,7 @@ end)
 
 
 local plr = game.Players.LocalPlayer
-local RS = game:GetService("ReplicatedStorage")
+local RS = game:GetService("GetService") and game:GetService("ReplicatedStorage") or game:GetService("ReplicatedStorage")
 local WS = game:GetService("Workspace")
 
 _G.AutoBoss = false       
@@ -6341,96 +6341,6 @@ local function EquipWeapon()
 end
 
 -- =====================
--- UI
--- =====================
-j:AddSeperator("Boss Farm")
-
-local BossDropdown = j:AddDropdown({
-    Title = "Select Boss",
-    Values = Boss, 
-    Default = Boss[1],
-    Callback = function(v) _G.FindBoss = v end
-})
-
-j:AddButton({
-    Title = "Refresh Boss List",
-    Description = "Atualiza lista (Scan Completo)",
-    Callback = function()
-        local LiveBosses = {}  
-        local FoundAny = false  
-        
-        -- Scanner para o menu (Scan geral para garantir lista completa)
-        for _, obj in pairs(WS:GetDescendants()) do
-            if obj:IsA("Model") and obj:GetAttribute("IsBoss") == true then
-                if not table.find(LiveBosses, obj.Name) then
-                    table.insert(LiveBosses, obj.Name)
-                    FoundAny = true
-                end
-            end
-        end
-        for _, obj in pairs(RS:GetDescendants()) do
-            if obj:IsA("Model") and obj:GetAttribute("IsBoss") == true then
-                if not table.find(LiveBosses, obj.Name) then
-                    table.insert(LiveBosses, obj.Name)
-                    FoundAny = true
-                end
-            end
-        end
-
-        if FoundAny then 
-            table.sort(LiveBosses)
-            BossDropdown:Refresh(LiveBosses, true)  
-        else 
-            BossDropdown:Refresh({"Nenhum Boss Encontrado"}, true) 
-        end  
-    end
-})
-
-j:AddToggle({
-    Title = "Auto Farm Boss Select",
-    Default = false,
-    Callback = function(v)
-        _G.AutoBoss = v
-        if v then _G.FarmAllBoss = false end
-        _G.CurrentTargetBoss = nil
-    end
-})
-
-j:AddToggle({
-    Title = "Accept Quest Boss",
-    Default = false,
-    Callback = function(v)
-        _G.AutoAcceptQuest = v
-    end
-})
-
-j:AddToggle({
-    Title = "Farm All Bosses",
-    Description = "Mata todos os bosses spawnados",
-    Default = false,
-    Callback = function(v)
-        _G.FarmAllBoss = v
-        if v then _G.AutoBoss = false end
-        _G.CurrentTargetBoss = nil
-    end
-})
-
--- =====================
--- AUTO SELECT WEAPON
--- =====================
-spawn(function()
-    while task.wait(0.5) do
-        pcall(function()
-            if plr.Backpack then
-                for _, e in pairs(plr.Backpack:GetChildren()) do
-                    if e.ToolTip == _G.ChooseWP then _G.SelectWeapon = e.Name end
-                end
-            end
-        end)
-    end
-end)
-
--- =====================
 -- FUNÇÃO DE MOVIMENTO (LOCAL)
 -- =====================
 local function GoToBoss(targetBoss)
@@ -6456,7 +6366,7 @@ local function GoToBoss(targetBoss)
         hrp.AssemblyLinearVelocity = Vector3.zero 
         hum.AutoRotate = false 
         
-        -- Auto Attack
+        -- Auto Attack Virtual User
         game:GetService("VirtualUser"):CaptureController()
         game:GetService("VirtualUser"):Button1Down(Vector2.new(1280, 672))
     else  
@@ -6465,147 +6375,171 @@ local function GoToBoss(targetBoss)
 end
 
 -- =====================
--- THREAD 1: SCANNER INTELIGENTE (FARM ALL - CORRIGIDO)
+-- UI (Seção de Boss)
+-- =====================
+j:AddSeperator("Boss Farm")
+
+local BossDropdown = j:AddDropdown({
+    Title = "Select Boss",
+    Values = Boss or {"Nenhum Boss"}, 
+    Default = (Boss and Boss[1]) or "Nenhum Boss",
+    Callback = function(v) _G.FindBoss = v end
+})
+
+j:AddButton({
+    Title = "Refresh Boss List",
+    Description = "Atualiza lista (Scan Completo)",
+    Callback = function()
+        local LiveBosses = {}  
+        local FoundAny = false  
+        
+        -- Scanner para o menu
+        for _, obj in pairs(WS:GetDescendants()) do
+            if obj:IsA("Model") and obj:GetAttribute("IsBoss") == true then
+                if not table.find(LiveBosses, obj.Name) then
+                    table.insert(LiveBosses, obj.Name)
+                    FoundAny = true
+                end
+            end
+        end
+        if FoundAny then 
+            table.sort(LiveBosses)
+            BossDropdown:Refresh(LiveBosses, true)  
+        else 
+            BossDropdown:Refresh({"Nenhum Boss Encontrado"}, true) 
+        end  
+    end
+})
+
+j:AddToggle({
+    Title = "Auto Farm Boss Select",
+    Default = false,
+    Callback = function(v)
+        _G.AutoBoss = v
+        if v then _G.FarmAllBoss = false end
+    end
+})
+
+j:AddToggle({
+    Title = "Accept Quest Boss",
+    Default = false,
+    Callback = function(v)
+        _G.AutoAcceptQuest = v
+    end
+})
+
+j:AddToggle({
+    Title = "Farm All Bosses",
+    Description = "Mata todos os bosses próximos automaticamente",
+    Default = false,
+    Callback = function(v)
+        _G.FarmAllBoss = v
+        if v then _G.AutoBoss = false end
+        _G.CurrentTargetBoss = nil
+    end
+})
+
+-- =====================
+-- THREAD: SCANNER FARM ALL (INTELIGENTE)
 -- =====================
 spawn(function()
-    while task.wait() do 
-        if not _G.FarmAllBoss then
-            task.wait(0.5)
-            continue
-        end
+    while task.wait(0.2) do 
+        if not _G.FarmAllBoss then continue end
 
-        -- Se já tem um alvo vivo, mantém ele
+        -- Validação do alvo atual
         if _G.CurrentTargetBoss 
            and _G.CurrentTargetBoss.Parent 
            and _G.CurrentTargetBoss:FindFirstChild("Humanoid") 
            and _G.CurrentTargetBoss.Humanoid.Health > 0 then
-            task.wait(0.2) 
             continue
         end
 
         local char = plr.Character
         local myHrp = char and char:FindFirstChild("HumanoidRootPart")
-        if not myHrp then task.wait(0.5) continue end
+        if not myHrp then continue end
 
         local potentialBosses = {}
         
-        -- Busca apenas na pasta Enemies para evitar LAG
-        if WS:FindFirstChild("Enemies") then
-            for _, v in pairs(WS.Enemies:GetChildren()) do
-                if v:IsA("Model") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
-                    
-                    local isTarget = false
-                    
-                    -- Verifica se é Boss pelo atributo
-                    if v:GetAttribute("IsBoss") then
-                        isTarget = true
-                    end
-                    
-                    -- Verifica se é Boss pelo NOME (Caso o atributo falhe)
-                    if not isTarget and Boss and type(Boss) == "table" then
-                        if table.find(Boss, v.Name) then
-                            isTarget = true
-                        end
-                    end
-                    
-                    -- Adiciona à lista se for Boss válido
-                    if isTarget and v.Name ~= "Cursed Skeleton Boss" then
-                        local hrp = v:FindFirstChild("HumanoidRootPart") or v:FindFirstChild("Torso")
-                        if hrp then
-                            local dist = (myHrp.Position - hrp.Position).Magnitude
-                            table.insert(potentialBosses, {Model = v, Distance = dist})
+        -- Scan na pasta Enemies e Workspace
+        local foldersToScan = {WS:FindFirstChild("Enemies"), WS}
+        for _, folder in pairs(foldersToScan) do
+            if folder then
+                for _, v in pairs(folder:GetChildren()) do
+                    if v:IsA("Model") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+                        if v.Name ~= "Cursed Skeleton Boss" and (v:GetAttribute("IsBoss") or (Boss and table.find(Boss, v.Name))) then
+                            local hrp = v:FindFirstChild("HumanoidRootPart") or v:FindFirstChild("Torso")
+                            if hrp then
+                                local dist = (myHrp.Position - hrp.Position).Magnitude
+                                table.insert(potentialBosses, {Model = v, Distance = dist})
+                            end
                         end
                     end
                 end
             end
         end
 
-        -- Seleciona o mais próximo
         if #potentialBosses > 0 then
-            table.sort(potentialBosses, function(a, b)
-                return a.Distance < b.Distance
-            end)
+            table.sort(potentialBosses, function(a, b) return a.Distance < b.Distance end)
             _G.CurrentTargetBoss = potentialBosses[1].Model
         else
             _G.CurrentTargetBoss = nil
         end
-        task.wait(0.2)
     end
 end)
 
 -- =====================
--- THREAD 2: ATACANTE + QUEST
+-- THREAD: MAIN CONTROLLER (ATACANTE)
 -- =====================
 spawn(function()
     while task.wait() do
         pcall(function()
-            -- MODO 1: ESPECÍFICO (Dropdown)
+            local char = plr.Character
+            if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+
+            -- MODO 1: ESPECÍFICO
             if _G.AutoBoss and _G.FindBoss then
                 if QuestB then QuestB() end
                 
-                local NeedQuest = false
-                local char = plr.Character
-                if not char or not char:FindFirstChild("HumanoidRootPart") then return end
-
-                -- Lógica de Quest (Se ativada)
+                -- Lógica de Quest
                 if _G.AutoAcceptQuest and Qname and Qdata and PosQBoss then
                     local playerGui = plr.PlayerGui:FindFirstChild("Main") and plr.PlayerGui.Main:FindFirstChild("Quest")
                     local hasQuest = playerGui and playerGui.Visible
-                    local currentQuestTitle = hasQuest and playerGui.Container.QuestTitle.Title.Text or ""
-
-                    if hasQuest and not string.find(currentQuestTitle, bMon) then
-                        RS.Remotes.CommF_:InvokeServer("AbandonQuest")
-                        hasQuest = false
-                        task.wait(0.2)
-                    end
-                    if not hasQuest then NeedQuest = true end
-                end
-
-                if NeedQuest then
-                    if (PosQBoss.Position - char.HumanoidRootPart.Position).Magnitude <= 5 then
-                        RS.Remotes.CommF_:InvokeServer("StartQuest", Qname, Qdata)
-                        task.wait(0.5)
-                    else
-                        if _tp then _tp(PosQBoss) else char.HumanoidRootPart.CFrame = PosQBoss end
-                    end
-                    return
-                end
-
-                -- Caçar Boss Selecionado
-                local specificBoss = nil
-                if WS:FindFirstChild("Enemies") then
-                    specificBoss = WS.Enemies:FindFirstChild(_G.FindBoss)
-                end
-                
-                if not specificBoss then
-                     for _, v in pairs(WS:GetChildren()) do
-                        if v.Name == _G.FindBoss and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
-                            specificBoss = v
-                            break
+                    if not hasQuest then
+                        if (PosQBoss.Position - char.HumanoidRootPart.Position).Magnitude <= 5 then
+                            RS.Remotes.CommF_:InvokeServer("StartQuest", Qname, Qdata)
+                        else
+                            if _tp then _tp(PosQBoss) else char.HumanoidRootPart.CFrame = PosQBoss end
                         end
+                        return
                     end
                 end
 
-                if specificBoss and specificBoss:FindFirstChild("Humanoid") and specificBoss.Humanoid.Health > 0 then 
-                    GoToBoss(specificBoss)
-                elseif PosB then 
-                    if (PosB.Position - char.HumanoidRootPart.Position).Magnitude > 10 then
-                        if _tp then _tp(PosB) else char.HumanoidRootPart.CFrame = PosB end
-                    end
-                end
-                return
-            end
-
-            -- MODO 2: FARM ALL (Executa se o AutoBoss estiver OFF e FarmAllBoss ON)
-            if _G.FarmAllBoss then
-                local target = _G.CurrentTargetBoss
-                if target and target.Parent and target:FindFirstChild("Humanoid") and target.Humanoid.Health > 0 then
+                -- Procurar Boss Específico
+                local target = WS:FindFirstChild("Enemies") and WS.Enemies:FindFirstChild(_G.FindBoss) or WS:FindFirstChild(_G.FindBoss)
+                if target and target:FindFirstChild("Humanoid") and target.Humanoid.Health > 0 then
                     GoToBoss(target)
-                else
-                    _G.CurrentTargetBoss = nil 
+                elseif PosB then 
+                    if _tp then _tp(PosB) else char.HumanoidRootPart.CFrame = PosB end
+                end
+
+            -- MODO 2: FARM ALL
+            elseif _G.FarmAllBoss then
+                if _G.CurrentTargetBoss then
+                    GoToBoss(_G.CurrentTargetBoss)
                 end
             end
         end)
+    end
+end)
+
+-- Auto Select Weapon Name ToolTip
+spawn(function()
+    while task.wait(1) do
+        if _G.ChooseWP and plr.Backpack then
+            for _, e in pairs(plr.Backpack:GetChildren()) do
+                if e.ToolTip == _G.ChooseWP then _G.SelectWeapon = e.Name end
+            end
+        end
     end
 end)
 
