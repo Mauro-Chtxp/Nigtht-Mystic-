@@ -6388,7 +6388,7 @@ local BossDropdown = j:AddDropdown({
 
 j:AddButton({
     Title = "Refresh Boss List",
-    Description = "Atualiza lista (Scan Completo)",
+    Description = "",
     Callback = function()
         local LiveBosses = {}  
         local FoundAny = false  
@@ -6438,7 +6438,7 @@ j:AddToggle({
 
 j:AddToggle({
     Title = "Farm All Bosses",
-    Description = "Mata todos os bosses spawnados",
+    Description = "",
     Default = false,
     Callback = function(v)
         _G.FarmAllBoss = v
