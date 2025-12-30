@@ -6352,37 +6352,38 @@ local BossDropdown = j:AddDropdown({
     Callback = function(v) _G.FindBoss = v end
 })
 
+-- [[ LÓGICA REVERTIDA E CORRIGIDA AQUI: SCANNER COMPLETO DE BOSSES ]] --
 j:AddButton({
     Title = "Refresh Boss List",
-    Description = "",
+    Description = "Scans ALL bosses (Workspace & RS)",
     Callback = function()
         local LiveBosses = {}  
         local FoundAny = false  
         
-        -- Otimizado para não lagar o refresh
-        if WS:FindFirstChild("Enemies") then
-            for _, v in pairs(WS.Enemies:GetChildren()) do
-                if v:IsA("Model") and v:FindFirstChild("Humanoid") then
-                    if not table.find(LiveBosses, v.Name) then
-                        table.insert(LiveBosses, v.Name)
-                        FoundAny = true
-                    end
+        -- Scanner Pesado (Só roda ao clicar, garante lista perfeita)
+        for _, obj in pairs(WS:GetDescendants()) do
+            if obj:IsA("Model") and obj:GetAttribute("IsBoss") == true then
+                if not table.find(LiveBosses, obj.Name) then
+                    table.insert(LiveBosses, obj.Name)
+                    FoundAny = true
                 end
             end
         end
-        
-        -- Procura no RS caso não ache (Bosses armazenados)
-        for _, obj in pairs(RS:GetChildren()) do
-            if obj:IsA("Model") and (obj:GetAttribute("IsBoss") == true or obj:FindFirstChild("Humanoid")) then
-                 if not table.find(LiveBosses, obj.Name) then
+        for _, obj in pairs(RS:GetDescendants()) do
+            if obj:IsA("Model") and obj:GetAttribute("IsBoss") == true then
+                if not table.find(LiveBosses, obj.Name) then
                     table.insert(LiveBosses, obj.Name)
                     FoundAny = true
                 end
             end
         end
 
-        if FoundAny then BossDropdown:Refresh(LiveBosses, true)  
-        else BossDropdown:Refresh({"Nenhum Boss Encontrado"}, true) end  
+        if FoundAny then 
+            table.sort(LiveBosses) -- Organiza alfabeticamente
+            BossDropdown:Refresh(LiveBosses, true)  
+        else 
+            BossDropdown:Refresh({"Nenhum Boss Encontrado"}, true) 
+        end  
     end
 })
 
@@ -6456,18 +6457,16 @@ local function GoToBoss(targetBoss)
         hrp.AssemblyLinearVelocity = Vector3.zero 
         hum.AutoRotate = false 
         
-        -- Ataque básico para garantir dano
-        if _G.AutoBoss or _G.FarmAllBoss then
-             game:GetService("VirtualUser"):CaptureController()
-             game:GetService("VirtualUser"):Button1Down(Vector2.new(1280, 672))
-        end
+        -- Auto Click básico
+        game:GetService("VirtualUser"):CaptureController()
+        game:GetService("VirtualUser"):Button1Down(Vector2.new(1280, 672))
     else  
         if _tp then _tp(targetCFrame) else hrp.CFrame = targetCFrame end
     end
 end
 
 -- =====================
--- THREAD 1: SCANNER TURBO (FARM ALL)
+-- THREAD 1: SCANNER TURBO (FARM ALL - OTIMIZADO)
 -- =====================
 spawn(function()
     while task.wait() do 
@@ -6490,11 +6489,10 @@ spawn(function()
 
         local potentialBosses = {}
         
-        -- Otimização: Escanear apenas a pasta Enemies (evita lag extremo)
+        -- Otimização: Procura apenas na pasta Enemies para não lagar o Farm All
         if WS:FindFirstChild("Enemies") then
             for _, v in pairs(WS.Enemies:GetChildren()) do
-                if v:IsA("Model") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
-                    -- Filtro Opcional: Ignorar Skeleton se necessário
+                if v:IsA("Model") and v:GetAttribute("IsBoss") == true and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
                     if v.Name ~= "Cursed Skeleton Boss" then
                         local hrp = v:FindFirstChild("HumanoidRootPart") or v:FindFirstChild("Torso")
                         if hrp then
@@ -6502,15 +6500,6 @@ spawn(function()
                             table.insert(potentialBosses, {Model = v, Distance = dist})
                         end
                     end
-                end
-            end
-        end
-
-        -- Se não achou no workspace, tenta RS (muito mais leve escanear filhos diretos)
-        if #potentialBosses == 0 then
-            for _, v in pairs(RS:GetChildren()) do
-                if v:IsA("Model") and v:GetAttribute("IsBoss") == true then
-                    table.insert(potentialBosses, {Model = v, Distance = 999999})
                 end
             end
         end
@@ -6523,7 +6512,7 @@ spawn(function()
         else
             _G.CurrentTargetBoss = nil
         end
-        task.wait(0.5) -- Delay aumentado para evitar crash
+        task.wait(0.2)
     end
 end)
 
@@ -6535,67 +6524,69 @@ spawn(function()
         pcall(function()
             -- MODO 1: ESPECÍFICO (Dropdown)
             if _G.AutoBoss and _G.FindBoss then
-                -- Carrega variáveis (Qname, bMon, PosB, etc)
+                -- 1. Carregar Variáveis (PosB, QuestData)
                 if QuestB then QuestB() end
                 
                 local NeedQuest = false
+                local char = plr.Character
+                if not char or not char:FindFirstChild("HumanoidRootPart") then return end
 
-                -- 1. VERIFICAÇÃO DE QUEST
+                -- 2. VERIFICAÇÃO DE QUEST (Só executa se o toggle estiver ON)
                 if _G.AutoAcceptQuest and Qname and Qdata and PosQBoss then
                     local playerGui = plr.PlayerGui:FindFirstChild("Main") and plr.PlayerGui.Main:FindFirstChild("Quest")
                     local hasQuest = playerGui and playerGui.Visible
                     local currentQuestTitle = hasQuest and playerGui.Container.QuestTitle.Title.Text or ""
 
-                    -- Se tiver quest errada, abandona
+                    -- Abandona quest errada
                     if hasQuest and not string.find(currentQuestTitle, bMon) then
                         RS.Remotes.CommF_:InvokeServer("AbandonQuest")
                         hasQuest = false
                         task.wait(0.2)
                     end
 
-                    -- Se não tiver quest, precisa pegar
+                    -- Define se precisa pegar quest
                     if not hasQuest then
                         NeedQuest = true
                     end
                 end
 
-                -- 2. PEGAR QUEST (Prioridade)
+                -- 3. PEGAR QUEST (Se necessário e ativado)
                 if NeedQuest then
-                    local char = plr.Character
-                    if char and char:FindFirstChild("HumanoidRootPart") then
-                        if (PosQBoss.Position - char.HumanoidRootPart.Position).Magnitude <= 5 then
-                            RS.Remotes.CommF_:InvokeServer("StartQuest", Qname, Qdata)
-                            task.wait(0.5)
-                        else
-                            if _tp then _tp(PosQBoss) else char.HumanoidRootPart.CFrame = PosQBoss end
-                        end
+                    if (PosQBoss.Position - char.HumanoidRootPart.Position).Magnitude <= 5 then
+                        RS.Remotes.CommF_:InvokeServer("StartQuest", Qname, Qdata)
+                        task.wait(0.5)
+                    else
+                        if _tp then _tp(PosQBoss) else char.HumanoidRootPart.CFrame = PosQBoss end
                     end
-                    return -- Retorna loop para focar em pegar a quest
+                    return -- Retorna para focar em pegar a quest antes de caçar
                 end
 
-                -- 3. CAÇAR BOSS (Correção de Lag)
+                -- 4. CAÇAR BOSS (Executa sempre que não estiver buscando quest)
                 local specificBoss = nil
                 
-                -- Busca Otimizada (Evita GetDescendants no Workspace todo)
+                -- Procura em Enemies (Sem Lag)
                 if WS:FindFirstChild("Enemies") then
                     specificBoss = WS.Enemies:FindFirstChild(_G.FindBoss)
                 end
                 
-                -- Se não achou em Enemies, procura no RS
+                -- Se não achou em Enemies, procura no mapa todo (backup seguro, sem GetDescendants massivo)
                 if not specificBoss then
-                    specificBoss = RS:FindFirstChild(_G.FindBoss)
+                     for _, v in pairs(WS:GetChildren()) do
+                        if v.Name == _G.FindBoss and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+                            specificBoss = v
+                            break
+                        end
+                    end
                 end
-                
-                -- Se o boss existe e tem vida, vai até ele
+
                 if specificBoss and specificBoss:FindFirstChild("Humanoid") and specificBoss.Humanoid.Health > 0 then 
+                    -- Boss VIVO: Atacar
                     GoToBoss(specificBoss)
                 elseif PosB then 
-                    -- Se o boss não existe (não spawnou), vai para o Spawn (PosB) esperar
-                    if _tp then _tp(PosB) else 
-                         if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-                             plr.Character.HumanoidRootPart.CFrame = PosB
-                         end
-                    end 
+                    -- Boss MORTO: Ir para o Spawn (PosB) esperar
+                    if (PosB.Position - char.HumanoidRootPart.Position).Magnitude > 10 then
+                        if _tp then _tp(PosB) else char.HumanoidRootPart.CFrame = PosB end
+                    end
                 end
                 return
             end
@@ -6603,7 +6594,7 @@ spawn(function()
             -- MODO 2: FARM ALL
             if _G.FarmAllBoss then
                 local target = _G.CurrentTargetBoss
-                if target and target.Parent and target.Name ~= "Cursed Skeleton Boss" and target:FindFirstChild("Humanoid") and target.Humanoid.Health > 0 then
+                if target and target.Parent and target:FindFirstChild("Humanoid") and target.Humanoid.Health > 0 then
                     GoToBoss(target)
                 else
                     _G.CurrentTargetBoss = nil 
@@ -6612,6 +6603,7 @@ spawn(function()
         end)
     end
 end)
+
 
 
 
