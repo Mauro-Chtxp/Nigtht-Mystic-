@@ -6328,14 +6328,12 @@ local plr = game.Players.LocalPlayer
 local function EquipWeapon()
     local char = plr.Character
     if not char then return end
-
     local hum = char:FindFirstChildOfClass("Humanoid")
     if not hum then return end
 
     if _G.SelectWeapon then
         local tool = plr.Backpack:FindFirstChild(_G.SelectWeapon)
             or char:FindFirstChild(_G.SelectWeapon)
-
         if tool and tool.Parent ~= char then
             hum:EquipTool(tool)
         end
@@ -6356,27 +6354,21 @@ local BossDropdown = j:AddDropdown({
     end
 })
 
--- ==========================================
--- REFRESH BOSS LIST (Workspace + ReplicatedStorage)
--- ==========================================
 j:AddButton({
     Title = "Refresh Boss List",
     Description = "Escaneia Workspace e ReplicatedStorage (IsBoss)",
     Callback = function()
 
         local LiveBosses = {}
-        local FoundAny = false
 
         local function Scan(container)
             for _, obj in pairs(container:GetDescendants()) do
                 if obj:IsA("Model") and obj:GetAttribute("IsBoss") == true then
                     local hum = obj:FindFirstChildOfClass("Humanoid")
                     local hrp = obj:FindFirstChild("HumanoidRootPart")
-
                     if hum and hrp and hum.Health > 0 then
                         if not table.find(LiveBosses, obj.Name) then
                             table.insert(LiveBosses, obj.Name)
-                            FoundAny = true
                         end
                     end
                 end
@@ -6386,17 +6378,10 @@ j:AddButton({
         Scan(workspace)
         Scan(game:GetService("ReplicatedStorage"))
 
-        if FoundAny then
-            BossDropdown:Refresh(LiveBosses, true)
-        else
-            BossDropdown:Refresh({"Nenhum Boss Spawnado!"}, true)
-        end
+        BossDropdown:Refresh(#LiveBosses > 0 and LiveBosses or {"Nenhum Boss Spawnado!"}, true)
     end
 })
 
--- =====================
--- TOGGLES
--- =====================
 j:AddToggle({
     Title = "Auto Farm Boss",
     Default = false,
@@ -6431,7 +6416,7 @@ spawn(function()
 end)
 
 -- =====================
--- FUNÇÃO: PEGAR TODOS OS BOSSES VIVOS (IsBoss)
+-- GET ALL LIVE BOSSES
 -- =====================
 local function GetAllLiveBosses()
     local bosses = {}
@@ -6441,7 +6426,6 @@ local function GetAllLiveBosses()
             if obj:IsA("Model") and obj:GetAttribute("IsBoss") == true then
                 local hum = obj:FindFirstChildOfClass("Humanoid")
                 local hrp = obj:FindFirstChild("HumanoidRootPart")
-
                 if hum and hrp and hum.Health > 0 then
                     table.insert(bosses, obj)
                 end
@@ -6456,11 +6440,21 @@ local function GetAllLiveBosses()
 end
 
 -- =====================
--- AUTO FARM BOSS LOGIC
+-- CONTROLE DE ESTADO
+-- =====================
+local BossIndex = 1
+local BossAtual = nil
+local TravadoNoBoss = false
+
+-- =====================
+-- AUTO FARM LOGIC
 -- =====================
 spawn(function()
     while task.wait() do
         if not _G.AutoBoss and not _G.AutoAllBoss then
+            BossAtual = nil
+            TravadoNoBoss = false
+            BossIndex = 1
             continue
         end
 
@@ -6473,51 +6467,77 @@ spawn(function()
             QuestB()
             EquipWeapon()
 
-            local bossesToFarm = {}
-
+            -- =====================
+            -- FARM ALL BOSS
+            -- =====================
             if _G.AutoAllBoss then
-                bossesToFarm = GetAllLiveBosses()
-            else
-                local enemies = workspace:FindFirstChild("Enemies")
-                if enemies then
-                    for _, v in pairs(enemies:GetChildren()) do
-                        if v.Name == bMon
-                        and v:FindFirstChild("Humanoid")
-                        and v:FindFirstChild("HumanoidRootPart")
-                        and v.Humanoid.Health > 0 then
-                            table.insert(bossesToFarm, v)
-                            break
-                        end
-                    end
+                local bosses = GetAllLiveBosses()
+                if #bosses == 0 then
+                    TravadoNoBoss = false
+                    return
                 end
-            end
 
-            for _, boss in pairs(bossesToFarm) do
-                if not (_G.AutoBoss or _G.AutoAllBoss) then return end
-                if boss.Humanoid.Health <= 0 then continue end
+                BossAtual = bosses[BossIndex]
+                if not BossAtual or BossAtual.Humanoid.Health <= 0 then
+                    BossIndex += 1
+                    TravadoNoBoss = false
+                    if BossIndex > #bosses then BossIndex = 1 end
+                    return
+                end
 
-                local bossHRP = boss.HumanoidRootPart
-                local safeHeight = 22
-                local targetPos = bossHRP.Position + Vector3.new(0, safeHeight, 0)
-                local targetCFrame = CFrame.new(targetPos)
+                local bossHRP = BossAtual.HumanoidRootPart
+                local targetPos = bossHRP.Position + Vector3.new(0, 22, 0)
+                local targetCF = CFrame.new(targetPos)
 
                 local dist = (hrp.Position - targetPos).Magnitude
 
+                if not TravadoNoBoss then
+                    _tp(targetCF) -- 🔥 CHAMA UMA ÚNICA VEZ
+                    TravadoNoBoss = true
+                    return
+                end
+
                 if dist <= 3 then
-                    hrp.CFrame = targetCFrame
+                    hrp.CFrame = targetCF
                     hrp.Velocity = Vector3.zero
                     hrp.AssemblyLinearVelocity = Vector3.zero
                     hrp.AssemblyAngularVelocity = Vector3.zero
                     hum.AutoRotate = false
-                else
-                    _tp(targetCFrame)
                 end
 
-                task.wait(0.2)
+                return
             end
 
-            if PosB then
-                _tp(PosB)
+            -- =====================
+            -- FARM BOSS NORMAL (INALTERADO)
+            -- =====================
+            if _G.AutoBoss then
+                local enemies = workspace:FindFirstChild("Enemies")
+                if not enemies then return end
+
+                for _, v in pairs(enemies:GetChildren()) do
+                    if v.Name == bMon
+                    and v:FindFirstChild("Humanoid")
+                    and v:FindFirstChild("HumanoidRootPart")
+                    and v.Humanoid.Health > 0 then
+
+                        local bossHRP = v.HumanoidRootPart
+                        local targetPos = bossHRP.Position + Vector3.new(0, 22, 0)
+                        local targetCF = CFrame.new(targetPos)
+                        local dist = (hrp.Position - targetPos).Magnitude
+
+                        if dist <= 3 then
+                            hrp.CFrame = targetCF
+                            hrp.Velocity = Vector3.zero
+                            hrp.AssemblyLinearVelocity = Vector3.zero
+                            hrp.AssemblyAngularVelocity = Vector3.zero
+                            hum.AutoRotate = false
+                        else
+                            _tp(targetCF)
+                        end
+                        return
+                    end
+                end
             end
         end)
     end
