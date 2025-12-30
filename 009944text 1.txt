@@ -6313,13 +6313,13 @@ end)
 
 
 -- =========================================
---      AUTO FARM BOSS (DIRECT & UPRIGHT)
---      + REPLICATED STORAGE SCAN (NO LAG)
+--      AUTO FARM BOSS (NEAREST + ANTI-LAG)
+--      OTIMIZADO COM CHUNK SCANNER
 -- =========================================
 
 _G.AutoBoss = false       -- Farm Boss Específico (Dropdown)
 _G.FarmAllBoss = false    -- Farm Todos (IsBoss)
-_G.CurrentTargetBoss = nil -- Variável que guarda o boss encontrado pelo Scanner
+_G.CurrentTargetBoss = nil 
 
 _G.FindBoss = _G.FindBoss or (Boss and Boss[1])
 
@@ -6333,14 +6333,12 @@ local WS = game:GetService("Workspace")
 local function EquipWeapon()
     local char = plr.Character
     if not char then return end
-
     local hum = char:FindFirstChildOfClass("Humanoid")  
     if not hum then return end  
 
     if _G.SelectWeapon then  
         local tool = plr.Backpack:FindFirstChild(_G.SelectWeapon)  
             or char:FindFirstChild(_G.SelectWeapon)  
-
         if tool and tool.Parent ~= char then  
             hum:EquipTool(tool)  
         end  
@@ -6352,47 +6350,36 @@ end
 -- =====================
 j:AddSeperator("Boss Farm")
 
--- CRIA O DROPDOWN INICIAL (FARM ESPECÍFICO)
+-- DROPDOWN
 local BossDropdown = j:AddDropdown({
     Title = "Select Boss",
     Values = Boss, 
     Default = Boss[1],
-    Callback = function(v)
-        _G.FindBoss = v
-    end
+    Callback = function(v) _G.FindBoss = v end
 })
 
--- BOTÃO DE REFRESH UI
+-- REFRESH BUTTON
 j:AddButton({
     Title = "Refresh Boss List",
-    Description = "Atualiza a lista do Dropdown",
+    Description = "Atualiza a lista (Scan Leve)",
     Callback = function()
         local LiveBosses = {}  
         local FoundAny = false  
-
-        local function Scan(container)  
-            for _, obj in pairs(container:GetDescendants()) do  
-                if obj:IsA("Model") and obj:GetAttribute("IsBoss") == true then  
-                    if not table.find(LiveBosses, obj.Name) then  
-                        table.insert(LiveBosses, obj.Name)  
-                        FoundAny = true  
-                    end  
+        -- Scan simples apenas no Workspace para não travar a UI
+        for _, obj in pairs(WS:GetDescendants()) do  
+            if obj:IsA("Model") and obj:GetAttribute("IsBoss") == true then  
+                if not table.find(LiveBosses, obj.Name) then  
+                    table.insert(LiveBosses, obj.Name)  
+                    FoundAny = true  
                 end  
             end  
         end  
-
-        Scan(WS)  
-        Scan(RS)  
-
-        if FoundAny then  
-            BossDropdown:Refresh(LiveBosses, true)  
-        else  
-            BossDropdown:Refresh({"Nenhum Boss Encontrado!"}, true)  
-        end  
+        if FoundAny then BossDropdown:Refresh(LiveBosses, true)  
+        else BossDropdown:Refresh({"Nenhum Boss no Workspace"}, true) end  
     end
 })
 
--- TOGGLE FARM BOSS ESPECÍFICO
+-- TOGGLES
 j:AddToggle({
     Title = "Auto Farm Boss (Selected)",
     Default = false,
@@ -6403,12 +6390,9 @@ j:AddToggle({
     end
 })
 
--- ==========================================
--- TOGGLE: FARM ALL BOSS (WS + RS)
--- ==========================================
 j:AddToggle({
-    Title = "Farm All Bosses (Scan All)",
-    Description = "Procura em Todo Lugar (Incluindo RS)",
+    Title = "Farm All Bosses (Nearest)",
+    Description = "Mata o mais próximo (No Lag)",
     Default = false,
     Callback = function(v)
         _G.FarmAllBoss = v
@@ -6421,13 +6405,11 @@ j:AddToggle({
 -- AUTO SELECT WEAPON
 -- =====================
 spawn(function()
-    while task.wait(Sec or 0.5) do
+    while task.wait(0.5) do
         pcall(function()
             if plr.Backpack then
                 for _, e in pairs(plr.Backpack:GetChildren()) do
-                    if e.ToolTip == _G.ChooseWP then
-                        _G.SelectWeapon = e.Name
-                    end
+                    if e.ToolTip == _G.ChooseWP then _G.SelectWeapon = e.Name end
                 end
             end
         end)
@@ -6435,7 +6417,7 @@ spawn(function()
 end)
 
 -- =====================
--- FUNÇÃO DE MOVIMENTO (TELEPORT / LOCK)
+-- FUNÇÃO DE MOVIMENTO
 -- =====================
 local function GoToBoss(targetBoss)
     local char = plr.Character
@@ -6445,42 +6427,29 @@ local function GoToBoss(targetBoss)
     if not targetBoss or not hrp or not hum then return end
     
     local bossHRP = targetBoss:FindFirstChild("HumanoidRootPart")
-    
-    -- Se o boss estiver no ReplicatedStorage, ele pode não ter posição física válida
-    -- Tentamos mesmo assim, mas é bom verificar se o Parent é nulo ou RS
     if not bossHRP then return end
 
-    -- PONTO SEGURO: 22 Studs ACIMA do Boss
     local safeHeight = 22   
     local targetPos = bossHRP.Position + Vector3.new(0, safeHeight, 0)  
     local targetCFrame = CFrame.new(targetPos)  
-
-    -- Distância
     local distToSafeSpot = (hrp.Position - targetPos).Magnitude  
 
     EquipWeapon()  
 
     if distToSafeSpot <= 3 then  
-        -- FIXA POSIÇÃO (Hard Lock)
         hrp.CFrame = targetCFrame  
         hrp.Velocity = Vector3.zero  
         hrp.AssemblyLinearVelocity = Vector3.zero  
         hrp.AssemblyAngularVelocity = Vector3.zero  
         hum.AutoRotate = false 
     else  
-        -- TELEPORTA
-        if _tp then
-            _tp(targetCFrame)
-        else
-            hrp.CFrame = targetCFrame 
-        end
+        if _tp then _tp(targetCFrame) else hrp.CFrame = targetCFrame end
     end
 end
 
 -- =====================
--- THREAD 1: SCANNER INTELIGENTE (ANTI-LAG)
+-- THREAD 1: SCANNER OTIMIZADO (ANTI-LAG + NEAREST)
 -- =====================
--- Este loop roda mais devagar para processar Workspace e RS sem travar o jogo
 spawn(function()
     while task.wait() do
         if not _G.FarmAllBoss then
@@ -6488,54 +6457,73 @@ spawn(function()
             continue
         end
 
-        local foundBoss = nil
-
-        -- 1. Procura no Workspace (Prioridade máxima, mais rápido)
-        for _, v in pairs(WS:GetDescendants()) do
-            if v:IsA("Model") and v:GetAttribute("IsBoss") == true then
-                local h = v:FindFirstChild("Humanoid")
-                local hrp = v:FindFirstChild("HumanoidRootPart")
-                if h and h.Health > 0 and hrp then
-                    foundBoss = v
-                    break -- Pega o primeiro que achar e para
-                end
-            end
+        local char = plr.Character
+        local myHrp = char and char:FindFirstChild("HumanoidRootPart")
+        
+        if not myHrp then 
+            task.wait(1)
+            continue 
         end
 
-        -- 2. Se não achou no Workspace, procura no ReplicatedStorage
-        if not foundBoss then
-            -- Scan no RS pode ser pesado, então fazemos com cuidado
-            for _, v in pairs(RS:GetDescendants()) do
+        local potentialBosses = {}
+        local count = 0 -- Contador para evitar lag
+
+        -- Função auxiliar para processar containers sem congelar
+        local function SafeScan(container)
+            local descendants = container:GetDescendants()
+            for _, v in pairs(descendants) do
+                count = count + 1
+                
+                -- A CADA 300 ITENS VERIFICADOS, ESPERA UM FRAME
+                -- Isso evita o "Congelamento" da tela
+                if count % 300 == 0 then 
+                    task.wait() 
+                end
+
                 if v:IsA("Model") and v:GetAttribute("IsBoss") == true then
                     local h = v:FindFirstChild("Humanoid")
                     local hrp = v:FindFirstChild("HumanoidRootPart")
+                    
                     if h and h.Health > 0 and hrp then
-                        foundBoss = v
-                        break
+                        local dist = (myHrp.Position - hrp.Position).Magnitude
+                        table.insert(potentialBosses, {Model = v, Distance = dist})
                     end
                 end
             end
         end
 
-        -- Atualiza a variável global para o loop de ataque usar
-        _G.CurrentTargetBoss = foundBoss
+        -- 1. Escaneia Workspace (Geralmente rápido)
+        SafeScan(WS)
         
-        -- Pequeno delay para não sobrecarregar CPU com GetDescendants
-        task.wait(0.3) 
+        -- 2. Escaneia ReplicatedStorage (Pesado, mas agora controlado pelo count)
+        SafeScan(RS)
+
+        -- 3. Ordena por Distância (Do menor para o maior)
+        if #potentialBosses > 0 then
+            table.sort(potentialBosses, function(a, b)
+                return a.Distance < b.Distance
+            end)
+            
+            -- Pega o modelo do boss mais próximo
+            _G.CurrentTargetBoss = potentialBosses[1].Model
+        else
+            _G.CurrentTargetBoss = nil
+        end
+
+        -- Espera um pouco antes de escanear tudo de novo para economizar CPU
+        task.wait(1) 
     end
 end)
 
 -- =====================
--- THREAD 2: ATACANTE (RÁPIDO)
+-- THREAD 2: ATACANTE (ALTA VELOCIDADE)
 -- =====================
 spawn(function()
     while task.wait() do
         pcall(function()
-            -- MODO 1: FARM ESPECÍFICO (Antigo)
+            -- MODO 1: ESPECÍFICO
             if _G.AutoBoss and _G.FindBoss then
                 if QuestB then QuestB() end
-                
-                -- Procura boss específico (lógica antiga rápida)
                 local enemies = WS:FindFirstChild("Enemies") or WS
                 local specificBoss = nil
                 
@@ -6546,28 +6534,26 @@ spawn(function()
                     end
                 end
 
-                if specificBoss then
-                    GoToBoss(specificBoss)
-                elseif PosB and _tp then
-                    _tp(PosB)
-                end
-                return -- Sai desta iteração para não conflitar
+                if specificBoss then GoToBoss(specificBoss)
+                elseif PosB and _tp then _tp(PosB) end
+                return
             end
 
-            -- MODO 2: FARM ALL BOSSES (Novo)
+            -- MODO 2: FARM ALL (NEAREST)
             if _G.FarmAllBoss then
                 local target = _G.CurrentTargetBoss
                 
-                -- Verifica se o alvo ainda é válido
+                -- Valida se o alvo ainda existe e está vivo
                 if target and target.Parent and target:FindFirstChild("Humanoid") and target.Humanoid.Health > 0 then
                     GoToBoss(target)
                 else
-                    _G.CurrentTargetBoss = nil -- Reseta se morreu
+                    _G.CurrentTargetBoss = nil -- Força o scanner a procurar outro
                 end
             end
         end)
     end
 end)
+
 
 j:AddSeperator("Quests");
 j:AddToggle({
