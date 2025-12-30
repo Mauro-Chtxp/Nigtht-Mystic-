@@ -6314,7 +6314,7 @@ end)
 
 -- =========================================
 --      AUTO FARM BOSS (TURBO SCAN + INSTANT)
---      CORREÇÃO: Detecção Instantânea
+--      CORREÇÃO: Ignora "Cursed Skeleton Boss" + Prioridade Próximo
 -- =========================================
 
 _G.AutoBoss = false       
@@ -6359,7 +6359,7 @@ local BossDropdown = j:AddDropdown({
 
 j:AddButton({
     Title = "Refresh Boss List",
-    Description = "Atualiza a lista",
+    Description = "",
     Callback = function()
         local LiveBosses = {}  
         local FoundAny = false  
@@ -6388,7 +6388,7 @@ j:AddButton({
 })
 
 j:AddToggle({
-    Title = "Auto Farm Boss (Selected)",
+    Title = "Auto Farm Boss Select",
     Default = false,
     Callback = function(v)
         _G.AutoBoss = v
@@ -6398,8 +6398,8 @@ j:AddToggle({
 })
 
 j:AddToggle({
-    Title = "Farm All Bosses (Turbo)",
-    Description = "Detecta na hora (Fast)",
+    Title = "Farm All Bosses",
+    Description = "Detecta na hora (Ignora Cursed Skeleton)",
     Default = false,
     Callback = function(v)
         _G.FarmAllBoss = v
@@ -6454,21 +6454,21 @@ local function GoToBoss(targetBoss)
 end
 
 -- =====================
--- THREAD 1: SCANNER TURBO (OTIMIZADO PARA VELOCIDADE)
+-- THREAD 1: SCANNER TURBO (OTIMIZADO + IGNORE LIST)
 -- =====================
 spawn(function()
-    while task.wait() do -- Removido delay fixo, roda o mais rápido possível
+    while task.wait() do -- Roda o mais rápido possível
         if not _G.FarmAllBoss then
             task.wait(0.5)
             continue
         end
 
-        -- OTIMIZAÇÃO CRÍTICA: Se já tem um alvo vivo, NÃO ESCANEIA. Foca em matar.
+        -- Se já tem um alvo vivo, mantém ele (não troca de alvo aleatoriamente)
         if _G.CurrentTargetBoss 
            and _G.CurrentTargetBoss.Parent 
            and _G.CurrentTargetBoss:FindFirstChild("Humanoid") 
            and _G.CurrentTargetBoss.Humanoid.Health > 0 then
-            task.wait(0.2) -- Só checa a cada 0.2s se ele morreu
+            task.wait(0.2) 
             continue
         end
 
@@ -6486,49 +6486,60 @@ spawn(function()
             for _, v in pairs(descendants) do
                 count = count + 1
                 
-                -- AUMENTADO PARA 5000 (Processa muito mais rápido antes de pausar)
+                -- Otimização de loop
                 if count % 5000 == 0 then task.wait() end 
 
+                -- Verifica se é Boss
                 if v:IsA("Model") and v:GetAttribute("IsBoss") == true then
-                    local h = v:FindFirstChild("Humanoid")
-                    local hrp = v:FindFirstChild("HumanoidRootPart") or v:FindFirstChild("Torso")
                     
-                    if h and h.Health > 0 and hrp then
-                        local dist = (myHrp.Position - hrp.Position).Magnitude
+                    -- =========================================
+                    -- FILTRO: IGNORAR CURSED SKELETON BOSS
+                    -- =========================================
+                    if v.Name == "Cursed Skeleton Boss" then
+                        -- Não faz nada, pula esse boss
+                    else
+                        local h = v:FindFirstChild("Humanoid")
+                        local hrp = v:FindFirstChild("HumanoidRootPart") or v:FindFirstChild("Torso")
                         
-                        if isRS then
-                            -- Prioridade baixa se for RS
-                            table.insert(potentialBosses, {Model = v, Distance = dist + 10000})
-                        else
-                            -- Prioridade alta se for Workspace
-                            table.insert(potentialBosses, {Model = v, Distance = dist})
-                            foundInWorkspace = true
+                        if h and h.Health > 0 and hrp then
+                            local dist = (myHrp.Position - hrp.Position).Magnitude
+                            
+                            if isRS then
+                                -- Se está no ReplicatedStorage (não spawnado), joga a prioridade lá pra baixo (+10000 de distancia)
+                                -- Isso garante que ele só pegue do RS se NÃO tiver nada no Workspace
+                                table.insert(potentialBosses, {Model = v, Distance = dist + 10000})
+                            else
+                                -- Se está no Workspace, usa a distância real
+                                table.insert(potentialBosses, {Model = v, Distance = dist})
+                                foundInWorkspace = true
+                            end
                         end
                     end
                 end
             end
         end
 
-        -- 1. Scan Workspace (Muito Rápido)
+        -- 1. Scan Workspace (Prioridade Máxima)
         FastScan(WS, false)
         
-        -- 2. Scan ReplicatedStorage APENAS se não achou nada no Workspace
-        -- Isso evita travar o script procurando em lugares inúteis se o boss já está na tela
+        -- 2. Scan ReplicatedStorage apenas se não achou nada vivo no mapa
         if not foundInWorkspace then
             FastScan(RS, true)
         end
 
-        -- 3. Seleciona o alvo
+        -- 3. Ordenação e Seleção (Lógica de Proximidade)
         if #potentialBosses > 0 then
+            -- Ordena: O de menor distância (Distance) fica em primeiro lugar [1]
             table.sort(potentialBosses, function(a, b)
                 return a.Distance < b.Distance
             end)
+            
+            -- Pega o primeiro da lista (o mais próximo)
             _G.CurrentTargetBoss = potentialBosses[1].Model
         else
             _G.CurrentTargetBoss = nil
         end
         
-        -- Pequeno delay para não crashar se não tiver nada
         task.wait(0.1) 
     end
 end)
@@ -6539,11 +6550,10 @@ end)
 spawn(function()
     while task.wait() do
         pcall(function()
-            -- MODO 1: ESPECÍFICO
+            -- MODO 1: ESPECÍFICO (Dropdown)
             if _G.AutoBoss and _G.FindBoss then
                 if QuestB then QuestB() end
                 
-                -- Busca Otimizada: Procura direto o nome primeiro
                 local specificBoss = nil
                 
                 -- Tenta achar direto (Mais rápido que loop)
@@ -6551,7 +6561,7 @@ spawn(function()
                     specificBoss = WS.Enemies:FindFirstChild(_G.FindBoss)
                 end
                 
-                -- Se não achou direto, varre (Fallback)
+                -- Fallback (varredura)
                 if not specificBoss then
                      for _, v in pairs(WS:GetDescendants()) do
                         if v.Name == _G.FindBoss and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
@@ -6564,7 +6574,7 @@ spawn(function()
                 -- Se não achou no WS, olha RS
                 if not specificBoss then
                     for _, v in pairs(RS:GetDescendants()) do
-                        if v.Name == _G.FindBoss then -- RS não precisa checar vida as vezes
+                        if v.Name == _G.FindBoss then 
                             specificBoss = v
                             break
                         end
@@ -6576,18 +6586,21 @@ spawn(function()
                 return
             end
 
-            -- MODO 2: FARM ALL
+            -- MODO 2: FARM ALL (Ignora Cursed Skeleton)
             if _G.FarmAllBoss then
                 local target = _G.CurrentTargetBoss
-                if target and target.Parent and target:FindFirstChild("Humanoid") and target.Humanoid.Health > 0 then
+                
+                -- Verifica se o alvo ainda é válido e se não é o boss proibido (Segurança dupla)
+                if target and target.Parent and target.Name ~= "Cursed Skeleton Boss" and target:FindFirstChild("Humanoid") and target.Humanoid.Health > 0 then
                     GoToBoss(target)
                 else
-                    _G.CurrentTargetBoss = nil -- Libera o Scanner para procurar de novo
+                    _G.CurrentTargetBoss = nil -- Força o Scanner a procurar o próximo mais perto
                 end
             end
         end)
     end
 end)
+
 
 
 
