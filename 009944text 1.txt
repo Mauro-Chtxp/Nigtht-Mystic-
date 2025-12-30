@@ -6358,42 +6358,54 @@ local BossDropdown = j:AddDropdown({
     end
 })
 
--- BOTÃO DE REFRESH COM SCANNER REAL
+-- ==========================================
+-- BOTÃO DE REFRESH COM SCAN REAL (IsBoss)
+-- Workspace + ReplicatedStorage
+-- ==========================================
 j:AddButton({
     Title = "Refresh Boss List",
-    Description = "Atualiza Lista de Boss (apenas Bosses próxims de você!)",
+    Description = "Escaneia Workspace e ReplicatedStorage (IsBoss)",
     Callback = function()
-        local LiveBosses = {} -- Cria uma lista nova vazia
+
+        local LiveBosses = {}
         local FoundAny = false
 
-        -- 1. Varre a pasta de inimigos do jogo
-        for _, enemy in pairs(workspace.Enemies:GetChildren()) do
-            -- Verifica se é um Boss (compara o nome dele com a sua lista fixa de Bosses)
-            if table.find(Boss, enemy.Name) then
-                -- Verifica se ele está vivo (tem vida > 0)
-                if enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then
-                    -- Evita nomes duplicados na lista
-                    if not table.find(LiveBosses, enemy.Name) then
-                        table.insert(LiveBosses, enemy.Name)
-                        FoundAny = true
+        -- ==========================
+        -- FUNÇÃO DE SCAN
+        -- ==========================
+        local function Scan(container)
+            for _, obj in pairs(container:GetDescendants()) do
+                -- Verifica se tem atributo IsBoss
+                if obj:IsA("Model") and obj:GetAttribute("IsBoss") == true then
+
+                    local humanoid = obj:FindFirstChildOfClass("Humanoid")
+                    local hrp = obj:FindFirstChild("HumanoidRootPart")
+
+                    -- Boss válido = vivo + spawnado
+                    if humanoid and humanoid.Health > 0 and hrp then
+                        if not table.find(LiveBosses, obj.Name) then
+                            table.insert(LiveBosses, obj.Name)
+                            FoundAny = true
+                        end
                     end
                 end
             end
         end
 
-        -- 2. Atualiza o Dropdown
+        -- ==========================
+        -- SCAN REAL
+        -- ==========================
+        Scan(workspace)
+        Scan(game:GetService("ReplicatedStorage"))
+
+        -- ==========================
+        -- ATUALIZA DROPDOWN
+        -- ==========================
         if FoundAny then
-            -- Se achou bosses vivos, mostra só eles
             BossDropdown:Refresh(LiveBosses, true)
-            -- Opcional: Seleciona o primeiro da lista automaticamente
-            -- _G.FindBoss = LiveBosses[1] 
+            -- _G.FindBoss = LiveBosses[1] -- opcional
         else
-            -- Se não tiver NINGUÉM vivo, avisa ou volta pra lista padrão
-            -- Opção A: Mostrar lista vazia com aviso
-            BossDropdown:Refresh({"Nenhum Boss Vivo Próximo a você!"}, true)
-            
-            -- Opção B (Se preferir): Voltar a lista completa padrão
-            -- BossDropdown:Refresh(Boss, true) 
+            BossDropdown:Refresh({"Nenhum Boss Spawnado!"}, true)
         end
     end
 })
