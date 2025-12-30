@@ -6313,14 +6313,14 @@ end)
 
 
 -- =========================================
---      AUTO FARM BOSS (TURBO SCAN + INSTANT)
---      CORREÇÃO: Ignora "Cursed Skeleton Boss" + Prioridade Próximo
+--      AUTO FARM BOSS (TURBO SCAN + QUEST)
+--      SEM A FUNÇÃO QUESTB (ELA DEVE ESTAR ACIMA)
 -- =========================================
 
 _G.AutoBoss = false       
 _G.FarmAllBoss = false    
+_G.AutoAcceptQuest = false -- Novo Toggle
 _G.CurrentTargetBoss = nil 
-
 _G.FindBoss = _G.FindBoss or (Boss and Boss[1])
 
 local plr = game.Players.LocalPlayer
@@ -6372,7 +6372,6 @@ j:AddButton({
                 end
             end
         end
-        -- Scan rápido no RS também
         for _, obj in pairs(RS:GetDescendants()) do
             if obj:IsA("Model") and obj:GetAttribute("IsBoss") == true then
                 if not table.find(LiveBosses, obj.Name) then
@@ -6397,9 +6396,18 @@ j:AddToggle({
     end
 })
 
+-- NOVO TOGGLE
+j:AddToggle({
+    Title = "Accept Quest Boss",
+    Default = false,
+    Callback = function(v)
+        _G.AutoAcceptQuest = v
+    end
+})
+
 j:AddToggle({
     Title = "Farm All Bosses",
-    Description = "Detecta na hora (Ignora Cursed Skeleton)",
+    Description = "",
     Default = false,
     Callback = function(v)
         _G.FarmAllBoss = v
@@ -6424,7 +6432,7 @@ spawn(function()
 end)
 
 -- =====================
--- FUNÇÃO DE MOVIMENTO
+-- FUNÇÃO DE MOVIMENTO DO BOSS (LOCAL)
 -- =====================
 local function GoToBoss(targetBoss)
     local char = plr.Character
@@ -6454,16 +6462,15 @@ local function GoToBoss(targetBoss)
 end
 
 -- =====================
--- THREAD 1: SCANNER TURBO (OTIMIZADO + IGNORE LIST)
+-- THREAD 1: SCANNER TURBO
 -- =====================
 spawn(function()
-    while task.wait() do -- Roda o mais rápido possível
+    while task.wait() do 
         if not _G.FarmAllBoss then
             task.wait(0.5)
             continue
         end
 
-        -- Se já tem um alvo vivo, mantém ele (não troca de alvo aleatoriamente)
         if _G.CurrentTargetBoss 
            and _G.CurrentTargetBoss.Parent 
            and _G.CurrentTargetBoss:FindFirstChild("Humanoid") 
@@ -6480,36 +6487,23 @@ spawn(function()
         local count = 0 
         local foundInWorkspace = false
 
-        -- Função de Scan Rápido
         local function FastScan(container, isRS)
             local descendants = container:GetDescendants()
             for _, v in pairs(descendants) do
                 count = count + 1
-                
-                -- Otimização de loop
                 if count % 5000 == 0 then task.wait() end 
 
-                -- Verifica se é Boss
                 if v:IsA("Model") and v:GetAttribute("IsBoss") == true then
-                    
-                    -- =========================================
-                    -- FILTRO: IGNORAR CURSED SKELETON BOSS
-                    -- =========================================
                     if v.Name == "Cursed Skeleton Boss" then
-                        -- Não faz nada, pula esse boss
                     else
                         local h = v:FindFirstChild("Humanoid")
                         local hrp = v:FindFirstChild("HumanoidRootPart") or v:FindFirstChild("Torso")
                         
                         if h and h.Health > 0 and hrp then
                             local dist = (myHrp.Position - hrp.Position).Magnitude
-                            
                             if isRS then
-                                -- Se está no ReplicatedStorage (não spawnado), joga a prioridade lá pra baixo (+10000 de distancia)
-                                -- Isso garante que ele só pegue do RS se NÃO tiver nada no Workspace
                                 table.insert(potentialBosses, {Model = v, Distance = dist + 10000})
                             else
-                                -- Se está no Workspace, usa a distância real
                                 table.insert(potentialBosses, {Model = v, Distance = dist})
                                 foundInWorkspace = true
                             end
@@ -6519,49 +6513,67 @@ spawn(function()
             end
         end
 
-        -- 1. Scan Workspace (Prioridade Máxima)
         FastScan(WS, false)
-        
-        -- 2. Scan ReplicatedStorage apenas se não achou nada vivo no mapa
-        if not foundInWorkspace then
-            FastScan(RS, true)
-        end
+        if not foundInWorkspace then FastScan(RS, true) end
 
-        -- 3. Ordenação e Seleção (Lógica de Proximidade)
         if #potentialBosses > 0 then
-            -- Ordena: O de menor distância (Distance) fica em primeiro lugar [1]
             table.sort(potentialBosses, function(a, b)
                 return a.Distance < b.Distance
             end)
-            
-            -- Pega o primeiro da lista (o mais próximo)
             _G.CurrentTargetBoss = potentialBosses[1].Model
         else
             _G.CurrentTargetBoss = nil
         end
-        
         task.wait(0.1) 
     end
 end)
 
 -- =====================
--- THREAD 2: ATACANTE
+-- THREAD 2: ATACANTE + QUEST
 -- =====================
 spawn(function()
     while task.wait() do
         pcall(function()
             -- MODO 1: ESPECÍFICO (Dropdown)
             if _G.AutoBoss and _G.FindBoss then
+                -- APENAS CHAMA A SUA FUNÇÃO EXISTENTE
                 if QuestB then QuestB() end
                 
+                -- LÓGICA DE QUEST
+                if _G.AutoAcceptQuest and Qname and Qdata and PosQBoss then
+                    local playerGui = plr.PlayerGui:FindFirstChild("Main") and plr.PlayerGui.Main:FindFirstChild("Quest")
+                    local hasQuest = playerGui and playerGui.Visible
+                    local currentQuestTitle = hasQuest and playerGui.Container.QuestTitle.Title.Text or ""
+
+                    -- Abandona se for a errada
+                    if hasQuest and not string.find(currentQuestTitle, bMon) then
+                        RS.Remotes.CommF_:InvokeServer("AbandonQuest")
+                        hasQuest = false
+                        task.wait(0.2)
+                    end
+
+                    -- Pega a quest
+                    if not hasQuest then
+                        local char = plr.Character
+                        if char and char:FindFirstChild("HumanoidRootPart") then
+                            local myPos = char.HumanoidRootPart.Position
+                            if (PosQBoss.Position - myPos).Magnitude <= 5 then
+                                RS.Remotes.CommF_:InvokeServer("StartQuest", Qname, Qdata)
+                                task.wait(0.5)
+                            else
+                                if _tp then _tp(PosQBoss) end
+                            end
+                        end
+                        return -- Para o loop aqui pra não ir pro boss antes de pegar a quest
+                    end
+                end
+
                 local specificBoss = nil
                 
-                -- Tenta achar direto (Mais rápido que loop)
+                -- Procura no WS
                 if WS:FindFirstChild("Enemies") then
                     specificBoss = WS.Enemies:FindFirstChild(_G.FindBoss)
                 end
-                
-                -- Fallback (varredura)
                 if not specificBoss then
                      for _, v in pairs(WS:GetDescendants()) do
                         if v.Name == _G.FindBoss and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
@@ -6570,8 +6582,7 @@ spawn(function()
                         end
                     end
                 end
-
-                -- Se não achou no WS, olha RS
+                -- Procura no RS
                 if not specificBoss then
                     for _, v in pairs(RS:GetDescendants()) do
                         if v.Name == _G.FindBoss then 
@@ -6581,20 +6592,21 @@ spawn(function()
                     end
                 end
 
-                if specificBoss then GoToBoss(specificBoss)
-                elseif PosB and _tp then _tp(PosB) end
+                if specificBoss then 
+                    GoToBoss(specificBoss)
+                elseif PosB then 
+                    if _tp then _tp(PosB) end 
+                end
                 return
             end
 
-            -- MODO 2: FARM ALL (Ignora Cursed Skeleton)
+            -- MODO 2: FARM ALL
             if _G.FarmAllBoss then
                 local target = _G.CurrentTargetBoss
-                
-                -- Verifica se o alvo ainda é válido e se não é o boss proibido (Segurança dupla)
                 if target and target.Parent and target.Name ~= "Cursed Skeleton Boss" and target:FindFirstChild("Humanoid") and target.Humanoid.Health > 0 then
                     GoToBoss(target)
                 else
-                    _G.CurrentTargetBoss = nil -- Força o Scanner a procurar o próximo mais perto
+                    _G.CurrentTargetBoss = nil 
                 end
             end
         end)
