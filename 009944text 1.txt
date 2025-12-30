@@ -11265,6 +11265,27 @@ Y:AddButton({ Title = "Teleport Sea 2", Description = "", Callback = function()
 Y:AddButton({ Title = "Teleport Sea 3", Description = "", Callback = function()
 		replicated.Remotes.CommF_:InvokeServer("TravelZou");
 	end });
+Y:AddSeperator("Travel - Island")
+
+-- Lista de Ilhas
+Location = {}
+for _, e in pairs(workspace._WorldOrigin.Locations:GetChildren()) do
+	table.insert(Location, e.Name)
+end
+
+-- Dropdown
+Y:AddDropdown({
+	Title = "Select Travelling",
+	Description = "",
+	Values = Location,
+	Default = false,
+	Multi = false,
+	Callback = function(I)
+		_G.Island = I
+	end,
+})
+
+
 Y:AddToggle({
     Title = "Auto Travel",
     Description = "Teleporta com segurança (Sobe -> Viaja -> Desce)",
