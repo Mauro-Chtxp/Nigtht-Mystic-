@@ -6313,13 +6313,12 @@ end)
 
 
 -- =========================================
---      AUTO FARM BOSS (TURBO SCAN + QUEST)
---      SEM A FUNÇÃO QUESTB (ELA DEVE ESTAR ACIMA)
+--      AUTO FARM BOSS (FIXED LOGIC)
 -- =========================================
 
 _G.AutoBoss = false       
 _G.FarmAllBoss = false    
-_G.AutoAcceptQuest = false -- Novo Toggle
+_G.AutoAcceptQuest = false 
 _G.CurrentTargetBoss = nil 
 _G.FindBoss = _G.FindBoss or (Boss and Boss[1])
 
@@ -6396,7 +6395,6 @@ j:AddToggle({
     end
 })
 
--- NOVO TOGGLE
 j:AddToggle({
     Title = "Accept Quest Boss",
     Default = false,
@@ -6432,7 +6430,7 @@ spawn(function()
 end)
 
 -- =====================
--- FUNÇÃO DE MOVIMENTO DO BOSS (LOCAL)
+-- FUNÇÃO DE MOVIMENTO (LOCAL)
 -- =====================
 local function GoToBoss(targetBoss)
     local char = plr.Character
@@ -6529,48 +6527,57 @@ spawn(function()
 end)
 
 -- =====================
--- THREAD 2: ATACANTE + QUEST
+-- THREAD 2: ATACANTE + QUEST (LÓGICA CORRIGIDA)
 -- =====================
 spawn(function()
     while task.wait() do
         pcall(function()
             -- MODO 1: ESPECÍFICO (Dropdown)
             if _G.AutoBoss and _G.FindBoss then
-                -- APENAS CHAMA A SUA FUNÇÃO EXISTENTE
+                -- Carrega variáveis (Qname, bMon, PosB, etc)
                 if QuestB then QuestB() end
                 
-                -- LÓGICA DE QUEST
+                local NeedQuest = false
+
+                -- 1. VERIFICAÇÃO DE QUEST (Só executa se o Toggle estiver ATIVADO)
                 if _G.AutoAcceptQuest and Qname and Qdata and PosQBoss then
                     local playerGui = plr.PlayerGui:FindFirstChild("Main") and plr.PlayerGui.Main:FindFirstChild("Quest")
                     local hasQuest = playerGui and playerGui.Visible
                     local currentQuestTitle = hasQuest and playerGui.Container.QuestTitle.Title.Text or ""
 
-                    -- Abandona se for a errada
+                    -- Se tiver quest errada, abandona
                     if hasQuest and not string.find(currentQuestTitle, bMon) then
                         RS.Remotes.CommF_:InvokeServer("AbandonQuest")
                         hasQuest = false
                         task.wait(0.2)
                     end
 
-                    -- Pega a quest
+                    -- Se não tiver quest, precisa pegar
                     if not hasQuest then
-                        local char = plr.Character
-                        if char and char:FindFirstChild("HumanoidRootPart") then
-                            local myPos = char.HumanoidRootPart.Position
-                            if (PosQBoss.Position - myPos).Magnitude <= 5 then
-                                RS.Remotes.CommF_:InvokeServer("StartQuest", Qname, Qdata)
-                                task.wait(0.5)
-                            else
-                                if _tp then _tp(PosQBoss) end
-                            end
-                        end
-                        return -- Para o loop aqui pra não ir pro boss antes de pegar a quest
+                        NeedQuest = true
                     end
                 end
 
+                -- 2. EXECUÇÃO (Prioridade: Quest > Boss)
+                if NeedQuest then
+                    -- Vai pegar a quest
+                    local char = plr.Character
+                    if char and char:FindFirstChild("HumanoidRootPart") then
+                        if (PosQBoss.Position - char.HumanoidRootPart.Position).Magnitude <= 5 then
+                            RS.Remotes.CommF_:InvokeServer("StartQuest", Qname, Qdata)
+                            task.wait(0.5)
+                        else
+                            if _tp then _tp(PosQBoss) end
+                        end
+                    end
+                    -- Retorna para não tentar ir no boss enquanto pega quest
+                    return 
+                end
+
+                -- 3. CAÇAR BOSS (Executa se a Quest estiver OK ou se o Toggle Quest estiver OFF)
                 local specificBoss = nil
                 
-                -- Procura no WS
+                -- Procura no Workspace
                 if WS:FindFirstChild("Enemies") then
                     specificBoss = WS.Enemies:FindFirstChild(_G.FindBoss)
                 end
@@ -6582,7 +6589,7 @@ spawn(function()
                         end
                     end
                 end
-                -- Procura no RS
+                -- Procura no ReplicatedStorage (Spawn)
                 if not specificBoss then
                     for _, v in pairs(RS:GetDescendants()) do
                         if v.Name == _G.FindBoss then 
@@ -6595,6 +6602,7 @@ spawn(function()
                 if specificBoss then 
                     GoToBoss(specificBoss)
                 elseif PosB then 
+                    -- Se não achou boss, vai para o spawn dele (PosB)
                     if _tp then _tp(PosB) end 
                 end
                 return
