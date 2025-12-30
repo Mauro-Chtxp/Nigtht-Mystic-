@@ -341,26 +341,41 @@ G.Dist = function(I, e)
 G.DistH = function(I, e)
 		return (Root.Position - (I:FindFirstChild("HumanoidRootPart")).Position).Magnitude > e;
 	end;
--- ALTURA ÚNICA AJUSTÁVEL DO MOB
+-- Configuração da Altura
 _G.MobHeight = _G.MobHeight or 20
 
-G.Kill = function(I, e)
-	if I and e then
-		if not I:GetAttribute("Locked") then
-			I:SetAttribute("Locked", I.HumanoidRootPart.CFrame)
-		end
+_G.Kill = function(I, e)
+    if I and e and I:FindFirstChild("HumanoidRootPart") then
+        -- Trava a posição inicial do Mob
+        if not I:GetAttribute("Locked") then
+            I:SetAttribute("Locked", I.HumanoidRootPart.CFrame)
+        end
 
-		PosMon = (I:GetAttribute("Locked")).Position
-		BringEnemy()
-		EquipWeapon(_G.SelectWeapon)
+        local PosMon = I:GetAttribute("Locked")
+        local playerRP = game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        
+        if not playerRP then return end
 
-		local tool = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
-		if not tool then return end
+        BringEnemy()
+        EquipWeapon(_G.SelectWeapon)
 
-		-- >>> ALTURA SOMENTE DO MOB (ÚNICA) <<<
-		_tp(I.HumanoidRootPart.CFrame * CFrame.new(0, _G.MobHeight, 0))
-	end
+        local tool = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
+        if not tool then return end
+
+        -- CALCULO DE DISTÂNCIA
+        -- .Magnitude extrai a distância em Studs entre dois pontos
+        local distance = (playerRP.Position - I.HumanoidRootPart.Position).Magnitude
+
+        if distance < 10 then
+            -- Teleport Instantâneo (Direto no Mob)
+            _tp(I.HumanoidRootPart.CFrame)
+        else
+            -- Mantém a Altura Ajustável
+            _tp(I.HumanoidRootPart.CFrame * CFrame.new(0, _G.MobHeight, 0))
+        end
+    end
 end
+
 G.Kill2 = function(I, e)
 		if I and e then
 			if not I:GetAttribute("Locked") then
@@ -1065,71 +1080,81 @@ task.spawn(function()
 end);
 
 -- =======================
--- TWEEN AJUSTADO POR DISTÂNCIA
+-- TWEEN AJUSTADO COM TELEPORT FINAL
 -- =======================
 
--- [[ VARIÁVEIS PARA O SEU INPUT ]] --
-getgenv().TweenSpeedFar = 300   -- Velocidade Padrão (Longe)
-getgenv().TweenSpeedNear = 600  -- Velocidade Boost (Perto <= 15 studs)
+getgenv().TweenSpeedFar = 300   
+getgenv().TweenSpeedNear = 600  
 
 _tp = function(I)
-local e = plr.Character;
-if not e or not e:FindFirstChild("HumanoidRootPart") then
-return;
-end;
+    local e = plr.Character
+    if not e or not e:FindFirstChild("HumanoidRootPart") then return end
 
-local HRP = e.HumanoidRootPart;  
+    local HRP = e.HumanoidRootPart
+    local dist = (I.Position - HRP.Position).Magnitude
 
--- Desativar farm enquanto tweena  
-shouldTween = true  
-getgenv().OnFarm = false  
+    -- [[ NOVIDADE: VERIFICAÇÃO DE TELEPORT INSTANTÂNEO ]]
+    if dist < 10 then
+        HRP.CFrame = I
+        getgenv().OnFarm = true
+        return -- Encerra a função aqui, sem iniciar o Tween
+    end
 
--- Garantir que não está ancorado  
-if HRP.Anchored then  
-	HRP.Anchored = false  
-	task.wait()  
-end  
+    -- Configurações de segurança
+    shouldTween = true  
+    getgenv().OnFarm = false  
 
-local dist = (I.Position - HRP.Position).Magnitude  
+    if HRP.Anchored then  
+        HRP.Anchored = false  
+        task.wait()  
+    end  
 
--- ===============================  
---  SE ESTIVER ATÉ 15 STUDS → USA A VELOCIDADE DE PERTO
---  CASO CONTRÁRIO → USA A VELOCIDADE PADRÃO
--- ===============================  
-local speed = dist <= 15 and (getgenv().TweenSpeedNear or 600) or (getgenv().TweenSpeedFar or 300)
+    -- Seleção de Velocidade
+    local speed = dist <= 15 and (getgenv().TweenSpeedNear or 600) or (getgenv().TweenSpeedFar or 300)
 
-local info = TweenInfo.new(dist / speed, Enum.EasingStyle.Linear)  
-local tween = game:GetService("TweenService"):Create(C, info, { CFrame = I })  
+    local info = TweenInfo.new(dist / speed, Enum.EasingStyle.Linear)  
+    local tween = game:GetService("TweenService"):Create(HRP, info, { CFrame = I })  
 
--- Caso esteja sentado  
-if e.Humanoid.Sit == true then  
-	C.CFrame = CFrame.new(C.Position.X, I.Y, C.Position.Z)  
-end  
+    -- Correção para personagem sentado
+    if e.Humanoid.Sit == true then  
+        e.Humanoid.Sit = false -- Recomenda-se tirar o sit para evitar bugs de CFrame
+    end  
 
-tween:Play()  
+    tween:Play()  
 
--- Anti travamento / controle  
-task.spawn(function()  
-	while tween.PlaybackState == Enum.PlaybackState.Playing do  
-		if not shouldTween then  
-			tween:Cancel()  
-			break  
-		end  
-		task.wait(.1)  
-	end  
-
-	getgenv().OnFarm = true  
-end)
-
+    -- Controle de Estado
+    task.spawn(function()  
+        while tween.PlaybackState == Enum.PlaybackState.Playing do  
+            if not shouldTween then  
+                tween:Cancel()  
+                break  
+            end
+            
+            -- [[ OPCIONAL: Checagem durante o trajeto ]]
+            -- Se quiser que ele pule os últimos 10 studs mesmo já estando no meio do tween:
+            local currentDist = (I.Position - HRP.Position).Magnitude
+            if currentDist < 10 then
+                tween:Cancel()
+                HRP.CFrame = I
+                break
+            end
+            
+            task.wait(.1)  
+        end  
+        getgenv().OnFarm = true  
+    end)
 end
 
 TeleportToTarget = function(I)
-_tp(I)
+    _tp(I)
 end
 
 notween = function(I)
-plr.Character.HumanoidRootPart.CFrame = I
+    if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+        plr.Character.HumanoidRootPart.CFrame = I
+    end
 end
+
 
 
 function BTP(I)
