@@ -6317,7 +6317,7 @@ end)
 -- =========================================
 
 _G.AutoBoss = false
-_G.FarmAllBoss = false -- Nova variável global
+_G.FarmAllBoss = false -- Nova Variável
 _G.FindBoss = _G.FindBoss or (Boss and Boss[1])
 
 local plr = game.Players.LocalPlayer
@@ -6347,7 +6347,7 @@ end
 -- =====================
 j:AddSeperator("Boss Farm")
 
--- CRIA O DROPDOWN INICIAL
+-- CRIA O DROPDOWN INICIAL (FARM ESPECÍFICO)
 local BossDropdown = j:AddDropdown({
     Title = "Select Boss",
     Values = Boss, 
@@ -6368,47 +6368,59 @@ j:AddButton({
         local LiveBosses = {}  
         local FoundAny = false  
 
+        -- ==========================  
+        -- FUNÇÃO DE SCAN  
+        -- ==========================  
         local function Scan(container)  
             for _, obj in pairs(container:GetDescendants()) do  
+                -- Verifica se tem atributo IsBoss  
                 if obj:IsA("Model") and obj:GetAttribute("IsBoss") == true then  
-                    local humanoid = obj:FindFirstChildOfClass("Humanoid")  
-                    local hrp = obj:FindFirstChild("HumanoidRootPart")  
-
-                    if humanoid and humanoid.Health > 0 and hrp then  
-                        if not table.find(LiveBosses, obj.Name) then  
-                            table.insert(LiveBosses, obj.Name)  
-                            FoundAny = true  
-                        end  
+                    -- Adiciona à lista se tiver nome
+                    if not table.find(LiveBosses, obj.Name) then  
+                        table.insert(LiveBosses, obj.Name)  
+                        FoundAny = true  
                     end  
                 end  
             end  
         end  
 
+        -- ==========================  
+        -- SCAN REAL  
+        -- ==========================  
         Scan(workspace)  
         Scan(game:GetService("ReplicatedStorage"))  
 
+        -- ==========================  
+        -- ATUALIZA DROPDOWN  
+        -- ==========================  
         if FoundAny then  
             BossDropdown:Refresh(LiveBosses, true)  
         else  
-            BossDropdown:Refresh({"Nenhum Boss Spawnado!"}, true)  
+            BossDropdown:Refresh({"Nenhum Boss Encontrado!"}, true)  
         end  
     end
 })
 
+-- TOGGLE FARM BOSS ESPECÍFICO
 j:AddToggle({
-    Title = "Auto Farm Boss",
+    Title = "Auto Farm Boss (Selected)",
     Default = false,
     Callback = function(v)
         _G.AutoBoss = v
+        if v then _G.FarmAllBoss = false end -- Desativa o outro para não bugar
     end
 })
 
+-- ==========================================
 -- NOVO TOGGLE: FARM ALL BOSS
+-- ==========================================
 j:AddToggle({
-    Title = "Farm All Boss",
+    Title = "Farm All Bosses (IsBoss)",
+    Description = "Mata qualquer Boss spawnado",
     Default = false,
     Callback = function(v)
         _G.FarmAllBoss = v
+        if v then _G.AutoBoss = false end -- Desativa o específico para não bugar
     end
 })
 
@@ -6416,7 +6428,7 @@ j:AddToggle({
 -- AUTO SELECT WEAPON
 -- =====================
 spawn(function()
-    while task.wait(Sec) do
+    while task.wait(Sec or 0.5) do
         pcall(function()
             if plr.Backpack then
                 for _, e in pairs(plr.Backpack:GetChildren()) do
@@ -6430,91 +6442,127 @@ spawn(function()
 end)
 
 -- =====================
--- AUTO FARM BOSS LOGIC
+-- LÓGICA DE MOVIMENTO (FUNÇÃO AUXILIAR)
+-- =====================
+local function GoToBoss(targetBoss)
+    local char = plr.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    local hum = char and char:FindFirstChildOfClass("Humanoid")
+    
+    if not targetBoss or not hrp or not hum then return end
+    
+    local bossHRP = targetBoss:FindFirstChild("HumanoidRootPart")
+    if not bossHRP then return end
+
+    -- PONTO SEGURO: 22 Studs ACIMA do Boss
+    local safeHeight = 22   
+    local targetPos = bossHRP.Position + Vector3.new(0, safeHeight, 0)  
+    local targetCFrame = CFrame.new(targetPos)  
+
+    -- Distância entre VOCÊ e o PONTO NO AR
+    local distToSafeSpot = (hrp.Position - targetPos).Magnitude  
+
+    EquipWeapon()  
+
+    if distToSafeSpot <= 3 then  
+        -- FIXA POSIÇÃO
+        hrp.CFrame = targetCFrame  
+        hrp.Velocity = Vector3.zero  
+        hrp.AssemblyLinearVelocity = Vector3.zero  
+        hrp.AssemblyAngularVelocity = Vector3.zero  
+        hum.AutoRotate = false 
+    else  
+        -- TELEPORTA
+        if _tp then
+            _tp(targetCFrame)
+        else
+            hrp.CFrame = targetCFrame -- Fallback se _tp não existir
+        end
+    end
+    
+    -- Se tiver função de ataque global, chame aqui. Ex:
+    -- if _G.Kill then _G.Kill(targetBoss, true) end
+end
+
+-- =====================
+-- AUTO FARM BOSS LOGIC (SELECTED)
 -- =====================
 spawn(function()
     while task.wait() do
-        -- Se ambos desligados, para
-        if not _G.AutoBoss and not _G.FarmAllBoss then
+        if not _G.AutoBoss or not _G.FindBoss then
+            -- Se não estiver usando o Farm Específico, pula
+            if not _G.AutoBoss then task.wait(0.5) end
             continue
         end
 
         pcall(function()  
-            local char = plr.Character  
-            local hrp = char and char:FindFirstChild("HumanoidRootPart")  
-            local hum = char and char:FindFirstChildOfClass("Humanoid")  
-            if not hrp or not hum then return end  
+            local enemies = workspace:FindFirstChild("Enemies") or workspace
 
-            local targetBoss = nil
+            -- CONFIGURA QUEST/BOSS (Função externa existente no seu script)
+            if QuestB then QuestB() end
 
-            -- LÓGICA 1: FARM ALL (PROCURA QUALQUER UM COM ATRIBUTO)
-            if _G.FarmAllBoss then
-                local function FindAnyLiveBoss()
-                    -- Prioridade no Workspace (já spawnados)
-                    for _, obj in pairs(workspace:GetDescendants()) do
-                        if obj:IsA("Model") and obj:GetAttribute("IsBoss") == true then
-                            local h = obj:FindFirstChildOfClass("Humanoid")
-                            local root = obj:FindFirstChild("HumanoidRootPart")
-                            if h and h.Health > 0 and root then
-                                return obj
-                            end
-                        end
-                    end
-                    -- Checa ReplicatedStorage apenas para identificar nomes, 
-                    -- mas o boss precisa estar no Workspace para ser atacado
-                    return nil
-                end
-                targetBoss = FindAnyLiveBoss()
-            
-            -- LÓGICA 2: FARM SELECIONADO (SÓ SE FARM ALL ESTIVER OFF)
-            elseif _G.AutoBoss and _G.FindBoss then
-                local enemies = workspace:FindFirstChild("Enemies")
-                if enemies then
-                    for _, v in pairs(enemies:GetChildren()) do  
-                        if v.Name == _G.FindBoss -- Usa o nome selecionado
-                        and v:FindFirstChild("Humanoid")  
-                        and v:FindFirstChild("HumanoidRootPart")  
-                        and v.Humanoid.Health > 0 then  
-                            targetBoss = v  
-                            break  
-                        end  
-                    end
-                end
-            end
-
-            -- ==========================  
-            -- EXECUÇÃO DO MOVIMENTO
-            -- ==========================  
-            if targetBoss then  
-                local bossHRP = targetBoss.HumanoidRootPart  
-                local safeHeight = 22   
-                local targetPos = bossHRP.Position + Vector3.new(0, safeHeight, 0)  
-                local targetCFrame = CFrame.new(targetPos)  
-
-                local distToSafeSpot = (hrp.Position - targetPos).Magnitude  
-
-                EquipWeapon()  
-
-                if distToSafeSpot <= 3 then  
-                    hrp.CFrame = targetCFrame  
-                    hrp.Velocity = Vector3.zero  
-                    hrp.AssemblyLinearVelocity = Vector3.zero  
-                    hrp.AssemblyAngularVelocity = Vector3.zero  
-                    hum.AutoRotate = false 
-                else  
-                    _tp(targetCFrame)  
+            -- PROCURAR BOSS ESPECÍFICO
+            local boss  
+            for _, v in pairs(enemies:GetChildren()) do  
+                if v.Name == bMon -- bMon vem do QuestB
+                and v:FindFirstChild("Humanoid")  
+                and v:FindFirstChild("HumanoidRootPart")  
+                and v.Humanoid.Health > 0 then  
+                    boss = v  
+                    break  
                 end  
+            end  
 
-                -- _G.Kill(targetBoss, true) -- Descomente se tiver a função kill
-            else
-                -- Caso não ache boss no Farm normal, vai para o PosB
-                if _G.AutoBoss and not _G.FarmAllBoss and PosB then
-                    _tp(PosB)
-                end
-            end
+            if boss then  
+                GoToBoss(boss)
+            elseif PosB then  
+                -- SE O BOSS NÃO EXISTE, VAI PRO SPAWN DELE
+                if _tp then _tp(PosB) end
+            end  
         end)  
     end
 end)
+
+-- =====================
+-- LOGIC: FARM ALL BOSSES (NEW)
+-- =====================
+spawn(function()
+    while task.wait() do
+        if not _G.FarmAllBoss then 
+            task.wait(1) -- Economiza processamento quando desligado
+            continue 
+        end
+
+        pcall(function()
+            local char = plr.Character
+            if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+
+            local targetBoss = nil
+            local enemiesFolder = workspace:FindFirstChild("Enemies") or workspace
+            
+            -- Procura QUALQUER boss vivo (IsBoss == true)
+            for _, v in pairs(enemiesFolder:GetChildren()) do
+                if v:IsA("Model") and v:GetAttribute("IsBoss") == true then
+                    local h = v:FindFirstChild("Humanoid")
+                    local hrp = v:FindFirstChild("HumanoidRootPart")
+                    
+                    if h and h.Health > 0 and hrp then
+                        targetBoss = v
+                        break -- Foca no primeiro que achar
+                    end
+                end
+            end
+
+            if targetBoss then
+                GoToBoss(targetBoss)
+            else
+                -- Opcional: Se não achar nenhum boss, pode ficar parado ou ir para um ponto central.
+                -- Por enquanto, ele apenas aguarda um spawnar.
+            end
+        end)
+    end
+end)
+
 
 j:AddSeperator("Quests");
 j:AddToggle({
