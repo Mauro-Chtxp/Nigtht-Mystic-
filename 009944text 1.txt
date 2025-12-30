@@ -341,41 +341,26 @@ G.Dist = function(I, e)
 G.DistH = function(I, e)
 		return (Root.Position - (I:FindFirstChild("HumanoidRootPart")).Position).Magnitude > e;
 	end;
--- Configuração da Altura
+-- ALTURA ÚNICA AJUSTÁVEL DO MOB
 _G.MobHeight = _G.MobHeight or 20
 
-_G.Kill = function(I, e)
-    if I and e and I:FindFirstChild("HumanoidRootPart") then
-        -- Trava a posição inicial do Mob
-        if not I:GetAttribute("Locked") then
-            I:SetAttribute("Locked", I.HumanoidRootPart.CFrame)
-        end
+G.Kill = function(I, e)
+	if I and e then
+		if not I:GetAttribute("Locked") then
+			I:SetAttribute("Locked", I.HumanoidRootPart.CFrame)
+		end
 
-        local PosMon = I:GetAttribute("Locked")
-        local playerRP = game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-        
-        if not playerRP then return end
+		PosMon = (I:GetAttribute("Locked")).Position
+		BringEnemy()
+		EquipWeapon(_G.SelectWeapon)
 
-        BringEnemy()
-        EquipWeapon(_G.SelectWeapon)
+		local tool = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
+		if not tool then return end
 
-        local tool = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
-        if not tool then return end
-
-        -- CALCULO DE DISTÂNCIA
-        -- .Magnitude extrai a distância em Studs entre dois pontos
-        local distance = (playerRP.Position - I.HumanoidRootPart.Position).Magnitude
-
-        if distance < 10 then
-            -- Teleport Instantâneo (Direto no Mob)
-            _tp(I.HumanoidRootPart.CFrame)
-        else
-            -- Mantém a Altura Ajustável
-            _tp(I.HumanoidRootPart.CFrame * CFrame.new(0, _G.MobHeight, 0))
-        end
-    end
+		-- >>> ALTURA SOMENTE DO MOB (ÚNICA) <<<
+		_tp(I.HumanoidRootPart.CFrame * CFrame.new(0, _G.MobHeight, 0))
+	end
 end
-
 G.Kill2 = function(I, e)
 		if I and e then
 			if not I:GetAttribute("Locked") then
@@ -1145,8 +1130,6 @@ end
 notween = function(I)
 plr.Character.HumanoidRootPart.CFrame = I
 end
-
-
 
 
 function BTP(I)
