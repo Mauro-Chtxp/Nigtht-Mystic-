@@ -6313,14 +6313,15 @@ end)
 
 
 -- =========================================
---      AUTO FARM BOSS (DIRECT & UPRIGHT)
+--      AUTO FARM BOSS (OTIMIZADO)
 -- =========================================
 
 _G.AutoBoss = false
-_G.AutoAllBosses = false -- Nova variável para o Farm All
+_G.AutoAllBosses = false 
 _G.FindBoss = _G.FindBoss or (Boss and Boss[1])
 
 local plr = game.Players.LocalPlayer
+local currentBossTarget = nil -- Armazena o alvo atual para evitar lag
 
 -- =====================
 -- EQUIPAR WEAPON
@@ -6328,17 +6329,12 @@ local plr = game.Players.LocalPlayer
 local function EquipWeapon()
     local char = plr.Character
     if not char then return end
-
     local hum = char:FindFirstChildOfClass("Humanoid")
-    if not hum then return end
+    if not hum and _G.SelectWeapon then return end
 
-    if _G.SelectWeapon then
-        local tool = plr.Backpack:FindFirstChild(_G.SelectWeapon)
-            or char:FindFirstChild(_G.SelectWeapon)
-
-        if tool and tool.Parent ~= char then
-            hum:EquipTool(tool)
-        end
+    local tool = plr.Backpack:FindFirstChild(_G.SelectWeapon) or char:FindFirstChild(_G.SelectWeapon)
+    if tool and tool.Parent ~= char then
+        hum:EquipTool(tool)
     end
 end
 
@@ -6347,172 +6343,133 @@ end
 -- =====================
 j:AddSeperator("Boss Farm")
 
--- DROPDOWN DE SELEÇÃO MANUAL
 local BossDropdown = j:AddDropdown({
     Title = "Select Boss",
     Values = Boss, 
     Default = Boss[1],
-    Callback = function(v)
-        _G.FindBoss = v
-    end
+    Callback = function(v) _G.FindBoss = v end
 })
 
--- BOTÃO REFRESH
 j:AddButton({
     Title = "Refresh Boss List",
-    Description = "Escaneia Workspace e ReplicatedStorage (IsBoss)",
+    Description = "",
     Callback = function()
         local LiveBosses = {}
-        local FoundAny = false
-
         local function Scan(container)
-            for _, obj in pairs(container:GetDescendants()) do
+            for _, obj in pairs(container:GetChildren()) do -- GetChildren é mais leve que Descendants
                 if obj:IsA("Model") and obj:GetAttribute("IsBoss") == true then
-                    local humanoid = obj:FindFirstChildOfClass("Humanoid")
-                    local hrp = obj:FindFirstChild("HumanoidRootPart")
-
-                    if humanoid and humanoid.Health > 0 and hrp then
-                        if not table.find(LiveBosses, obj.Name) then
-                            table.insert(LiveBosses, obj.Name)
-                            FoundAny = true
-                        end
-                    end
+                    table.insert(LiveBosses, obj.Name)
                 end
             end
         end
-
         Scan(workspace)
         Scan(game:GetService("ReplicatedStorage"))
-
-        if FoundAny then
-            BossDropdown:Refresh(LiveBosses, true)
-        else
-            BossDropdown:Refresh({"Nenhum Boss Spawnado!"}, true)
-        end
+        BossDropdown:Refresh(#LiveBosses > 0 and LiveBosses or {"Nenhum Boss!"}, true)
     end
 })
 
--- TOGGLE FARM BOSS INDIVIDUAL
 j:AddToggle({
     Title = "Auto Farm Boss",
     Default = false,
-    Callback = function(v)
-        _G.AutoBoss = v
-    end
+    Callback = function(v) _G.AutoBoss = v end
 })
 
--- NOVO TOGGLE: FARM ALL BOSS (Procura IsBoss)
 j:AddToggle({
     Title = "Farm All Boss",
     Default = false,
-    Callback = function(v)
-        _G.AutoAllBosses = v
-    end
+    Callback = function(v) _G.AutoAllBosses = v end
 })
 
--- =====================
--- AUTO SELECT WEAPON
--- =====================
+-- =========================================
+-- SCANNER DE BOSSES (RODA A CADA 2 SEGUNDOS)
+-- Resolve o problema de LAG
+-- =========================================
 spawn(function()
-    while task.wait(1) do
-        pcall(function()
-            if plr.Backpack then
-                for _, e in pairs(plr.Backpack:GetChildren()) do
-                    if e.ToolTip == _G.ChooseWP then
-                        _G.SelectWeapon = e.Name
+    while true do
+        task.wait(2) -- Intervalo de busca para não lagar
+        if _G.AutoAllBosses then
+            local found = false
+            
+            -- Busca no Workspace
+            for _, obj in pairs(workspace:GetChildren()) do
+                if obj:IsA("Model") and obj:GetAttribute("IsBoss") == true then
+                    local hum = obj:FindFirstChildOfClass("Humanoid")
+                    if hum and hum.Health > 0 then
+                        currentBossTarget = obj
+                        found = true
+                        break
                     end
                 end
             end
-        end)
+            
+            -- Se não achou, busca em pastas comuns de inimigos (mais rápido que GetDescendants)
+            if not found and workspace:FindFirstChild("Enemies") then
+                for _, obj in pairs(workspace.Enemies:GetChildren()) do
+                    if obj:GetAttribute("IsBoss") == true then
+                        currentBossTarget = obj
+                        found = true
+                        break
+                    end
+                end
+            end
+
+            -- Se ainda não achou, olha no ReplicatedStorage
+            if not found then
+                for _, obj in pairs(game:GetService("ReplicatedStorage"):GetChildren()) do
+                    if obj:IsA("Model") and obj:GetAttribute("IsBoss") == true then
+                        currentBossTarget = obj
+                        found = true
+                        break
+                    end
+                end
+            end
+            
+            if not found then currentBossTarget = nil end
+        end
     end
 end)
 
--- ===============================
--- LÓGICA DE TELEPORTE E COMBATE
--- ===============================
+-- =====================
+-- LÓGICA DE MOVIMENTAÇÃO
+-- =====================
 local function AttackBoss(target)
     local char = plr.Character
-    local hrp = char:FindFirstChild("HumanoidRootPart")
-    local hum = char:FindFirstChildOfClass("Humanoid")
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    local hum = char and char:FindFirstChildOfClass("Humanoid")
     
     if not target or not target:FindFirstChild("HumanoidRootPart") or not hrp then return end
 
     local bossHRP = target.HumanoidRootPart
-    local safeHeight = 22 
-    local targetPos = bossHRP.Position + Vector3.new(0, safeHeight, 0)
-    local targetCFrame = CFrame.new(targetPos)
-    local distToSafeSpot = (hrp.Position - targetPos).Magnitude
-
+    local targetPos = bossHRP.Position + Vector3.new(0, 22, 0)
+    
     EquipWeapon()
 
-    if distToSafeSpot <= 3 then
-        hrp.CFrame = targetCFrame
+    if (hrp.Position - targetPos).Magnitude <= 3 then
+        hrp.CFrame = CFrame.new(targetPos)
         hrp.Velocity = Vector3.zero
-        hrp.AssemblyLinearVelocity = Vector3.zero
         hum.AutoRotate = false 
     else
-        _tp(targetCFrame)
+        _tp(CFrame.new(targetPos))
     end
-
-    -- Chame aqui sua função de ataque, ex:
-    -- if _G.Kill then _G.Kill(target, true) end
 end
 
--- ===============================
--- LOOP PRINCIPAL DE FARM
--- ===============================
+-- =====================
+-- LOOP DE EXECUÇÃO
+-- =====================
 spawn(function()
     while task.wait() do
         pcall(function()
-            -- PRIORIDADE 1: FARM ALL BOSSES (Escaneia Atributos)
-            if _G.AutoAllBosses then
-                local targetBoss = nil
-                
-                -- Busca no Workspace (Prioridade por estar no mapa)
-                for _, obj in pairs(workspace:GetDescendants()) do
-                    if obj:IsA("Model") and obj:GetAttribute("IsBoss") == true then
-                        local hum = obj:FindFirstChildOfClass("Humanoid")
-                        if hum and hum.Health > 0 and obj:FindFirstChild("HumanoidRootPart") then
-                            targetBoss = obj
-                            break
-                        end
-                    end
-                end
-
-                -- Se não achou no workspace, busca no ReplicatedStorage 
-                -- (Nota: Geralmente bosses no ReplicatedStorage precisam ser movidos pro Workspace pelo jogo para serem atacados)
-                if not targetBoss then
-                    for _, obj in pairs(game:GetService("ReplicatedStorage"):GetDescendants()) do
-                        if obj:IsA("Model") and obj:GetAttribute("IsBoss") == true then
-                            local hum = obj:FindFirstChildOfClass("Humanoid")
-                            if hum and hum.Health > 0 and obj:FindFirstChild("HumanoidRootPart") then
-                                targetBoss = obj
-                                break
-                            end
-                        end
-                    end
-                end
-
-                if targetBoss then
-                    AttackBoss(targetBoss)
-                end
-
-            -- PRIORIDADE 2: AUTO FARM BOSS (Seleção Manual do Dropdown)
+            if _G.AutoAllBosses and currentBossTarget then
+                AttackBoss(currentBossTarget)
             elseif _G.AutoBoss and _G.FindBoss then
                 local enemies = workspace:FindFirstChild("Enemies")
-                local bossModel = nil
-
+                local target = nil
                 if enemies then
-                    for _, v in pairs(enemies:GetChildren()) do
-                        if v.Name == _G.FindBoss and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
-                            bossModel = v
-                            break
-                        end
-                    end
+                    target = enemies:FindFirstChild(_G.FindBoss)
                 end
-
-                if bossModel then
-                    AttackBoss(bossModel)
+                
+                if target and target:FindFirstChild("Humanoid") and target.Humanoid.Health > 0 then
+                    AttackBoss(target)
                 elseif PosB then
                     _tp(PosB)
                 end
