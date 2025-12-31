@@ -618,8 +618,11 @@ local function IsRaidMob(mob)
 end
 
 --==================================================
--- FUNÇÃO BRING (TP INSTANTÂNEO)
+-- FUNÇÃO BRING (MOVIMENTO LENTO COM TWEEN)
 --==================================================
+local TweenService = game:GetService("TweenService")
+local TweenTime = 1 -- tempo em segundos para o mob ir até PosMon
+
 BringEnemy = function()
 	if not FarmAtivo() or not _B or not PosMon then return end
 
@@ -635,20 +638,25 @@ BringEnemy = function()
 			local dist = (root.Position - PosMon).Magnitude
 			if dist <= _G.BringRange then
 				count += 1
-				root.CFrame = CFrame.new(PosMon)  -- TP instantâneo
+
+				-- Cria tween para mover o mob até PosMon
+				local tweenInfo = TweenInfo.new(TweenTime, Enum.EasingStyle.Linear)
+				local goal = {CFrame = CFrame.new(PosMon)}
+				local tween = TweenService:Create(root, tweenInfo, goal)
+				tween:Play()
 			end
 		end
 	end
 end
 
 --==================================================
--- LOOP CONTROLADOR (PUXA E SOLTA IMEDIATAMENTE)
+-- LOOP CONTROLADOR (PUXA COM TWEEN)
 --==================================================
 task.spawn(function()
 	while task.wait(0.1) do
 		if FarmAtivo() and PosMon then
 			_B = true
-			BringEnemy()  -- TP instantâneo
+			BringEnemy()  -- Puxa com tween
 			_B = false
 		else
 			_B = false
