@@ -2852,39 +2852,54 @@ EspPly = function()
 			end);
 		end;
 	end;
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+-- Arredondar número
+local function G5(n)
+	return math.floor(tonumber(n) + 0.5)
+end
+
 LocationEsp = function()
-		for I, e in next, workspace._WorldOrigin.Locations:GetChildren() do
-			pcall(function()
-				if IslandESP then
-					if e.Name ~= "Sea" then
-						if not e:FindFirstChild("NameEsp") then
-							local I = Instance.new("BillboardGui", e);
-							I.Name = "NameEsp";
-							I.ExtentsOffset = Vector3.new(0, 1, 0);
-							I.Size = UDim2.new(1, 200, 1, 30);
-							I.Adornee = e;
-							I.AlwaysOnTop = true;
-							local K = Instance.new("TextLabel", I);
-							K.Font = Enum.Font.Code;
-							K.FontSize = "Size14";
-							K.TextWrapped = true;
-							K.Size = UDim2.new(1, 0, 1, 0);
-							K.TextYAlignment = "Top";
-							K.BackgroundTransparency = 1;
-							K.TextStrokeTransparency = .5;
-							K.TextColor3 = Color3.fromRGB(98, 252, 252);
-						else
-							e.NameEsp.TextLabel.Text = e.Name .. ("   \n" .. (G5(((game:GetService("Players")).LocalPlayer.Character.Head.Position - e.Position).Magnitude / 3) .. " M"));
-						end;
-					end;
-				else
-					if e:FindFirstChild("NameEsp") then
-						(e:FindFirstChild("NameEsp")):Destroy();
-					end;
-				end;
-			end);
-		end;
-	end;
+	for _, e in next, workspace._WorldOrigin.Locations:GetChildren() do
+		pcall(function()
+			if e.Name == "Sea" then return end
+			if not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("Head") then return end
+
+			if not e:FindFirstChild("NameEsp") then
+				local Gui = Instance.new("BillboardGui")
+				Gui.Name = "NameEsp"
+				Gui.Parent = e
+				Gui.Adornee = e
+				Gui.AlwaysOnTop = true
+				Gui.ExtentsOffset = Vector3.new(0, 1, 0)
+				Gui.Size = UDim2.new(1, 200, 1, 30)
+
+				local Text = Instance.new("TextLabel")
+				Text.Name = "TextLabel"
+				Text.Parent = Gui
+				Text.BackgroundTransparency = 1
+				Text.Size = UDim2.new(1, 0, 1, 0)
+
+				-- Fonte arredondada
+				Text.Font = Enum.Font.GothamBold
+				Text.TextSize = 14
+				Text.TextWrapped = true
+				Text.TextXAlignment = Enum.TextXAlignment.Center
+				Text.TextYAlignment = Enum.TextYAlignment.Top
+
+				-- Cor vermelha + contorno
+				Text.TextColor3 = Color3.fromRGB(255, 60, 60)
+				Text.TextStrokeTransparency = 0
+				Text.TextStrokeColor3 = Color3.fromRGB(120, 0, 0)
+			end
+
+			-- Atualiza texto
+			local dist = (LocalPlayer.Character.Head.Position - e.Position).Magnitude / 3
+			e.NameEsp.TextLabel.Text = e.Name .. "\n" .. G5(dist) .. " M"
+		end)
+	end
+end
 DevEsp = function()
 		for I, e in next, workspace:GetChildren() do
 			pcall(function()
@@ -3351,24 +3366,26 @@ VI_S:AddToggle({
     end,
 })
 VI_S:AddToggle({
-    Title = "Esp Island Location",
-    Description = "Mostra as ilhas principais",
-    Default = GetSetting("EspIsland_Save", false),
-    Callback = function(I)
-        IslandESP = I
-        _G.SaveData["EspIsland_Save"] = I
-        SaveSettings()
-        if I then
-            task.spawn(function()
-                while IslandESP do
-                    if LocationEsp then pcall(LocationEsp) end
-                    task.wait(1)
-                end
-            end)
-        end
-    end,
-})
+	Title = "Esp Island Location",
+	Description = "Mostra as ilhas principais",
+	Default = GetSetting("EspIsland_Save", false),
+	Callback = function(I)
+		IslandESP = I
+		_G.SaveData["EspIsland_Save"] = I
+		SaveSettings()
 
+		if I then
+			task.spawn(function()
+				while IslandESP do
+					pcall(LocationEsp)
+					task.wait(1)
+				end
+			end)
+		else
+			ClearIslandESP()
+		end
+	end,
+})
 if World2 then
     VI_S:AddToggle({
         Title = "Esp Flower",
