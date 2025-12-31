@@ -9373,100 +9373,54 @@ spawn(function()
 	end;
 end);
 f:AddSeperator("Volcanic Magnet");
--- ==============================
--- VARIÁVEIS
--- ==============================
-_G.CraftVM = _G.CraftVM or false
-local Sec = Sec or 1
-
--- ==============================
--- FUNÇÃO DE CRAFT (ANTIGO + NOVO)
--- ==============================
-local function CraftVolcanicMagnet()
-    -- Craft antigo (caso ainda funcione)
-    pcall(function()
-        replicated.Remotes.CommF_:InvokeServer(
-            "CraftItem",
-            "Craft",
-            "Volcanic Magnet"
-        )
-    end)
-
-    task.wait(0.2)
-
-    -- Craft novo (Notify - patch atual)
-    pcall(function()
-        replicated.Remotes.CommF_:FireServer(
-            "Notify",
-            "<Color=Yellow>Crafted <Volcanic Magnet><Color=/>"
-        )
-    end)
-end
-
--- ==============================
--- UI
--- ==============================
 f:AddToggle({
     Title = "Auto Craft Volcanic Magnet",
-    Description = "Farm materiais e crafta até ter 1 Volcanic Magnet",
+    Description = "turn on for auto farm material and craft volcanic magnet & stop when you have 1 volcanic magnet",
     Default = false,
     Callback = function(I)
-        _G.CraftVM = I
+        _G.CraftVM = I;
     end,
-})
+});
 
-f:AddButton({
-    Title = "Craft Volcanic Magnet",
-    Description = "",
+f:AddButton({ 
+    Title = "Craft Volcanic Magnet", 
+    Description = "", 
     Callback = function()
-        CraftVolcanicMagnet()
-    end
-})
+        -- Remote substituído conforme solicitado
+        replicated.Remotes.CommF_:FireServer("Notify", "<Color=Yellow>Crafted <Volcanic Magnet><Color=/>")
+    end 
+});
 
--- ==============================
--- AUTO CRAFT LOOP
--- ==============================
 spawn(function()
-    while task.wait(Sec) do
+    while wait(Sec) do
         pcall(function()
-            if not _G.CraftVM then return end
-            if GetM("Volcanic Magnet") >= 1 then return end
-
-            -- TEM MATERIAIS → CRAFTA
-            if GetM("Scrap Metal") >= 10 and GetM("Blaze Ember") >= 15 then
-                CraftVolcanicMagnet()
-                return
-            end
-
-            -- FARM SCRAP METAL
-            if GetM("Scrap Metal") < 10 then
-                local I = GetConnectionEnemies("Forest Pirate")
-                if I then
-                    repeat
-                        task.wait()
-                        G.Kill(I, _G.CraftVM)
-                    until not _G.CraftVM
-                        or not I.Parent
-                        or I.Humanoid.Health <= 0
-                        or GetM("Scrap Metal") >= 10
-                else
-                    _tp(CFrame.new(-13206.4521, 425.8920, -7964.5537))
-                end
-                return
-            end
-
-            -- FARM BLAZE EMBER
-            if GetM("Blaze Ember") < 15 then
-                _G.FarmBlazeEM = true
-                repeat
-                    task.wait()
-                until not _G.CraftVM or GetM("Blaze Ember") >= 15
-                _G.FarmBlazeEM = false
-                return
-            end
-        end)
-    end
-end)
+            if _G.CraftVM then
+                if GetM("Volcanic Magnet") < 1 then
+                    if GetM("Scrap Metal") >= 10 and GetM("Blaze Ember") >= 15 then
+                        -- Remote substituído aqui também
+                        replicated.Remotes.CommF_:FireServer("Notify", "<Color=Yellow>Crafted <Volcanic Magnet><Color=/>")
+                    elseif GetM("Scrap Metal") < 10 then
+                        local I = GetConnectionEnemies("Forest Pirate");
+                        if I then
+                            repeat
+                                wait();
+                                G.Kill(I, _G.CraftVM);
+                            until not _G.CraftVM or not I.Parent or I.Humanoid.Health <= 0 or GetM("Scrap Metal") >= 10;
+                        else
+                            _tp(CFrame.new(-13206.452148438, 425.89199829102, -7964.5537109375));
+                        end;
+                    elseif GetM("Blaze Ember") < 15 then
+                        repeat
+                            wait();
+                            _G.FarmBlazeEM = true;
+                        until not _G.CraftVM or GetM("Blaze Ember") >= 15;
+                        _G.FarmBlazeEM = false;
+                    end;
+                end;
+            end;
+        end);
+    end;
+end);
 
 f:AddSeperator("Prehistoric Island");
 f:AddToggle({
