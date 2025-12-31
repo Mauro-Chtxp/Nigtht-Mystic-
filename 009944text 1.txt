@@ -2827,21 +2827,21 @@ EspPly = function()
 							I.Adornee = e.Character.Head;
 							I.AlwaysOnTop = true;
 							local K = Instance.new("TextLabel", I);
-							K.Font = Enum.Font.Code;
+							K.Font = Enum.Font.GothamSemibold; -- Fonte arredondada
 							K.FontSize = "Size14";
 							K.TextWrapped = true;
-							K.Text = e.Name .. (" \n" .. (G5(((game:GetService("Players")).LocalPlayer.Character.Head.Position - e.Character.Head.Position).Magnitude / 3) .. " M"));
+							-- Mostra apenas Nome e Level
+							K.Text = e.Name .. " [Lv. " .. (e.Data.Level.Value) .. "]";
 							K.Size = UDim2.new(1, 0, 1, 0);
 							K.TextYAlignment = "Top";
 							K.BackgroundTransparency = 1;
 							K.TextStrokeTransparency = .5;
-							if e.Team == TeamSelf then
-								K.TextColor3 = Color3.new(0, 0, 254);
-							else
-								K.TextColor3 = Color3.new(255, 0, 0);
-							end;
+							K.TextColor3 = Color3.new(1, 0, 0); -- Fonte Vermelha
 						else
-							e.Character.Head["NameEsp" .. Number].TextLabel.Text = e.Data.Level.Value .. (" | " .. (e.Name .. (" | " .. (G5(((game:GetService("Players")).LocalPlayer.Character.Head.Position - e.Character.Head.Position).Magnitude / 3) .. (" M\nHealth : " .. (G5((e.Character.Humanoid.Health * 100) / e.Character.Humanoid.MaxHealth) .. "%"))))));
+							-- Atualização do texto (apenas Nome e Level)
+							e.Character.Head["NameEsp" .. Number].TextLabel.Text = e.Name .. " [Lv. " .. (e.Data.Level.Value) .. "]";
+							e.Character.Head["NameEsp" .. Number].TextLabel.TextColor3 = Color3.new(1, 0, 0);
+							e.Character.Head["NameEsp" .. Number].TextLabel.Font = Enum.Font.GothamSemibold;
 						end;
 					else
 						if e.Character.Head:FindFirstChild("NameEsp" .. Number) then
@@ -3333,22 +3333,15 @@ VI_S:AddToggle({
 VI_S:AddToggle({
     Title = "Esp Fruits",
     Description = "Mostra a localização das frutas no mapa",
-    -- 1. Carrega se o ESP estava ligado
     Default = GetSetting("EspFruits_Save", false),
     Callback = function(I)
         DevilFruitESP = I
-        
-        -- 2. Guarda na memória de salvamento
         _G.SaveData["EspFruits_Save"] = I
-        
-        -- 3. Salva no arquivo Settings.json
         SaveSettings()
-
-        -- 4. Inicia o loop do ESP se estiver ativado
         if I then
             task.spawn(function()
                 while DevilFruitESP do
-                    task.wait(1) -- Intervalo de 1 segundo para não dar lag
+                    task.wait(1)
                     if DevEsp then
                         pcall(DevEsp)
                     end
@@ -3357,7 +3350,6 @@ VI_S:AddToggle({
         end
     end,
 })
--- 1. ESP Island Location (Universal)
 VI_S:AddToggle({
     Title = "Esp Island Location",
     Description = "Mostra as ilhas principais",
@@ -3377,7 +3369,6 @@ VI_S:AddToggle({
     end,
 })
 
--- 2. ESPs Exclusivos do Mundo 2
 if World2 then
     VI_S:AddToggle({
         Title = "Esp Flower",
@@ -3418,7 +3409,6 @@ if World2 then
     })
 end
 
--- 3. ESPs Mundo 2 ou 3 (Haki Color)
 if World2 or World3 then
     VI_S:AddToggle({
         Title = "Esp Aura Colour Dealers",
@@ -3440,7 +3430,6 @@ if World2 or World3 then
     })
 end
 
--- 4. ESPs Exclusivos do Mundo 3
 if World3 then
     VI_S:AddToggle({
         Title = "Esp Gears",
@@ -3499,6 +3488,7 @@ if World3 then
         end,
     })
 end
+
 VI_S:AddSeperator("Fontes");
 
 local currentFont = Enum.Font.Arial -- Fonte padrão inicial
