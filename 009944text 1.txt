@@ -2808,10 +2808,28 @@ end });
 function isnil(I)
 	return I == nil;
 end;
+
 local function G5(I)
 	return math.floor(tonumber(I) + .5);
 end;
+
 Number = math.random(1, 1000000);
+local plr = game:GetService("Players").LocalPlayer;
+
+-- CONFIGURAÇÃO VISUAL PADRÃO
+local function ApplyEspStyle(label)
+    label.Font = Enum.Font.FredokaOne; -- Fonte redonda estilo Cartoon
+    label.TextSize = 18; -- Letras maiores
+    label.TextColor3 = Color3.fromRGB(255, 0, 0); -- Vermelho
+    label.TextStrokeColor3 = Color3.fromRGB(0, 0, 0); -- Contorno Preto
+    label.TextStrokeTransparency = 0; -- Contorno visível
+    label.BackgroundTransparency = 1;
+    label.TextWrapped = true;
+end
+
+-----------------------------------------
+-- FUNÇÕES DE ESP (LÓGICA)
+-----------------------------------------
 
 EspPly = function()
     for I, e in next, game.Players:GetChildren() do
@@ -2819,39 +2837,24 @@ EspPly = function()
             if not isnil(e.Character) then
                 if PlayerEsp then
                     if not isnil(e.Character.Head) and not e.Character.Head:FindFirstChild("NameEsp" .. Number) then
-                        local I = Instance.new("BillboardGui", e.Character.Head);
-                        I.Name = "NameEsp" .. Number;
-                        I.ExtentsOffset = Vector3.new(0, 1, 0);
-                        I.Size = UDim2.new(1, 200, 1, 30);
-                        I.Adornee = e.Character.Head;
-                        I.AlwaysOnTop = true;
-                        local K = Instance.new("TextLabel", I);
-                        K.Font = Enum.Font.Cartoon;
-                        K.TextSize = 14;
-                        K.TextWrapped = true;
-                        K.Text = e.Name .. (" \n" .. (G5(((game:GetService("Players")).LocalPlayer.Character.Head.Position - e.Character.Head.Position).Magnitude / 3) .. " M"));
+                        local gui = Instance.new("BillboardGui", e.Character.Head);
+                        gui.Name = "NameEsp" .. Number;
+                        gui.ExtentsOffset = Vector3.new(0, 2, 0);
+                        gui.Size = UDim2.new(1, 200, 1, 30);
+                        gui.AlwaysOnTop = true;
+                        local K = Instance.new("TextLabel", gui);
                         K.Size = UDim2.new(1, 0, 1, 0);
-                        K.TextYAlignment = "Top";
-                        K.BackgroundTransparency = 1;
-                        K.TextColor3 = Color3.fromRGB(255, 0, 0);
-                        K.TextStrokeColor3 = Color3.fromRGB(0, 0, 0);
-                        K.TextStrokeTransparency = 0;
-                        if e.Team == TeamSelf then
-                            K.TextColor3 = Color3.new(0, 0, 254);
-                        else
-                            K.TextColor3 = Color3.new(255, 0, 0);
-                        end;
+                        ApplyEspStyle(K)
+                        
+                        local level = (e:FindFirstChild("Data") and e.Data:FindFirstChild("Level")) and e.Data.Level.Value or "???"
+                        K.Text = string.format("%s [Lvl %s]", e.Name, tostring(level))
                     else
                         local label = e.Character.Head["NameEsp" .. Number].TextLabel
-                        label.Text = e.Data.Level.Value .. (" | " .. (e.Name .. (" | " .. (G5(((game:GetService("Players")).LocalPlayer.Character.Head.Position - e.Character.Head.Position).Magnitude / 3) .. (" M\nHealth : " .. (G5((e.Character.Humanoid.Health * 100) / e.Character.Humanoid.MaxHealth) .. "%"))))));
-                        label.Font = Enum.Font.Cartoon;
-                        label.TextColor3 = Color3.fromRGB(255, 0, 0);
-                        label.TextStrokeTransparency = 0;
+                        local level = (e:FindFirstChild("Data") and e.Data:FindFirstChild("Level")) and e.Data.Level.Value or "???"
+                        label.Text = string.format("%s [Lvl %s]", e.Name, tostring(level))
                     end;
-                else
-                    if e.Character.Head:FindFirstChild("NameEsp" .. Number) then
-                        (e.Character.Head:FindFirstChild("NameEsp" .. Number)):Destroy();
-                    end;
+                elseif e.Character.Head:FindFirstChild("NameEsp" .. Number) then
+                    e.Character.Head["NameEsp" .. Number]:Destroy();
                 end;
             end;
         end);
@@ -2864,30 +2867,18 @@ LocationEsp = function()
             if IslandESP then
                 if e.Name ~= "Sea" then
                     if not e:FindFirstChild("NameEsp") then
-                        local I = Instance.new("BillboardGui", e);
-                        I.Name = "NameEsp";
-                        I.ExtentsOffset = Vector3.new(0, 1, 0);
-                        I.Size = UDim2.new(1, 200, 1, 30);
-                        I.Adornee = e;
-                        I.AlwaysOnTop = true;
-                        local K = Instance.new("TextLabel", I);
-                        K.Font = Enum.Font.Cartoon;
-                        K.TextSize = 14;
-                        K.TextWrapped = true;
+                        local gui = Instance.new("BillboardGui", e);
+                        gui.Name = "NameEsp";
+                        gui.Size = UDim2.new(1, 200, 1, 30);
+                        gui.AlwaysOnTop = true;
+                        local K = Instance.new("TextLabel", gui);
                         K.Size = UDim2.new(1, 0, 1, 0);
-                        K.TextYAlignment = "Top";
-                        K.BackgroundTransparency = 1;
-                        K.TextColor3 = Color3.fromRGB(255, 0, 0);
-                        K.TextStrokeColor3 = Color3.fromRGB(0, 0, 0);
-                        K.TextStrokeTransparency = 0;
-                    else
-                        e.NameEsp.TextLabel.Text = e.Name .. ("   \n" .. (G5(((game:GetService("Players")).LocalPlayer.Character.Head.Position - e.Position).Magnitude / 3) .. " M"));
+                        ApplyEspStyle(K)
                     end;
+                    e.NameEsp.TextLabel.Text = e.Name .. ("\n" .. (G5((plr.Character.Head.Position - e.Position).Magnitude / 3) .. " M"));
                 end;
-            else
-                if e:FindFirstChild("NameEsp") then
-                    (e:FindFirstChild("NameEsp")):Destroy();
-                end;
+            elseif e:FindFirstChild("NameEsp") then
+                e.NameEsp:Destroy();
             end;
         end);
     end;
@@ -2899,31 +2890,18 @@ DevEsp = function()
             if DevilFruitESP then
                 if string.find(e.Name, "Fruit") then
                     if not e.Handle:FindFirstChild("NameEsp" .. Number) then
-                        local I = Instance.new("BillboardGui", e.Handle);
-                        I.Name = "NameEsp" .. Number;
-                        I.ExtentsOffset = Vector3.new(0, 1, 0);
-                        I.Size = UDim2.new(1, 200, 1, 30);
-                        I.Adornee = e.Handle;
-                        I.AlwaysOnTop = true;
-                        local K = Instance.new("TextLabel", I);
-                        K.Font = Enum.Font.Cartoon;
-                        K.TextSize = 14;
-                        K.TextWrapped = true;
+                        local gui = Instance.new("BillboardGui", e.Handle);
+                        gui.Name = "NameEsp" .. Number;
+                        gui.Size = UDim2.new(1, 200, 1, 30);
+                        gui.AlwaysOnTop = true;
+                        local K = Instance.new("TextLabel", gui);
                         K.Size = UDim2.new(1, 0, 1, 0);
-                        K.TextYAlignment = "Top";
-                        K.BackgroundTransparency = 1;
-                        K.TextColor3 = Color3.fromRGB(255, 0, 0);
-                        K.TextStrokeColor3 = Color3.fromRGB(0, 0, 0);
-                        K.TextStrokeTransparency = 0;
-                        K.Text = e.Name .. (" \n" .. (G5(((game:GetService("Players")).LocalPlayer.Character.Head.Position - e.Handle.Position).Magnitude / 3) .. " M"));
-                    else
-                        e.Handle["NameEsp" .. Number].TextLabel.Text = "[" .. (e.Name .. ("]" .. ("   \n" .. (G5(((game:GetService("Players")).LocalPlayer.Character.Head.Position - e.Handle.Position).Magnitude / 3) .. " M"))));
+                        ApplyEspStyle(K)
                     end;
+                    e.Handle["NameEsp" .. Number].TextLabel.Text = e.Name .. ("\n" .. (G5((plr.Character.Head.Position - e.Handle.Position).Magnitude / 3) .. " M"));
                 end;
-            else
-                if e.Handle:FindFirstChild("NameEsp" .. Number) then
-                    (e.Handle:FindFirstChild("NameEsp" .. Number)):Destroy();
-                end;
+            elseif e:FindFirstChild("Handle") and e.Handle:FindFirstChild("NameEsp" .. Number) then
+                e.Handle["NameEsp" .. Number]:Destroy();
             end;
         end);
     end;
@@ -2935,35 +2913,17 @@ flowerEsp = function()
             if e.Name == "Flower2" or e.Name == "Flower1" then
                 if FlowerESP then
                     if not e:FindFirstChild("NameEsp" .. Number) then
-                        local I = Instance.new("BillboardGui", e);
-                        I.Name = "NameEsp" .. Number;
-                        I.ExtentsOffset = Vector3.new(0, 1, 0);
-                        I.Size = UDim2.new(1, 200, 1, 30);
-                        I.Adornee = e;
-                        I.AlwaysOnTop = true;
-                        local K = Instance.new("TextLabel", I);
-                        K.Font = Enum.Font.Cartoon;
-                        K.TextSize = 14;
-                        K.TextWrapped = true;
+                        local gui = Instance.new("BillboardGui", e);
+                        gui.Name = "NameEsp" .. Number;
+                        gui.Size = UDim2.new(1, 200, 1, 30);
+                        gui.AlwaysOnTop = true;
+                        local K = Instance.new("TextLabel", gui);
                         K.Size = UDim2.new(1, 0, 1, 0);
-                        K.TextYAlignment = "Top";
-                        K.BackgroundTransparency = 1;
-                        K.TextColor3 = Color3.fromRGB(255, 0, 0);
-                        K.TextStrokeColor3 = Color3.fromRGB(0, 0, 0);
-                        K.TextStrokeTransparency = 0;
-                        if e.Name == "Flower1" then
-                            K.Text = "Blue Flower" .. (" \n" .. (G5(((game:GetService("Players")).LocalPlayer.Character.Head.Position - e.Position).Magnitude / 3) .. " M"));
-                        end;
-                        if e.Name == "Flower2" then
-                            K.Text = "Red Flower" .. (" \n" .. (G5(((game:GetService("Players")).LocalPlayer.Character.Head.Position - e.Position).Magnitude / 3) .. " M"));
-                        end;
-                    else
-                        e["NameEsp" .. Number].TextLabel.Text = e.Name .. ("   \n" .. (G5(((game:GetService("Players")).LocalPlayer.Character.Head.Position - e.Position).Magnitude / 3) .. " M"));
+                        ApplyEspStyle(K)
                     end;
-                else
-                    if e:FindFirstChild("NameEsp" .. Number) then
-                        (e:FindFirstChild("NameEsp" .. Number)):Destroy();
-                    end;
+                    e["NameEsp" .. Number].TextLabel.Text = e.Name .. ("\n" .. (G5((plr.Character.Head.Position - e.Position).Magnitude / 3) .. " M"));
+                elseif e:FindFirstChild("NameEsp" .. Number) then
+                    e["NameEsp" .. Number]:Destroy();
                 end;
             end;
         end);
@@ -2976,28 +2936,18 @@ EventIslandEsp = function()
             if EspEventIsland then
                 if e.Name == "Mirage Island" or e.Name == "Prehistoric Island" or e.Name == "Kitsune Island" then
                     if not e:FindFirstChild("NameEsp") then
-                        local I = Instance.new("BillboardGui", e);
-                        I.Name = "NameEsp";
-                        I.ExtentsOffset = Vector3.new(0, 1, 0);
-                        I.Size = UDim2.new(1, 200, 1, 30);
-                        I.Adornee = e;
-                        I.AlwaysOnTop = true;
-                        local K = Instance.new("TextLabel", I);
-                        K.Font = Enum.Font.Cartoon;
-                        K.TextSize = 14;
-                        K.TextWrapped = true;
+                        local gui = Instance.new("BillboardGui", e);
+                        gui.Name = "NameEsp";
+                        gui.Size = UDim2.new(1, 200, 1, 30);
+                        gui.AlwaysOnTop = true;
+                        local K = Instance.new("TextLabel", gui);
                         K.Size = UDim2.new(1, 0, 1, 0);
-                        K.TextYAlignment = "Top";
-                        K.BackgroundTransparency = 1;
-                        K.TextColor3 = Color3.fromRGB(255, 0, 0);
-                        K.TextStrokeColor3 = Color3.fromRGB(0, 0, 0);
-                        K.TextStrokeTransparency = 0;
-                    else
-                        e.NameEsp.TextLabel.Text = e.Name .. ("   \n" .. (G5((plr.Character.Head.Position - e.Position).Magnitude / 3) .. " M"));
+                        ApplyEspStyle(K)
                     end;
+                    e.NameEsp.TextLabel.Text = e.Name .. ("\n" .. (G5((plr.Character.Head.Position - e.Position).Magnitude / 3) .. " M"));
                 end;
             elseif e:FindFirstChild("NameEsp") then
-                (e:FindFirstChild("NameEsp")):Destroy();
+                e.NameEsp:Destroy();
             end;
         end);
     end;
@@ -3009,30 +2959,18 @@ gearEsp = function()
             if ESPGear then
                 if e.Name == "Part" and e.Material == Enum.Material.Neon then
                     if not e:FindFirstChild("NameEsp") then
-                        local I = Instance.new("BillboardGui", e);
-                        I.Name = "NameEsp";
-                        I.ExtentsOffset = Vector3.new(0, 1, 0);
-                        I.Size = UDim2.new(1, 200, 1, 30);
-                        I.Adornee = e;
-                        I.AlwaysOnTop = true;
-                        local K = Instance.new("TextLabel", I);
-                        K.Font = Enum.Font.Cartoon;
-                        K.TextSize = 14;
-                        K.TextWrapped = true;
+                        local gui = Instance.new("BillboardGui", e);
+                        gui.Name = "NameEsp";
+                        gui.Size = UDim2.new(1, 200, 1, 30);
+                        gui.AlwaysOnTop = true;
+                        local K = Instance.new("TextLabel", gui);
                         K.Size = UDim2.new(1, 0, 1, 0);
-                        K.TextYAlignment = "Top";
-                        K.BackgroundTransparency = 1;
-                        K.TextColor3 = Color3.fromRGB(255, 0, 0);
-                        K.TextStrokeColor3 = Color3.fromRGB(0, 0, 0);
-                        K.TextStrokeTransparency = 0;
-                    else
-                        e.NameEsp.TextLabel.Text = "Gear" .. ("   \n" .. (G5((plr.Character.Head.Position - e.Position).Magnitude / 3) .. " M"));
+                        ApplyEspStyle(K)
                     end;
+                    e.NameEsp.TextLabel.Text = "Gear\n" .. (G5((plr.Character.Head.Position - e.Position).Magnitude / 3) .. " M");
                 end;
-            else
-                if e:FindFirstChild("NameEsp") then
-                    (e:FindFirstChild("NameEsp")):Destroy();
-                end;
+            elseif e:FindFirstChild("NameEsp") then
+                e.NameEsp:Destroy();
             end;
         end);
     end;
@@ -3040,237 +2978,125 @@ end;
 
 AdvanFruitEsp = function()
     if advanEsp == true then
-        for I, e in pairs(replicated.NPCs:GetChildren()) do
+        for I, e in pairs(game:GetService("ReplicatedStorage").NPCs:GetChildren()) do
             if e.Name == "Advanced Fruit Dealer" then
                 if not workspace:FindFirstChild("Adv") then
-                    Adv = Instance.new("Part");
-                    Adv.Name = "Adv";
-                    Adv.Transparency = 1;
-                    Adv.Size = Vector3.new(1, 1, 1);
-                    Adv.Anchored = true;
-                    Adv.CanCollide = false;
-                    Adv.Parent = workspace;
+                    Adv = Instance.new("Part", workspace);
+                    Adv.Name = "Adv"; Adv.Transparency = 1; Adv.Anchored = true; Adv.CanCollide = false;
                     Adv.CFrame = e.HumanoidRootPart.CFrame;
-                elseif workspace:FindFirstChild("Adv") then
-                    if not Adv:FindFirstChild("NameEsp") then
-                        local I = Instance.new("BillboardGui", Adv);
-                        I.Name = "NameEsp";
-                        I.ExtentsOffset = Vector3.new(0, 1, 0);
-                        I.Size = UDim2.new(1, 200, 1, 30);
-                        I.Adornee = Adv;
-                        I.AlwaysOnTop = true;
-                        local e = Instance.new("TextLabel", I);
-                        e.Font = Enum.Font.Cartoon;
-                        e.TextSize = 14;
-                        e.TextWrapped = true;
-                        e.Size = UDim2.new(1, 0, 1, 0);
-                        e.TextYAlignment = "Top";
-                        e.BackgroundTransparency = 1;
-                        e.TextColor3 = Color3.fromRGB(255, 0, 0);
-                        e.TextStrokeColor3 = Color3.fromRGB(0, 0, 0);
-                        e.TextStrokeTransparency = 0;
-                    else
-                        Adv.NameEsp.TextLabel.Text = e.Name .. ("   \n" .. (G5((plr.Character.Head.Position - e.HumanoidRootPart.Position).Magnitude / 3) .. " M"));
-                    end;
                 end;
+                if not Adv:FindFirstChild("NameEsp") then
+                    local gui = Instance.new("BillboardGui", Adv);
+                    gui.Name = "NameEsp"; gui.Size = UDim2.new(1, 200, 1, 30); gui.AlwaysOnTop = true;
+                    local txt = Instance.new("TextLabel", gui);
+                    txt.Size = UDim2.new(1, 0, 1, 0); ApplyEspStyle(txt)
+                end;
+                Adv.NameEsp.TextLabel.Text = "Advanced Fruit Dealer\n" .. (G5((plr.Character.Head.Position - Adv.Position).Magnitude / 3) .. " M");
             end;
         end;
-    else
-        if workspace:FindFirstChild("Adv") then
-            (workspace:FindFirstChild("Adv")):Destroy();
-        end;
+    elseif workspace:FindFirstChild("Adv") then
+        workspace.Adv:Destroy();
     end;
 end;
 
 HakiClorEsp = function()
     if ColorEsp == true then
-        for I, e in pairs(replicated.NPCs:GetChildren()) do
+        for I, e in pairs(game:GetService("ReplicatedStorage").NPCs:GetChildren()) do
             if e.Name == "Barista Cousin" then
                 if not workspace:FindFirstChild("Gay") then
-                    Gay = Instance.new("Part");
-                    Gay.Name = "Gay";
-                    Gay.Transparency = 1;
-                    Gay.Size = Vector3.new(1, 1, 1);
-                    Gay.Anchored = true;
-                    Gay.CanCollide = false;
-                    Gay.Parent = workspace;
+                    Gay = Instance.new("Part", workspace);
+                    Gay.Name = "Gay"; Gay.Transparency = 1; Gay.Anchored = true; Gay.CanCollide = false;
                     Gay.CFrame = e.HumanoidRootPart.CFrame;
-                elseif workspace:FindFirstChild("Gay") then
-                    if not Gay:FindFirstChild("NameEsp") then
-                        local I = Instance.new("BillboardGui", Gay);
-                        I.Name = "NameEsp";
-                        I.ExtentsOffset = Vector3.new(0, 1, 0);
-                        I.Size = UDim2.new(1, 200, 1, 30);
-                        I.Adornee = Gay;
-                        I.AlwaysOnTop = true;
-                        local e = Instance.new("TextLabel", I);
-                        e.Font = Enum.Font.Cartoon;
-                        e.TextSize = 14;
-                        e.TextWrapped = true;
-                        e.Size = UDim2.new(1, 0, 1, 0);
-                        e.TextYAlignment = "Top";
-                        e.BackgroundTransparency = 1;
-                        e.TextColor3 = Color3.fromRGB(255, 0, 0);
-                        e.TextStrokeColor3 = Color3.fromRGB(0, 0, 0);
-                        e.TextStrokeTransparency = 0;
-                    else
-                        Gay.NameEsp.TextLabel.Text = e.Name .. ("   \n" .. (G5((plr.Character.Head.Position - e.HumanoidRootPart.Position).Magnitude / 3) .. " M"));
-                    end;
                 end;
+                if not Gay:FindFirstChild("NameEsp") then
+                    local gui = Instance.new("BillboardGui", Gay);
+                    gui.Name = "NameEsp"; gui.Size = UDim2.new(1, 200, 1, 30); gui.AlwaysOnTop = true;
+                    local txt = Instance.new("TextLabel", gui);
+                    txt.Size = UDim2.new(1, 0, 1, 0); ApplyEspStyle(txt)
+                end;
+                Gay.NameEsp.TextLabel.Text = "Haki Color Dealer\n" .. (G5((plr.Character.Head.Position - Gay.Position).Magnitude / 3) .. " M");
             end;
         end;
-    else
-        if workspace:FindFirstChild("Gay") then
-            (workspace:FindFirstChild("Gay")):Destroy();
-        end;
+    elseif workspace:FindFirstChild("Gay") then
+        workspace.Gay:Destroy();
     end;
 end;
 
 LegenSword = function()
     if LegenS == true then
-        for I, e in pairs(replicated.NPCs:GetChildren()) do
+        for I, e in pairs(game:GetService("ReplicatedStorage").NPCs:GetChildren()) do
             if e.Name == "Legendary Sword Dealer " then
                 if not workspace:FindFirstChild("Lgd") then
-                    Lgd = Instance.new("Part");
-                    Lgd.Name = "Lgd";
-                    Lgd.Transparency = 1;
-                    Lgd.Size = Vector3.new(1, 1, 1);
-                    Lgd.Anchored = true;
-                    Lgd.CanCollide = false;
-                    Lgd.Parent = workspace;
+                    Lgd = Instance.new("Part", workspace);
+                    Lgd.Name = "Lgd"; Lgd.Transparency = 1; Lgd.Anchored = true; Lgd.CanCollide = false;
                     Lgd.CFrame = e.HumanoidRootPart.CFrame;
-                elseif workspace:FindFirstChild("Lgd") then
-                    if not Lgd:FindFirstChild("NameEsp") then
-                        local I = Instance.new("BillboardGui", Lgd);
-                        I.Name = "NameEsp";
-                        I.ExtentsOffset = Vector3.new(0, 1, 0);
-                        I.Size = UDim2.new(1, 200, 1, 30);
-                        I.Adornee = Lgd;
-                        I.AlwaysOnTop = true;
-                        local e = Instance.new("TextLabel", I);
-                        e.Font = Enum.Font.Cartoon;
-                        e.TextSize = 14;
-                        e.TextWrapped = true;
-                        e.Size = UDim2.new(1, 0, 1, 0);
-                        e.TextYAlignment = "Top";
-                        e.BackgroundTransparency = 1;
-                        e.TextColor3 = Color3.fromRGB(255, 0, 0);
-                        e.TextStrokeColor3 = Color3.fromRGB(0, 0, 0);
-                        e.TextStrokeTransparency = 0;
-                    else
-                        Lgd.NameEsp.TextLabel.Text = e.Name .. ("   \n" .. (G5((plr.Character.Head.Position - e.HumanoidRootPart.Position).Magnitude / 3) .. " M"));
-                    end;
                 end;
+                if not Lgd:FindFirstChild("NameEsp") then
+                    local gui = Instance.new("BillboardGui", Lgd);
+                    gui.Name = "NameEsp"; gui.Size = UDim2.new(1, 200, 1, 30); gui.AlwaysOnTop = true;
+                    local txt = Instance.new("TextLabel", gui);
+                    txt.Size = UDim2.new(1, 0, 1, 0); ApplyEspStyle(txt)
+                end;
+                Lgd.NameEsp.TextLabel.Text = "Legendary Sword Dealer\n" .. (G5((plr.Character.Head.Position - Lgd.Position).Magnitude / 3) .. " M");
             end;
         end;
-    else
-        if workspace:FindFirstChild("Lgd") then
-            (workspace:FindFirstChild("Lgd")):Destroy();
-        end;
+    elseif workspace:FindFirstChild("Lgd") then
+        workspace.Lgd:Destroy();
     end;
 end;
 
 ChestEsp = function()
     if ChestESP then
-        local I = game:GetService("CollectionService");
-        local e = game:GetService("Players");
-        local K = e.LocalPlayer;
-        local n = K.Character or K.CharacterAdded:Wait();
-        local d = (n:GetPivot()).Position;
-        local z = I:GetTagged("_ChestTagged");
-        for I, e in ipairs(z) do
-            local K = false;
-            repeat
-                if not SelectedIsland or e:IsDescendantOf(SelectedIsland) then
-                    if not e:GetAttribute("IsDisabled") then
-                        local pos;
-                        local success, result = pcall(function() return (e:GetPivot()).Position end);
-                        if success then pos = result elseif e:IsA("BasePart") then pos = e.Position else K = true; break; end;
-                        local H = (pos - d).Magnitude;
-                        local Q = e:FindFirstChild("ChestEspAttachment");
-                        if not Q then
-                            local att = Instance.new("Attachment", e);
-                            att.Name = "ChestEspAttachment";
-                            att.Position = Vector3.new(0, 3, 0);
-                            local gui = Instance.new("BillboardGui", att);
-                            gui.Name = "NameEsp";
-                            gui.Size = UDim2.new(0, 200, 0, 30);
-                            gui.AlwaysOnTop = true;
-                            local label = Instance.new("TextLabel", gui);
-                            label.Font = Enum.Font.Cartoon;
-                            label.TextSize = 14;
-                            label.TextWrapped = true;
-                            label.Size = UDim2.new(1, 0, 1, 0);
-                            label.TextYAlignment = Enum.TextYAlignment.Top;
-                            label.BackgroundTransparency = 1;
-                            label.TextColor3 = Color3.fromRGB(255, 0, 0);
-                            label.TextStrokeColor3 = Color3.fromRGB(0, 0, 0);
-                            label.TextStrokeTransparency = 0;
-                            Q = att;
-                        end;
-                        local X = Q and Q:FindFirstChild("NameEsp");
-                        if X then
-                            local dist = math.floor(H / 3);
-                            local name = e.Name:gsub("Label", "");
-                            X.TextLabel.Text = string.format("[%s] %d M", name, dist);
-                        end;
-                    end;
+        local d = (plr.Character and plr.Character:FindFirstChild("Head")) and plr.Character.Head.Position or Vector3.new(0,0,0)
+        for _, e in ipairs(game:GetService("CollectionService"):GetTagged("_ChestTagged")) do
+            pcall(function()
+                if not e:FindFirstChild("ChestEspAttachment") then
+                    local att = Instance.new("Attachment", e); att.Name = "ChestEspAttachment"; att.Position = Vector3.new(0, 3, 0);
+                    local gui = Instance.new("BillboardGui", att); gui.Name = "NameEsp"; gui.Size = UDim2.new(0, 200, 0, 30); gui.AlwaysOnTop = true;
+                    local txt = Instance.new("TextLabel", gui); txt.Size = UDim2.new(1, 0, 1, 0); ApplyEspStyle(txt)
                 end;
-                K = true;
-            until true;
+                local dist = math.floor((e:GetPivot().Position - d).Magnitude / 3);
+                e.ChestEspAttachment.NameEsp.TextLabel.Text = "["..e.Name:gsub("Label","").."] "..dist.." M";
+            end)
         end;
     else
-        for I, e in ipairs((game:GetService("CollectionService")):GetTagged("_ChestTagged")) do
-            local K = e:FindFirstChild("ChestEspAttachment");
-            if K then K:Destroy(); end;
+        for _, e in ipairs(game:GetService("CollectionService"):GetTagged("_ChestTagged")) do
+            if e:FindFirstChild("ChestEspAttachment") then e.ChestEspAttachment:Destroy() end
         end;
     end;
 end;
 
 berriesEsp = function()
     if BerryEsp then
-        local I = game:GetService("CollectionService");
-        local e = game:GetService("Players");
-        local K = e.LocalPlayer;
-        local n = I:GetTagged("BerryBush");
-        for I, bush in ipairs(n) do
-            local pos = (bush.Parent:GetPivot()).Position;
-            for I, attr in pairs(bush:GetAttributes()) do
-                if attr then
-                    local id = "BerryEspPart_" .. (attr .. ("_" .. tostring(pos)));
-                    local d = workspace:FindFirstChild(id);
-                    if not d then
-                        d = Instance.new("Part", workspace);
-                        d.Name = id; d.Transparency = 1; d.Size = Vector3.new(1, 1, 1);
-                        d.Anchored = true; d.CanCollide = false; d.CFrame = CFrame.new(pos);
-                    end;
+        for _, bush in ipairs(game:GetService("CollectionService"):GetTagged("BerryBush")) do
+            pcall(function()
+                local pos = bush.Parent:GetPivot().Position
+                for _, attr in pairs(bush:GetAttributes()) do
+                    local id = "BerryEspPart_" .. tostring(attr) .. tostring(pos)
+                    local d = workspace:FindFirstChild(id) or Instance.new("Part", workspace)
+                    if d.Name ~= id then
+                        d.Name = id; d.Transparency = 1; d.Anchored = true; d.CanCollide = false; d.CFrame = CFrame.new(pos);
+                    end
                     if not d:FindFirstChild("NameEsp") then
-                        local gui = Instance.new("BillboardGui", d);
-                        gui.Name = "NameEsp"; gui.Size = UDim2.new(0, 200, 0, 30); gui.AlwaysOnTop = true;
-                        local label = Instance.new("TextLabel", gui);
-                        label.Font = Enum.Font.Cartoon;
-                        label.TextSize = 14;
-                        label.TextWrapped = true;
-                        label.Size = UDim2.new(1, 0, 1, 0);
-                        label.BackgroundTransparency = 1;
-                        label.TextColor3 = Color3.fromRGB(255, 0, 0);
-                        label.TextStrokeColor3 = Color3.fromRGB(0, 0, 0);
-                        label.TextStrokeTransparency = 0;
-                    end;
-                    local z = d:FindFirstChild("NameEsp");
-                    local dist = (K.Character.Head.Position - pos).Magnitude / 3;
-                    z.TextLabel.Text = "[" .. (attr .. ("]" .. (" " .. (math.round(dist) .. " M"))));
-                end;
-            end;
+                        local gui = Instance.new("BillboardGui", d); gui.Name = "NameEsp"; gui.Size = UDim2.new(0, 200, 0, 30); gui.AlwaysOnTop = true;
+                        local txt = Instance.new("TextLabel", gui); txt.Size = UDim2.new(1, 0, 1, 0); ApplyEspStyle(txt)
+                    end
+                    local dist = math.round((plr.Character.Head.Position - pos).Magnitude / 3)
+                    d.NameEsp.TextLabel.Text = "[" .. attr .. "] " .. dist .. " M"
+                end
+            end)
         end;
     else
-        for I, e in ipairs(workspace:GetChildren()) do
-            if e:IsA("Part") and e.Name:match("BerryEspPart_.*") then e:Destroy(); end;
+        for _, e in ipairs(workspace:GetChildren()) do
+            if e.Name:match("BerryEspPart_") then e:Destroy() end
         end;
     end;
 end;
 
--- UI SECTIONS --
+-----------------------------------------
+-- UI TOGGLES
+-----------------------------------------
+
 VI_S:AddSeperator("Esp Items / Entity / Island");
 
 VI_S:AddToggle({
@@ -3278,7 +3104,7 @@ VI_S:AddToggle({
 	Default = false,
 	Callback = function(I)
 		BerryEsp = I;
-		spawn(function() while BerryEsp do wait(); berriesEsp(); end; end);
+		spawn(function() while BerryEsp do wait(1); berriesEsp(); end; berriesEsp(); end);
 	end,
 });
 
@@ -3287,7 +3113,7 @@ VI_S:AddToggle({
 	Default = false,
 	Callback = function(I)
 		PlayerEsp = I;
-		spawn(function() while PlayerEsp do wait(); EspPly(); end; end);
+		spawn(function() while PlayerEsp do wait(0.5); EspPly(); end; EspPly(); end);
 	end,
 });
 
@@ -3296,26 +3122,16 @@ VI_S:AddToggle({
 	Default = false,
 	Callback = function(I)
 		ChestESP = I;
-		spawn(function() while ChestESP do wait(); ChestEsp(); end; end);
+		spawn(function() while ChestESP do wait(1); ChestEsp(); end; ChestEsp(); end);
 	end,
 });
 
 VI_S:AddToggle({
     Title = "Esp Fruits",
-    Description = "Mostra a localização das frutas no mapa",
     Default = GetSetting("EspFruits_Save", false),
     Callback = function(I)
-        DevilFruitESP = I
-        _G.SaveData["EspFruits_Save"] = I
-        SaveSettings()
-        if I then
-            task.spawn(function()
-                while DevilFruitESP do
-                    task.wait(1)
-                    if DevEsp then pcall(DevEsp) end
-                end
-            end)
-        end
+        DevilFruitESP = I; _G.SaveData["EspFruits_Save"] = I; SaveSettings()
+        spawn(function() while DevilFruitESP do wait(1); pcall(DevEsp) end; pcall(DevEsp) end)
     end,
 })
 
@@ -3323,17 +3139,8 @@ VI_S:AddToggle({
     Title = "Esp Island Location",
     Default = GetSetting("EspIsland_Save", false),
     Callback = function(I)
-        IslandESP = I
-        _G.SaveData["EspIsland_Save"] = I
-        SaveSettings()
-        if I then
-            task.spawn(function()
-                while IslandESP do
-                    if LocationEsp then pcall(LocationEsp) end
-                    task.wait(1)
-                end
-            end)
-        end
+        IslandESP = I; _G.SaveData["EspIsland_Save"] = I; SaveSettings()
+        spawn(function() while IslandESP do wait(1); pcall(LocationEsp) end; pcall(LocationEsp) end)
     end,
 })
 
@@ -3342,17 +3149,8 @@ if World2 then
         Title = "Esp Flower",
         Default = GetSetting("EspFlower_Save", false),
         Callback = function(I)
-            FlowerESP = I
-            _G.SaveData["EspFlower_Save"] = I
-            SaveSettings()
-            if I then
-                task.spawn(function()
-                    while FlowerESP do
-                        if flowerEsp then pcall(flowerEsp) end
-                        task.wait(1)
-                    end
-                end)
-            end
+            FlowerESP = I; _G.SaveData["EspFlower_Save"] = I; SaveSettings()
+            spawn(function() while FlowerESP do wait(1); pcall(flowerEsp) end; pcall(flowerEsp) end)
         end,
     })
 
@@ -3360,17 +3158,8 @@ if World2 then
         Title = "Esp Legendary Sword",
         Default = GetSetting("EspLegenSword_Save", false),
         Callback = function(I)
-            LegenS = I
-            _G.SaveData["EspLegenSword_Save"] = I
-            SaveSettings()
-            if I then
-                task.spawn(function()
-                    while LegenS do
-                        if LegenSword then pcall(LegenSword) end
-                        task.wait(1)
-                    end
-                end)
-            end
+            LegenS = I; _G.SaveData["EspLegenSword_Save"] = I; SaveSettings()
+            spawn(function() while LegenS do wait(1); pcall(LegenSword) end; pcall(LegenSword) end)
         end,
     })
 end
@@ -3380,17 +3169,8 @@ if World2 or World3 then
         Title = "Esp Aura Colour Dealers",
         Default = GetSetting("EspHakiColor_Save", false),
         Callback = function(I)
-            ColorEsp = I
-            _G.SaveData["EspHakiColor_Save"] = I
-            SaveSettings()
-            if I then
-                task.spawn(function()
-                    while ColorEsp do
-                        if HakiClorEsp then pcall(HakiClorEsp) end
-                        task.wait(1)
-                    end
-                end)
-            end
+            ColorEsp = I; _G.SaveData["EspHakiColor_Save"] = I; SaveSettings()
+            spawn(function() while ColorEsp do wait(1); pcall(HakiClorEsp) end; pcall(HakiClorEsp) end)
         end,
     })
 end
@@ -3400,17 +3180,8 @@ if World3 then
         Title = "Esp Gears",
         Default = GetSetting("EspGears_Save", false),
         Callback = function(I)
-            ESPGear = I
-            _G.SaveData["EspGears_Save"] = I
-            SaveSettings()
-            if I then
-                task.spawn(function()
-                    while ESPGear do
-                        if gearEsp then pcall(gearEsp) end
-                        task.wait(1)
-                    end
-                end)
-            end
+            ESPGear = I; _G.SaveData["EspGears_Save"] = I; SaveSettings()
+            spawn(function() while ESPGear do wait(1); pcall(gearEsp) end; pcall(gearEsp) end)
         end,
     })
 
@@ -3418,17 +3189,8 @@ if World3 then
         Title = "Esp SeaEvent Island",
         Default = GetSetting("EspSeaEvent_Save", false),
         Callback = function(I)
-            EspEventIsland = I
-            _G.SaveData["EspSeaEvent_Save"] = I
-            SaveSettings()
-            if I then
-                task.spawn(function()
-                    while EspEventIsland do
-                        if EventIslandEsp then pcall(EventIslandEsp) end
-                        task.wait(1)
-                    end
-                end)
-            end
+            EspEventIsland = I; _G.SaveData["EspSeaEvent_Save"] = I; SaveSettings()
+            spawn(function() while EspEventIsland do wait(1); pcall(EventIslandEsp) end; pcall(EventIslandEsp) end)
         end,
     })
 
@@ -3436,20 +3198,12 @@ if World3 then
         Title = "Esp Advanced Fruits Dealer",
         Default = GetSetting("EspAdvanDealer_Save", false),
         Callback = function(I)
-            advanEsp = I
-            _G.SaveData["EspAdvanDealer_Save"] = I
-            SaveSettings()
-            if I then
-                task.spawn(function()
-                    while advanEsp do
-                        if AdvanFruitEsp then pcall(AdvanFruitEsp) end
-                        task.wait(1)
-                    end
-                end)
-            end
+            advanEsp = I; _G.SaveData["EspAdvanDealer_Save"] = I; SaveSettings()
+            spawn(function() while advanEsp do wait(1); pcall(AdvanFruitEsp) end; pcall(AdvanFruitEsp) end)
         end,
     })
 end
+
 
 VI_S:AddSeperator("Fontes");
 
