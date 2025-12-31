@@ -4561,12 +4561,7 @@ end);
 
 local I1 = i:AddSection("Info");
 
-local Sobre = I1:AddParagraph({
-    Title = "Finders Free on Discord",
-Content = [[
-Join Discord for Finder Fruit free for a limited time!
-]]
-});
+-- Botão para copiar Discord
 I1:AddButton({
     Title = "Copiar Discord",
     Description = "Entre para ficar por dentro das updates",
@@ -4583,6 +4578,30 @@ local PlaceInfo = I1:AddParagraph({
 
 -- Atualiza o conteúdo com o PlaceId real
 PlaceInfo:SetDesc("PlaceId Atual: " .. tostring(game.PlaceId))
+
+-- Paragraph com as novidades (Changelog)
+local Sobre = I1:AddParagraph({
+    Title = "Changelog",
+    Content = [[
+[+] Added Tween Speed  
+[*] Fixed Island Teleport  
+[*] Fixed Sea Events  
+[+] Added Auto Farm (600 Sword Mastery)  
+[*] Fixed Boss List Refresh  
+[+] Added Farm All Bosses  
+[+] Added Auto Accept Boss Quest  
+[*] Fixed Volcanic Magnet Crafting  
+[+] Added ESP Color Customization  
+[+] Added Stop Tween  
+[+] Added Use of Hydra Portal in Volcanic Magnet Crafting  
+[+] Improved Other Farms  
+[+] Added Update Log  
+[*] Fixed Esp Island   
+[*] Fixed Farm Level In Frozen Vilage  
+[+] Improved Bring Mobs
+]]
+})
+
 -- ROOT FIX: sempre atualizar o HRP quando o player respawnar
 local Root
 plr.CharacterAdded:Connect(function(char)
