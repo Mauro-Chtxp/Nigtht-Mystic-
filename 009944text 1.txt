@@ -679,22 +679,16 @@ BringEnemy = function()
 end
 
 --==================================================
--- LOOP CONTROLADOR (PUXA 3s / SOLTA 5s)
+-- LOOP CONTROLADOR (PUXA E SOLTA IMEDIATAMENTE)
 --==================================================
 task.spawn(function()
-	while task.wait() do
+	while task.wait(0.1) do
 		if FarmAtivo() and PosMon then
-			-- >>> PUXA <<<
 			_B = true
-			BringEnemy()
-			task.wait(3)
-
-			-- >>> SOLTA <<<
-			_B = false
-			task.wait(5)
+			BringEnemy()  -- Puxa os mobs
+			_B = false     -- Solta imediatamente após puxar
 		else
 			_B = false
-			task.wait(1)
 		end
 	end
 end)
