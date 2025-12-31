@@ -4583,6 +4583,29 @@ local PlaceInfo = I1:AddParagraph({
 
 -- Atualiza o conteúdo com o PlaceId real
 PlaceInfo:SetDesc("PlaceId Atual: " .. tostring(game.PlaceId))
+
+local Sobre = I1:AddParagraph({
+    Title = "Update Log",
+    Content = [[
+[+] Added Farm Height
+[+] Added Tween Speed
+[*] Fixed Island Teleport
+[*] Fixed Sea Events
+[+] Added Auto Farm (600 Sword Mastery)
+[*] Fixed Boss List Refresh
+[+] Added Farm All Bosses
+[+] Added Auto Accept Boss Quest
+[*] Fixed Volcanic Magnet Crafting
+[+] Added ESP Color Customization
+[+] Added Stop Tween
+[+] Added Use of Hydra Portal in Volcanic Magnet Crafting
+[+] Improved Other Farms
+[+] Added Update Log
+[*] Fixed Esp Island
+[*] Fixed Farm Level In Frozen Vilage
+[+] Improved Bring Mobs
+]]
+});
 -- ROOT FIX: sempre atualizar o HRP quando o player respawnar
 local Root
 plr.CharacterAdded:Connect(function(char)
@@ -9373,6 +9396,7 @@ spawn(function()
 	end;
 end);
 f:AddSeperator("Volcanic Magnet");
+-- Configurações de UI e Toggle
 f:AddToggle({
     Title = "Auto Craft Volcanic Magnet",
     Description = "turn on for auto farm material and craft volcanic magnet & stop when you have 1 volcanic magnet",
@@ -9386,19 +9410,24 @@ f:AddButton({
     Title = "Craft Volcanic Magnet", 
     Description = "", 
     Callback = function()
-        -- Remote substituído conforme solicitado
+        -- Notificação visual de craft
         replicated.Remotes.CommF_:FireServer("Notify", "<Color=Yellow>Crafted <Volcanic Magnet><Color=/>")
     end 
 });
 
+-- Loop Principal de Farm
 spawn(function()
     while wait(Sec) do
         pcall(function()
             if _G.CraftVM then
+                -- Verifica se já possui o item final
                 if GetM("Volcanic Magnet") < 1 then
+                    
+                    -- CASO 1: Já tem os materiais, tenta craftar/notificar
                     if GetM("Scrap Metal") >= 10 and GetM("Blaze Ember") >= 15 then
-                        -- Remote substituído aqui também
                         replicated.Remotes.CommF_:FireServer("Notify", "<Color=Yellow>Crafted <Volcanic Magnet><Color=/>")
+                    
+                    -- CASO 2: Falta Scrap Metal (Farma Forest Pirate)
                     elseif GetM("Scrap Metal") < 10 then
                         local I = GetConnectionEnemies("Forest Pirate");
                         if I then
@@ -9407,9 +9436,20 @@ spawn(function()
                                 G.Kill(I, _G.CraftVM);
                             until not _G.CraftVM or not I.Parent or I.Humanoid.Health <= 0 or GetM("Scrap Metal") >= 10;
                         else
+                            -- Teleporte padrão caso não ache o inimigo
                             _tp(CFrame.new(-13206.452148438, 425.89199829102, -7964.5537109375));
                         end;
+
+                    -- CASO 3: Falta Blaze Ember (Usa o Invoke e depois farma)
                     elseif GetM("Blaze Ember") < 15 then
+                        -- Tenta o Invoke por 1 segundo antes de iniciar o farm
+                        local startTime = tick()
+                        repeat
+                            replicated.Remotes.CommF_:InvokeServer("requestEntrance", Vector3.new(5643.4526367188, 1013.0858154297, -340.51025390625))
+                            wait(0.1)
+                        until (tick() - startTime) >= 1 or not _G.CraftVM
+                        
+                        -- Inicia o farm das brasas
                         repeat
                             wait();
                             _G.FarmBlazeEM = true;
