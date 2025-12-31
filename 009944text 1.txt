@@ -2813,7 +2813,7 @@ local function G5(I)
 end;
 Number = math.random(1, 1000000);
 
--- ESP DE PLAYERS (BRANCO)
+-- ESP DE PLAYERS (BRANCO) - MODIFICADO: APENAS NOME E LEVEL
 EspPly = function()
     for I, e in next, game.Players:GetChildren() do
         pcall(function()
@@ -2830,15 +2830,16 @@ EspPly = function()
                         K.Font = Enum.Font.Code;
                         K.FontSize = "Size14";
                         K.TextWrapped = true;
-                        K.Text = e.Name .. (" \n" .. (G5(((game:GetService("Players")).LocalPlayer.Character.Head.Position - e.Character.Head.Position).Magnitude / 3) .. " M"));
+                        -- Inicialização simplificada
+                        K.Text = e.Name .. " | Lv. " .. (e.Data.Level.Value);
                         K.Size = UDim2.new(1, 0, 1, 0);
                         K.TextYAlignment = "Top";
                         K.BackgroundTransparency = 1;
                         K.TextStrokeTransparency = .5;
-                        -- Alterado para Branco independente do Time
                         K.TextColor3 = Color3.new(1, 1, 1);
                     else
-                        e.Character.Head["NameEsp" .. Number].TextLabel.Text = e.Data.Level.Value .. (" | " .. (e.Name .. (" | " .. (G5(((game:GetService("Players")).LocalPlayer.Character.Head.Position - e.Character.Head.Position).Magnitude / 3) .. (" M\nHealth : " .. (G5((e.Character.Humanoid.Health * 100) / e.Character.Humanoid.MaxHealth) .. "%"))))));
+                        -- Atualização: Apenas Nome e Level
+                        e.Character.Head["NameEsp" .. Number].TextLabel.Text = e.Name .. " | Lv. " .. (e.Data.Level.Value);
                     end;
                 else
                     if e.Character.Head:FindFirstChild("NameEsp" .. Number) then
@@ -2923,39 +2924,6 @@ flowerEsp = function()
                         (e:FindFirstChild("NameEsp" .. Number)):Destroy();
                     end;
                 end;
-            end;
-        end);
-    end;
-end;
-
--- ESP DE EVENTOS (BRANCO)
-EventIslandEsp = function()
-    for I, e in pairs(workspace._WorldOrigin.Locations:GetChildren()) do
-        pcall(function()
-            if EspEventIsland then
-                if e.Name == "Mirage Island" or e.Name == "Prehistoric Island" or e.Name == "Kitsune Island" then
-                    if not e:FindFirstChild("NameEsp") then
-                        local I = Instance.new("BillboardGui", e);
-                        I.Name = "NameEsp";
-                        I.ExtentsOffset = Vector3.new(0, 1, 0);
-                        I.Size = UDim2.new(1, 200, 1, 30);
-                        I.Adornee = e;
-                        I.AlwaysOnTop = true;
-                        local K = Instance.new("TextLabel", I);
-                        K.Font = "Code";
-                        K.FontSize = "Size14";
-                        K.TextWrapped = true;
-                        K.Size = UDim2.new(1, 0, 1, 0);
-                        K.TextYAlignment = "Top";
-                        K.BackgroundTransparency = 1;
-                        K.TextStrokeTransparency = .5;
-                        K.TextColor3 = Color3.fromRGB(255, 255, 255);
-                    else
-                        e.NameEsp.TextLabel.Text = e.Name .. ("   \n" .. (G5((plr.Character.Head.Position - e.Position).Magnitude / 3) .. " M"));
-                    end;
-                end;
-            elseif e:FindFirstChild("NameEsp") then
-                (e:FindFirstChild("NameEsp")):Destroy();
             end;
         end);
     end;
@@ -3444,24 +3412,6 @@ if World3 then
                 task.spawn(function()
                     while ESPGear do
                         pcall(gearEsp)
-                        task.wait(1)
-                    end
-                end)
-            end
-        end,
-    })
-
-    VI_S:AddToggle({
-        Title = "Esp SeaEvent Island",
-        Default = GetSetting("EspSeaEvent_Save", false),
-        Callback = function(I)
-            EspEventIsland = I
-            _G.SaveData["EspSeaEvent_Save"] = I
-            SaveSettings()
-            if I then
-                task.spawn(function()
-                    while EspEventIsland do
-                        pcall(EventIslandEsp)
                         task.wait(1)
                     end
                 end)
