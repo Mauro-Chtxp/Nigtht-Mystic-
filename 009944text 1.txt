@@ -4581,28 +4581,6 @@ local PlaceInfo = I1:AddParagraph({
     Content = ""
 })
 
-local Sobre = I1:AddParagraph({ 
-    Title = "Update log", 
-    Content = [[
-[+] Added Farm Height
-[+] Added Tween Speed
-[*] Fixed Island Teleport
-[*] Fixed Sea Events
-[+] Added Auto Farm (600 Sword Mastery)
-[*] Fixed Boss List Refresh
-[+] Added Farm All Bosses
-[+] Added Auto Accept Boss Quest
-[*] Fixed Volcanic Magnet Crafting
-[+] Added ESP Color Customization
-[+] Added Stop Tween
-[+] Added Use of Hydra Portal in Volcanic Magnet Crafting
-[+] Improved Other Farms
-[+] Added Update Log
-[*] Fixed Esp Island 
-[*] Fixed Farm Level In Frozen Vilage
-[+] Improved Bring Mobs
-]])
-
 -- Atualiza o conteúdo com o PlaceId real
 PlaceInfo:SetDesc("PlaceId Atual: " .. tostring(game.PlaceId))
 -- ROOT FIX: sempre atualizar o HRP quando o player respawnar
@@ -9460,7 +9438,6 @@ spawn(function()
         end);
     end;
 end);
-
 
 f:AddSeperator("Prehistoric Island");
 f:AddToggle({
