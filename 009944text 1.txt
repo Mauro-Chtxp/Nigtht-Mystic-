@@ -4931,7 +4931,6 @@ spawn(function()
                         CFrame.new(-16250.3, 159.3, 1316.3)
                     }
                     
-                    -- CORREÇÃO: Usa o VaseIndex para ciclar entre os vasos ao invés de resetar o loop
                     local pos = targetsty[VaseIndex]
                     
                     if pos then
@@ -4969,9 +4968,9 @@ spawn(function()
                             
                             if distToNPC <= 3 then
                                 char.HumanoidRootPart.CFrame = TargetData.QuestPos
-                                task.wait(0.1)
+                                task.wait() -- Removido wait longo
                                 game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(TargetData.QuestArgs))
-                                task.wait(0.5)
+                                task.wait(0.1)
                             else
                                 _tp(TargetData.QuestPos)
                             end
@@ -5018,7 +5017,7 @@ end)
 
 
 
--- 3. SISTEMA BONE FARM (CORRIGIDO)
+-- 3. SISTEMA BONE FARM (CORRIGIDO E OTIMIZADO)
 spawn(function()
     while task.wait() do
         if _G.AutoFarm_Bone and _G.StartFarm then
@@ -5029,29 +5028,27 @@ spawn(function()
                 
                 local QuestUI = plr.PlayerGui.Main.Quest      
                 local MOBS = {"Reborn Skeleton", "Living Zombie", "Demonic Soul", "Posessed Mummy"}
-                local npcPos = CFrame.new(-9516.99, 172.01, 6078.46) -- Posição do NPC de Bones
+                local npcPos = CFrame.new(-9516.99, 172.01, 6078.46) 
 
-                -- [PASSO 1] SE PRECISAR DE QUEST, VAI AO NPC PRIMEIRO
+                -- [PASSO 1] SE PRECISAR DE QUEST
                 if _G.AcceptQuest and not QuestUI.Visible then      
                     local distToNPC = (npcPos.Position - hrp.Position).Magnitude
                     
                     if distToNPC > 5 then
-                        _tp(npcPos) -- Teleporta direto para o NPC
+                        _tp(npcPos) 
                     else
-                        -- Se estiver perto, tenta pegar a quest
-                        task.wait(0.5)
+                        task.wait() -- Otimizado: Removido delay de 0.5s
                         local quests = {
                             {"StartQuest","HauntedQuest1",1}, 
                             {"StartQuest","HauntedQuest1",2},
                             {"StartQuest","HauntedQuest2",1}, 
                             {"StartQuest","HauntedQuest2",2}
                         }
-                        -- Tenta pegar a quest baseada no seu level (opcional: deixei aleatório como no seu original)
                         game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(quests[math.random(1,#quests)]))
-                        task.wait(1) -- Espera a quest carregar na UI
+                        task.wait(0.1) -- Otimizado: Removido delay de 1s
                     end
 
-                -- [PASSO 2] SE JÁ TEM QUEST OU NÃO QUER ACEITAR, VAI FARMAL
+                -- [PASSO 2] FARM
                 else
                     local function GetClosestMob()      
                         local closest, shortest = nil, math.huge      
@@ -5071,12 +5068,10 @@ spawn(function()
 
                     local mob = GetClosestMob()      
                     if mob then      
-                        -- Teleporta para o mob e mata
                         _tp(mob.PrimaryPart.CFrame)      
                         EquipWeapon(_G.SelectWeapon)
                         G.Kill(mob, true)
                     else      
-                        -- Se não achar mobs, vai para o spot de spawn deles
                         _tp(CFrame.new(-9495.68, 453.58, 5977.34))      
                     end      
                 end
@@ -5087,7 +5082,7 @@ end)
 
 ---
 
--- 4. SISTEMA LEVEL FARM
+-- 4. SISTEMA LEVEL FARM (COOLDOWN REMOVIDO)
 
 local CurrentMob = nil
 
@@ -5118,7 +5113,7 @@ spawn(function()
                 if not plr.PlayerGui.Main.Quest.Visible then      
                     TeleportConditional(Root, Q[6], TELEPORT_DISTANCE_THRESHOLD)      
                     if (Root.Position - Q[6].Position).Magnitude <= 50 then      
-                        task.wait(1.9)  
+                        task.wait() -- OTIMIZAÇÃO: Removido o delay de 1.9 segundos
                         game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", Q[3], Q[2])      
                     end      
                     return      
@@ -5131,7 +5126,12 @@ spawn(function()
                 if not Nearest then TeleportConditional(Root, Q[4], TELEPORT_DISTANCE_THRESHOLD) return end
                 CurrentMob = Nearest
                 if CurrentMob and CurrentMob:FindFirstChild("HumanoidRootPart") then _tp(CurrentMob.HumanoidRootPart.CFrame) end
-                repeat task.wait() G.Kill(CurrentMob, true) until not _G.StartFarm or not _G.Level or not CurrentMob.Parent or CurrentMob.Humanoid.Health <= 0      
+                
+                -- OTIMIZAÇÃO: Sai do loop imediatamente quando a vida chega a 0
+                repeat 
+                    task.wait() 
+                    G.Kill(CurrentMob, true) 
+                until not _G.StartFarm or not _G.Level or not CurrentMob.Parent or CurrentMob.Humanoid.Health <= 0      
                 CurrentMob = nil      
             end)  
         end  
