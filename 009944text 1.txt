@@ -4581,7 +4581,7 @@ PlaceInfo:SetDesc("PlaceId Atual: " .. tostring(game.PlaceId))
 
 -- Paragraph com as novidades (Changelog)
 local Sobre = I1:AddParagraph({
-    Title = "Changelog",
+    Title = "Update Log",
     Content = [[
 [+] Added Tween Speed  
 [*] Fixed Island Teleport  
