@@ -4581,11 +4581,8 @@ local PlaceInfo = I1:AddParagraph({
     Content = ""
 })
 
--- Atualiza o conteúdo com o PlaceId real
-PlaceInfo:SetDesc("PlaceId Atual: " .. tostring(game.PlaceId))
-
-local Sobre = I1:AddParagraph({
-    Title = "Update Log",
+local Sobre = I1:AddParagraph({ 
+    Title = "Update log", 
     Content = [[
 [+] Added Farm Height
 [+] Added Tween Speed
@@ -4601,11 +4598,13 @@ local Sobre = I1:AddParagraph({
 [+] Added Use of Hydra Portal in Volcanic Magnet Crafting
 [+] Improved Other Farms
 [+] Added Update Log
-[*] Fixed Esp Island
+[*] Fixed Esp Island 
 [*] Fixed Farm Level In Frozen Vilage
 [+] Improved Bring Mobs
-]]
-});
+]])
+
+-- Atualiza o conteúdo com o PlaceId real
+PlaceInfo:SetDesc("PlaceId Atual: " .. tostring(game.PlaceId))
 -- ROOT FIX: sempre atualizar o HRP quando o player respawnar
 local Root
 plr.CharacterAdded:Connect(function(char)
@@ -9461,6 +9460,7 @@ spawn(function()
         end);
     end;
 end);
+
 
 f:AddSeperator("Prehistoric Island");
 f:AddToggle({
