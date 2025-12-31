@@ -545,6 +545,17 @@ _G.BringRange   = _G.BringRange or 235
 _G.MaxBringMobs = _G.MaxBringMobs or 3
 
 --==================================================
+-- SERVICES
+--==================================================
+local TweenService = game:GetService("TweenService")
+
+local TweenInfoBring = TweenInfo.new(
+	0.45,
+	Enum.EasingStyle.Linear,
+	Enum.EasingDirection.Out
+)
+
+--==================================================
 -- FARM ATIVO
 --==================================================
 local function FarmAtivo()
@@ -618,14 +629,22 @@ local function IsRaidMob(mob)
 end
 
 --==================================================
--- FUNÇÃO BRING (MOVIMENTO LENTO COM TWEEN)
+-- FUNÇÃO BRING (RESPEITA _B)
 --==================================================
-local TweenService = game:GetService("TweenService")
-local TweenTime = 1 -- tempo em segundos para o mob ir até PosMon
-
 BringEnemy = function()
 	if not FarmAtivo() or not _B or not PosMon then return end
 
+	local plr = game.Players.LocalPlayer
+	local char = plr.Character
+	local hrp = char and char:FindFirstChild("HumanoidRootPart")
+	if not hrp then return end
+
+	-- Simulation Radius
+	pcall(function()
+		sethiddenproperty(plr, "SimulationRadius", math.huge)
+	end)
+
+	local targetPos = PosMon
 	local count = 0
 
 	for _, mob in ipairs(workspace.Enemies:GetChildren()) do
@@ -635,29 +654,39 @@ BringEnemy = function()
 		local root = mob:FindFirstChild("HumanoidRootPart")
 
 		if hum and root and hum.Health > 0 and not IsRaidMob(mob) then
-			local dist = (root.Position - PosMon).Magnitude
-			if dist <= _G.BringRange then
-				count += 1
+			if not root:GetAttribute("Tweening") then
+				local dist = (root.Position - targetPos).Magnitude
+				if dist <= _G.BringRange then
+					count += 1
+					root:SetAttribute("Tweening", true)
 
-				-- Cria tween para mover o mob até PosMon
-				local tweenInfo = TweenInfo.new(TweenTime, Enum.EasingStyle.Linear)
-				local goal = {CFrame = CFrame.new(PosMon)}
-				local tween = TweenService:Create(root, tweenInfo, goal)
-				tween:Play()
+					local tween = TweenService:Create(
+						root,
+						TweenInfoBring,
+						{ CFrame = CFrame.new(targetPos) }
+					)
+
+					tween:Play()
+					tween.Completed:Once(function()
+						if root then
+							root:SetAttribute("Tweening", false)
+						end
+					end)
+				end
 			end
 		end
 	end
 end
 
 --==================================================
--- LOOP CONTROLADOR (PUXA COM TWEEN)
+-- LOOP CONTROLADOR (PUXA E SOLTA IMEDIATAMENTE)
 --==================================================
 task.spawn(function()
 	while task.wait(0.1) do
 		if FarmAtivo() and PosMon then
 			_B = true
-			BringEnemy()  -- Puxa com tween
-			_B = false
+			BringEnemy()  -- Puxa os mobs
+			_B = false     -- Solta imediatamente após puxar
 		else
 			_B = false
 		end
@@ -11101,7 +11130,7 @@ Y:AddDropdown({
 
 Y:AddToggle({
     Title = "Auto Travel",
-    Description = "Teleporta com segurança (Sobe -> Viaja -> Desce)",
+    Description = "",
     Default = false,
     Callback = function(Value)
         _G.Teleport = Value
