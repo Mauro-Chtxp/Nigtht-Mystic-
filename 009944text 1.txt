@@ -545,17 +545,6 @@ _G.BringRange   = _G.BringRange or 235
 _G.MaxBringMobs = _G.MaxBringMobs or 3
 
 --==================================================
--- SERVICES
---==================================================
-local TweenService = game:GetService("TweenService")
-
-local TweenInfoBring = TweenInfo.new(
-	0.45,
-	Enum.EasingStyle.Linear,
-	Enum.EasingDirection.Out
-)
-
---==================================================
 -- FARM ATIVO
 --==================================================
 local function FarmAtivo()
@@ -629,22 +618,11 @@ local function IsRaidMob(mob)
 end
 
 --==================================================
--- FUNÇÃO BRING (RESPEITA _B)
+-- FUNÇÃO BRING (TP INSTANTÂNEO)
 --==================================================
 BringEnemy = function()
 	if not FarmAtivo() or not _B or not PosMon then return end
 
-	local plr = game.Players.LocalPlayer
-	local char = plr.Character
-	local hrp = char and char:FindFirstChild("HumanoidRootPart")
-	if not hrp then return end
-
-	-- Simulation Radius
-	pcall(function()
-		sethiddenproperty(plr, "SimulationRadius", math.huge)
-	end)
-
-	local targetPos = PosMon
 	local count = 0
 
 	for _, mob in ipairs(workspace.Enemies:GetChildren()) do
@@ -654,25 +632,10 @@ BringEnemy = function()
 		local root = mob:FindFirstChild("HumanoidRootPart")
 
 		if hum and root and hum.Health > 0 and not IsRaidMob(mob) then
-			if not root:GetAttribute("Tweening") then
-				local dist = (root.Position - targetPos).Magnitude
-				if dist <= _G.BringRange then
-					count += 1
-					root:SetAttribute("Tweening", true)
-
-					local tween = TweenService:Create(
-						root,
-						TweenInfoBring,
-						{ CFrame = CFrame.new(targetPos) }
-					)
-
-					tween:Play()
-					tween.Completed:Once(function()
-						if root then
-							root:SetAttribute("Tweening", false)
-						end
-					end)
-				end
+			local dist = (root.Position - PosMon).Magnitude
+			if dist <= _G.BringRange then
+				count += 1
+				root.CFrame = CFrame.new(PosMon)  -- TP instantâneo
 			end
 		end
 	end
@@ -685,14 +648,13 @@ task.spawn(function()
 	while task.wait(0.1) do
 		if FarmAtivo() and PosMon then
 			_B = true
-			BringEnemy()  -- Puxa os mobs
-			_B = false     -- Solta imediatamente após puxar
+			BringEnemy()  -- TP instantâneo
+			_B = false
 		else
 			_B = false
 		end
 	end
 end)
-
 Useskills = function(I, e)
 		if I == "Melee" then
 			weaponSc("Melee");
